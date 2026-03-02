@@ -78,9 +78,6 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
     if (!searchData) return;
 
     setTeams(searchData.teams || []);
-    // setNets(searchData.nets || []);
-    // setMatches(searchData.matches || []);
-    // setRounds(searchData.rounds || []);
     setGroups(searchData.groups || []);
     const map = new Map<string, IPlayer>();
     for (let i = 0; i < (searchData.captains || []).length; i++) {
@@ -181,7 +178,6 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
     }
   }, [teams.length, appliedFilter, executeSearchQuery]);
 
-  console.log(initialData);
   
 
   // Initialize with preloaded data

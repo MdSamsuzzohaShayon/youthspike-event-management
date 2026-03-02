@@ -23,6 +23,11 @@ export class Template extends AppDocument {
   @Prop({ required: true })
   name: string;
 
+  // To change default value, we need to update all the templates in the event to false and then update the template to true
+  @Field((_type) => Boolean, { nullable: false })
+  @Prop({ required: true, default: false })
+  default: boolean;
+
   @Field(() => ETemplateType)
   @Prop({
     required: true,

@@ -8,7 +8,6 @@ import { IMatch, IRoundRelatives, ISearchFilter, ISearchMatchResponse, ITeam, IG
 import FilterContent from '../event/FilterContent';
 import SearchMatchList from './SearchMatchList';
 import EventNavigation from '../layout/EventNavigation';
-import { useAuthGuard } from '@/hooks/auth/useAuthGuard';
 import ActiveFiltersBar from '../event/ActiveFiltersBar';
 
 interface MatchesMainProps {
@@ -38,8 +37,6 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
   const { data: initialData } = useReadQuery(queryRef);
   const apolloClient = useApolloClient();
 
-  const authCode = initialData?.searchMatches?.code;
-  useAuthGuard(authCode);
   
 
   // Filter states

@@ -348,8 +348,10 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
 
     try {
       setIsLoading(true);
-      await sendCredentialsMutation({ variables: { eventId: event._id, teamIds: checkedTeamIds } });
-      if (refetchFunc) await refetchFunc();
+      const response = await sendCredentialsMutation({ variables: { eventId: event._id, teamIds: checkedTeamIds } });
+      // @ts-ignore
+      const isSuccessful = await handleResponseCheck(response?.data?.sendCredentials, setActErr);
+      if (isSuccessful && refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
     } finally {
@@ -408,10 +410,13 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
   const handleSendSingleTeamCredential = async (e: React.SyntheticEvent, teamId: string): Promise<void> => {
     try {
       setIsLoading(true);
-      await sendCredentialsMutation({ variables: { eventId: event._id, teamIds: [teamId] } });
-      if (refetchFunc) await refetchFunc();
+      const response = await sendCredentialsMutation({ variables: { eventId: event._id, teamIds: [teamId] } });
+      // @ts-ignore
+      const isSuccessful = await handleResponseCheck(response?.data?.sendCredentials, setActErr);
+      if (isSuccessful && refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
+      handleError({error, setActErr});
     } finally {
       setIsLoading(false);
     }

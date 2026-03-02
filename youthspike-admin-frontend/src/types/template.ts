@@ -15,12 +15,18 @@ export type TPlaceholder = "tournamentName" | "playerName" | "startDate" | "team
 export interface ITemplate {
     _id: string;
     name: string;
+    default: boolean;
     type: ETemplateType,
     subject: string;
     body: string;
     images: string[];
     placeholders: TPlaceholder[],
     event: IEvent
+
+}
+
+export interface ITemplateCreate extends Omit<ITemplate, '_id' | 'event'> {
+    event: string
 
 }
 

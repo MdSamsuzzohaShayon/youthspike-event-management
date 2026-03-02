@@ -7,6 +7,9 @@ export class CreateTemplateInput {
   @Field()
   name: string;
 
+  @Field((_type) => Boolean, { nullable: false, defaultValue: false })
+  default: boolean;
+
   @Field(() => ETemplateType)
   type: ETemplateType;
 

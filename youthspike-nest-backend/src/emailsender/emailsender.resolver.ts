@@ -1,12 +1,21 @@
+// ─────────────────────────────────────────────────────────────
+// emailsender.resolver.ts
+// Updated sendCredentials:
+//   1. Fetches the event's linked Template from DB
+//   2. Builds the placeholder values map for each recipient
+//   3. Calls emailSenderService.sendTemplateEmail() (DB template path)
+//   Falls back to the legacy HTML file if no template is attached.
+// ─────────────────────────────────────────────────────────────
+
 import { HttpStatus, UseGuards } from '@nestjs/common';
-import { Args, Context, Mutation,  Resolver } from '@nestjs/graphql';
+import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
 import { EventService } from 'src/event/event.service';
 import { PlayerService } from 'src/player/player.service';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { AppResponse } from 'src/shared/response';
 import { TeamService } from 'src/team/team.service';
-import { EmailsenderService } from './emailsender.service';
+import { EmailsenderService, ITemplateValues } from './emailsender.service';
 import { LdoService } from 'src/ldo/ldo.service';
 import { UserService } from 'src/user/user.service';
 import { Roles } from 'src/shared/auth/roles.decorator';
@@ -14,6 +23,8 @@ import { UserRole } from 'src/user/user.schema';
 import { ConfigService } from '@nestjs/config';
 import { formatDate, isISODateString, tokenToUser } from 'src/utils/helper';
 import { EEnv, NODE_ENV } from 'src/utils/keys';
+import { TemplateService } from 'src/template/template.service';
+import { ETemplateType } from 'src/template/template.schema';
 
 @Resolver()
 export class EmailsenderResolver {
@@ -24,39 +35,83 @@ export class EmailsenderResolver {
     private emailSenderService: EmailsenderService,
     private ldoService: LdoService,
     private userService: UserService,
+    private templateService: TemplateService,
     private configService: ConfigService,
   ) {}
 
-  /**
-   * Format a date into a custom string.
-   * @param date The input date to be formatted.
-   * @returns A formatted date string (e.g., '01 January 2024').
-   */
+  // ── Helpers ─────────────────────────────────────────────────
+
   private formatDateToCustomString(date: string): string {
-    // Create a Date object from the ISO string
     const newDate = new Date(date);
-
-    // Options for formatting
-    const options: Intl.DateTimeFormatOptions = {
-      year: 'numeric' as const,
-      month: 'long' as const,
-      day: '2-digit' as const,
-    };
-
-    // Convert to formatted string
-    const formattedDate = newDate.toLocaleDateString('en-US', options);
-
-    return formattedDate;
+    return newDate.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: '2-digit',
+    });
   }
 
   /**
-   * Send credentials to team members for an event.
-   * @param eventId The ID of the event.
-   * @param teamId (Optional) The ID of the specific team to send credentials to.
-   * @param captain (Optional) The email of the captain to send credentials to.
-   * @param co_captain (Optional) The email of the co-captain to send credentials to.
-   * @returns An AppResponse indicating the result of the operation.
+   * Build the full placeholder values map for a given player + event context.
+   * Keys must match exactly what was used in the template editor.
    */
+  private buildTemplateValues({
+    playerUsername,
+    captainName,
+    coachPassword,
+    ldoName,
+    ldoDirectorName,
+    directorEmail,
+    ldoPhone,
+    eventName,
+    eventDate,
+    rosterLockDate,
+    frontendUrl,
+    adminClientUrl,
+    fwangoUrl,
+    americanSpikersUrl,
+  }: {
+    playerUsername: string;
+    captainName: string;
+    coachPassword: string;
+    ldoName: string;
+    ldoDirectorName: string;
+    directorEmail: string;
+    ldoPhone?: string | null;
+    eventName: string;
+    eventDate: string;
+    rosterLockDate: string;
+    frontendUrl: string;
+    adminClientUrl: string;
+    fwangoUrl: string;
+    americanSpikersUrl: string;
+  }): ITemplateValues {
+    return {
+      // Player
+      player_username: playerUsername,
+      captain: captainName,
+      coach_password: coachPassword,
+
+      // LDO / Director
+      ldo_name: ldoName,
+      ldo_director_name: ldoDirectorName,
+      ldo_email: directorEmail,
+      ldo_phone: ldoPhone ? `Phone: ${ldoPhone}` : '',
+
+      // Event
+      event_name: eventName,
+      event_date: eventDate,
+      roster_lock_date: rosterLockDate,
+
+      // URLs
+      frontend_url: frontendUrl,
+      admin_client_url: adminClientUrl,
+      fwango_url: fwangoUrl,
+      american_spikers_url: americanSpikersUrl,
+    };
+  }
+
+  // ── Mutation ─────────────────────────────────────────────────
+
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((_returns) => AppResponse)
@@ -68,121 +123,159 @@ export class EmailsenderResolver {
     @Args('co_captain', { nullable: true }) co_captain?: string,
   ): Promise<AppResponse> {
     try {
-      const sendPromises: Promise<void>[] = [];
-
-      // Retrieve event details
+      // ── 1. Fetch event ───────────────────────────────────
       const eventExist = await this.eventService.findById(eventId);
-      if (!eventExist) {
-        return AppResponse.notFound('Event');
-      }
-      const subject = `${eventExist.name} Captain's Login Credentials & Rankings`;
-      const htmlFileName = 'send-credentials.html';
-      
+      if (!eventExist) return AppResponse.notFound('Event');
 
+      // ── 2. Fetch LDO + Director ──────────────────────────
       const ldoExist = await this.ldoService.findByDirectorId(eventExist.ldo.toString());
       const directorExist = await this.userService.findById(ldoExist.director.toString());
 
-      
-
-      // Check user role
+      // ── 3. Auth check + ldoIdUrl ─────────────────────────
       const secret = this.configService.get<string>('JWT_SECRET');
       const userPayload = tokenToUser(context, secret);
-      if (!userPayload || !userPayload._id) return AppResponse.unauthorized();
-      
+      if (!userPayload?._id) return AppResponse.unauthorized();
 
       const loggedUser = await this.userService.findById(userPayload._id);
       if (!loggedUser) return AppResponse.unauthorized();
-      let ldoIdUrl = '';
 
-      if (loggedUser.role === UserRole.admin) {
-        ldoIdUrl = `?ldoId=${ldoExist.director.toString()}`;
+      const ldoIdUrl = loggedUser.role === UserRole.admin
+        ? `?ldoId=${ldoExist.director.toString()}`
+        : '';
+
+      // ── 4. Resolve the email template ────────────────────
+      //
+      // Priority:
+      //   a) Template linked to this event (first TEAM type template)
+      //   b) Legacy HTML file fallback
+      //
+      // The event schema should ideally have a `template` ref.
+      // We search by event ID and use the first match.
+      let templateHtml: string | null = null;
+      let emailSubject = `${eventExist.name} Captain's Login Credentials & Rankings`;
+
+      const eventTemplates = await this.templateService.find({
+        event: eventId,
+        // Optionally filter by type: type: ETemplateType.TEAM
+        type: ETemplateType.TEAM
+      });
+
+      // Get the last one as default
+      const eventTemplate = eventTemplates.length > 0 ? eventTemplates[1] : null;
+
+      if (eventTemplate) {
+        templateHtml = eventTemplate.body; // compiled email-safe HTML from editor
+        emailSubject = eventTemplate.subject || emailSubject;
       }
 
-      // Prepare list of recipients based on specified parameters
+      // ── 5. Collect recipients ────────────────────────────
       const recipients: string[] = [];
+
       if (teamIds && teamIds.length > 0) {
-        // Send credentials to specific team
         const teams = await this.teamService.find({ _id: { $in: teamIds } });
-        if (!teams || teams.length === 0) {
-          return AppResponse.notFound('Teams');
-        }
+        if (!teams || teams.length === 0) return AppResponse.notFound('Teams');
 
         for (const team of teams) {
-          if (team.captain) {
-            recipients.push(team.captain.toString());
-          }
-          if (team.cocaptain) {
-            recipients.push(team.cocaptain.toString());
-          }
+          if (team.captain) recipients.push(team.captain.toString());
+          if (team.cocaptain) recipients.push(team.cocaptain.toString());
         }
       } else {
-        // Send credentials to captains and co-captains of all teams in the event
-        const teams = await this.teamService.find({ _id: { $in: eventExist.teams.map(t => String(t)) } });
+        const teams = await this.teamService.find({
+          _id: { $in: eventExist.teams.map((t) => String(t)) },
+        });
         for (const team of teams) {
-          if (team.captain) {
-            recipients.push(team.captain.toString());
-          }
-          if (team.cocaptain) {
-            recipients.push(team.cocaptain.toString());
-          }
+          if (team.captain) recipients.push(team.captain.toString());
+          if (team.cocaptain) recipients.push(team.cocaptain.toString());
         }
       }
 
-      // Send emails to recipients
-      for (const recipient of recipients) {
-        console.log("Env variable: ", this.configService.get<string>('NODE_ENV'));
-        const playerExist = await this.playerService.findById(recipient);
-        if (playerExist) {
-          const sendTo = [playerExist.email];
-          if (NODE_ENV === EEnv.DEVELOPMENT) {
-            sendTo.push('mdsamsuzzoha5222@gmail.com');
-          }
-          const eventDateFormatted = this.formatDateToCustomString(eventExist.startDate);
+      // ── 6. Shared context values (same for all recipients) ──
+      const ADMIN_CLIENT_URL = this.configService.get<string>('ADMIN_CLIENT_URL');
+      const FWANGO_URL = eventExist.fwango || this.configService.get<string>('FWANGO_URL');
+      const AMERICAN_SPIKERS_URL = this.configService.get<string>('AMERICAN_SPIKERS_URL');
+      const FRONTEND_URL = this.configService.get<string>('CLIENT_URL');
+
+      const eventDateFormatted = this.formatDateToCustomString(eventExist.startDate);
+      const rosterLockFormatted = isISODateString(eventExist.rosterLock)
+        ? formatDate(eventExist.rosterLock)
+        : eventExist.rosterLock;
+
+      // ── 7. Send to each recipient ────────────────────────
+      const sendPromises: Promise<void>[] = [];
+
+      for (const recipientId of recipients) {
+        const playerExist = await this.playerService.findById(recipientId);
+        if (!playerExist) continue;
+
+        const sendTo = [playerExist.email];
+        if (NODE_ENV === EEnv.DEVELOPMENT) {
+          sendTo.push('mdsamsuzzoha5222@gmail.com');
+        }
+
+        const adminClientUrl = `${ADMIN_CLIENT_URL}/${eventExist._id}/matches/${ldoIdUrl}`;
+
+        const values = this.buildTemplateValues({
+          playerUsername: playerExist.username,
+          captainName: playerExist.firstName,
+          coachPassword: eventExist.coachPassword,
+          ldoName: ldoExist.name,
+          ldoDirectorName: `${directorExist.firstName} ${directorExist.lastName}`,
+          directorEmail: directorExist.email,
+          ldoPhone: ldoExist.phone,
+          eventName: eventExist.name,
+          eventDate: eventDateFormatted,
+          rosterLockDate: rosterLockFormatted,
+          frontendUrl: FRONTEND_URL,
+          adminClientUrl,
+          fwangoUrl: FWANGO_URL,
+          americanSpikersUrl: AMERICAN_SPIKERS_URL,
+        });
+
+        if (templateHtml) {
+          // ── New path: render DB template ──────────────
+          sendPromises.push(
+            this.emailSenderService.sendTemplateEmail({
+              to: sendTo,
+              subject: emailSubject,
+              templateHtml,
+              values,
+            }),
+          );
+        } else {
+          // ── Legacy fallback: HTML file on disk ────────
           sendPromises.push(
             this.emailSenderService.sendHtmlEmail({
               to: sendTo,
-              subject,
-              htmlFileName,
-              player_username: playerExist.username,
-              coach_password: eventExist.coachPassword,
-              ldo_name: ldoExist.name,
-
-              ldo_director_name: directorExist.firstName + ' ' + directorExist.lastName,
-              roster_lock_date: isISODateString(eventExist.rosterLock)
-                ? formatDate(eventExist.rosterLock)
-                : eventExist.rosterLock,
-              event_name: eventExist.name,
-              frontend_url: this.configService.get<string>('CLIENT_URL'),
-
-              director_email: directorExist.email,
-              captain_name: playerExist.firstName,
-              event_date: eventDateFormatted,
-              fwango_link: eventExist.fwango,
-              ldo_phone: ldoExist.phone,
-              eventId: eventExist._id,
-              ldoIdUrl,
+              subject: emailSubject,
+              htmlFileName: 'send-credentials.html',
+              values,
             }),
           );
         }
       }
 
-      // Update event or team to mark credentials as sent
+      // ── 8. Mark credentials as sent ──────────────────────
       if (teamIds && teamIds.length > 0) {
-        await this.teamService.updateMany({ _id: { $in: teamIds } }, { $set: { sendCredentials: true } });
+        await this.teamService.updateMany(
+          { _id: { $in: teamIds } },
+          { $set: { sendCredentials: true } },
+        );
       } else {
-        await this.eventService.updateOne({ _id: eventId }, { $set: { sendCredentials: true } });
+        await this.eventService.updateOne(
+          { _id: eventId },
+          { $set: { sendCredentials: true } },
+        );
       }
 
       await Promise.all(sendPromises);
 
       return {
         code: HttpStatus.OK,
-        message: `Credentials have been sent via email`,
+        message: 'Credentials have been sent via email',
         success: true,
       };
     } catch (error) {
-      console.log("Error", error);
-      
+      console.error('[EmailsenderResolver] sendCredentials error:', error);
       return AppResponse.handleError(error);
     }
   }

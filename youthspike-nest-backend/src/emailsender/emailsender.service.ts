@@ -1,32 +1,53 @@
+// ─────────────────────────────────────────────────────────────
+// emailsender.service.ts
+// Updated to support dynamic template rendering from DB templates.
+// Replaces both:
+//   - Semantic nodes: <span data-placeholder="key">
+//   - Legacy text:    {{key}}
+// ─────────────────────────────────────────────────────────────
+
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import * as path from 'path';
+import { JSDOM } from 'jsdom';
 
-interface ITemplateGenerateParams {
-  htmlFileName: string;
-  player_username: string;
-  coach_password: string;
-  ldo_name: string;
-  director_email: string;
-  captain_name: string;
-  event_date: string;
-  eventId: string;
-  ldoIdUrl: string;
+// ── Types ─────────────────────────────────────────────────────
 
-  ldo_director_name: string;
-  roster_lock_date: string;
-  event_name: string;
-  frontend_url: string;
-
-  fwango_link?: string | null;
-  ldo_phone?: string | null;
+/** All known placeholder keys that can appear in templates */
+export interface ITemplateValues {
+  player_username?: string;
+  coach_password?: string;
+  ldo_name?: string;
+  ldo_director_name?: string;
+  ldo_email?: string;
+  ldo_phone?: string;
+  captain?: string;
+  event_name?: string;
+  event_date?: string;
+  roster_lock_date?: string;
+  frontend_url?: string;
+  admin_client_url?: string;
+  fwango_url?: string;
+  american_spikers_url?: string;
+  // Allow arbitrary extra keys for forward-compatibility
+  [key: string]: string | undefined;
 }
 
-interface ITemplateParams extends ITemplateGenerateParams {
+interface ISendTemplateEmail {
   to: string[];
   subject: string;
+  /** Compiled email-safe HTML from the Template DB document (body field) */
+  templateHtml: string;
+  values: ITemplateValues;
+}
+
+interface ISendRawFileEmail {
+  to: string[];
+  subject: string;
+  htmlFileName: string;
+  values: ITemplateValues;
 }
 
 interface ITemplateInfoParams {
@@ -36,9 +57,12 @@ interface ITemplateInfoParams {
   info: Record<string, any>;
 }
 
+// ── Service ───────────────────────────────────────────────────
+
 @Injectable()
 export class EmailsenderService {
-  private transporter;
+  private transporter: nodemailer.Transporter;
+
   constructor(private configService: ConfigService) {
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -49,146 +73,143 @@ export class EmailsenderService {
     });
   }
 
-  // Helper functions
-  async generateHtml({
-    htmlFileName,
-    player_username,
-    coach_password,
-    ldo_name,
-    director_email,
-    captain_name,
+  // ── Core renderer ─────────────────────────────────────────
 
-    ldo_director_name,
-    roster_lock_date,
-    event_name,
-    frontend_url,
+  /**
+   * Render a compiled template HTML string by replacing all placeholders.
+   *
+   * Handles two formats produced by the frontend:
+   *
+   * 1. Semantic node (new):
+   *    <span data-placeholder="captain" ...>{{captain}}</span>
+   *    → replaced by the plain-text value
+   *
+   * 2. Legacy text pattern:
+   *    {{captain}}
+   *    → replaced by the plain-text value
+   *
+   * Missing values are left as-is ({{key}}) rather than throwing,
+   * so a partially-configured template still sends.
+   */
+  renderTemplate(html: string, values: ITemplateValues): string {
+    let result = html;
 
-    event_date,
-    fwango_link,
-    ldo_phone,
-    eventId,
-    ldoIdUrl,
-  }: ITemplateGenerateParams): Promise<string> {
-    const htmlFilePath = path.join(__dirname, '../../src/email/templates', htmlFileName);
-    const htmlContent = await fs.promises.readFile(htmlFilePath, 'utf8');
+    // ── 1. Replace semantic placeholder nodes via DOM ──────
+    try {
+      const dom = new JSDOM(result);
+      const document = dom.window.document;
 
-    const ADMIN_CLIENT_URL = this.configService.get<string>('ADMIN_CLIENT_URL');
-    const FWANGO_URL = fwango_link || this.configService.get<string>('FWANGO_URL');
-    const AMERICAN_SPIKERS_URL = this.configService.get<string>('AMERICAN_SPIKERS_URL');
+      document.querySelectorAll('[data-placeholder]').forEach((el) => {
+        const key = el.getAttribute('data-placeholder') ?? '';
+        const value = values[key];
 
-    // eslint-disable-next-line prefer-const, @typescript-eslint/no-inferrable-types
-    let organized_ldo_phone: string = '';
-    if (ldo_phone) {
-      organized_ldo_phone = `Phone: ${ldo_phone}`;
+        if (value !== undefined) {
+          // Replace the entire <span> with a plain text node
+          const text = document.createTextNode(this.escapeHtml(value));
+          el.replaceWith(text);
+        } else {
+          // Leave visible but unstyled — strip the chip styling
+          (el).textContent = `{{${key}}}`;
+          (el).removeAttribute('style');
+          (el).removeAttribute('class');
+        }
+      });
+
+      result = dom.serialize();
+    } catch (err) {
+      // JSDOM not available or parse error — fall through to regex
+      console.warn('[EmailsenderService] JSDOM rendering failed, using regex fallback:', err);
     }
 
-    const clientUrl = `${ADMIN_CLIENT_URL}/${eventId}/matches/${ldoIdUrl}`;
+    // ── 2. Replace any remaining {{key}} patterns ──────────
+    result = result.replace(/\{\{([a-zA-Z_][a-zA-Z0-9_]*)\}\}/g, (_match, key) => {
+      const value = values[key];
+      return value !== undefined ? this.escapeHtml(value) : `{{${key}}}`;
+    });
 
-    // Replace placeholders with actual values
-    const replacements = {
-      '{{admin_client_url}}': clientUrl,
-      '{{player_username}}': player_username,
-      '{{player_password}}': coach_password,
-      '{{ldo_name}}': ldo_name,
-      '{{ldo_director_name}}': ldo_director_name,
-      '{{roster_lock_date}}': roster_lock_date,
-      '{{event_name}}': event_name,
-      '{{frontend_url}}': frontend_url,
-      '{{ldo_email}}': director_email,
-      '{{ldo_phone}}': organized_ldo_phone,
-      '{{event_date}}': event_date,
-      '{{fwango_url}}': FWANGO_URL,
-      '{{american_spikers_url}}': AMERICAN_SPIKERS_URL,
-      '{{captain}}': captain_name,
-    };
-    
-    let replacedHtmlContent = htmlContent;
-    
-    for (const [placeholder, value] of Object.entries(replacements)) {
-      // Use global regex to replace all occurrences of the placeholder
-      const regex = new RegExp(placeholder, 'g');
-      replacedHtmlContent = replacedHtmlContent.replace(regex, value);
-    }
-    
-
-    return replacedHtmlContent;
+    return result;
   }
 
-  async sendHtmlEmail({
-    to,
-    subject,
-    htmlFileName,
-    player_username,
-    coach_password,
-    ldo_name,
+  // ── Send from DB template (primary path) ──────────────────
 
-    ldo_director_name,
-    roster_lock_date,
-    event_name,
-    frontend_url,
-
-    director_email,
-    captain_name,
-    event_date,
-    fwango_link,
-    ldo_phone,
-    eventId,
-    ldoIdUrl,
-  }: ITemplateParams) {
+  /**
+   * Send an email using a compiled template HTML string from the database.
+   * This is the primary method used by sendCredentials.
+   */
+  async sendTemplateEmail({ to, subject, templateHtml, values }: ISendTemplateEmail): Promise<void> {
     try {
-      const htmlContent = await this.generateHtml({
-        htmlFileName,
-        player_username,
-        coach_password,
-        ldo_name,
-        director_email,
-        captain_name,
-        event_date,
-
-        ldo_director_name,
-        roster_lock_date,
-        event_name,
-        frontend_url,
-
-        fwango_link,
-        ldo_phone,
-        eventId,
-        ldoIdUrl,
-      });
+      const renderedHtml = this.renderTemplate(templateHtml, values);
 
       await this.transporter.sendMail({
-        from: `'American Spikers League <${this.configService.get<string>('EMAIL_USER')}>'`,
+        from: `American Spikers League <${this.configService.get<string>('EMAIL_USER')}>`,
         to: to.join(', '),
         subject,
-        html: htmlContent,
+        html: renderedHtml,
       });
 
-      console.log('HTML Email sent successfully');
+      console.log(`[EmailsenderService] Email sent to ${to.join(', ')}`);
     } catch (error) {
-      console.error('Error sending HTML email:', error);
+      console.error('[EmailsenderService] Error sending template email:', error);
+      throw new Error('Failed to send template email');
+    }
+  }
+
+  // ── Send from HTML file (legacy path) ─────────────────────
+
+  /**
+   * Legacy method: reads an HTML file from disk and replaces {{key}} tokens.
+   * Kept for backward compatibility with the old send-credentials.html flow.
+   */
+  async sendHtmlEmail({ to, subject, htmlFileName, values }: ISendRawFileEmail): Promise<void> {
+    try {
+      const htmlFilePath = path.join(__dirname, '../../src/email/templates', htmlFileName);
+      const htmlContent = await fs.promises.readFile(htmlFilePath, 'utf8');
+      const renderedHtml = this.renderTemplate(htmlContent, values);
+
+      await this.transporter.sendMail({
+        from: `American Spikers League <${this.configService.get<string>('EMAIL_USER')}>`,
+        to: to.join(', '),
+        subject,
+        html: renderedHtml,
+      });
+
+      console.log('[EmailsenderService] HTML file email sent successfully');
+    } catch (error) {
+      console.error('[EmailsenderService] Error sending HTML file email:', error);
       throw new Error('Failed to send HTML email');
     }
   }
 
-  async sendHtmlEmailInfo({ to, subject, htmlFileName, info }: ITemplateInfoParams) {
+  // ── Info email (unchanged) ────────────────────────────────
+
+  async sendHtmlEmailInfo({ to, subject, htmlFileName, info }: ITemplateInfoParams): Promise<void> {
     try {
       const htmlFilePath = path.join(__dirname, '../../src/email/templates', htmlFileName);
       const htmlContent = await fs.promises.readFile(htmlFilePath, 'utf8');
-
-      // Replace placeholders with actual values
       const replacedHtmlContent = htmlContent.replace('{{informations}}', JSON.stringify(info));
 
       await this.transporter.sendMail({
-        from: `'American Spikers League <${this.configService.get<string>('EMAIL_USER')}>'`,
+        from: `American Spikers League <${this.configService.get<string>('EMAIL_USER')}>`,
         to: to.join(', '),
         subject,
         html: replacedHtmlContent,
       });
 
-      console.log('HTML Email sent successfully');
+      console.log('[EmailsenderService] Info email sent successfully');
     } catch (error) {
-      console.error('Error sending HTML email:', error);
+      console.error('[EmailsenderService] Error sending info email:', error);
       throw new Error('Failed to send HTML email');
     }
+  }
+
+  // ── Helpers ───────────────────────────────────────────────
+
+  private escapeHtml(str: string): string {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 }

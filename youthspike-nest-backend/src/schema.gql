@@ -283,6 +283,7 @@ type Sponsor {
 type Template {
   _id: String
   name: String!
+  default: Boolean!
   type: ETemplateType!
   subject: String!
   body: String!
@@ -1504,6 +1505,7 @@ type Mutation {
 
 input CreateTemplateInput {
   name: String!
+  default: Boolean! = false
   type: ETemplateType!
   subject: String!
   body: String!
@@ -1514,6 +1516,7 @@ input CreateTemplateInput {
 
 input UpdateTemplateInput {
   name: String
+  default: Boolean = false
   type: ETemplateType
   subject: String
   body: String

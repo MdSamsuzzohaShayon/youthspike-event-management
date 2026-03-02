@@ -10,15 +10,12 @@ query GetTemplates($eventId: String!) {
       data {
         _id
         name
+        default
         type
         subject
         body
         images
         placeholders
-        event {
-          _id
-          name
-        }
       }
     }
   }
@@ -28,59 +25,58 @@ export const GET_TEMPLATES = gql`${GET_TEMPLATES_RAW}`;
 // Mutation to save template
 export const SAVE_TEMPLATE_RAW = `
   mutation CreateTemplate($input: CreateTemplateInput!){
-  createTemplate(input: $input){
+    createTemplate(input: $input){
+      code
+      success
+      message
+      data{
+        _id
+        name
+        default
+        type
+        subject
+        body
+        images
+        placeholders
+      }
+    }
+  }
+`;
+
+export const SAVE_TEMPLATE = gql`${SAVE_TEMPLATE_RAW}`;
+
+// Mutation to save version
+export const UPDATE_TEMPLATE_RAW = `
+mutation UpdateTemplate($input: UpdateTemplateInput!, $templateId: String!, $eventId: String!) {
+  updateTemplate(input: $input, templateId: $templateId, eventId: $eventId) {
     code
     success
     message
     data{
       _id
       name
+      default
       type
       subject
       body
       images
       placeholders
-      event{
-        _id
-        name
-      }
     }
   }
 }
 `;
 
-export const SAVE_TEMPLATE = gql`${SAVE_TEMPLATE_RAW}`;
+export const UPDATE_TEMPLATE = gql`${UPDATE_TEMPLATE_RAW}`;
 
-// Mutation to save version
-export const SAVE_VERSION = `
-  mutation SaveVersion($input: VersionInput!) {
-    saveVersion(input: $input) {
-      versionId
-      templateId
-      subject
-      body
-      label
-    }
+export const DELETE_TEMPLATE_RAW = `
+mutation DeleteMutation($templateId:String!){
+  deleteTemplate(templateId: $templateId){
+    code
+    success
+    message
   }
+}
+
 `;
 
-// Query to get version history
-export const GET_VERSION_HISTORY = `
-  query GetVersionHistory($templateId: ID!) {
-    versionHistory(templateId: $templateId) {
-      versionId
-      templateId
-      subject
-      body
-      label
-      metadata {
-        name
-        placeholders {
-          key
-          label
-          sampleValue
-        }
-      }
-    }
-  }
-`;
+export const DELETE_TEMPLATE = gql`${DELETE_TEMPLATE_RAW}`

@@ -4,6 +4,7 @@
 
 import { ISampleUser, ITemplatePlaceholder } from '@/types';
 
+export const DEFAULT_NAME = 'New Template';
 export const DEFAULT_SUBJECT = '{{event_name}} – Captain\'s Login Credentials & Rankings';
 
 export const DEFAULT_BODY = `<!DOCTYPE html>

@@ -1,9 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { EventService } from 'src/event/event.service';
 import { TemplateService } from 'src/template/template.service';
-
 import { AppResponse } from 'src/shared/response';
-import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { Template } from '../template.schema';
 import { CreateTemplateInput, UpdateTemplateInput } from './template.input';
 import { CreateOrUpdateTemplateResponse } from './template.response';
@@ -15,16 +13,13 @@ export class TemplateMutations {
   constructor(
     private eventService: EventService,
     private templateService: TemplateService,
-    private playerRankingService: PlayerRankingService,
   ) { }
 
 
 
   async singleDelete(templateExist: Template) {
-
-
     const updatePromises = [];
-    updatePromises.push(this.playerRankingService.deleteOne({ template: templateExist._id }));
+    updatePromises.push(this.eventService.updateOne({ _id: templateExist.event }, { $pull: { templates: templateExist._id } }));
     updatePromises.push(this.templateService.delete({ _id: templateExist._id }));
     await Promise.all(updatePromises);
   }
@@ -86,6 +81,10 @@ export class TemplateMutations {
       const templateObj: Partial<Template> = { ...input };
 
 
+
+      if (input?.default) {
+        updatePromises.push(this.templateService.updateMany({ event: eventId, _id: { $ne: templateId } }, { $set: { default: false } }));
+      }
 
 
       updatePromises.push(this.templateService.updateOne({ _id: templateId }, templateObj));
