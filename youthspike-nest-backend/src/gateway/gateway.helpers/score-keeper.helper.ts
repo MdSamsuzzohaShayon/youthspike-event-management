@@ -89,11 +89,11 @@ export class ScoreKeeperHelper {
    * Ensure a list of player stats are loaded (and lazily created if missing).
    * Returns a `{[playerId]: PlayerStats}` map ready for mutation.
    */
-  async getPlayerStats(netId: string, matchId: string, ids: string[]) {
+  async getPlayerStats(netId: string, matchId: string, eventId: string, ids: string[]) {
     const cached = await Promise.all(ids.map((id) => this.redis.getAction(playerKey(id, netId)))); // Redis key: <player:id:net>
 
     return ids.reduce<Record<string, PlayerStats>>((acc, id, idx) => {
-      acc[id] = cached[idx] ?? initPlayerStat(netId, matchId, id);
+      acc[id] = cached[idx] ?? initPlayerStat(netId, matchId, eventId, id);
       return acc;
     }, {});
   }
@@ -101,9 +101,9 @@ export class ScoreKeeperHelper {
   /**
    * Persist a map of `{[playerId]: PlayerStats}` back to Redis in parallel.
    */
-  async savePlayerStats(statsMap: Record<string, PlayerStats>) {
+  async savePlayerStats(statsMap: Record<string, PlayerStats>, eventId: string) {
     await Promise.all(
-      Object.entries(statsMap).map(([id, data]) => this.redis.setAction(playerKey(id, data.net.toString()), data)),
+      Object.entries(statsMap).map(([id, data]) => this.redis.setAction(playerKey(id, data.net.toString()), {...data, event: eventId})),
     ); // Redis key: <player:id:net>
   }
 
@@ -302,6 +302,7 @@ export class ScoreKeeperHelper {
       receiver: play.receiver || play.receiverId || '',
       receivingPartner: play.receivingPartner || play.receivingPartnerId || '',
       servingPartner: play.servingPartner || play.servingPartnerId || '',
+      event: play.event || '',
 
       matchId: String(play.match) || play.matchId || '',
       netId: String(play.net) || play.netId || '',

@@ -464,7 +464,7 @@ export class TeamMutations {
             for (const pr of playerRankings) {
               deletePromises.push(this.playerRankingService.deleteManyItem({ _id: { $in: pr.rankings.map(p => String(p)) } }));
             }
-            deletePromises.push(this.playerRankingService.deletMany({ _id: { $in: teamExist.playerRankings.map(p => String(p)) } }));
+            deletePromises.push(this.playerRankingService.deleteMany({ _id: { $in: teamExist.playerRankings.map(p => String(p)) } }));
           }
           if (teamExist) {
             deletePromises.push(this.singleDelete(teamExist));

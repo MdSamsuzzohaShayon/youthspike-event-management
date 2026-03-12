@@ -5,7 +5,7 @@ import SelectInput from '../elements/forms/SelectInput';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import { useLdoId } from '@/lib/LdoProvider';
 import Link from 'next/link';
-import { useError } from '@/lib/ErrorProvider';
+import { useMessage } from '@/lib/MessageProvider';
 import InputField from '../elements/forms/InputField';
 import ImageInput from '../elements/forms/ImageInput';
 import { divisionsToOptionList } from '@/utils/helper';
@@ -40,7 +40,7 @@ const initialTeamState = {
 
 function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision, divisions }: ITeamAddProps) {
   const { ldoIdUrl } = useLdoId();
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
   const router = useRouter();
 
   // Helper function to transform ITeam to ITeamAdd format
@@ -84,7 +84,7 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
         eventId,
         prevTeam: prevTeam ? { ...transformTeamToTeamAdd(prevTeam), _id: prevTeam._id } : null,
         updateTeamState,
-        setActErr,
+        showMessage,
         setIsLoading,
         uploadedLogo,
         playerIdList,
@@ -106,7 +106,7 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
         eventId,
         teamState,
         currDivision: currDivision || null,
-        setActErr,
+        showMessage,
         setIsLoading,
         uploadedLogo,
         playerIdList,
@@ -131,7 +131,7 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
         eventId,
         prevTeam: prevTeam ? { ...transformTeamToTeamAdd(prevTeam), _id: prevTeam._id } : null,
         updateTeamState,
-        setActErr,
+        showMessage,
         setIsLoading,
         uploadedLogo,
         playerIdList,
@@ -145,7 +145,7 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
         eventId,
         teamState,
         currDivision: currDivision || null,
-        setActErr,
+        showMessage,
         setIsLoading,
         uploadedLogo,
         playerIdList,

@@ -1,5 +1,5 @@
 import { UPDATE_EVENT_RAW } from '@/graphql/event';
-import { IError, IEventAdd, IEventSponsorAdd, IProStats, IProStatsAdd } from '@/types';
+import { IEventAdd, IEventSponsorAdd, IMessage, IProStats, IProStatsAdd } from '@/types';
 import { APP_NAME, BACKEND_URL } from '../keys';
 import { getCookie } from '../clientCookie';
 import { handleResponseCheck } from './playerHelpers';
@@ -76,7 +76,7 @@ export async function updateEventWithFiles({
   updateMultiplayer,
   updateStats,
   updateWeight,
-  setActErr,
+  showMessage,
 }: {
   eventId: string;
   updateEvent: Partial<IEventAdd>;
@@ -85,7 +85,7 @@ export async function updateEventWithFiles({
   updateMultiplayer: Partial<IProStatsAdd>;
   updateWeight: Partial<IProStatsAdd>;
   updateStats: Partial<IProStatsAdd>;
-  setActErr?: React.Dispatch<React.SetStateAction<IError | null>>;
+  showMessage?: (message: Omit<IMessage, "id">) => void
 }) {
   const inputData = { ...updateEvent };
   if (inputData.startDate) inputData.startDate = new Date(inputData.startDate).toISOString();
@@ -135,5 +135,5 @@ export async function updateEventWithFiles({
 
   const responseData = await response.json();
   const eventRes = responseData?.data?.updateEvent;
-  return handleResponseCheck(eventRes, setActErr );
+  return handleResponseCheck(eventRes, showMessage );
 }

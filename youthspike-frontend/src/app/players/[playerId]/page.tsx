@@ -1,10 +1,10 @@
 import { Suspense } from "react";
 import { QueryRef } from "@apollo/client/react";
-import PlayerStatsMain from "@/components/player-stats/PlayerStatsMain";
 import Loader from "@/components/elements/Loader";
 import { PreloadQuery } from "@/lib/client";
 import { IGetPlayerStats } from "@/types";
 import { GET_PLAYER_WITH_STATS } from "@/graphql/player-stats";
+import PlayerStatsContainer from "@/components/player-stats/PlayerStatsContainer";
 
 interface IPlayerStatsPageProps {
   params: { playerId: string };
@@ -17,13 +17,11 @@ export async function PlayerStatsPage({ params }: IPlayerStatsPageProps) {
     <PreloadQuery query={GET_PLAYER_WITH_STATS} variables={{ playerId }} 
     >
       {(queryRef) => (
-        <Suspense fallback={<Loader />}>
-          <PlayerStatsMain
+          <PlayerStatsContainer
             queryRef={queryRef as QueryRef<{
               getPlayerWithStats: {data: IGetPlayerStats};
             }>}
           />
-        </Suspense>
       )}
     </PreloadQuery>
   );

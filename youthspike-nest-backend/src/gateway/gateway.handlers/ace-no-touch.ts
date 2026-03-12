@@ -20,7 +20,7 @@ export class AceNoTouchHandler {
 
       /* 2️⃣ load / initialise the four player stat docs */
       const ids = [net.server, net.receiver];
-      const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, ids as string[]);
+      const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, body.event, ids as string[]);
 
       const aceStats = this.pointsUpdateHelper.statsAceNoTouch();
 
@@ -30,7 +30,7 @@ export class AceNoTouchHandler {
       const receiverUpdatedKeys = this.scoreKeeperHelper.increment(stats[net.receiver as string], aceStats.receiver);
 
       /* 4️⃣ save the four player docs in parallel */
-      await this.scoreKeeperHelper.savePlayerStats(stats);
+      await this.scoreKeeperHelper.savePlayerStats(stats, body.event);
 
 
 

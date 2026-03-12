@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
 import { useLdoId } from '@/lib/LdoProvider';
-import { useError } from '@/lib/ErrorProvider';
+
 import { useEventForm } from '@/hooks/useEventForm';
 import { IEventAddProps } from '@/types';
 
@@ -16,6 +16,7 @@ import { updateEventWithFiles } from '@/utils/requestHandlers/updateEvent';
 import { addEventWithFiles } from '@/utils/requestHandlers/addEvent';
 import ShowSponsors from './ShowSponsors';
 import Image from 'next/image';
+import { useMessage } from '@/lib/MessageProvider';
 
 const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEventAddProps) => {
   // Hooks
@@ -24,7 +25,7 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
   const searchParams = useSearchParams();
   const pName = usePathname();
   const { ldoIdUrl } = useLdoId();
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
 
   // States
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -77,7 +78,7 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
           updateMultiplayer,
           updateStats,
           updateWeight,
-          setActErr,
+          showMessage,
         });
       } else {
         event = await addEventWithFiles({
@@ -88,7 +89,7 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
           multiplayer,
           weight,
 
-          setActErr,
+          showMessage,
         });
       }
 
@@ -96,9 +97,9 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
       setEventState(initialEvent);
       router.push(`/${event}/${ldoIdUrl}`);
     } catch (error) {
-      setActErr({
+      showMessage({
         message: error instanceof Error ? error.message : String(error),
-        success: false,
+        type: "error"
       });
     } finally {
       setIsLoading(false);

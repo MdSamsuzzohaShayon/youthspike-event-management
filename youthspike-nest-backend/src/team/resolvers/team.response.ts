@@ -104,6 +104,9 @@ export class CustomMatch extends Match {
   @Field((_type) => String, { nullable: true })
   group: string;
 
+  @Field((_type) => String, { nullable: false })
+  event: string;
+
   @Field((_type) => [String], { nullable: true })
   rounds: string[];
 

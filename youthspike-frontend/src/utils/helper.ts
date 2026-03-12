@@ -174,6 +174,7 @@ export const aggregatePlayerStats = (stats: IPlayerStats[]): IAggregatedStats =>
 
 // Filter key to enum 
 export const filterToEnum: Record<keyof IFilter, EStatsFilter>={
+  event: EStatsFilter.EVENT,
   startDate: EStatsFilter.START_DATE,
   endDate: EStatsFilter.END_DATE,
   match: EStatsFilter.MATCH,

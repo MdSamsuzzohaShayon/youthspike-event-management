@@ -1,10 +1,10 @@
-import { IAddMatch, IError, TMatchMutationFunction, TMutationFunction } from '@/types';
+import { IAddMatch, IMessage, TMatchMutationFunction, TMutationFunction } from '@/types';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { handleError } from '../handleError';
 import { handleResponseCheck } from './playerHelpers';
 
 interface IUpdateMatchHandlerProps {
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+  showMessage: (message: Omit<IMessage, "id">) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   eventId: string;
   mutateMatch: TMatchMutationFunction;
@@ -13,7 +13,7 @@ interface IUpdateMatchHandlerProps {
   showAddMatch?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export async function updateMatchHandler({ setActErr, setIsLoading, eventId, mutateMatch, matchId, updateMatch, showAddMatch }: IUpdateMatchHandlerProps) {
+export async function updateMatchHandler({ showMessage, setIsLoading, eventId, mutateMatch, matchId, updateMatch, showAddMatch }: IUpdateMatchHandlerProps) {
   try {
     setIsLoading(true);
 
@@ -28,7 +28,7 @@ export async function updateMatchHandler({ setActErr, setIsLoading, eventId, mut
     const res = await mutateMatch({ variables: { input: updateMatchObj, matchId } });
     const matchRes = res?.data?.updateMatch;
 
-    const success = await handleResponseCheck(matchRes, setActErr);
+    const success = await handleResponseCheck(matchRes, showMessage);
 
     if (success) {
       if (showAddMatch) showAddMatch(false);
@@ -38,7 +38,7 @@ export async function updateMatchHandler({ setActErr, setIsLoading, eventId, mut
     }
   } catch (error: any) {
     console.log(error);
-    handleError({ error, setActErr });
+    handleError({ error, showMessage });
   } finally {
     setIsLoading(false);
   }

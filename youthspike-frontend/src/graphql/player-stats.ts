@@ -6,6 +6,11 @@ const GET_PLAYER_WITH_STATS_RAW = `query GetPlayerWithStats($playerId: String!) 
     message
     success
     data {
+      events{
+        _id
+        name
+        divisions
+      }
       groups{
         _id
         name
@@ -71,6 +76,7 @@ const GET_PLAYER_WITH_STATS_RAW = `query GetPlayerWithStats($playerId: String!) 
         teamB
         tieBreaking
         timeout
+        event
       }
       rounds {
         _id
@@ -118,7 +124,7 @@ const GET_PLAYER_WITH_STATS_RAW = `query GetPlayerWithStats($playerId: String!) 
         match
       }
 
-      multiplayer{
+      multiplayers{
         _id
         acePercentage
         defensiveConversionPercentage
@@ -127,7 +133,7 @@ const GET_PLAYER_WITH_STATS_RAW = `query GetPlayerWithStats($playerId: String!) 
         servingPercentage
         settingPercentage
       }
-      weight{
+      weights{
         _id
         acePercentage
         defensiveConversionPercentage

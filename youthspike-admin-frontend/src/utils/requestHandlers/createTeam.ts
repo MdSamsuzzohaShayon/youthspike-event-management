@@ -14,7 +14,7 @@ interface ICreateTeam extends IBaseTeamAction {
 }
 
 export async function createTeam({
-  setActErr,
+  showMessage,
   eventId,
   teamState,
   setIsLoading,
@@ -33,7 +33,7 @@ export async function createTeam({
 
     // ✅ Validation
     if (!currDivision) {
-      setActErr({ message: 'You must select a division', success: false });
+      showMessage({ type: 'error', message: 'You must select a division' });
       return false;
     }
 
@@ -61,7 +61,7 @@ export async function createTeam({
     }
 
     // 🧩 Handle response
-    const isSuccess = await handleResponseCheck(response, setActErr );
+    const isSuccess = await handleResponseCheck(response, showMessage );
     if (isSuccess) {
       setAvailablePlayers((prev) => prev.filter((p) => !playerIdList.includes(p._id)));
       setPlayerIdList([]);
@@ -70,7 +70,7 @@ export async function createTeam({
   } catch (error: any) {
     console.error(error);
     success = false;
-    handleError({ error, setActErr });
+    handleError({ error, showMessage });
   } finally {
     setIsLoading(false);
   }

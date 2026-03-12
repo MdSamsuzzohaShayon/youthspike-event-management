@@ -9,7 +9,6 @@ import { EAssignStrategies, IResponse } from '@/types/elements';
 import { useRouter } from 'next/navigation';
 import { useLdoId } from '@/lib/LdoProvider';
 import { ERosterLock, ETieBreakingStrategy } from '@/types/event';
-import { useError } from '@/lib/ErrorProvider';
 import TeamSelector from './TeamSelector';
 import InputField from '../elements/forms/InputField';
 import TextareaInput from '../elements/forms/TextareaInput';
@@ -18,6 +17,7 @@ import { updateMatchHandler } from '@/utils/requestHandlers/updateMatchHandler';
 import addMatchHandler from '@/utils/requestHandlers/addMatchHandler';
 import Image from 'next/image';
 import { useMutation } from '@apollo/client/react';
+import { useMessage } from '@/lib/MessageProvider';
 
 const initialAddMatch: IAddMatch = {
   date: getLocalDateTimeISO(),
@@ -46,7 +46,7 @@ const initialAddMatch: IAddMatch = {
 function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, update, matchId, eventData, showAddMatch, prevMatch, addMatchCB }: IMatchAddProps) {
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
 
 
   // Local State
@@ -157,7 +157,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
     e.preventDefault();
     if (update && matchId) {
       await updateMatchHandler({
-        setActErr,
+        showMessage,
         setIsLoading,
         eventId,
         mutateMatch,
@@ -167,7 +167,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
       });
     } else {
       await addMatchHandler({
-        setActErr,
+        showMessage,
         setIsLoading,
         eventId,
         createMatch,

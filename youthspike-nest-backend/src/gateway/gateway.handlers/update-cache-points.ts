@@ -8,9 +8,7 @@ import {
   INetScoreUpdate,
 } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
-import { GatewayRedisService } from '../gateway.redis';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
-import { PointsUpdateHelper } from '../gateway.helpers/points-update.helper';
 import { ValidationHelper } from '../gateway.helpers/validation.helper';
 import { ETieBreakingStrategy } from 'src/event/event.schema';
 
@@ -289,7 +287,7 @@ export class UpdateCachePointsHandler {
       const playerIds = [net.server, net.servingPartner, net.receiver, net.receivingPartner];
 
       const [stats, round] = await Promise.all([
-        this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, playerIds as string[]),
+        this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, body.event, playerIds as string[]),
         roundService.findById(net.round as string),
       ]);
 

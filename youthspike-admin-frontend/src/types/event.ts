@@ -1,7 +1,7 @@
 /* eslint-disable import/no-cycle */
 import React from 'react';
 import { ICommonMatchEvent, IMatch, IMatchExpRel } from './match';
-import { EAssignStrategies, IError, IResponse } from './elements';
+import { EAssignStrategies, IResponse } from './elements';
 import { IPlayer } from './player';
 import { ITeam } from './team';
 import { ILDO, ILDOItem } from './ldo';

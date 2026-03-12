@@ -6,4 +6,10 @@ export class AppDocument {
   @Field({ nullable: true })
   _id?:  string;
   // Types.ObjectId |
+
+  @Field({ nullable: true })
+  createdAt?:  string;
+
+  @Field({ nullable: true })
+  updatedAt?:  string;
 }

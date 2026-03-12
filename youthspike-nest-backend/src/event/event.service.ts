@@ -10,7 +10,7 @@ export class EventService {
   constructor(@InjectModel(Event.name) private eventModel: Model<Event>) {}
 
 
-  async findById(id: string) {
+  async findById(id: string): Promise<Event | null> {
     if (!Types.ObjectId.isValid(id)) {
       return null;
     }
@@ -27,7 +27,7 @@ export class EventService {
   }
 
   async find(filter: QueryFilter<Event>) {
-    return this.eventModel.find(filter);
+    return this.eventModel.find(filter).lean();
   }
 
   async create(event: Event): Promise<Event> {
@@ -44,5 +44,9 @@ export class EventService {
 
   async delete(filter: QueryFilter<Event>) {
     return this.eventModel.deleteMany(filter);
+  }
+
+  async deleteOne(filter: QueryFilter<Event>) {
+    return this.eventModel.deleteOne(filter);
   }
 }

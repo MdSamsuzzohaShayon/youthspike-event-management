@@ -11,6 +11,7 @@ import {
   ResolveField,
   Resolver,
 } from '@nestjs/graphql';
+import * as bcrypt from 'bcrypt';
 import { LdoService } from 'src/ldo/ldo.service';
 import { LDO } from './ldo.schema';
 import { AppResponse } from 'src/shared/response';
@@ -18,10 +19,7 @@ import { User } from 'src/user/user.schema';
 import { UserService } from 'src/user/user.service';
 import { CreateDirector, UpdateDirector } from 'src/user/user.input';
 import { UserRole } from 'src/user/user.schema';
-import { CloudinaryService } from 'src/shared/services/cloudinary.service';
-import * as Upload from 'graphql-upload/Upload.mjs';
-import * as GraphQLUpload from 'graphql-upload/GraphQLUpload.mjs';
-import * as bcrypt from 'bcrypt';
+import { CloudinaryService } from 'src/shared/services/cloudinary.service'
 import { rmInvalidProps, tokenToUser } from 'src/utils/helper';
 import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
@@ -34,6 +32,9 @@ import { PlayerService } from 'src/player/player.service';
 import { MatchService } from 'src/match/match.service';
 import { RoundService } from 'src/round/round.service';
 import { NetService } from 'src/net/net.service';
+import { FileUpload } from 'graphql-upload/processRequest.mjs';
+import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
+const GraphQLUpload = GraphQLUploadModule.default;
 
 @ObjectType()
 class GetDirectorLDOResponse extends AppResponse<LDO> {
@@ -94,15 +95,15 @@ export class LdoResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin)
-  @Mutation((returns) => GetDirectorLDOResponse)
+  @Mutation((_returns) => GetDirectorLDOResponse)
   async createDirector(
     @Args('input') input: CreateDirector,
-    // @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Promise<typeof Upload>,
+    @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })logo?: Promise<FileUpload>,
   ) {
     try {
       // Upload image to cloudinary
       let logoUrl: string | null = null;
-      // if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
+      if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
 
       const salt = await bcrypt.genSalt(10);
       const hashPwd = await bcrypt.hash(input.password, salt);
@@ -122,7 +123,7 @@ export class LdoResolver {
 
       // Update user -> set user id inside ldo
       const ldo = await this.ldoService.create(
-        { name: input.name, phone: input.phone, logo: logoUrl, events: [] },
+        { name: input.name, phone: input.phone, logo: logoUrl, events: [], archivedEvents: [] },
         directorId,
         `${directorUser.firstName} ${directorUser.lastName} Event`,
       );
@@ -142,12 +143,11 @@ export class LdoResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((returns) => GetDirectorLDOResponse)
+  @Mutation((_returns) => GetDirectorLDOResponse)
   async updateDirector(
     @Args('input') input: UpdateDirector,
     @Context() context: any,
-    // @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })
-    // logo?: Promise<typeof Upload>,
+    @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })logo?: Promise<FileUpload>,
     @Args({ name: 'dId', type: () => String, nullable: true }) dId?: string,
   ) {
     try {
@@ -173,7 +173,7 @@ export class LdoResolver {
 
       // Upload image to cloudinary
       let logoUrl: string | null = null;
-      // if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
+      if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo as Promise<FileUpload>);
 
       const userObj = {
         firstName: input.firstName,
@@ -220,7 +220,7 @@ export class LdoResolver {
     }
   }
 
-  @Query((returns) => GetDirectorLDOResponse)
+  @Query((_returns) => GetDirectorLDOResponse)
   async getEventDirector(
     @Context() context: any,
     @Args({ name: 'dId', type: () => String, nullable: true }) dId?: string,

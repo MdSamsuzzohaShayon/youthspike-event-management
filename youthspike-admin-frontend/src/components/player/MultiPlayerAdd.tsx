@@ -20,7 +20,7 @@ import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
 
 import { useLdoId } from '@/lib/LdoProvider';
-import { useError } from '@/lib/ErrorProvider';
+import { useMessage } from '@/lib/MessageProvider';
 
 import FileInput from '../elements/forms/FileInput';
 import SelectInput from '../elements/forms/SelectInput';
@@ -60,7 +60,7 @@ function MultiPlayerAdd({
 }: MultiPlayerAddProps) {
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
 
   const uploadedFileRef = useRef<File | null>(null);
   const [selectedDivision, setSelectedDivision] = useState<string>('');
@@ -96,7 +96,7 @@ function MultiPlayerAdd({
     e.preventDefault();
 
     if (!selectedDivision || !uploadedFileRef.current) {
-      setActErr({ code: 400, message: 'Division and file are required.' });
+      showMessage({ type: 'error', code: 400, message: 'Division and file are required.' });
       return;
     }
 
@@ -135,7 +135,7 @@ function MultiPlayerAdd({
 
       const success = await handleResponseCheck(
         responseJson?.data?.createMultiPlayers,
-        setActErr,
+        showMessage,
       );
 
       if (!success) return;
@@ -143,7 +143,8 @@ function MultiPlayerAdd({
       await router.push(`/${eventId}/teams/${ldoIdUrl}`);
 
       if (responseJson?.data?.createMultiPlayers?.code !== 201) {
-        setActErr({
+        showMessage({
+          type: 'error',
           code: responseJson.data.createMultiPlayers.code,
           message: 'Some email already registered with players!',
         });
@@ -153,7 +154,7 @@ function MultiPlayerAdd({
       closeDialog();
     } catch (error) {
       closeDialog();
-      handleError({ error, setActErr });
+      handleError({ error, showMessage });
     } finally {
       setIsLoading(false);
     }

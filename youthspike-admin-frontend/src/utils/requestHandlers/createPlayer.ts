@@ -2,7 +2,7 @@ import { CREATE_PLAYER_RAW } from '@/graphql/players';
 import { IPlayerAdd } from '@/types/player';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { sendGraphQLFormData, handleResponseCheck } from './playerHelpers';
-import { IError, IResponse } from '@/types';
+import { IMessage, IResponse } from '@/types';
 import { useMutation } from '@apollo/client/react';
 import { ApolloCache } from '@apollo/client';
 
@@ -13,7 +13,7 @@ type IAddPlayer =  useMutation.MutationFunction<{
 }, ApolloCache>;
 
 interface ICreatePlayer {
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+  showMessage: (message: Omit<IMessage, "id">) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   playerState: IPlayerAdd;
   eventId: string;
@@ -23,7 +23,7 @@ interface ICreatePlayer {
 }
 
 async function createPlayer({
-  setActErr,
+  showMessage,
   setIsLoading,
   playerState,
   division,
@@ -35,7 +35,7 @@ async function createPlayer({
     setIsLoading(true);
 
     if (!division) {
-      setActErr({ success: false, message: 'You must select a division!' });
+      showMessage({ type: 'error', message: 'You must select a division!' });
       return;
     }
 
@@ -49,7 +49,7 @@ async function createPlayer({
     }
 
     const responseData = playerRes?.data?.createPlayer;
-    const success = await handleResponseCheck(responseData, setActErr);
+    const success = await handleResponseCheck(responseData, showMessage);
     return success;
   } catch (err) {
     console.error(err);

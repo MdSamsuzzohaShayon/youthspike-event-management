@@ -13,7 +13,7 @@ import { UPDATE_PLAYER_RANKING } from '@/graphql/player-ranking';
 import { handleError } from '@/utils/handleError';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
-import { useError } from '@/lib/ErrorProvider';
+import { useMessage } from '@/lib/MessageProvider';
 import { isISODateString } from '@/utils/datetime';
 import { setPlayerRankings } from '@/utils/localStorage';
 import { useMutation } from '@apollo/client/react';
@@ -44,7 +44,7 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
   const isMounted = useRef<boolean>(false);
   const screenWidth = useScreenWidth();
   const user = useUser();
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
 
   const [mutatePlayerRanking] = useMutation<{updatePlayerRanking: IUpdatePlayerRankingRes}>(UPDATE_PLAYER_RANKING);
 
@@ -73,13 +73,13 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
       try {
         const rankingRes = await mutatePlayerRanking({ variables: { teamId, input: upr } });
 
-        const success = handleResponseCheck(rankingRes?.data?.updatePlayerRanking, setActErr);
+        const success = handleResponseCheck(rankingRes?.data?.updatePlayerRanking, showMessage);
         console.log({ success, rankingRes });
         // Update rank players with match id and team id
         // if (refetchFunc) await refetchFunc();
       } catch (error: any) {
         console.log(error);
-        handleError({ error, setActErr });
+        handleError({ error, showMessage });
       }
     }
   };

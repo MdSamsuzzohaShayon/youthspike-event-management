@@ -13,7 +13,7 @@ import { Team } from 'src/team/team.schema';
 import { Match } from 'src/match/match.schema';
 import { Net } from 'src/net/net.schema';
 import { Round } from 'src/round/round.schema';
-import { CustomPlayerStats } from './player-stats.response';
+import { CustomPlayerStats, PlayerWithStatsResponse } from './player-stats.response';
 import { Player } from 'src/player/player.schema';
 import { playerKey, tokenToUser } from 'src/utils/helper';
 import { QueryFilter, QueryOptions } from 'mongoose';
@@ -23,6 +23,11 @@ import { EGroupType, PlayerSearchFilter } from 'src/player/resolvers/player.inpu
 import { Group } from 'src/group/group.schema';
 import getStatsOfPlayers from 'src/utils/getStatsOfPlayers';
 import { PlayerStatsSearchFilter } from './player-stats.input';
+import { Event } from 'src/event/event.schema';
+import { CustomPlayer } from 'src/player/resolvers/player.response';
+import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
+import { CustomMatch, CustomNet, CustomRound, CustomEvent } from 'src/team/resolvers/team.response';
+
 
 @Injectable()
 export class PlayerStatsQueries {
@@ -39,7 +44,7 @@ export class PlayerStatsQueries {
     private readonly matchesService: MatchService,
     private readonly configService: ConfigService,
     private readonly userService: UserService,
-  ) {}
+  ) { }
 
   async getPlayerStats(playerId: string) {
     try {
@@ -68,7 +73,7 @@ export class PlayerStatsQueries {
     }
   }
 
-  async getPlayerWithStats(playerId: string, group?: boolean) {
+  async getPlayerWithStats(playerId: string, group?: boolean): Promise<PlayerWithStatsResponse> {
     try {
       // 1️⃣ Fetch player
       const player = await this.playerService.findById(playerId);
@@ -87,13 +92,26 @@ export class PlayerStatsQueries {
       const playerIds = new Set<string>();
 
       // 3️⃣ Fetch event + pro stats concurrently
-      const eventExist = await this.eventService.findOne({ _id: { $in: player.events.map(e => String(e)) } });
-      if (!eventExist) return AppResponse.notFound('Event');
+      const events = await this.eventService.find({ _id: { $in: player.events.map(e => String(e)) } });
+      if (!events) return AppResponse.notFound('Event');
 
-      const [multiplayer, weight, groups] = await Promise.all([
-        this.playerStatsService.proStatFindOne({ _id: eventExist.multiplayer }),
-        this.playerStatsService.proStatFindOne({ _id: eventExist.weight }),
-        this.groupService.find({ event: eventExist._id }),
+      const multiplayerIds = new Set<string>(),
+        weightIds = new Set<string>(),
+        eventIds = new Set<string>();
+      for (const event of events) {
+        if (event?.multiplayer) {
+          multiplayerIds.add(String(event.multiplayer));
+        }
+        if (event?.weight) {
+          weightIds.add(String(event.weight));
+        }
+        eventIds.add(String(event._id));
+      }
+
+      const [multiplayers, weights, groups] = await Promise.all([
+        this.playerStatsService.proStatFind({ _id: { $in: [...multiplayerIds] } }),
+        this.playerStatsService.proStatFind({ _id: { $in: [...weightIds] } }),
+        this.groupService.find({ event: { $in: [...eventIds] } }),
       ]);
 
       const teamQuery: QueryFilter<Team> = { $or: [{ players: playerId }, { moved: playerId }] };
@@ -163,7 +181,7 @@ export class PlayerStatsQueries {
           for (const n of nets) {
             redisKeys.push(playerKey(playerId, n._id));
             [n.teamAPlayerA, n.teamAPlayerB, n.teamBPlayerA, n.teamBPlayerB]
-              .filter(Boolean)
+              .filter(Boolean) // can not be null or false
               .forEach((pid) => playerIds.add(pid as string));
           }
 
@@ -172,8 +190,7 @@ export class PlayerStatsQueries {
           const playerstatsRedis = (redisResults as CustomPlayerStats[]).filter(Boolean);
 
           const redisNetIds = new Set(playerstatsRedis.map((ps) => ps.net));
-          const dbQuery =
-            redisNetIds.size > 0 ? { player: playerId, net: { $nin: Array.from(redisNetIds) } } : { player: playerId };
+          const dbQuery = redisNetIds.size > 0 ? { player: playerId, net: { $nin: Array.from(redisNetIds) } } : { player: playerId };
 
           // Use separate awaits (readability + simplicity)
           const playerstatsDB = await this.playerStatsService.find(dbQuery);
@@ -185,6 +202,7 @@ export class PlayerStatsQueries {
             net: String(ps.net),
             player: String(ps.player),
             match: String(ps.match),
+            event: ps?.event? String(ps?.event) : null,
           }));
 
           playerstats = [...playerstatsRedis, ...playerstatsDBPlain];
@@ -193,27 +211,28 @@ export class PlayerStatsQueries {
           if (playerstats.length === 0) {
             playerstats = nets.map(
               (net) =>
-                ({
-                  serveOpportunity: 0,
-                  serveAce: 0,
-                  serveCompletionCount: 0,
-                  servingAceNoTouch: 0,
-                  receiverOpportunity: 0,
-                  receivedCount: 0,
-                  noTouchAcedCount: 0,
-                  settingOpportunity: 0,
-                  cleanSets: 0,
-                  hittingOpportunity: 0,
-                  cleanHits: 0,
-                  defensiveOpportunity: 0,
-                  defensiveConversion: 0,
-                  break: 0,
-                  broken: 0,
-                  matchPlayed: 0,
-                  net: net._id.toString(),
-                  player: playerId,
-                  match: net.match.toString(),
-                } as CustomPlayerStats),
+              ({
+                serveOpportunity: 0,
+                serveAce: 0,
+                serveCompletionCount: 0,
+                servingAceNoTouch: 0,
+                receiverOpportunity: 0,
+                receivedCount: 0,
+                noTouchAcedCount: 0,
+                settingOpportunity: 0,
+                cleanSets: 0,
+                hittingOpportunity: 0,
+                cleanHits: 0,
+                defensiveOpportunity: 0,
+                defensiveConversion: 0,
+                break: 0,
+                broken: 0,
+                matchPlayed: 0,
+                net: net._id.toString(),
+                player: playerId,
+                match: net.match.toString(),
+                event: null,
+              } as CustomPlayerStats),
             );
           }
         }
@@ -229,17 +248,19 @@ export class PlayerStatsQueries {
         code: HttpStatus.OK,
         success: true,
         data: {
-          player,
-          team,
+          player: player as CustomPlayer,
+          team: team as CustomTeam,
           playerstats,
-          matches,
-          rounds,
-          nets,
-          multiplayer,
-          weight,
-          oponents,
-          players,
-          groups,
+          matches: matches as CustomMatch[],
+          rounds: rounds as CustomRound[],
+          nets: nets as CustomNet[],
+          multiplayers: multiplayers,
+          weights,
+          oponents: oponents as CustomTeam[],
+          players: players as CustomPlayer[],
+          groups: groups as CustomGroup[],
+          events: events as CustomEvent[],
+          stats: []
         },
       };
     } catch (error) {
@@ -274,7 +295,7 @@ export class PlayerStatsQueries {
         if (!teamOfCaptain) {
           return AppResponse.notFound('Team');
         }
-        playerQuery.teams = { $in: [teamOfCaptain?._id]};
+        playerQuery.teams = { $in: [teamOfCaptain?._id] };
       }
 
       if (eventId) {
@@ -359,6 +380,7 @@ export class PlayerStatsQueries {
         nets,
         this.redisService,
         this.playerStatsService,
+        eventId
       );
 
       return {

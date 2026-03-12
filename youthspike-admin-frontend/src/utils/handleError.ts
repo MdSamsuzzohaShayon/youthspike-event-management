@@ -1,13 +1,43 @@
-import { IError } from '@/types';
+import { IMessage } from '@/types';
 import { CombinedGraphQLErrors } from '@apollo/client/errors';
 import { removeCookie } from './clientCookie';
 
 interface IHandleApolloErrorProps {
   error: unknown;
-  setActErr?: React.Dispatch<React.SetStateAction<IError | null>>;
+  showMessage?: (message: Omit<IMessage, "id">) => void;
 }
 
-export function handleError({ error, setActErr }: IHandleApolloErrorProps): void {
+interface IHandleResponseProps {
+  response: any;
+  showMessage?: (message: Omit<IMessage, "id">) => void;
+}
+
+export function handleResponse({ response, showMessage }: IHandleResponseProps): Promise<boolean> {
+  return new Promise((resolve) => {
+    const successCode = response?.code >= 200 && response?.code < 300;
+    if (!successCode) {
+      if (showMessage) {
+        showMessage({
+          type: 'error',
+          message: response?.message || 'An error occurred',
+          code: response?.code || 500,
+        });
+      }
+      resolve(false);
+      return;
+    }
+    if (showMessage && response?.message) {
+      showMessage({
+        type: 'success',
+        message: response.message,
+        code: response?.code,
+      });
+    }
+    resolve(true);
+  });
+}
+
+export function handleError({ error, showMessage }: IHandleApolloErrorProps): void {
   try {
     // Check if error is a CombinedGraphQLErrors instance
     if (CombinedGraphQLErrors.is(error)) {
@@ -22,11 +52,11 @@ export function handleError({ error, setActErr }: IHandleApolloErrorProps): void
           if (typeof window !== 'undefined') window.location.reload();
         }
 
-        if (setActErr) {
-          setActErr({
+        if (showMessage) {
+          showMessage({
             code: typeof code === 'number' ? code : 500,
             message: typeof message === 'string' ? message : JSON.stringify(message),
-            success: false,
+            type:"error"
           });
         }
 
@@ -41,20 +71,20 @@ export function handleError({ error, setActErr }: IHandleApolloErrorProps): void
 
     // Handle generic errors
     console.error('Unexpected Error:', error);
-    if (setActErr) {
-      setActErr({
+    if (showMessage) {
+      showMessage({
         code: 500,
         message: typeof error === 'string' ? error : JSON.stringify(error),
-        success: false,
+        type:"error"
       });
     }
   } catch (err) {
     console.error('Error in handleError function:', err);
-    if (setActErr) {
-      setActErr({
+    if (showMessage) {
+      showMessage({
         code: 500,
         message: 'Error handling failed',
-        success: false,
+        type:"error"
       });
     }
   }

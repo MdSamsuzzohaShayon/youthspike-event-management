@@ -1,11 +1,11 @@
-import { IAddDirector, IAddLDO, IError, ILDO, ILdoUpdate, TMutationFunction } from '@/types';
+import { IAddDirector, IAddLDO, ILDO, ILdoUpdate, IMessage, TMutationFunction } from '@/types';
 import { IUserContext } from '@/types/user';
 import { getCookie } from '../clientCookie';
 
 interface ICommonDirector {
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+  showMessage: (message: Omit<IMessage, "id">) => void;
   uploadedLogo: React.RefObject<null | MediaSource | Blob>;
-  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
   refetchFunc?: () => Promise<void>;
 }
 
@@ -35,9 +35,9 @@ export interface IUpdateDirectorProps extends ICommonDirector {
 }
 
 // Common validation function
-export const validatePassword = (password: string, confirmPassword: string, setActErr: React.Dispatch<React.SetStateAction<IError | null>>): boolean => {
+export const validatePassword = (password: string, confirmPassword: string, showMessage: (message: Omit<IMessage, "id">) => void): boolean => {
   if (password !== confirmPassword) {
-    setActErr({ success: false, message: 'Password did not match' });
+    showMessage({ type:"error", message: 'Password did not match' });
     return false;
   }
   return true;

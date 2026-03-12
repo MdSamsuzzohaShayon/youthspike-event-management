@@ -1,8 +1,8 @@
 import { useMutation } from '@apollo/client/react';
 import {
   IAllStats,
-  IError,
   IEvent,
+  IMessage,
   IEventExpRel,
   IGroup,
   IGroupRelatives,
@@ -110,7 +110,7 @@ export interface IGetEventWithTeamsQuery {
 }
 
 export interface IBaseTeamAction {
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+  showMessage: (message: Omit<IMessage, "id">) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   uploadedLogo: React.RefObject<null | Blob | MediaSource>;
   playerIdList: string[];
