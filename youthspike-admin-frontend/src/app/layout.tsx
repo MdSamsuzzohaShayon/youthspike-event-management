@@ -6,12 +6,11 @@ import Script from 'next/script';
 import UserProvider from '@/lib/UserProvider';
 import SocketProvider from '@/lib/SocketProvider';
 import LdoProvider from '@/lib/LdoProvider';
-import { ErrorProvider } from '@/lib/ErrorProvider';
+import { MessageProvider } from '@/lib/MessageProvider';
 import ApolloWrapper from '@/lib/ApolloWrapper';
 
 import Footer from '@/components/layout/Footer';
 import AdminMenu from '@/components/layout/AdminMenu';
-import Message from '@/components/elements/Message';
 import Loader from '@/components/elements/Loader';
 
 import './globals.css';
@@ -61,9 +60,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <SocketProvider>
               <UserProvider>
                 <LdoProvider>
-                  <ErrorProvider>
+                  <MessageProvider>
                     {/* Main content start  */}
-                    <Message />
                     <AdminMenu />
                     {children}
                     <div className="mt-6">
@@ -72,7 +70,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     {/* Main content end  */}
                     {/* <Suspense fallback={<LoadingPage />}>
                     </Suspense> */}
-                  </ErrorProvider>
+                  </MessageProvider>
                 </LdoProvider>
               </UserProvider>
             </SocketProvider>

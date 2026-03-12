@@ -17,19 +17,11 @@ import {
   GetPlayerAndTeamsResponse,
   PlayerResponse,
   CustomPlayer,
-  SearchPlayersResponse,
 } from './player.response';
 import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
-import { EGroupType, PlayerSearchFilter } from './player.input';
+import { PlayerSearchFilter } from './player.input';
 import { Team } from 'src/team/team.schema';
 import { Group } from 'src/group/group.schema';
-import { NetService } from 'src/net/net.service';
-import getStatsOfPlayers from 'src/utils/getStatsOfPlayers';
-import { CustomPlayerStats } from 'src/player-stats/resolvers/player-stats.response';
-import { RedisService } from 'src/redis/redis.service';
-import { PlayerStatsService } from 'src/player-stats/player-stats.service';
-import { Match } from 'src/match/match.schema';
-import { MatchService } from 'src/match/match.service';
 
 @Injectable()
 export class PlayerQueries implements IPlayerQueries {

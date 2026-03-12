@@ -22,6 +22,7 @@ interface IActionHandlerProps {
   net: string | null;
   room: string | null;
   match: string;
+  eventId: string;
   currServerReceiver: IServerReceiverOnNetMixed | null;
 }
 
@@ -36,6 +37,7 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
   net,
   room,
   match,
+  eventId,
   currServerReceiver,
 }) => {
   // Generic click handler
@@ -51,55 +53,55 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
       switch (action) {
         case EServerReceiverAction.SERVER_ACE_NO_TOUCH:
           if (currServerReceiver.receiver && net && room) {
-            emit.aceNoTouch({ match, net, room });
+            emit.aceNoTouch({ match, net, room, event: eventId });
           }
           break;
 
         case EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH:
           if (currServerReceiver.receiver && net && room) {
-            emit.aceNoThirdTouch({ match, net, room });
+            emit.aceNoThirdTouch({ match, net, room, event: eventId });
           }
           break;
 
         case EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION:
           if (currServerReceiver.receiver && net && room) {
-            emit.serverDefensiveConversion({ match, net, room });
+            emit.serverDefensiveConversion({ match, net, room, event: eventId });
           }
           break;
 
         case EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR:
           if (currServerReceiver.receiver && net && room) {
-            emit.receivingHittingError({ match, net, room });
+            emit.receivingHittingError({ match, net, room, event: eventId });
           }
           break;
 
         case EServerReceiverAction.SERVER_DO_NOT_KNOW:
           if (currServerReceiver.receiver && net && room) {
-            emit.serverDoNotKnow({ match, net, room });
+            emit.serverDoNotKnow({ match, net, room, event: eventId });
           }
           break;
 
         case EServerReceiverAction.RECEIVER_SERVICE_FAULT:
           if (currServerReceiver.receiver && net && room) {
-            emit.serviceFault({ match, net, room });
+            emit.serviceFault({ match, net, room, event: eventId });
           }
           break;
 
         case EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY:
           if (currServerReceiver.receiver && net && room) {
-            emit.oneTwoThreePutAway({ match, net, room });
+            emit.oneTwoThreePutAway({ match, net, room, event: eventId });
           }
           break;
 
         case EServerReceiverAction.RECEIVER_RALLEY_CONVERSION:
           if (currServerReceiver.receiver && net && room) {
-            emit.receiverDefensiveConversion({ match, net, room });
+            emit.receiverDefensiveConversion({ match, net, room, event: eventId });
           }
           break;
 
         case EServerReceiverAction.RECEIVER_DO_NOT_KNOW:
           if (currServerReceiver.receiver && net && room) {
-            emit.receiverDoNotKnow({ match, net, room });
+            emit.receiverDoNotKnow({ match, net, room, event: eventId });
           }
           break;
 

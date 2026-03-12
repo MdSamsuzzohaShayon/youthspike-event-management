@@ -165,6 +165,9 @@ class CommonActionInput {
 
   @Field({ nullable: false })
   room: string;
+
+  @Field({ nullable: false })
+  event: string;
 }
 @InputType()
 export class ServiceFaultInput extends CommonActionInput {}

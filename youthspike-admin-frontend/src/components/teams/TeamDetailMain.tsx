@@ -8,7 +8,7 @@ import { CldImage } from 'next-cloudinary';
 import { EPlayerStatus, IPlayer } from '@/types/player';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import PlayerList from '../player/PlayerList';
-import { useError } from '@/lib/ErrorProvider';
+import { useMessage } from '@/lib/MessageProvider';
 import MatchCard from '../match/MatchCard';
 import Pagination from '../elements/Pagination';
 import Link from 'next/link';
@@ -32,7 +32,7 @@ enum ETab {
 const ITEMS_PER_PAGE = 20;
 
 function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
   const { ldoIdUrl } = useLdoId();
   const { data } = useReadQuery(queryRef);
   
@@ -184,10 +184,10 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
         });
         window.location.reload();
       } catch (error) {
-        setActErr({ message: (error as Error)?.message || '', success: false });
+        showMessage({ type: 'error', message: (error as Error)?.message || 'An error occurred' });
       }
     },
-    [playerIdsToAdd, team, event, mutateTeam, setActErr],
+    [playerIdsToAdd, team, event, mutateTeam, showMessage],
   );
 
   const handleCheckboxChange = useCallback((pId: string, isChecked: boolean) => {
@@ -375,7 +375,7 @@ function TeamDetailMain({ eventId, queryRef }: ITeamDetailMainProps) {
       {paginatedMatchList.length > 0 ? (
         <div className="space-y-2">
           {paginatedMatchList.map((match, i) => (
-            <MatchCard key={match._id} setActErr={setActErr} eventId={eventId} handleSelectMatch={handleSelectMatch} isChecked={false} match={match} sl={i + 1} />
+            <MatchCard key={match._id} showMessage={showMessage} eventId={eventId} handleSelectMatch={handleSelectMatch} isChecked={false} match={match} sl={i + 1} />
           ))}
         </div>
       ) : (

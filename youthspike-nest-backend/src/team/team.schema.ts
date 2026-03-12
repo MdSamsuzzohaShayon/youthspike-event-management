@@ -49,11 +49,11 @@ export class Team extends AppDocument {
    * Relations
    */
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
-  @Field((type) => Player, { nullable: true })
+  @Field((_type) => Player, { nullable: true })
   captain?: Player | string; // Make the captain field nullable
 
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
-  @Field((type) => Player, { nullable: true })
+  @Field((_type) => Player, { nullable: true })
   cocaptain?: Player | string; // Make the captain field nullable
 
   @Field((type) => [Match], { nullable: true })
@@ -76,16 +76,25 @@ export class Team extends AppDocument {
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Net' }] })
   nets?: Net[] | string[]; // Update the type of Nets to allow null values
 
-  @Field((type) => [PlayerRanking], { nullable: true })
+  @Field((_type) => [PlayerRanking], { nullable: true })
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PlayerRanking' }] })
   playerRankings?: PlayerRanking[] | string[];
 
-  @Field((type) => Group, { nullable: true })
+  @Field((_type) => Group, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Group' })
   group?: Group | string;
 }
 
 export const TeamSchema = SchemaFactory.createForClass(Team);
+
+// Create single index
+TeamSchema.index({event: 1});
+TeamSchema.index({name: 1});
+TeamSchema.index({ event: 1, division: 1, group: 1 });
+TeamSchema.index({ event: 1, name: 1 });
+
 export const TeamSchemaFactory = async () => {
   return TeamSchema;
 };
+
+

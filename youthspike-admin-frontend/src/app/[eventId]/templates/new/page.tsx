@@ -34,9 +34,9 @@ import { useMutation } from '@apollo/client/react';
 import { SAVE_TEMPLATE } from '@/graphql/templates';
 import { useParams, useRouter } from 'next/navigation';
 import { useLdoId } from '@/lib/LdoProvider';
-import { useError } from '@/lib/ErrorProvider';
 import { Editor } from '@tiptap/react';
 import { transformToEmailHtml, wrapEmailShell } from '@/utils/emailTransformer';
+import { useMessage } from '@/lib/MessageProvider';
 
 type Tab = 'editor' | 'preview';
 type Sidebar = 'placeholders' | 'versions';
@@ -52,7 +52,7 @@ export default function NewTemplatePage() {
   const params = useParams();
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
 
   // ── Editor ref (passed down for PlaceholderPanel) ──────────
   const editorRef = useRef<Editor | null>(null);
@@ -118,15 +118,15 @@ export default function NewTemplatePage() {
       if (response?.data?.createTemplate?.code === 201) {
         router.push(`/${eventId}/templates/${ldoIdUrl}`);
       } else {
-        setActErr({
+        showMessage({
           code: response?.data?.createTemplate?.code,
           message: response?.data?.createTemplate?.message || 'Internal Server Error',
-          success: false,
+          type: "error"
         });
       }
     } catch (err: any) {
       console.error(err);
-      setActErr({ code: 400, message: err?.message || 'Internal Server Error', success: false });
+      showMessage({ code: 400, message: err?.message || 'Internal Server Error', type: "error" });
     }
   };
 

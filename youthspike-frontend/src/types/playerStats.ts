@@ -1,4 +1,4 @@
-import { IOption } from ".";
+import { IEvent, IOption } from ".";
 import { IGroupRelatives } from "./group";
 import { IMatch, IMatchRelatives } from "./match";
 import { INetRelatives } from "./net";
@@ -69,6 +69,7 @@ export interface IProStats extends IProStatsCommon {
 }
 
 export interface IGetPlayerStats {
+  events: IEvent[];
   player: IPlayer;
   players: IPlayer[];
   team: ITeam;
@@ -85,6 +86,7 @@ export interface IGetPlayerStats {
 
 // Keys (To make url clean)
 export enum EStatsFilter {
+  EVENT = 'e', // Match
   MATCH = 'm', // Match
   GAME = 'g', // game
   TEAMMATE = 'tm', // teammate
@@ -99,6 +101,7 @@ export enum EStatsFilter {
 export interface IFilter {
   startDate: string;
   endDate: string;
+  event: string;
   match: string[];
   game: string[];
   conference?: string;
@@ -140,6 +143,7 @@ export interface IStatsFilterProps {
   teammateOptions: IOption[];
   vsPlayerOptions: IOption[];
   gameOptions: IOption[];
+  eventOptions: IOption[];
 }
 
 

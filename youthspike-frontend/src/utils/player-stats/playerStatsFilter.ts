@@ -124,6 +124,11 @@ export function filterPlayerStats(
     const match = matches[i];
 
 
+    // Check event
+    if(filter[EStatsFilter.EVENT]){
+      if(String(match.event) !== filter[EStatsFilter.EVENT] as string) continue;
+    }
+
     
     // if (team.group && String(team.group) !== "" && team.group !== match.group) continue;
 

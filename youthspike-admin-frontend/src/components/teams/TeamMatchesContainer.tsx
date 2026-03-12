@@ -10,7 +10,7 @@ import TextImg from '../elements/TextImg';
 import { usePathname } from 'next/navigation';
 import { useLdoId } from '@/lib/LdoProvider';
 import MatchCard from '../match/MatchCard';
-import { useError } from '@/lib/ErrorProvider';
+import { useMessage } from '@/lib/MessageProvider';
 import TeamNavigation from './TeamNavigation';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { TEAM } from '@/utils/constant';
@@ -25,7 +25,7 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
   const { data } = useReadQuery(queryRef);
   const pathname = usePathname();
   const { ldoIdUrl } = useLdoId();
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
 
   // Handle Errors
   if (!data?.getTeamMatches?.data) {
@@ -139,7 +139,7 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
       {sortedMatches.length > 0 ? (
         <div className="space-y-2">
           {sortedMatches.map((match, i) => (
-            <MatchCard key={match._id} setActErr={setActErr} eventId={event._id} handleSelectMatch={handleSelectMatch} isChecked={false} match={match} sl={i + 1} />
+            <MatchCard key={match._id} showMessage={showMessage} eventId={event._id} handleSelectMatch={handleSelectMatch} isChecked={false} match={match} sl={i + 1} />
           ))}
         </div>
       ) : (

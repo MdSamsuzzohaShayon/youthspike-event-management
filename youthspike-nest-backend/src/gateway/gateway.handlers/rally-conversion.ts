@@ -23,7 +23,7 @@ export class RallyConversionHandler {
 
       /* 2️⃣ load / initialise the four player stat docs */
       const ids = [net.server, net.servingPartner, net.receiver, net.receivingPartner];
-      const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, ids as string[]);
+      const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, body.event, ids as string[]);
 
       const rallyStats = this.pointsUpdateHelper.statsRallyConversion();
 
@@ -43,7 +43,7 @@ export class RallyConversionHandler {
       );
 
       /* 4️⃣ save the four player docs in parallel */
-      await this.scoreKeeperHelper.savePlayerStats(stats);
+      await this.scoreKeeperHelper.savePlayerStats(stats, body.event);
 
       /* 5️⃣ scoring + rotation */
       const scoringTeam = teamA.has(net.receiver as string) ? 'A' : 'B';

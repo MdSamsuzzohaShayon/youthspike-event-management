@@ -71,6 +71,7 @@ interface ICommonAction {
   match: string;
   net: string;
   room: string;
+  event: string;
 }
 
 export interface IServiceFaultInput extends ICommonAction {}
@@ -103,6 +104,7 @@ export interface IUpdateCachePointsInput extends ICommonAction {
 
 interface IRevertResetCommon {
   match: string;
+  event: string;
   net: string | null;
   accessCode: string | null;
 }

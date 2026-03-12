@@ -21,21 +21,20 @@ export class ServiceFaultHandler {
 
       /* 2️⃣ load / initialise the four player stat docs */
       const ids = [net.server];
-      const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, ids as string[]);
+      const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, body.event, ids as string[]);
 
       const faultStats = this.pointsUpdateHelper.statsServiceFault();
       /* 3️⃣ mutate the stats (only the deltas differ per handler) */
       const updatedKeys = this.scoreKeeperHelper.increment(stats[net.server as string], faultStats.server);
 
       /* 4️⃣ save the four player docs in parallel */
-      await this.scoreKeeperHelper.savePlayerStats(stats);
+      await this.scoreKeeperHelper.savePlayerStats(stats, body.event);
 
       /* 5️⃣ scoring + rotation */
       const scoringTeam = teamA.has(net.receiver as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
-      const currNetObj = structuredClone(net); // Without increment of mutate and play
-      const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.RECEIVER_SERVICE_FAULT };
+      const singlePlayNet = { ...net, action: EServerReceiverAction.RECEIVER_SERVICE_FAULT };
       delete singlePlayNet.mutate;
       const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
 

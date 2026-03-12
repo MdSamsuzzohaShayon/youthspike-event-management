@@ -10,7 +10,7 @@ import SelectInput from '../elements/forms/SelectInput';
 import { UPDATE_GROUP } from '@/graphql/group';
 import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
-import { useError } from '@/lib/ErrorProvider';
+import { useMessage } from '@/lib/MessageProvider';
 import { useMutation } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 import { divisionsToOptionList, updateItemByIdMutable } from '@/utils/helper';
@@ -257,7 +257,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
   }
 
   // Hooks
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
 
   // References
   const changeGroupDialogRef = useRef<HTMLDialogElement | null>(null);
@@ -333,10 +333,10 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
     try {
       setIsLoading(true);
       const response = await deleteMultipleTeamsMutation({ variables: { teamIds: checkedTeamIds } });
-      const isSuccessful = await handleResponseCheck(response.data?.deleteTeams, setActErr);
+      const isSuccessful = await handleResponseCheck(response.data?.deleteTeams, showMessage);
       if (isSuccessful && refetchFunc) await refetchFunc();
     } catch (error: any) {
-      handleError({ error, setActErr });
+      handleError({ error, showMessage });
     } finally {
       setIsLoading(false);
     }
@@ -350,7 +350,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       setIsLoading(true);
       const response = await sendCredentialsMutation({ variables: { eventId: event._id, teamIds: checkedTeamIds } });
       // @ts-ignore
-      const isSuccessful = await handleResponseCheck(response?.data?.sendCredentials, setActErr);
+      const isSuccessful = await handleResponseCheck(response?.data?.sendCredentials, showMessage);
       if (isSuccessful && refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
@@ -364,7 +364,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
     const checkedTeamIds = getCheckedTeamIds();
 
     if (checkedTeamIds.length === 0) {
-      return setActErr({ message: 'You must select a few teams and do this action', success: false });
+      return showMessage({ type: 'error', message: 'You must select a few teams and do this action' });
     }
 
     setIsBulkActionMenuVisible(false);
@@ -412,11 +412,11 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       setIsLoading(true);
       const response = await sendCredentialsMutation({ variables: { eventId: event._id, teamIds: [teamId] } });
       // @ts-ignore
-      const isSuccessful = await handleResponseCheck(response?.data?.sendCredentials, setActErr);
+      const isSuccessful = await handleResponseCheck(response?.data?.sendCredentials, showMessage);
       if (isSuccessful && refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);
-      handleError({error, setActErr});
+      handleError({error, showMessage});
     } finally {
       setIsLoading(false);
     }
@@ -451,7 +451,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       const response = await moveTeamMutation({
         variables: { input: { ...teamUpdateInput }, teamId: selectedTeamForMove?._id, eventId: event._id },
       });
-      const isSuccessful = await handleResponseCheck(response.data?.updateTeam, setActErr);
+      const isSuccessful = await handleResponseCheck(response.data?.updateTeam, showMessage);
       if (isSuccessful) {
         if (response.data?.updateTeam.data) {
           const updatedList = updateItemByIdMutable(filteredTeamList, response.data?.updateTeam.data);
@@ -463,7 +463,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       }
     } catch (error) {
       console.error(error);
-      handleError({ error, setActErr });
+      handleError({ error, showMessage });
     } finally {
       setIsLoading(false);
     }
@@ -475,7 +475,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       setIsLoading(true);
       deleteDialogRef.current?.close();
       const response = await deleteTeam({ variables: { teamId } });
-      const isSuccessful = await handleResponseCheck(response.data?.deleteTeam, setActErr);
+      const isSuccessful = await handleResponseCheck(response.data?.deleteTeam, showMessage);
       if (isSuccessful) {
         if (response.data?.deleteTeam) {
           const updatedList = filteredTeamList.filter(t => t._id !== selectedTeamForDelete?._id)

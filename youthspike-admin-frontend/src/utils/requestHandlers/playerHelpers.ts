@@ -1,6 +1,6 @@
 import { BACKEND_URL } from '../keys';
 import { getCookie } from '../clientCookie';
-import { IError } from '@/types';
+import { IMessage } from '@/types';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
 export const handleRedirect = async (
@@ -45,15 +45,14 @@ export const sendGraphQLFormData = async (
 
 export const handleResponseCheck = async (
   responseData: any,
-  setActErr?: React.Dispatch<React.SetStateAction<IError | null>>
+  showMessage?: (message: Omit<IMessage, "id">) => void
 ) => {
   console.log(responseData);
   
   const successCode = responseData?.code >= 200 && responseData?.code < 300;
   if (!successCode) {
-    if(setActErr)setActErr({ success: false, message: responseData?.message });
+    if(showMessage)showMessage({ type: 'error', message: responseData?.message || 'An error occurred', code: responseData?.code });
     return false;
   }
-  if(setActErr)setActErr(null);
   return true;
 };

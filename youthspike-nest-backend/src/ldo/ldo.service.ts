@@ -52,6 +52,10 @@ export class LdoService {
     return result;
   }
 
+  async updateMany(filter: QueryFilter<LDO>, updateObj: UpdateQuery<LDO>) {
+    return this.ldoModel.updateMany(filter, updateObj);
+  }
+
   async findByDirectorId(dId: string): Promise<LDO> {
     return this.ldoModel.findOne({
       $or: [{ director: dId.toString() }, { _id: dId.toString() }],
@@ -59,7 +63,7 @@ export class LdoService {
   }
 
   async findOne(filter: QueryFilter<LDO>) {
-    return this.ldoModel.findOne(filter);
+    return this.ldoModel.findOne(filter).lean();
   }
 
   async find(filter: QueryFilter<LDO>) {

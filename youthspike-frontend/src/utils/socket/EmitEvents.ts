@@ -661,48 +661,39 @@ class EmitEvents {
     this.socket?.emit("set-players-from-client", actionData);
   }
 
-  serviceFault({ match, net, room }: IServiceFaultInput) {
-    const actionData = { match, net, room };
+  serviceFault(actionData: IServiceFaultInput) {
     this.socket?.emit("service-fault-from-client", actionData);
   }
 
-  serverDefensiveConversion({ match, net, room }: IDefensiveConversionInput) {
-    const actionData = { match, net, room };
+  serverDefensiveConversion(actionData: IDefensiveConversionInput) {
     this.socket?.emit("server-defensive-conversion-from-client", actionData);
   }
 
-  aceNoTouch({ match, net, room }: IAceNoTouchInput) {
-    const actionData = { match, net, room };
+  aceNoTouch(actionData: IAceNoTouchInput) {
     this.socket?.emit("ace-no-touch-from-client", actionData);
   }
 
-  aceNoThirdTouch({ match, net, room }: IAceNoThirdTouchInput) {
-    const actionData = { match, net, room };
+  aceNoThirdTouch(actionData: IAceNoThirdTouchInput) {
     this.socket?.emit("ace-no-third-touch-from-client", actionData);
   }
 
-  serverDoNotKnow({ match, net, room }: IServerDoNotKnowInput) {
-    const actionData = { match, net, room };
+  serverDoNotKnow(actionData: IServerDoNotKnowInput) {
     this.socket?.emit("server-do-not-know-from-client", actionData);
   }
 
-  receiverDoNotKnow({ match, net, room }: IReceiverDoNotKnowInput) {
-    const actionData = { match, net, room };
+  receiverDoNotKnow(actionData: IReceiverDoNotKnowInput) {
     this.socket?.emit("receiver-do-not-know-from-client", actionData);
   }
 
-  receivingHittingError({ match, net, room }: IReceivingHittingErrorInput) {
-    const actionData = { match, net, room };
+  receivingHittingError(actionData: IReceivingHittingErrorInput) {
     this.socket?.emit("receiving-hitting-error-from-client", actionData);
   }
 
-  oneTwoThreePutAway({ match, net, room }: IOneTwoThreePutAwayInput) {
-    const actionData = { match, net, room };
+  oneTwoThreePutAway(actionData: IOneTwoThreePutAwayInput) {
     this.socket?.emit("one-two-three-put-away-from-client", actionData);
   }
 
-  receiverDefensiveConversion({ match, net, room }: IRallyConversionInput) {
-    const actionData = { match, net, room };
+  receiverDefensiveConversion(actionData: IRallyConversionInput) {
     this.socket?.emit("receiver-defensive-conversion-from-client", actionData);
   }
 
@@ -715,12 +706,13 @@ class EmitEvents {
     match,
     net,
     room,
+    event,
     accessCode,
     currRoundNets,
     roundList,
     currRound
   }: IUpdateCachePointsInput) {
-    const actionData = { match, net, room, accessCode };
+    const actionData = { match, net, room, event, accessCode };
     let roundCompleted = true; // Assume round is complete unless proven otherwise
 
     for (const crn of currRoundNets) {
@@ -758,7 +750,16 @@ class EmitEvents {
     this.socket?.emit("update-cache-points-from-client", actionData);
   }
 
-  resetScores({ match, net, room, accessCode }: IResetScoreInput) {
+  resetScores({ match, net, room, event, accessCode }: IResetScoreInput) {
+    if (!event) {
+      return this.dispatch(
+        setMessage({
+          type: EMessage.ERROR,
+          message: "Please select a event before proceeding.",
+        })
+      );
+    }
+
     if (!net) {
       return this.dispatch(
         setMessage({
@@ -791,7 +792,16 @@ class EmitEvents {
     this.socket?.emit("reset-score-from-client", actionData);
   }
 
-  revertPlay({ match, net, play, room, accessCode }: IRevertPlayInput) {
+  revertPlay({ match, net, play, room, event, accessCode }: IRevertPlayInput) {
+    
+    if (!event) {
+      return this.dispatch(
+        setMessage({
+          type: EMessage.ERROR,
+          message: "Please select a event before proceeding.",
+        })
+      );
+    }
     if (!net) {
       return this.dispatch(
         setMessage({
@@ -820,7 +830,7 @@ class EmitEvents {
       );
     }
 
-    const actionData: IRevertPlayInput = { match, net, play, room, accessCode };
+    const actionData: IRevertPlayInput = { match, net, play, room, event, accessCode };
     this.socket?.emit("revert-play-from-client", actionData);
   }
 }

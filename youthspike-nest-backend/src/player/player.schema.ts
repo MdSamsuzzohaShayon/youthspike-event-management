@@ -66,6 +66,10 @@ export class Player extends AppDocument {
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }] })
   events?: Event[] | string[];
 
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }] })
+  @Field(() => [Event], { nullable: true })
+  archivedEvents: Event[] | string[];
+
   @Field(() => [Team], { nullable: true })
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }] })
   teams?: Team[] | string[];
@@ -109,6 +113,11 @@ export class Player extends AppDocument {
 }
 
 export const PlayerSchema = SchemaFactory.createForClass(Player);
+
+// Create single index 
+PlayerSchema.index({events: 1});
+
+
 export const PlayerSchemaFactory = async () => {
   return PlayerSchema;
 };

@@ -12,7 +12,7 @@ import { handleError } from "../handleError";
 export async function createLdoDirector({
   directorState,
   ldoState,
-  setActErr,
+  showMessage,
   uploadedLogo,
   setIsLoading,
   registerDirector,
@@ -25,7 +25,7 @@ export async function createLdoDirector({
   e
 }: ICreateDirectorProps): Promise<void> {
   // Validate password
-  if (!validatePassword(directorState.password, directorState.confirmPassword, setActErr)) {
+  if (!validatePassword(directorState.password, directorState.confirmPassword, showMessage)) {
     return;
   }
 
@@ -44,7 +44,7 @@ export async function createLdoDirector({
     // Handle file upload if needed
     await handleFileUpload(formData, ADD_DIRECTOR_RAW, { input: inputArgs, logo: null }, uploadedLogo);
     
-    setIsLoading(true);
+    if(setIsLoading)setIsLoading(true);
 
     if (uploadedLogo.current) {
       // File upload path
@@ -57,14 +57,14 @@ export async function createLdoDirector({
       resetFormAndState(setDirectorState, setLdoState, initialDirector, initialLdo, e);
     }
 
-    setActErr(null);
+    // showMessage(null);
     if (refetchFunc) await refetchFunc();
     if (setAddNewDirector) setAddNewDirector(false);
   } catch (error: any) {
     console.error('Error during director creation:', error);
     handleError(error);
-    setActErr(error);
+    showMessage(error);
   } finally {
-    setIsLoading(false);
+    if(setIsLoading)setIsLoading(false);
   }
 }
