@@ -21,7 +21,7 @@ export class AceNoThirdTouchHandler {
 
       /* 2️⃣ load / initialise the four player stat docs */
       const ids = [net.server, net.receiver, net.servingPartner, net.receivingPartner];
-      const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, ids as []);
+      const stats = await this.scoreKeeperHelper.getPlayerStats(body.net, net.match as string, body.event, ids as []);
 
       // Player stats
       const aceStats = this.pointsUpdateHelper.statsAceNoThird();
@@ -41,7 +41,7 @@ export class AceNoThirdTouchHandler {
       );
 
       /* 4️⃣ save the four player docs in parallel */
-      await this.scoreKeeperHelper.savePlayerStats(stats);
+      await this.scoreKeeperHelper.savePlayerStats(stats, body.event);
 
       /* 5️⃣ scoring + rotation */
       const scoringTeam = teamA.has(net.server as string) ? 'A' : 'B';

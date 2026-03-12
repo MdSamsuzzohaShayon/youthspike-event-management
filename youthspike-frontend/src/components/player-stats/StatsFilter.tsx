@@ -22,6 +22,7 @@ export default function StatsFilter({
   teammateOptions,
   vsPlayerOptions,
   gameOptions,
+  eventOptions
 }: IStatsFilterProps) {
   
 
@@ -32,6 +33,19 @@ export default function StatsFilter({
 
   return (
     <div className="flex flex-col justify-start gap-y-4">
+       <SelectInput
+        name="event"
+        label="Event"
+        value={(filter[EStatsFilter.EVENT] as string) || ""}
+        handleSelect={(e) =>
+          handleInputChange(
+            "event" as keyof IFilter,
+            e.target.value as string
+          )
+        }
+        optionList={eventOptions}
+      />
+
       {/* Date Range */}
       <div className="md:col-span-2 grid grid-cols-2 gap-4">
         <DateInput

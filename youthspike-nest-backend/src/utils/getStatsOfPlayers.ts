@@ -5,7 +5,7 @@ import { playerKey } from "./helper";
 import { RedisService } from "src/redis/redis.service";
 import { PlayerStatsService } from "src/player-stats/player-stats.service";
 
-async function getStatsOfPlayers(players: Player[], nets: Net[], redisService: RedisService, playerStatsService: PlayerStatsService): Promise<Record<string, CustomPlayerStats[]>> {
+async function getStatsOfPlayers(players: Player[], nets: Net[], redisService: RedisService, playerStatsService: PlayerStatsService, eventId: string): Promise<Record<string, CustomPlayerStats[]>> {
   // --- Precompute player->nets mapping ---
   const playerToNets: Record<string, Net[]> = {};
   for (const net of nets) {
@@ -87,6 +87,7 @@ async function getStatsOfPlayers(players: Player[], nets: Net[], redisService: R
         net: netId,
         player: String(player._id),
         match: netsOfPlayer.find((n) => String(n._id) === netId)?.match?.toString() || '',
+        event: eventId
       }));
 
     statsOfPlayer[player._id] = [...merged, ...emptyStats];

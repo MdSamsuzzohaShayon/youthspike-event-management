@@ -55,7 +55,7 @@ export class PlayerRankingService {
   }
 
   async findOne(filter: QueryFilter<PlayerRanking>) {
-    return this.playerRanking.findOne(filter);
+    return this.playerRanking.findOne(filter).lean();
   }
 
 
@@ -104,7 +104,7 @@ export class PlayerRankingService {
   }
 
   async findItems(filter: QueryFilter<PlayerRankingItem>) {
-    const rankingItemList = await this.playerRankingItem.find(filter);
+    const rankingItemList = await this.playerRankingItem.find(filter).lean();
     return rankingItemList;
   }
 
@@ -123,7 +123,7 @@ export class PlayerRankingService {
   }
 
 
-  async deletMany(filter: QueryFilter<PlayerRanking>) {
+  async deleteMany(filter: QueryFilter<PlayerRanking>) {
     return this.playerRanking.deleteMany(filter);
   }
 

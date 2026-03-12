@@ -13,7 +13,7 @@ export class PlayerRankingItem extends AppDocument {
   @Prop({ required: true, default: null })
   rank: number | null;
 
-  @Field((type) => Player)
+  @Field((_type) => Player)
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
   player: string | Player;
 

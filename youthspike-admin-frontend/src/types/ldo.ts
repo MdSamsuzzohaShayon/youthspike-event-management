@@ -49,3 +49,7 @@ export interface IGetEventDirectorQuery extends IResponse {
 export interface IGetEventDirectorsQuery{
   data?: ILDO[];
 }
+
+export interface IGetLdoResponse extends IResponse{
+  data: ILDO;
+}

@@ -6,6 +6,7 @@ import { CustomMatch, CustomNet, CustomRound } from "src/team/resolvers/team.res
 import { PlayerStats, ProStats } from "../player-stats.schema";
 import { PlayerStatsEntry } from "src/event/resolvers/event.response";
 import { Event } from 'src/event/event.schema';
+import { CustomEvent } from "src/team/resolvers/team.response";
 
 @ObjectType()
 export class PlayerStatsResponse extends AppResponse<PlayerStats[]> {
@@ -63,16 +64,19 @@ export class PlayerStatsDetails {
   @Field((_type) => [CustomNet], { nullable: true })
   nets: CustomNet[];
 
+  @Field((_type) => [CustomEvent], { nullable: true })
+  events: CustomEvent[];
+
 // multiplayer, weight, stats
-  @Field((_type) => ProStats, { nullable: true })
-  multiplayer: ProStats;
+  @Field((_type) => [ProStats], { nullable: true })
+  multiplayers: ProStats[];
 
-  @Field((_type) => ProStats, { nullable: true })
-  weight: ProStats;
+  @Field((_type) => [ProStats], { nullable: true })
+  weights: ProStats[];
 
 
-  @Field((_type) => ProStats, { nullable: true })
-  stats: ProStats;
+  @Field((_type) => [ProStats], { nullable: true })
+  stats: ProStats[];
 
 }
 

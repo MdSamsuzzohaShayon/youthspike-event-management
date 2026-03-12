@@ -15,7 +15,7 @@ import { handleError } from '@/utils/handleError';
 import { useLdoId } from '@/lib/LdoProvider';
 import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
-import { useError } from '@/lib/ErrorProvider';
+import { useMessage } from '@/lib/MessageProvider';
 import PlayerMoveDialog from './PlayerMoveDialog';
 import TextImg from '../elements/TextImg';
 import InputField from '../elements/forms/InputField';
@@ -52,7 +52,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
   const dialogMoveEl = useRef<HTMLDialogElement | null>(null);
   
 
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
   const user = useUser();
   const { ldoIdUrl } = useLdoId();
 
@@ -79,17 +79,17 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
         if(setIsLoading)setIsLoading(true);
         if (teamId && eventId) {
           const response = await mutateTeam({ variables: { input, teamId, eventId } });
-          const success = await handleResponseCheck(response.data?.updateTeam, setActErr);
+          const success = await handleResponseCheck(response.data?.updateTeam, showMessage);
           if (!success) return;
           window.location.reload();
         }
       } catch (error: any) {
-        handleError({ error, setActErr });
+        handleError({ error, showMessage });
       } finally {
         if(setIsLoading)setIsLoading(false);
       }
     },
-    [teamId, eventId, mutateTeam, setActErr, setIsLoading],
+    [teamId, eventId, mutateTeam, showMessage, setIsLoading],
   );
 
   const handleMakeCaptain = useCallback(
@@ -126,17 +126,17 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
             playerId,
           },
         });
-        const success = await handleResponseCheck(response.data?.updatePlayer, setActErr);
+        const success = await handleResponseCheck(response.data?.updatePlayer, showMessage);
         if (!success) return;
 
         if (refetchFunc) {
           window.location.reload();
         }
       } catch (error: any) {
-        handleError({ error, setActErr });
+        handleError({ error, showMessage });
       }
     },
-    [teamId, mutatePlayer, setActErr, refetchFunc],
+    [teamId, mutatePlayer, showMessage, refetchFunc],
   );
 
   const handleDelete = useCallback(
@@ -146,7 +146,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
         setActionOpen((prev) => !prev);
         if(setIsLoading)setIsLoading(true);
         const response = await deleteAPlayer({ variables: { playerId } });
-        const success = await handleResponseCheck(response.data?.deletePlayer, setActErr);
+        const success = await handleResponseCheck(response.data?.deletePlayer, showMessage);
         if (!success) return;
         if (refetchFunc) {
           await refetchFunc();
@@ -154,12 +154,12 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
           await client.refetchQueries({ include: [GET_A_TEAM] });
         }
       } catch (error: any) {
-        handleError({ error, setActErr });
+        handleError({ error, showMessage });
       } finally {
         if(setIsLoading)setIsLoading(false);
       }
     },
-    [deleteAPlayer, setActErr, refetchFunc, client, setIsLoading],
+    [deleteAPlayer, showMessage, refetchFunc, client, setIsLoading],
   );
 
   const closeModal = useCallback(() => {
@@ -204,10 +204,10 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
         }
         closeModal();
       } catch (error: any) {
-        handleError({ error, setActErr });
+        handleError({ error, showMessage });
       }
     },
-    [newEmail, newPlayerRole, player._id, mutatePlayer, makeCaptainOrCoCaptain, closeModal, setActErr],
+    [newEmail, newPlayerRole, player._id, mutatePlayer, makeCaptainOrCoCaptain, closeModal, showMessage],
   );
 
   // Memoized components
@@ -408,7 +408,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
         mutatePlayer={mutatePlayer}
         player={player}
         refetchFunc={refetchFunc}
-        setActErr={setActErr}
+        showMessage={showMessage}
         setActionOpen={setActionOpen}
         setMovePlayer={setMovePlayer}
         teamId={teamId || null}

@@ -44,6 +44,45 @@ import { ServerReceiverOnNetService } from 'src/server-receiver-on-net/server-re
 import { ServerReceiverOnNet, ServerReceiverOnNetSchemaFactory, ServerReceiverSinglePlay, ServerReceiverSinglePlaySchemaFactory } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { Template, TemplateSchemaFactory } from 'src/template/template.schema';
 import { TemplateService } from 'src/template/template.service';
+import {
+  ArchiveEvent, ArchiveEventSchemaFactory, ArchiveGroup, ArchiveGroupSchemaFactory, ArchiveLDO, ArchiveLDOSchemaFactory,
+  ArchiveMatch, ArchiveMatchSchemaFactory, ArchiveNet, ArchiveNetSchemaFactory, ArchivePlayer, ArchivePlayerRanking,
+  ArchivePlayerRankingItem,
+  ArchivePlayerRankingItemSchemaFactory,
+  ArchivePlayerRankingSchemaFactory,
+  ArchivePlayerSchemaFactory,
+  ArchivePlayerStats, ArchivePlayerStatsSchemaFactory,
+  ArchiveProStats,
+  ArchiveProStatsSchemaFactory,
+  ArchiveRoom,
+  ArchiveRoomSchemaFactory,
+  ArchiveRound,
+  ArchiveRoundSchemaFactory,
+  ArchiveServerReceiverOnNet,
+  ArchiveServerReceiverOnNetSchemaFactory,
+  ArchiveServerReceiverSinglePlay,
+  ArchiveServerReceiverSinglePlaySchemaFactory,
+  ArchiveSponsor, ArchiveSponsorSchemaFactory, ArchiveTeam, ArchiveTeamSchemaFactory, 
+  ArchiveTemplate, ArchiveTemplateSchemaFactory, ArchiveUser, ArchiveUserSchemaFactory
+} from 'src/archive/archive.schema';
+import {
+  ArchiveTemplateService, ArchiveUserService,
+  ArchiveTeamService,
+  ArchiveEventService,
+  ArchiveMatchService,
+  ArchiveRoundService,
+  ArchiveNetService,
+  ArchivePlayerService,
+  ArchiveLDOService,
+  ArchiveSponsorService,
+  ArchiveRoomService,
+  ArchivePlayerRankingItemService,
+  ArchivePlayerRankingService,
+  ArchiveGroupService,
+  ArchivePlayerStatsService,
+  ArchiveServerReceiverOnNetService,
+  ArchiveServerReceiverSinglePlayService,
+} from 'src/archive/archive.service';
 
 @Module({
   imports: [
@@ -140,6 +179,86 @@ import { TemplateService } from 'src/template/template.service';
         name: Template.name,
         useFactory: TemplateSchemaFactory,
       },
+
+
+      // Archive 
+      {
+        name: ArchiveUser.name,
+        useFactory: ArchiveUserSchemaFactory,
+      },
+      {
+        name: ArchiveTeam.name,
+        useFactory: ArchiveTeamSchemaFactory,
+      },
+      {
+        name: ArchiveEvent.name,
+        useFactory: ArchiveEventSchemaFactory,
+      },
+      {
+        name: ArchiveMatch.name,
+        useFactory: ArchiveMatchSchemaFactory,
+      },
+      {
+        name: ArchiveRound.name,
+        useFactory: ArchiveRoundSchemaFactory,
+      },
+      {
+        name: ArchiveNet.name,
+        useFactory: ArchiveNetSchemaFactory,
+      },
+      {
+        name: ArchiveServerReceiverOnNet.name,
+        useFactory: ArchiveServerReceiverOnNetSchemaFactory,
+      },
+      {
+        name: ArchiveServerReceiverSinglePlay.name,
+        useFactory: ArchiveServerReceiverSinglePlaySchemaFactory,
+      },
+      {
+        name: ArchivePlayer.name,
+        useFactory: ArchivePlayerSchemaFactory,
+      },
+      {
+        name: ArchiveLDO.name,
+        useFactory: ArchiveLDOSchemaFactory,
+      },
+      {
+        name: ArchiveSponsor.name,
+        useFactory: ArchiveSponsorSchemaFactory,
+      },
+      {
+        name: ArchiveRoom.name,
+        useFactory: ArchiveRoomSchemaFactory,
+      },
+
+      {
+        name: ArchivePlayerRanking.name,
+        useFactory: ArchivePlayerRankingSchemaFactory,
+      },
+      {
+        name: ArchivePlayerRankingItem.name,
+        useFactory: ArchivePlayerRankingItemSchemaFactory,
+      },
+
+      {
+        name: ArchiveGroup.name,
+        useFactory: ArchiveGroupSchemaFactory,
+      },
+
+      {
+        name: ArchivePlayerStats.name,
+        useFactory: ArchivePlayerStatsSchemaFactory,
+      },
+      {
+        name: ArchiveProStats.name,
+        useFactory: ArchiveProStatsSchemaFactory,
+      },
+
+
+      {
+        name: ArchiveTemplate.name,
+        useFactory: ArchiveTemplateSchemaFactory,
+      },
     ]),
 
     ConfigModule,
@@ -157,7 +276,6 @@ import { TemplateService } from 'src/template/template.service';
     MatchService,
     RoundService,
     NetService,
-    PlayerService,
     LdoService,
     SponsorService,
     RoomService,
@@ -167,6 +285,27 @@ import { TemplateService } from 'src/template/template.service';
     RedisService,
     PlayerStatsService,
     ServerReceiverOnNetService,
+
+
+    // Archive
+    ArchiveTemplateService,
+    ArchiveUserService,
+    ArchiveTeamService,
+    ArchiveEventService,
+    ArchiveMatchService,
+    ArchiveRoundService,
+    ArchiveNetService,
+    ArchivePlayerService,
+    ArchiveLDOService,
+    ArchiveSponsorService,
+    ArchiveRoomService,
+    ArchivePlayerRankingItemService,
+    ArchivePlayerRankingService,
+    ArchiveGroupService,
+    ArchivePlayerStatsService,
+    ArchiveServerReceiverOnNetService,
+    ArchiveServerReceiverSinglePlayService,
+
   ],
   exports: [
     CloudinaryService,
@@ -188,6 +327,25 @@ import { TemplateService } from 'src/template/template.service';
     GroupService,
     RedisService,
     PlayerStatsService,
+
+    // Archive
+    ArchiveTemplateService,
+    ArchiveUserService,
+    ArchiveTeamService,
+    ArchiveEventService,
+    ArchiveMatchService,
+    ArchiveRoundService,
+    ArchiveNetService,
+    ArchivePlayerService,
+    ArchiveLDOService,
+    ArchiveSponsorService,
+    ArchiveRoomService,
+    ArchivePlayerRankingItemService,
+    ArchivePlayerRankingService,
+    ArchiveGroupService,
+    ArchivePlayerStatsService,
+    ArchiveServerReceiverOnNetService,
+    ArchiveServerReceiverSinglePlayService,
   ],
 })
 export class SharedModule {

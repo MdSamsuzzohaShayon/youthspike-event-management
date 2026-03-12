@@ -516,6 +516,3 @@ Preview / Send
 10. Add Layout Blocks Sections, Columns, Spacer, Button, Divider, Hero, Footer. And make sure those are working properly
 
 
-
-
-http://localhost:3000/68afc5f30bf9dbb4ac0f69cb/matches?ldoId=68afc4b20bf9dbb4ac0f6984&page=1&date=CURRENT

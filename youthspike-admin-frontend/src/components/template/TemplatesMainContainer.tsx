@@ -9,7 +9,7 @@ import { useLdoId } from '@/lib/LdoProvider';
 import TemplateRow from './TemplateRow';
 import { DELETE_TEMPLATE, GET_TEMPLATES, UPDATE_TEMPLATE } from '@/graphql/templates';
 import Loader from '../elements/Loader';
-import { useError } from '@/lib/ErrorProvider';
+import { useMessage } from '@/lib/MessageProvider';
 import { handleError } from '@/utils/handleError';
 import Image from 'next/image';
 
@@ -30,7 +30,7 @@ type DeleteTemplateMutationVars = { templateId: string };
 
 export default function TemplatesMainContainer({ queryRef, eventId }: TemplatesMainContainerProps) {
   const { ldoIdUrl } = useLdoId();
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
   const { data } = useReadQuery(queryRef);
   const [mutateTemplate, { loading: mutateLoading }] = useMutation<UpdateTemplateMutationData, UpdateTemplateMutationVars>(UPDATE_TEMPLATE);
   const [deleteTemplate, { loading: deleteLoading }] = useMutation<DeleteTemplateMutationData, DeleteTemplateMutationVars>(DELETE_TEMPLATE);
@@ -92,7 +92,7 @@ export default function TemplatesMainContainer({ queryRef, eventId }: TemplatesM
         },
       });
     } catch (err: any) {
-      handleError({ error: err, setActErr });
+      handleError({ error: err, showMessage });
     }
   };
 
@@ -155,7 +155,7 @@ export default function TemplatesMainContainer({ queryRef, eventId }: TemplatesM
         },
       });
     } catch (err: any) {
-      handleError({ error: err, setActErr });
+      handleError({ error: err, showMessage });
     }
   };
 

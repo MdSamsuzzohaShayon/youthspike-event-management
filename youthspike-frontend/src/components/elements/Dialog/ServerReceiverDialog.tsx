@@ -22,6 +22,7 @@ interface ServerReceiverDialogProps {
   teamB: ITeam | null;
   net: INetRelatives | null;
   srChangerEl: React.RefObject<HTMLDialogElement | null>;
+  eventId: string;
 }
 
 const ServerReceiverDialog: React.FC<ServerReceiverDialogProps> = ({
@@ -31,6 +32,7 @@ const ServerReceiverDialog: React.FC<ServerReceiverDialogProps> = ({
   teamB,
   net,
   srChangerEl,
+  eventId
 }) => {
   const dispatch = useAppDispatch();
   const socket = useSocket();
@@ -156,6 +158,7 @@ const ServerReceiverDialog: React.FC<ServerReceiverDialogProps> = ({
       match: String(csr?.match ?? ""),
       net: String(net?._id ?? ""),
       room: String(csr?.room ?? ""),
+      event: eventId,
       server: "",
       servingPartner: "",
       receiver: "",

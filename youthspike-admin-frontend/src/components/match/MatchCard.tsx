@@ -8,7 +8,7 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { readDate } from '@/utils/datetime';
 import useClickOutside from '../../hooks/useClickOutside';
 import { DELETE_MATCH } from '@/graphql/matches';
-import { EActionProcess, IError, INetRelatives } from '@/types';
+import { EActionProcess, IMessage, INetRelatives } from '@/types';
 import { ETeam, ITeam } from '@/types/team';
 import { calcRoundScore } from '@/utils/helper';
 import CheckboxInput from '../elements/forms/CheckboxInput';
@@ -27,11 +27,11 @@ interface MatchCardProps {
   sl: number;
   isChecked: boolean;
   handleSelectMatch: (e: React.SyntheticEvent, _id: string) => void;
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+  showMessage: (message: Omit<IMessage, "id">) => void;
   eventId?: string;
 }
 
-function MatchCard({ match, isChecked, handleSelectMatch, setActErr, eventId }: MatchCardProps) {
+function MatchCard({ match, isChecked, handleSelectMatch, showMessage, eventId }: MatchCardProps) {
   const user = useUser();
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
@@ -130,7 +130,7 @@ function MatchCard({ match, isChecked, handleSelectMatch, setActErr, eventId }: 
       console.log({ deletedMatch });
     } catch (err: any) {
       console.log(err);
-      handleError({ error: err, setActErr });
+      handleError({ error: err, showMessage });
     } finally {
       window.location.reload();
     }

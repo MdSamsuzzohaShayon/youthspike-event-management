@@ -2,130 +2,264 @@
 import { IEvent } from '@/types/event';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState, useCallback } from 'react';
 import Image from 'next/image';
-import useClickOutside from '../../hooks/useClickOutside';
+import useClickOutside from '@/hooks/useClickOutside';
 import { useLdoId } from '@/lib/LdoProvider';
-import { AnimatePresence, motion } from 'motion/react';
-import { menuVariants } from '@/utils/animation';
 import { monthNamesShort } from '@/utils/datetime';
 
-interface IProps {
+interface EventCardProps {
   event: IEvent;
-  copyEvent: (e: React.SyntheticEvent, eventId: string) => void;
-  deleteEvent: (e: React.SyntheticEvent, eventId: string) => void;
-  handleExportPlayers: (e: React.SyntheticEvent, eventId: string) => void;
-  sendCredentials: (eventId: string) => void;
+  onCopy: (e: React.SyntheticEvent, eventId: string) => void;
+  onDelete: (e: React.SyntheticEvent, eventId: string) => void;
+  onExportPlayers: (e: React.SyntheticEvent, eventId: string) => void;
+  onSendCredentials: (eventId: string) => void;
 }
 
+/* -------------------------------------------------- */
+/* ------------------ Sub Components ---------------- */
+/* -------------------------------------------------- */
 
+interface ActionMenuItemProps {
+  icon: string;
+  label: string;
+  onClick: (e: React.SyntheticEvent) => void;
+}
 
-function EventCard({ event, copyEvent, deleteEvent, handleExportPlayers,  sendCredentials }: IProps) {
-  const { ldoIdUrl } = useLdoId();
+const ActionMenuItem: React.FC<ActionMenuItemProps> = ({
+  icon,
+  label,
+  onClick,
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 
+               hover:text-yellow-500 hover:bg-yellow-500/10 rounded-lg 
+               transition-all duration-200 group/item"
+  >
+    <Image
+      width={20}
+      height={20}
+      src={icon}
+      alt={`${label}-icon`}
+      className="opacity-50 group-hover/item:opacity-100 svg-white"
+    />
+    {label}
+  </button>
+);
 
-  const [actionOpen, setActionOpen] = useState<boolean>(false);
-  const ulEl = useRef<HTMLElement | null>(null);
+interface EventImageProps {
+  logo?: string | null;
+}
 
-  useClickOutside(ulEl, () => {
-    setActionOpen(false);
-  });
-
-  const handleCopyEvent = (e: React.SyntheticEvent, eventId: string) => {
-    e.preventDefault();
-    setActionOpen(false);
-    copyEvent(e, eventId);
-  };
-
-  const handleDeleteEvent = (e: React.SyntheticEvent, eventId: string) => {
-    e.preventDefault();
-    setActionOpen(false);
-    deleteEvent(e, eventId);
-  };
-
-  const handleSendCredential = (e: React.SyntheticEvent, eventId: string) => {
-    e.preventDefault();
-    // Send captain credentials to the captain and co captain credentials to co captain
-    sendCredentials(eventId);
-  };
-
-  const handleOpenAction = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    setActionOpen((prevState) => !prevState);
-  };
+const EventImage: React.FC<EventImageProps> = ({ logo }) => {
+  if (logo) {
+    return (
+      <CldImage
+        crop="fit"
+        width={100}
+        height={100}
+        src={logo}
+        alt="event-logo"
+        className="w-12 h-12 object-cover object-center"
+      />
+    );
+  }
 
   return (
-    <div key={event._id} className="event-card mb-1 p-2 bg-gray-800 flex justify-around items-center flex-col gap-2 rounded-md relative">
-      {actionOpen && (
-        <AnimatePresence>
-          <motion.ul
-            className="absolute z-10 right-6 top-4 md:right-6 md:top-12 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
-            variants={menuVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            transition={{ duration: 0.2 }}
-          >
-            <li role="presentation" onClick={(e) => handleCopyEvent(e, event._id)} className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-              <span>
-                <Image width={20} height={20} src="/icons/copy.svg" alt="Edit-icon" className="svg-white" />
-              </span>
-              Copy
-            </li>
-            <li role="presentation" onClick={(e) => handleSendCredential(e, event._id)} className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-              <span>
-                <Image width={20} height={20} src="/icons/send-email.svg" alt="Edit-icon" className="svg-white" />
-              </span>{' '}
-              {event.sendCredentials ? 'Resend Credential' : 'Send Credentials'}
-            </li>
-            <li>
-              <Link href={`/${event._id}/settings/${ldoIdUrl}`} className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-                <span>
-                  <Image width={20} height={20} src="/icons/edit.svg" alt="Edit-icon" className="svg-white" />
-                </span>
-                Edit
-              </Link>
-            </li>
-            <li>
-              <button className="btn-success" type='button' onClick={(e) => handleExportPlayers(e, event._id)}>
-                <span>
-                  <Image width={20} height={20} src="/icons/edit.svg" alt="Edit-icon" className="svg-white" />
-                </span>
-                Export Players
-              </button>
-            </li>
-            {/* <li role="presentation" onClick={(e) => handleDeleteEvent(e, event._id)} className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-              <span>
-                <Image width={20} height={20} src="/icons/delete.svg" alt="Edit-icon" className="svg-white" />
-              </span>
-              Delete
-            </li> */}
-          </motion.ul>
-        </AnimatePresence>
-      )}
+    <Image
+      src="/free-logo.png"
+      width={48}
+      height={48}
+      alt="default-logo"
+      className="w-12 h-12"
+    />
+  );
+};
 
-      <div className="w-full flex justify-end">
-        <img src="/icons/dots-vertical.svg" alt="dot-vertical" role="presentation" onClick={handleOpenAction} className="w-4 svg-white" />
+/* -------------------------------------------------- */
+/* ------------------- Main Component --------------- */
+/* -------------------------------------------------- */
+
+const EventCard: React.FC<EventCardProps> = ({
+  event,
+  onCopy,
+  onDelete,
+  onExportPlayers,
+  onSendCredentials,
+}) => {
+  const { ldoIdUrl } = useLdoId();
+
+  const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
+  const [isMenuHovered, setIsMenuHovered] = useState<boolean>(false);
+
+  const menuContainerRef = useRef<HTMLDivElement | null>(null);
+
+  // useClickOutside(menuContainerRef, () => setIsMenuOpen(false));
+
+  /* ---------------- Memoized Values ---------------- */
+
+  const formattedDateRange = useMemo(() => {
+    const start = new Date(event.startDate);
+    const end = new Date(event.endDate);
+
+    const format = (date: Date) =>
+      `${monthNamesShort[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
+
+    return `${format(start)} - ${format(end)}`;
+  }, [event.startDate, event.endDate]);
+
+  const eventDetailsUrl = useMemo(
+    () => `/${event._id}/${ldoIdUrl}`,
+    [event._id, ldoIdUrl]
+  );
+
+  const eventSettingsUrl = useMemo(
+    () => `/${event._id}/settings/${ldoIdUrl}`,
+    [event._id, ldoIdUrl]
+  );
+
+  /* ---------------- Handlers ---------------- */
+
+  const toggleMenu = useCallback(() => {
+    setIsMenuOpen((prev) => !prev);
+  }, []);
+
+  const handleCopy = useCallback(
+    (e: React.SyntheticEvent) => {
+      
+      e.preventDefault();
+      setIsMenuOpen(false);
+      onCopy(e, event._id);
+    },
+    [event._id, onCopy]
+  );
+
+  const handleDelete = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      setIsMenuOpen(false);
+      onDelete(e, event._id);
+    },
+    [event._id, onDelete]
+  );
+
+  const handleExport = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      onExportPlayers(e, event._id);
+    },
+    [event._id, onExportPlayers]
+  );
+
+  const handleSend = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      onSendCredentials(event._id);
+    },
+    [event._id, onSendCredentials]
+  );
+
+  /* ---------------- Render ---------------- */
+
+  return (
+    <div className="event-card mb-1 p-2 bg-gray-800 flex flex-col items-center gap-2 rounded-md relative">
+      {/* Action Menu */}
+      <div
+        ref={menuContainerRef}
+        className="absolute z-10 right-2 bottom-2"
+        onMouseEnter={() => setIsMenuHovered(true)}
+        onMouseLeave={() => setIsMenuHovered(false)}
+      >
+        <button
+          type="button"
+          onClick={toggleMenu}
+          className={`p-2 rounded-lg transition-all duration-300 ${
+            isMenuOpen || isMenuHovered
+              ? 'bg-yellow-500/20 text-yellow-500'
+              : 'text-gray-500 hover:bg-gray-700/50'
+          }`}
+        >
+          <Image
+            src="/icons/dots-vertical.svg"
+            alt="actions"
+            width={20}
+            height={20}
+            className={`transition-transform duration-300 ${
+              isMenuOpen ? 'rotate-90' : ''
+            } svg-current`}
+            style={{
+              filter:
+                isMenuOpen || isMenuHovered
+                  ? 'brightness(0) invert(0.8)'
+                  : 'brightness(0) invert(0.6)',
+            }}
+          />
+        </button>
+
+        {isMenuOpen && (
+          <div className="absolute right-0 top-12 w-56 z-50 animate-slideDown">
+            <div className="bg-gray-800 rounded-xl shadow-2xl border border-gray-700 overflow-hidden backdrop-blur-sm">
+              <div className="px-4 py-3 bg-gradient-to-r from-yellow-500/10 to-transparent border-b border-gray-700">
+                <p className="text-xs font-medium text-yellow-500">Actions</p>
+              </div>
+
+              <ActionMenuItem
+                icon="/icons/copy.svg"
+                label="Copy"
+                onClick={handleCopy}
+              />
+
+              <ActionMenuItem
+                icon="/icons/send-email.svg"
+                label={
+                  event.sendCredentials
+                    ? 'Resend Credential'
+                    : 'Send Credentials'
+                }
+                onClick={handleSend}
+              />
+
+              <Link href={eventSettingsUrl}>
+                <span>
+                  <ActionMenuItem
+                    icon="/icons/edit.svg"
+                    label="Edit"
+                    onClick={(e) => e.preventDefault()}
+                  />
+                </span>
+              </Link>
+
+              <ActionMenuItem
+                icon="/icons/edit.svg"
+                label="Export Players"
+                onClick={handleExport}
+              />
+
+              <ActionMenuItem
+                icon="/icons/delete.svg"
+                label="Delete"
+                onClick={handleDelete}
+              />
+            </div>
+          </div>
+        )}
       </div>
-      <Link href={`/${event._id}/${ldoIdUrl}`}>
-        <div className="img-wrapper w-full flex justify-center items-center">
-          {event.logo ? (
-            <CldImage crop="fit" width={100} height={100} src={event.logo} alt="logo" className="w-12 h-12 object-cover object-center" />
-          ) : (
-            <Image src="/free-logo.png" width={20} height={20} alt="free-logo" className="w-12 h-12" />
-          )}
+
+      {/* Main Content */}
+      <Link href={eventDetailsUrl} className="w-full text-center">
+        <div className="flex justify-center items-center">
+          <EventImage logo={event.logo} />
         </div>
-        <div className="text-box text-center">
-          <h3 className="text-lg font-bold mb-0">{event.name}</h3>
-          <p style={{ fontSize: '0.7rem' }}>
-            {`${monthNamesShort[new Date(event.startDate).getMonth()]} ${new Date(event.startDate).getDate()}, ${new Date(event.startDate).getFullYear()} `} -{' '}
-            {`${monthNamesShort[new Date(event.endDate).getMonth()]} ${new Date(event.endDate).getDate()}, ${new Date(event.endDate).getFullYear()} `}
-          </p>
-          <p>{event.description}</p>
-          <p>{event.location}</p>
-        </div>
+
+        <h3 className="text-lg font-bold">{event.name}</h3>
+        <p className="text-xs">{formattedDateRange}</p>
+        <p>{event.description}</p>
+        <p>{event.location}</p>
       </Link>
     </div>
   );
-}
+};
 
 export default EventCard;

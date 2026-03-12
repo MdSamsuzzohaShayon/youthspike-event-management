@@ -28,6 +28,7 @@ interface IRevertPreviousDialogProps {
   accessCode?: IAccessCode | null;
   teamA: ITeam | null;
   teamB: ITeam | null;
+  eventId: string;
 }
 
 function RevertPreviousDialog({
@@ -45,7 +46,8 @@ function RevertPreviousDialog({
   teamAPlayers,
   teamBPlayers,
   teamA,
-  teamB
+  teamB,
+  eventId
 }: IRevertPreviousDialogProps) {
 
   
@@ -67,6 +69,7 @@ function RevertPreviousDialog({
         match: currMatch._id,
         net: net?._id || null,
         room: currRoom?._id || null,
+        event: eventId,
         accessCode: accessCode?.code.toString() || token || null,
       });
     } else {
@@ -79,6 +82,7 @@ function RevertPreviousDialog({
         match: currMatch._id,
         net: netByNum.get(currNetNum)?._id || null,
         room: currRoom?._id || null,
+        event: eventId,
         accessCode: token || accessCode?.code || null,
         play: lastPlay,
       });

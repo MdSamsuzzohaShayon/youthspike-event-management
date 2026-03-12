@@ -19,13 +19,13 @@ import Image from "next/image";
 import ActiveFilters from "./ActiveFilters";
 import useStatsFilterData from "@/hooks/player-stats/useStatsFilterData";
 
-interface IPlayerStatsMainProps {
+interface IPlayerStatsContainerProps {
   queryRef: QueryRef<{
     getPlayerWithStats: { data: IGetPlayerStats };
   }>;
 }
 
-function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
+function PlayerStatsContainer({ queryRef }: IPlayerStatsContainerProps) {
   const { data, error } = useReadQuery(queryRef);
   if (error) console.error(error);
 
@@ -39,6 +39,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   const [isFilterOpen, setIsFilterOpen] = useState<boolean>(false);
 
   const {
+    events,
     player,
     players,
     team,
@@ -97,6 +98,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
     teammateOptions,
     vsPlayerOptions,
     gameOptions,
+    eventOptions
   } = useStatsFilterData({
     player,
     players: safePlayers,
@@ -105,6 +107,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
     rounds: safeRounds,
     nets,
     teams: [team, ...safeOponents],
+    events
   });
 
   const { netMap, allNetIds } = useMemo(() => {
@@ -192,6 +195,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
                 teammateOptions={teammateOptions}
                 vsClubOptions={vsClubOptions}
                 vsPlayerOptions={vsPlayerOptions}
+                eventOptions={eventOptions}
               />
             </div>
           </div>
@@ -304,6 +308,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
             teammateOptions={teammateOptions}
             vsClubOptions={vsClubOptions}
             vsPlayerOptions={vsPlayerOptions}
+            eventOptions={eventOptions}
           />
         </div>
 
@@ -322,6 +327,7 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
               teammateOptions={teammateOptions}
               vsClubOptions={vsClubOptions}
               vsPlayerOptions={vsPlayerOptions}
+              eventOptions={eventOptions}
             />
           </div>
 
@@ -432,4 +438,4 @@ function PlayerStatsMain({ queryRef }: IPlayerStatsMainProps) {
   );
 }
 
-export default PlayerStatsMain;
+export default PlayerStatsContainer;

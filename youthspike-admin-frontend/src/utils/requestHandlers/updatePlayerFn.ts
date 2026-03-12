@@ -2,7 +2,7 @@ import { UPDATE_PLAYER_RAW } from '@/graphql/players';
 import { IPlayer, IPlayerAdd, IPlayerExpRel } from '@/types/player';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { handleRedirect, sendGraphQLFormData, handleResponseCheck } from './playerHelpers';
-import { IError, IResponse } from '@/types';
+import { IMessage, IResponse } from '@/types';
 import { useMutation } from '@apollo/client/react';
 import { ApolloCache } from '@apollo/client';
 
@@ -21,7 +21,7 @@ type TMutationFunction = useMutation.MutationFunction<
 >;
 
 interface IUpdatePlayer {
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+  showMessage: (message: Omit<IMessage, "id">) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   playerUpdate: Partial<IPlayerAdd>;
   prevPlayer: IPlayer | null;
@@ -30,7 +30,7 @@ interface IUpdatePlayer {
 
 }
 
-async function updatePlayerFn({ setActErr, setIsLoading, playerUpdate, prevPlayer, uploadedProfile, updatePlayer }: IUpdatePlayer) {
+async function updatePlayerFn({ showMessage, setIsLoading, playerUpdate, prevPlayer, uploadedProfile, updatePlayer }: IUpdatePlayer) {
   try {
     setIsLoading(true);
 
@@ -44,7 +44,7 @@ async function updatePlayerFn({ setActErr, setIsLoading, playerUpdate, prevPlaye
     }
 
     const responseData = playerRes?.data?.updatePlayer;
-    const success = await handleResponseCheck(responseData, setActErr);
+    const success = await handleResponseCheck(responseData, showMessage);
     // if (!success) return;
 
     // // if (refetch) await refetch();

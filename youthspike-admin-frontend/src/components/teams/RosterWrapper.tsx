@@ -1,5 +1,5 @@
 import { UPDATE_TEAM } from '@/graphql/teams';
-import { useError } from '@/lib/ErrorProvider';
+import { useMessage } from '@/lib/MessageProvider';
 import { EPlayerStatus, IEvent, IPlayer, IPlayerExpRel, IPlayerRankingExpRel, ITeam } from '@/types';
 import React, { useCallback, useMemo, useState } from 'react';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
@@ -22,7 +22,7 @@ function RosterWrapper({ event, team, players, playerRanking, teamList }: IRoste
 
   // Hooks
   const [mutateTeam] = useMutation(UPDATE_TEAM);
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
 
   
   // Event handlers
@@ -39,10 +39,10 @@ function RosterWrapper({ event, team, players, playerRanking, teamList }: IRoste
         });
         window.location.reload();
       } catch (error) {
-        setActErr({ message: (error as Error)?.message || '', success: false });
+        showMessage({ type: 'error', message: (error as Error)?.message || 'An error occurred' });
       }
     },
-    [playerIdsToAdd, team, event, mutateTeam, setActErr],
+    [playerIdsToAdd, team, event, mutateTeam, showMessage],
   );
   const refetchFunc = useCallback(() => window.location.reload(), []);
   const handleCheckboxChange = useCallback((pId: string, isChecked: boolean) => {

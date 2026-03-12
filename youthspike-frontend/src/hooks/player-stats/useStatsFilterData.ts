@@ -1,6 +1,7 @@
 import {
   EPlayerStatType,
   EStatsFilter,
+  IEvent,
   IFilter,
   IMatch,
   INetRelatives,
@@ -30,6 +31,7 @@ interface IStatsFilterDataProps {
   rounds: IRoundRelatives[];
   nets: INetRelatives[];
   teams: ITeam[];
+  events: IEvent[];
 }
 
 /**
@@ -44,6 +46,7 @@ function useStatsFilterData({
   rounds,
   nets,
   teams,
+  events
 }: IStatsFilterDataProps) {
   // base maps memoized to O(n) build cost once per dependency change
   const {
@@ -232,11 +235,9 @@ function useStatsFilterData({
           const playerB1 = playerMap.get(String(net.teamBPlayerA));
           const playerB2 = playerMap.get(String(net.teamBPlayerB));
 
-          const label = `Round ${round.num} - ${
-            playerA1?.firstName ?? "N/A"
-          } & ${playerA2?.firstName ?? "N/A"} vs ${
-            playerB1?.firstName ?? "N/A"
-          } & ${playerB2?.firstName ?? "N/A"}`;
+          const label = `Round ${round.num} - ${playerA1?.firstName ?? "N/A"
+            } & ${playerA2?.firstName ?? "N/A"} vs ${playerB1?.firstName ?? "N/A"
+            } & ${playerB2?.firstName ?? "N/A"}`;
 
           options.push({
             id: parseInt(`${round.num}${net.num}`, 10) || options.length + 1,
@@ -250,12 +251,33 @@ function useStatsFilterData({
     return options;
   }, [filter, roundMapByMatch, netMapByRound, player._id, playerMap]);
 
+  const eventOptions: IOption[] = useMemo(() => {
+    // const startTs = filter[EStatsFilter.START_DATE]
+    //   ? new Date(String(filter[EStatsFilter.START_DATE])).getTime()
+    //   : null;
+    // const endTs = filter[EStatsFilter.END_DATE]
+    //   ? new Date(String(filter[EStatsFilter.END_DATE])).getTime()
+    //   : null;
+
+    return events.filter((e) => {
+      // const t = new Date(m.date).getTime();
+      // if (startTs != null && t < startTs) return false;
+      // if (endTs != null && t > endTs) return false;
+      return true;
+    }).map((e, i) => ({
+      id: i + 1,
+      value: e._id,
+      text: e.name
+    }));
+  }, [matches, filter]);
+
   return {
     matchOptions,
     vsClubOptions,
     teammateOptions,
     vsPlayerOptions,
     gameOptions,
+    eventOptions,
   };
 }
 

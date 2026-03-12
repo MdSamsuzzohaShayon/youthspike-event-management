@@ -183,11 +183,17 @@ export interface IMenuArrangeProps {
   handleLogout: (e: React.SyntheticEvent) => void;
 }
 
-export interface IError {
+export type MessageType = 'success' | 'error' | 'warning' | 'info';
+
+export interface IMessage {
   message?: string;
-  success?: boolean;
+  type: MessageType;
   code?: number;
+  id?: string;
+  duration?: number; // Duration in ms, defaults to 5000
 }
+
+
 
 export interface IResponse {
   success: boolean;

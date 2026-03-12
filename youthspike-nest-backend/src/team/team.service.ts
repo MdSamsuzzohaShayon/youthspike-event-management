@@ -88,6 +88,14 @@ export class TeamService {
     return this.teamModel.deleteMany(filter);
   }
 
+  async deleteOne(filter: QueryFilter<Team>) {
+    return this.teamModel.deleteOne(filter);
+  }
+
+  async deleteMany(filter: QueryFilter<Team>) {
+    return this.teamModel.deleteMany(filter);
+  }
+
   async countDocuments(filter: QueryFilter<Team>) {
     return this.teamModel.countDocuments();
   }

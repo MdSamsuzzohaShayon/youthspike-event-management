@@ -107,6 +107,7 @@ export class PlayerService {
             status: EPlayerStatus.ACTIVE,
             division,
             events: [event],
+            archivedEvents: [],
             teams: [],
           };
 

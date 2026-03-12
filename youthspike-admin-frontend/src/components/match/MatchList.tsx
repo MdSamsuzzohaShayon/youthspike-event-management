@@ -13,7 +13,7 @@ import Image from 'next/image';
 import { imgSize } from '@/utils/style';
 import useClickOutside from '@/hooks/useClickOutside';
 import { UserRole } from '@/types/user';
-import { useError } from '@/lib/ErrorProvider';
+import { useMessage } from '@/lib/MessageProvider';
 import InputField from '../elements/forms/InputField';
 import Pagination from '../elements/Pagination';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
@@ -49,7 +49,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
   const user = useUser();
 
   // Initial query params
@@ -252,18 +252,18 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
         if (ids.length === 0) return;
 
         const response = await deleteMatchesMutation({ variables: { matchIds: ids } });
-        const success = await handleResponseCheck(response.data?.deleteMatches, setActErr );
+        const success = await handleResponseCheck(response.data?.deleteMatches, showMessage );
         if (!success) return;
 
         setSelectedMatches(new Map());
         refetchFunc ? refetchFunc() : window.location.reload();
       } catch (error: any) {
-        handleError({ error, setActErr });
+        handleError({ error, showMessage });
       } finally {
         setIsLoading(false);
       }
     },
-    [selectedMatches, deleteMatchesMutation, setIsLoading, setActErr, refetchFunc],
+    [selectedMatches, deleteMatchesMutation, setIsLoading, showMessage, refetchFunc],
   );
 
   const handleMoveSelected = useCallback((e: React.SyntheticEvent) => {
@@ -321,9 +321,9 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
               match={match}
               isChecked={selectedMatches.get(match._id) ?? false}
               sl={i + 1}
-              refetchFunc={refetchFunc}
+              refetchFunc={()=>{}}
               handleSelectMatch={toggleSelectMatch}
-              setActErr={setActErr}
+              showMessage={showMessage}
             />
           </motion.div>
         ))}

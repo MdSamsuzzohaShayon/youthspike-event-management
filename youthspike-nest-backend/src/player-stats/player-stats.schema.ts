@@ -87,6 +87,11 @@ export class PlayerStats extends AppDocument {
   @Field(() => Player, { nullable: true })
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Player', required: true })
   player: string | Player;
+
+
+  @Field((_type) => Event, { nullable: false })
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Event' })
+  event: Event | string;
 }
 
 export const PlayerStatsSchema = SchemaFactory.createForClass(PlayerStats);
@@ -130,6 +135,7 @@ export class ProStats extends AppDocument {
 }
 
 export const ProStatsSchema = SchemaFactory.createForClass(ProStats);
+ProStatsSchema.index({event: 1});
 export const ProStatsSchemaFactory = async () => {
   return ProStatsSchema;
 };

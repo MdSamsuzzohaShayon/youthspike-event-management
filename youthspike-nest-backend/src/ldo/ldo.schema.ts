@@ -32,6 +32,11 @@ export class LDO extends AppDocument {
   @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }] })
   @Field(() => [evt.Event], { nullable: true })
   events: evt.Event[] | string[];
+
+
+  @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }] })
+  @Field(() => [evt.Event], { nullable: true })
+  archivedEvents: evt.Event[] | string[];
 }
 
 export const LDOSchema = SchemaFactory.createForClass(LDO);

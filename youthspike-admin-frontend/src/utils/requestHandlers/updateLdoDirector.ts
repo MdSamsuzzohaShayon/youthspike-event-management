@@ -11,7 +11,7 @@ import { handleError } from "../handleError";
 
 export async function updateLdoDirector({
   directorUpdate,
-  setActErr,
+  showMessage,
   ldoUpdate,
   uploadedLogo,
   setIsLoading,
@@ -25,7 +25,7 @@ export async function updateLdoDirector({
 
   // Handle password validation and cleanup
   if (directorUpdateObj.password && directorUpdateObj.password !== '') {
-    if (!validatePassword(directorUpdateObj.password, directorUpdateObj.confirmPassword!, setActErr)) {
+    if (!validatePassword(directorUpdateObj.password, directorUpdateObj.confirmPassword!, showMessage)) {
       return;
     }
   } else {
@@ -44,8 +44,8 @@ export async function updateLdoDirector({
   try {
     // Handle file upload if needed
     await handleFileUpload(formData, UPDATE_DIRECTOR_RAW, updateVar, uploadedLogo);
-    
-    setIsLoading(true);
+
+    if (setIsLoading) setIsLoading(true);
 
     if (uploadedLogo.current) {
       // File upload path
@@ -59,13 +59,13 @@ export async function updateLdoDirector({
       }
     }
 
-    setActErr(null);
+    // showMessage(null);
     if (refetchFunc) await refetchFunc();
   } catch (error: any) {
     console.error('Error during director update:', error);
     handleError(error);
-    setActErr(error);
+    showMessage(error);
   } finally {
-    setIsLoading(false);
+    if (setIsLoading) setIsLoading(false);
   }
 }

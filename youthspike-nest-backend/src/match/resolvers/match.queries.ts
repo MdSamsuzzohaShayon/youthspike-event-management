@@ -16,13 +16,16 @@ import { UserService } from 'src/user/user.service';
 import { ETieBreakingStrategy } from 'src/event/event.schema';
 import { QueryFilter } from 'mongoose';
 import { EMatchStatus, Match } from '../match.schema';
-import { GetEventWithMatchesResponse } from './match.response';
+import { CustomGroup, CustomTeam, GetEventWithMatchesResponse, GetMatchesResponse } from './match.response';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { PlayerService } from 'src/player/player.service';
 import { EPlayerStatus } from 'src/player/player.schema';
-import { EActionProcess } from 'src/round/round.schema';
+import { EActionProcess, Round } from 'src/round/round.schema';
 import { Team } from 'src/team/team.schema';
 import { LDO } from 'src/ldo/ldo.schema';
+import { Group } from 'src/group/group.schema';
+import { User } from 'src/user/user.schema';
+import { CustomMatch, CustomNet, CustomRound } from 'src/team/resolvers/team.response';
 
 // IMatchQueries
 
@@ -79,150 +82,246 @@ export class MatchQueries {
     }
   }
 
-  async searchMatches(context: any, filter: SearchFilterInput, eventId?: string,) {
+  async searchMatches(
+    context: unknown,
+    filter: SearchFilterInput,
+    eventId?: string,
+  ): Promise<GetEventWithMatchesResponse> {
     try {
-      // Fetch event
-      let event = null;
-      if(eventId){
-        event = await this.eventService.findOne({ _id: eventId });
+      const limit = filter?.limit ?? 30;
+      const offset = filter?.offset ?? 0;
+  
+      /**
+       * ---------------------------------------------------------
+       * 1. Fetch Event (if provided)
+       * ---------------------------------------------------------
+       */
+      const event = eventId
+        ? await this.eventService.findOne({ _id: eventId })
+        : null;
+  
+      /**
+       * ---------------------------------------------------------
+       * 2. Extract Logged-in User from Token
+       * ---------------------------------------------------------
+       */
+      let loggedUser: User | null = null;
+  
+      try {
+        const jwtSecret = this.configService.get<string>('JWT_SECRET');
+        const userPayload = tokenToUser(context, jwtSecret);
+        loggedUser = await this.userService.findById(userPayload?._id);
+      } catch (error) {
+        console.error(`User authentication error: ${error}`);
       }
-
-      // Return any one of them between player and event
-      const secret = this.configService.get<string>('JWT_SECRET');
-      const userPayload = tokenToUser(context, secret);
-
-      // Get user
-      const loggedUser = await this.userService.findById(userPayload?._id);
-
-      // Fetch groups + ldo in parallel
+  
+      /**
+       * ---------------------------------------------------------
+       * 3. Fetch LDO and Groups (if event exists)
+       * ---------------------------------------------------------
+       */
       let ldo: LDO | null = null;
-      let groups = [];
-
-      if(eventId){
-        ldo = await this.ldoService.findByDirectorId(String(event.ldo))
-        groups = await this.groupService.find({ event: eventId });
+      let groups: Group[] = [];
+  
+      if (eventId && event) {
+        [ldo, groups] = await Promise.all([
+          this.ldoService.findByDirectorId(String(event.ldo)),
+          this.groupService.find({ event: eventId }),
+        ]);
       }
-
-      // Build match filter
-      const matchFilter: QueryFilter<Match> = {  };
-
-      if(eventId){
+  
+      /**
+       * ---------------------------------------------------------
+       * 4. Build Match Filter
+       * ---------------------------------------------------------
+       */
+      const matchFilter: QueryFilter<Match> = {};
+  
+      if (eventId) {
         matchFilter.event = eventId;
       }
-
-      let searchFound = false;
-
-
-      // If logged in as captain or co-captain
+  
+      /**
+       * ---------------------------------------------------------
+       * 5. Captain / Co-captain filter
+       * ---------------------------------------------------------
+       */
       if (loggedUser?.captainplayer || loggedUser?.cocaptainplayer) {
-        let teamOfCaptain = null;
-
-        if (loggedUser.captainplayer) {
-          teamOfCaptain = await this.teamService.findOne({ captain: loggedUser.captainplayer });
-        }
-        if (loggedUser.cocaptainplayer) {
-          teamOfCaptain = await this.teamService.findOne({ cocaptain: loggedUser.cocaptainplayer });
-        }
-        if (!teamOfCaptain) {
+        const team = loggedUser.captainplayer
+          ? await this.teamService.findOne({ captain: loggedUser.captainplayer })
+          : await this.teamService.findOne({ cocaptain: loggedUser.cocaptainplayer });
+  
+        if (!team) {
           return AppResponse.notFound('Team');
         }
-        matchFilter.$or = [{ teamA: String(teamOfCaptain._id) }, { teamB: String(teamOfCaptain._id) }];
+  
+        matchFilter.$or = [
+          { teamA: String(team._id) },
+          { teamB: String(team._id) },
+        ];
       }
-
-      // Team filter (case-insensitive exact match)
+  
+      /**
+       * ---------------------------------------------------------
+       * 6. Team Search Filter
+       * ---------------------------------------------------------
+       */
+      let teamSearchMatched = false;
+  
       if (filter?.search) {
         const teams = await this.teamService.find({
-          name: { $regex: new RegExp(filter.search, 'i') }, // partial + case-insensitive
+          name: { $regex: new RegExp(filter.search, 'i') },
         });
+  
         if (teams.length > 0) {
-          searchFound = true;
-          const teamIds = teams.map((t) => t._id);
-          matchFilter.$or = [{ teamA: { $in: teamIds } }, { teamB: { $in: teamIds } }];
+          teamSearchMatched = true;
+  
+          const teamIds = teams.map((team) => team._id);
+  
+          matchFilter.$or = [
+            { teamA: { $in: teamIds } },
+            { teamB: { $in: teamIds } },
+          ];
         }
       }
-
-      // Flexible string filters (partial matches, case-insensitive)
-      if (filter?.search && !searchFound) {
+  
+      /**
+       * ---------------------------------------------------------
+       * 7. Description / Location Search
+       * ---------------------------------------------------------
+       */
+      if (filter?.search && !teamSearchMatched) {
         matchFilter.$or = [
           { description: { $regex: filter.search, $options: 'i' } },
           { location: { $regex: filter.search, $options: 'i' } },
         ];
       }
-
+  
+      /**
+       * ---------------------------------------------------------
+       * 8. Division / Group Filters
+       * ---------------------------------------------------------
+       */
       if (filter?.division) {
-        matchFilter.division = { $regex: new RegExp(filter.division.trim(), 'i') };
+        matchFilter.division = {
+          $regex: new RegExp(filter.division.trim(), 'i'),
+        };
       }
-
+  
       if (filter?.group) {
         matchFilter.group = filter.group;
       }
-
-      // matchFilter._id = "68f2c101277224677c41851d";
-
+  
+      /**
+       * ---------------------------------------------------------
+       * 9. Completed Filter
+       * ---------------------------------------------------------
+       */
       if (filter?.status === EMatchStatus.COMPLETED) {
         matchFilter.completed = true;
       } else if (filter?.status) {
         filter.limit = 5000;
       }
-      let matches = await this.matchService.find(matchFilter, filter?.limit || 30, filter?.offset || 0);
-
-      // Collect IDs efficiently
-      const teamIds = new Set<string>();
-      const matchIds = new Set<string>();
-
-      for (const m of matches) {
-        matchIds.add(m._id);
-        if (m.teamA) teamIds.add(String(m.teamA));
-        if (m.teamB) teamIds.add(String(m.teamB));
-      }
-
-      // Fetch related entities in parallel
-      const teamFilter: QueryFilter<Team> = eventId ? {event: eventId} : {};
-
+  
+      /**
+       * ---------------------------------------------------------
+       * 10. Fetch Matches
+       * ---------------------------------------------------------
+       */
+      let matches = await this.matchService.find(
+        matchFilter,
+        limit,
+        offset,
+      );
+  
+      /**
+       * ---------------------------------------------------------
+       * 11. Collect Match IDs
+       * ---------------------------------------------------------
+       */
+      const matchIds = matches.map((match) => match._id);
+  
+      /**
+       * ---------------------------------------------------------
+       * 12. Fetch Related Data in Parallel
+       * ---------------------------------------------------------
+       */
+      const teamFilter: QueryFilter<Team> = eventId ? { event: eventId } : {};
+  
       const [nets, rounds, teams] = await Promise.all([
-        this.netService.find({ match: { $in: [...matchIds] } }),
-        this.roundService.find({ match: { $in: [...matchIds] } }),
-        this.teamService.find(teamFilter), 
+        this.netService.find({ match: { $in: matchIds } }),
+        this.roundService.find({ match: { $in: matchIds } }),
+        this.teamService.find(teamFilter),
       ]);
-
-      if (filter?.status) {
-        if (filter.status === EMatchStatus.IN_PROGRESS) {
-          // Check all matches that are not completed and have first round teamAProcess is not INITIATE
-          matches = matches.filter((m) => {
-            if (m.completed) return false;
-            const firstRound = rounds.find((r) => String(r.match) === String(m._id));
-            if (!firstRound) return false;
-            return firstRound && firstRound.teamAProcess !== EActionProcess.INITIATE;
-          });
-        } else if (filter.status === EMatchStatus.NOT_STARTED) {
-          // Check all matches that are not completed and have first round teamAProcess is INITIATE
-          matches = matches.filter((m) => {
-            if (m.completed) return false;
-            const firstRound = rounds.find((r) => String(r.match) === String(m._id));
-            if (!firstRound) return false;
-            return firstRound && firstRound.teamAProcess === EActionProcess.INITIATE;
-          });
-        } else if (filter.status === EMatchStatus.CURRENT) {
-          // Check all matches that are not completed and have first round teamAProcess is CHECKIN
-          matches = matches.filter((m) => {
-            if (m.completed) return false;
-            const firstRound = rounds.find((r) => String(r.match) === String(m._id));
-            if (!firstRound) return false;
-            return firstRound && firstRound.teamAProcess === EActionProcess.CHECKIN;
-          });
-        } else if (filter.status === EMatchStatus.PAST) {
-          // CHeck all matches date is less than current date
-          matches = matches.filter((m) => new Date(m.date) < new Date());
-        }
+  
+      /**
+       * ---------------------------------------------------------
+       * 13. Build Round Map (O(1) lookup)
+       * ---------------------------------------------------------
+       */
+      const roundMap = new Map<string, Round>();
+  
+      for (const round of rounds) {
+        roundMap.set(String(round.match), round);
       }
+  
+      /**
+       * ---------------------------------------------------------
+       * 14. Status-based Filtering
+       * ---------------------------------------------------------
+       */
+      if (filter?.status) {
+        const now = new Date();
+  
+        matches = matches.filter((match) => {
+          const firstRound = roundMap.get(String(match._id));
+  
+          if (!firstRound) return false;
+  
+          switch (filter.status) {
+            case EMatchStatus.IN_PROGRESS:
+              return !match.completed &&
+                firstRound.teamAProcess !== EActionProcess.INITIATE;
+  
+            case EMatchStatus.NOT_STARTED:
+              return !match.completed &&
+                firstRound.teamAProcess === EActionProcess.INITIATE;
+  
+            case EMatchStatus.CURRENT:
+              return !match.completed &&
+                firstRound.teamAProcess === EActionProcess.CHECKIN;
+  
+            case EMatchStatus.PAST:
+              return new Date(match.date) < now;
+  
+            default:
+              return true;
+          }
+        });
+      }
+  
+      /**
+       * ---------------------------------------------------------
+       * 15. Return Response
+       * ---------------------------------------------------------
+       */
       return {
         code: HttpStatus.OK,
         success: true,
         message: 'List of matches',
-        data: { event, groups, ldo, matches, nets, rounds, teams },
+        data: {
+          event,
+          groups: groups as CustomGroup[],
+          ldo,
+          matches: matches as CustomMatch[],
+          nets: nets as unknown as CustomNet[],
+          rounds: rounds as CustomRound[],
+          teams: teams as CustomTeam[],
+        },
       };
-    } catch (err) {
-      return AppResponse.handleError(err);
+  
+    } catch (error) {
+      return AppResponse.handleError(error);
     }
   }
 

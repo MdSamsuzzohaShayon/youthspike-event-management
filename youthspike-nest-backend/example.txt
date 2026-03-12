@@ -466,3 +466,63 @@ You need to do:
 
 Need to work with 
 logo, uploadedFile, and profile
+
+
+
+
+
+http://localhost:3001/matches/69b1c29c8de6cf04a674b405?ldoId=68afc4b20bf9dbb4ac0f6984
+
+G-1 - pro
+=================
+Washington Huskies
+Wasatch Warriors
+Waco Bears
+Virginia Beach Surfs Up
+Vancouver Sentinels
+Tempe Devils
+State College Nittany Lions
+St. Paul Sleepers
+South Denver Rams
+
+G-2 - challenger
+=================
+Vancouver Sentinels CH
+St. Paul Sleepers CH
+Seattle Rain CH
+San Jose Shockwave CH
+Montana Moose Riders CH
+
+
+
+Match in G-2
+=================
+
+Team B - Washington Huskies
+-----------------
+Davis Jung 
+Max Nice
+Jensen Elsemore
+Malachi Espinola
+Evan Denny
+Lcan Garwood
+Well Melhorn
+
+Team A - Waco Bears
+-----------------
+Davis Jung 
+Max Nice
+Jensen Elsemore
+Malachi Espinola
+Evan Denny
+Lcan Garwood
+Well Melhorn
+
+
+Round 1, Net 1
+-----------------
+Micah Allin
+Ian Austin
+Jensen Elsemore
+Will Melhorn
+

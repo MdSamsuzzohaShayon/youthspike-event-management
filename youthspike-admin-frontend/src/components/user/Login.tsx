@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Loader from '@/components/elements/Loader';
 import { LOGIN_USER } from '@/graphql/admin';
 import { ILoginResponse, UserRole } from '@/types/user';
-import { useError } from '@/lib/ErrorProvider';
+import { useMessage } from '@/lib/MessageProvider';
 import InputField from '../elements/forms/InputField';
 import { useState, useCallback, useMemo } from 'react';
 import { setCookie } from '@/utils/clientCookie';
@@ -171,7 +171,7 @@ function LoginPage() {
   });
 
   const router = useRouter();
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
   const searchParams = useSearchParams();
   const matchId = searchParams.get('matchId');
 
@@ -198,8 +198,8 @@ function LoginPage() {
   const [loginUser, { loading: isLoading }] = useMutation<{ login: ILoginResponse }>(LOGIN_USER, {
     variables: formData,
     onError: (error) => {
-      setActErr({
-        success: false,
+      showMessage({
+        type: 'error',
         message: error.message || 'An unexpected error occurred, please try again.',
       });
       // Clear cookies on error
@@ -210,8 +210,8 @@ function LoginPage() {
       const resultData = data.login;
 
       if (!resultData || resultData.code !== 202) {
-        setActErr({
-          success: false,
+        showMessage({
+          type: 'error',
           message: resultData?.message || 'Login failed, please try again.',
         });
         return;
@@ -233,7 +233,7 @@ function LoginPage() {
       e.preventDefault();
 
       if (!formData.email || !formData.password) {
-        setActErr({ success: false, message: 'Please enter your email and password!' });
+        showMessage({ type: 'error', message: 'Please enter your email and password!' });
         return;
       }
 
@@ -244,7 +244,7 @@ function LoginPage() {
         console.error('Login submission error:', error);
       }
     },
-    [formData, loginUser, setActErr],
+    [formData, loginUser, showMessage],
   );
 
   const togglePasscodeField = useCallback(() => {

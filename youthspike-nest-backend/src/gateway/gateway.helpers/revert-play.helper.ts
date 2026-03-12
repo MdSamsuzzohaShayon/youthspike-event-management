@@ -23,6 +23,7 @@ export class RevertPlayHelper {
         stats = await this.scoreKeeper.getPlayerStats(
           String(singlePlay.net),
           String(singlePlay.match) as string,
+          String(singlePlay.event),
           playerIds as [],
         );
         const aceThirdStats = pointsUpdateHelper.statsAceNoThird();
@@ -37,6 +38,7 @@ export class RevertPlayHelper {
         stats = await this.scoreKeeper.getPlayerStats(
           String(singlePlay.net),
           String(singlePlay.match) as string,
+          String(singlePlay.event),
           playerIds as [],
         );
         const defensiveStats = pointsUpdateHelper.statsDefensiveConversion();
@@ -51,6 +53,7 @@ export class RevertPlayHelper {
         stats = await this.scoreKeeper.getPlayerStats(
           String(singlePlay.net),
           String(singlePlay.match) as string,
+          String(singlePlay.event),
           playerIds as [],
         );
         const aceStats = pointsUpdateHelper.statsAceNoTouch();
@@ -63,6 +66,7 @@ export class RevertPlayHelper {
         stats = await this.scoreKeeper.getPlayerStats(
           String(singlePlay.net),
           String(singlePlay.match) as string,
+          String(singlePlay.event),
           playerIds as [],
         );
         const hittingErrStats = pointsUpdateHelper.statsReceivingHittingError();
@@ -76,6 +80,7 @@ export class RevertPlayHelper {
         stats = await this.scoreKeeper.getPlayerStats(
           String(singlePlay.net),
           String(singlePlay.match) as string,
+          String(singlePlay.event),
           playerIds as [],
         );
         const putAwayStats = pointsUpdateHelper.statsOneTwoThreePutAway();
@@ -90,6 +95,7 @@ export class RevertPlayHelper {
         stats = await this.scoreKeeper.getPlayerStats(
           String(singlePlay.net),
           String(singlePlay.match) as string,
+          String(singlePlay.event),
           playerIds as [],
         );
         const rallyStats = pointsUpdateHelper.statsRallyConversion();
@@ -104,6 +110,7 @@ export class RevertPlayHelper {
         stats = await this.scoreKeeper.getPlayerStats(
           String(singlePlay.net),
           String(singlePlay.match) as string,
+          String(singlePlay.event),
           playerIds as [],
         );
         const faultStats = pointsUpdateHelper.statsRallyConversion();
@@ -145,7 +152,7 @@ export class RevertPlayHelper {
           }
         });
       });
-      await this.scoreKeeper.savePlayerStats(stats);
+      await this.scoreKeeper.savePlayerStats(stats, String(singlePlay.event));
     }
 
     return playerIds;
