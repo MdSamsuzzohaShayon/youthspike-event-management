@@ -340,7 +340,6 @@ export class EventMutations implements IEventMutations {
      * No matches and no groups
      */
     try {
-      /*
       // This is the event we are cloning
       const event = await this.eventService.findOne({ _id: eventId });
       if (!event) return AppResponse.notFound('Event not found!');
@@ -398,7 +397,6 @@ export class EventMutations implements IEventMutations {
           unassignedPlayers.push();
         }
       }
-        */
     } catch (error) {
       return AppResponse.handleError(error);
     }

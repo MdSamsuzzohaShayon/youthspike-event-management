@@ -93,6 +93,14 @@ function EventCard({ event, copyEvent, deleteEvent, handleExportPlayers,  sendCr
                 Export Players
               </button>
             </li>
+            <li>
+              <button type='button' onClick={(e) => handleExportPlayers(e, event._id)}>
+                <span>
+                  <Image width={20} height={20} src="/icons/edit.svg" alt="Edit-icon" className="svg-white" />
+                </span>
+               Make default
+              </button>
+            </li>
             {/* <li role="presentation" onClick={(e) => handleDeleteEvent(e, event._id)} className="flex items-center gap-2 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
               <span>
                 <Image width={20} height={20} src="/icons/delete.svg" alt="Edit-icon" className="svg-white" />
