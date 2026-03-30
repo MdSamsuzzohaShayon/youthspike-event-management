@@ -108,6 +108,9 @@ export class CreateEventInput {
   @Field({ nullable: true })
   fwango?: string;
 
+  @Field({ nullable: true })
+  defaulted?: boolean;
+
   @Field({ nullable: false })
   description: string;
 

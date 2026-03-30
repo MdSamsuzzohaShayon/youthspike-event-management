@@ -1,31 +1,23 @@
-/* eslint-disable jsx-a11y/label-has-associated-control */
-import React from 'react';
-import Image from 'next/image';
-import { notFound } from 'next/navigation';
-import EventMain from './EventMain';
-import { getEvents } from '@/app/_requests/event';
+import { QueryRef } from "@apollo/client/react";
+import { PreloadQuery } from "@/lib/client";
+import { IGetEventsResponse, IGetPlayerStats } from "@/types";
+import { GET_EVENTS } from "@/graphql/event";
+import EventContainer from "./EventContainer";
 
-async function EventPage() {
-  const eventsData = await getEvents();
 
-  if (!eventsData) {
-    notFound();
-  }
+export async function EventPage() {
 
   return (
-    <div className="event-wrapper w-full min-h-screen">
-      <div className="container mx-auto px-4 py-8">
-        {/* Logo Section */}
-        <div className="logo-wrapper w-full flex items-center justify-center mt-8">
-          <Image alt="American Spikers League" loading="lazy" width={200} height={200} decoding="async" className="w-32" style={{ color: 'transparent' }} src="/free-logo.png" />
-        </div>
-
-        {/* Heading */}
-        <h1 className="text-4xl font-bold text-center mt-8 text-yellow-logo bg-clip-text text-transparent">Events</h1>
-
-        <EventMain events={eventsData} />
-      </div>
-    </div>
+    <PreloadQuery query={GET_EVENTS} 
+    >
+      {(queryRef) => (
+          <EventContainer
+            queryRef={queryRef as QueryRef<{
+              getEvents: IGetEventsResponse;
+            }>}
+          />
+      )}
+    </PreloadQuery>
   );
 }
 

@@ -1,10 +1,9 @@
 import { IEvent } from '@/types/event';
-import Link from 'next/link';
-import React from 'react';
 import { useLdoId } from '@/lib/LdoProvider';
 import { readDate } from '@/utils/datetime';
 import { CldImage } from 'next-cloudinary';
 import TextImg from '../elements/TextImg';
+import Link from 'next/link';
 
 interface IEventCardProps {
   event: IEvent;
@@ -25,7 +24,7 @@ function EventCard({ event }: IEventCardProps) {
           {readDate(event.startDate)} - {readDate(event.endDate)}
         </p>
         <p className="text-sm text-gray-400 mb-4">{event.location}</p>
-        <Link href={`/events/${event._id}/${ldoIdUrl}`} className="px-6 py-2 bg-yellow-logo text-black font-semibold rounded-md shadow-md hover:bg-yellow-600 transition-colors duration-300">
+        <Link href={`/events/${event._id}/teams/${ldoIdUrl}`} className="px-6 py-2 bg-yellow-logo text-black font-semibold rounded-md shadow-md hover:bg-yellow-600 transition-colors duration-300">
           View Event
         </Link>
       </div>

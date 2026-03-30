@@ -7,7 +7,6 @@ import { TemplateSearchFilter } from './template.input';
 import { QueryFilter } from 'mongoose';
 import { Template } from '../template.schema';
 
-// ITemplateQueries
 
 @Injectable()
 export class TemplateQueries {

@@ -4,16 +4,16 @@ import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
 import React, { useMemo, useRef, useState, useCallback } from 'react';
 import Image from 'next/image';
-import useClickOutside from '@/hooks/useClickOutside';
 import { useLdoId } from '@/lib/LdoProvider';
 import { monthNamesShort } from '@/utils/datetime';
 
-interface EventCardProps {
+interface IEventCardProps {
   event: IEvent;
   onCopy: (e: React.SyntheticEvent, eventId: string) => void;
   onDelete: (e: React.SyntheticEvent, eventId: string) => void;
   onExportPlayers: (e: React.SyntheticEvent, eventId: string) => void;
   onSendCredentials: (eventId: string) => void;
+  onSetDefault: (eventId: string, defaulted: boolean) => void;
 }
 
 /* -------------------------------------------------- */
@@ -82,12 +82,13 @@ const EventImage: React.FC<EventImageProps> = ({ logo }) => {
 /* ------------------- Main Component --------------- */
 /* -------------------------------------------------- */
 
-const EventCard: React.FC<EventCardProps> = ({
+const EventCard: React.FC<IEventCardProps> = ({
   event,
   onCopy,
   onDelete,
   onExportPlayers,
   onSendCredentials,
+  onSetDefault
 }) => {
   const { ldoIdUrl } = useLdoId();
 
@@ -128,7 +129,7 @@ const EventCard: React.FC<EventCardProps> = ({
 
   const handleCopy = useCallback(
     (e: React.SyntheticEvent) => {
-      
+
       e.preventDefault();
       setIsMenuOpen(false);
       onCopy(e, event._id);
@@ -153,6 +154,13 @@ const EventCard: React.FC<EventCardProps> = ({
     [event._id, onExportPlayers]
   );
 
+  const handleSetDefault = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      onSetDefault(event._id, true);
+
+    }, [event._id, onSetDefault])
+
   const handleSend = useCallback(
     (e: React.SyntheticEvent) => {
       e.preventDefault();
@@ -164,7 +172,7 @@ const EventCard: React.FC<EventCardProps> = ({
   /* ---------------- Render ---------------- */
 
   return (
-    <div className="event-card mb-1 p-2 bg-gray-800 flex flex-col items-center gap-2 rounded-md relative">
+    <div className="event-card mb-1 p-2 bg-gray-800 flex flex-col items-center justify-center gap-2 rounded-md relative">
       {/* Action Menu */}
       <div
         ref={menuContainerRef}
@@ -175,20 +183,18 @@ const EventCard: React.FC<EventCardProps> = ({
         <button
           type="button"
           onClick={toggleMenu}
-          className={`p-2 rounded-lg transition-all duration-300 ${
-            isMenuOpen || isMenuHovered
+          className={`p-2 rounded-lg transition-all duration-300 ${isMenuOpen || isMenuHovered
               ? 'bg-yellow-500/20 text-yellow-500'
               : 'text-gray-500 hover:bg-gray-700/50'
-          }`}
+            }`}
         >
           <Image
             src="/icons/dots-vertical.svg"
             alt="actions"
             width={20}
             height={20}
-            className={`transition-transform duration-300 ${
-              isMenuOpen ? 'rotate-90' : ''
-            } svg-current`}
+            className={`transition-transform duration-300 ${isMenuOpen ? 'rotate-90' : ''
+              } svg-current`}
             style={{
               filter:
                 isMenuOpen || isMenuHovered
@@ -230,6 +236,12 @@ const EventCard: React.FC<EventCardProps> = ({
                   />
                 </span>
               </Link>
+
+              <ActionMenuItem
+                icon="/icons/default.svg"
+                label="Make it default"
+                onClick={handleSetDefault}
+              />
 
               <ActionMenuItem
                 icon="/icons/edit.svg"

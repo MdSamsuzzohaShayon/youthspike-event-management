@@ -344,6 +344,7 @@ type Event {
   sendCredentials: Boolean
   playerLimit: Int!
   fwango: String
+  defaulted: Boolean
   ldo: LDO!
   players: [Player!]!
   teams: [Team!]!
@@ -658,6 +659,7 @@ type CustomEvent {
   sendCredentials: Boolean
   playerLimit: Int!
   fwango: String
+  defaulted: Boolean
   ldo: LDO!
   players: [Player!]!
   teams: [Team!]!
@@ -1392,6 +1394,7 @@ input CreateEventInput {
   timeout: Int
   coachPassword: String!
   fwango: String
+  defaulted: Boolean
   description: String!
   location: String!
   accessCode: String
@@ -1419,6 +1422,7 @@ input UpdateEventInput {
   timeout: Int
   coachPassword: String
   fwango: String
+  defaulted: Boolean
   description: String
   location: String
   accessCode: String
