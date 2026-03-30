@@ -2,7 +2,7 @@ import { imgSize } from '@/utils/style';
 import Image from 'next/image';
 import React, { useMemo, useState } from 'react';
 import SelectInput from '../elements/forms/SelectInput';
-import { IError, IOption, IPlayer, IPlayerRank, ITeam } from '@/types';
+import { IMessage, IOption, IPlayer, IPlayerRank, ITeam } from '@/types';
 import { handleError } from '@/utils/handleError';
 import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 
@@ -15,11 +15,11 @@ interface IPlayerMoveDialogProps {
   mutatePlayer: any;
   refetchFunc?: () => void;
   setActionOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+  showMessage: (message: Omit<IMessage, "id">) => void;
   setMovePlayer: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function PlayerMoveDialog({ dialogMoveEl, player, divisionList, teamList, teamId, mutatePlayer, refetchFunc, setActionOpen, setActErr, setMovePlayer }: IPlayerMoveDialogProps) {
+function PlayerMoveDialog({ dialogMoveEl, player, divisionList, teamList, teamId, mutatePlayer, refetchFunc, setActionOpen, showMessage, setMovePlayer }: IPlayerMoveDialogProps) {
   const [teamOptions, setTeamOptions] = useState<IOption[]>(
     (teamList || []).map((t, i) => ({
       id: i + 1,
@@ -81,7 +81,7 @@ function PlayerMoveDialog({ dialogMoveEl, player, divisionList, teamList, teamId
         },
       });
 
-      const success = await handleResponseCheck(response.data.updatePlayer, setActErr);
+      const success = await handleResponseCheck(response.data.updatePlayer, showMessage);
       if (!success) return;
 
       if (refetchFunc) await refetchFunc();
@@ -89,7 +89,7 @@ function PlayerMoveDialog({ dialogMoveEl, player, divisionList, teamList, teamId
       setMovePlayer(false);
       dialogMoveEl.current?.close();
     } catch (error: any) {
-      handleError({ error, setActErr });
+      handleError({ error, showMessage });
     }
   };
 

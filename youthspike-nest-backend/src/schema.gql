@@ -18,6 +18,8 @@ type AppResponse {
 
 type PlayerStats {
   _id: String
+  createdAt: String
+  updatedAt: String
   serveOpportunity: Float
   serveAce: Float
   serveCompletionCount: Float
@@ -37,10 +39,13 @@ type PlayerStats {
   match: Match
   net: Net
   player: Player
+  event: Event!
 }
 
 type ProStats {
   _id: String
+  createdAt: String
+  updatedAt: String
   servingPercentage: Float
   acePercentage: Float
   receivingPercentage: Float
@@ -52,6 +57,8 @@ type ProStats {
 
 type ServerReceiverOnNet {
   _id: String
+  createdAt: String
+  updatedAt: String
   play: Float!
   match: Match!
   matchId: String
@@ -65,6 +72,7 @@ type ServerReceiverOnNet {
   receivingPartnerId: String
   serverPositionPair: EServerPositionPair!
   net: Net!
+  event: Event!
   netId: String
   teamAScore: Float
   teamBScore: Float!
@@ -83,6 +91,8 @@ enum EServerPositionPair {
 
 type ServerReceiverSinglePlay {
   _id: String
+  createdAt: String
+  updatedAt: String
   play: Float!
   match: Match!
   matchId: String
@@ -96,6 +106,7 @@ type ServerReceiverSinglePlay {
   receivingPartnerId: String
   serverPositionPair: EServerPositionPair!
   net: Net!
+  event: Event!
   netId: String
   teamAScore: Float
   teamBScore: Float!
@@ -116,6 +127,8 @@ enum EServerReceiverAction {
 
 type Round {
   _id: String
+  createdAt: String
+  updatedAt: String
   num: Int!
   match: Match!
   nets: [Net!]
@@ -146,6 +159,8 @@ enum ETeam {
 
 type Net {
   _id: String
+  createdAt: String
+  updatedAt: String
   num: Int
   match: Match!
   round: Round!
@@ -173,6 +188,8 @@ enum ETieBreaker {
 
 type Team {
   _id: String
+  createdAt: String
+  updatedAt: String
   name: String!
   logo: String
   active: Boolean!
@@ -196,6 +213,8 @@ type Team {
 
 type PlayerRankingItem {
   _id: String
+  createdAt: String
+  updatedAt: String
   rank: Int!
   player: Player!
   playerRanking: PlayerRanking!
@@ -203,6 +222,8 @@ type PlayerRankingItem {
 
 type PlayerRanking {
   _id: String
+  createdAt: String
+  updatedAt: String
   rankLock: Int!
   rankings: [PlayerRankingItem!]
   team: Team!
@@ -211,6 +232,8 @@ type PlayerRanking {
 
 type Room {
   _id: String
+  createdAt: String
+  updatedAt: String
   teamA: Team!
   teamB: Team!
   match: Match
@@ -218,6 +241,8 @@ type Room {
 
 type Match {
   _id: String
+  createdAt: String
+  updatedAt: String
   date: String!
   division: String
   numberOfNets: Int!
@@ -255,6 +280,8 @@ type Match {
 
 type Group {
   _id: String
+  createdAt: String
+  updatedAt: String
   name: String!
   active: Boolean!
   division: String!
@@ -266,15 +293,20 @@ type Group {
 
 type LDO {
   _id: String
+  createdAt: String
+  updatedAt: String
   name: String!
   phone: String
   logo: String
   director: User
   events: [Event!]
+  archivedEvents: [Event!]
 }
 
 type Sponsor {
   _id: String
+  createdAt: String
+  updatedAt: String
   company: String!
   logo: String!
   event: Event
@@ -282,6 +314,8 @@ type Sponsor {
 
 type Template {
   _id: String
+  createdAt: String
+  updatedAt: String
   name: String!
   default: Boolean!
   type: ETemplateType!
@@ -300,6 +334,8 @@ enum ETemplateType {
 
 type Event {
   _id: String
+  createdAt: String
+  updatedAt: String
   name: String!
   logo: String
   startDate: String!
@@ -336,6 +372,8 @@ type Event {
 
 type Player {
   _id: String
+  createdAt: String
+  updatedAt: String
   firstName: String!
   lastName: String!
   name: String!
@@ -346,6 +384,7 @@ type Player {
   phone: String
   division: String!
   events: [Event!]
+  archivedEvents: [Event!]
   teams: [Team!]
   prevteams: [Team!]
   captainofteams: [Team!]
@@ -365,6 +404,8 @@ enum EPlayerStatus {
 
 type User {
   _id: String
+  createdAt: String
+  updatedAt: String
   firstName: String!
   lastName: String!
   passcode: String
@@ -388,6 +429,8 @@ enum UserRole {
 
 type LoginUser {
   _id: String
+  createdAt: String
+  updatedAt: String
   firstName: String!
   lastName: String!
   passcode: String
@@ -438,6 +481,8 @@ type GetTeamsResponse {
 
 type TeamWithStringPlayers {
   _id: String
+  createdAt: String
+  updatedAt: String
   name: String!
   logo: String
   active: Boolean!
@@ -461,6 +506,8 @@ type TeamWithStringPlayers {
 
 type PlayerWithTeam {
   _id: String
+  createdAt: String
+  updatedAt: String
   firstName: String!
   lastName: String!
   name: String!
@@ -471,6 +518,7 @@ type PlayerWithTeam {
   phone: String
   division: String!
   events: [Event!]
+  archivedEvents: [Event!]
   teams: [String!]
   prevteams: [Team!]
   captainofteams: [Team!]
@@ -485,6 +533,8 @@ type PlayerWithTeam {
 
 type GroupWithTeam {
   _id: String
+  createdAt: String
+  updatedAt: String
   name: String!
   active: Boolean!
   division: String!
@@ -517,6 +567,8 @@ type GetTeamResponse {
 
 type CustomRound {
   _id: String
+  createdAt: String
+  updatedAt: String
   num: Int!
   match: String
   nets: [String!]
@@ -533,6 +585,8 @@ type CustomRound {
 
 type CustomNet {
   _id: String
+  createdAt: String
+  updatedAt: String
   num: Int
   match: String
   round: String
@@ -555,6 +609,8 @@ type CustomNet {
 
 type CustomMatch {
   _id: String
+  createdAt: String
+  updatedAt: String
   date: String!
   division: String
   numberOfNets: Int!
@@ -576,7 +632,7 @@ type CustomMatch {
   extendedOvertime: Boolean
   teamAP: Int
   teamBP: Int
-  event: Event!
+  event: String!
   nets: [String!]
   serverReceiverOnNet: [ServerReceiverOnNet!]
   serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
@@ -592,6 +648,8 @@ type CustomMatch {
 
 type CustomEvent {
   _id: String
+  createdAt: String
+  updatedAt: String
   name: String!
   logo: String
   startDate: String!
@@ -628,6 +686,8 @@ type CustomEvent {
 
 type CaptainPlayer {
   _id: String
+  createdAt: String
+  updatedAt: String
   firstName: String!
   lastName: String!
   name: String!
@@ -638,6 +698,7 @@ type CaptainPlayer {
   phone: String
   division: String!
   events: [Event!]
+  archivedEvents: [Event!]
   teams: [Team!]
   prevteams: [Team!]
   captainofteams: [String!]
@@ -652,6 +713,8 @@ type CaptainPlayer {
 
 type CoCaptainPlayer {
   _id: String
+  createdAt: String
+  updatedAt: String
   firstName: String!
   lastName: String!
   name: String!
@@ -662,6 +725,7 @@ type CoCaptainPlayer {
   phone: String
   division: String!
   events: [Event!]
+  archivedEvents: [Event!]
   teams: [Team!]
   prevteams: [Team!]
   captainofteams: [Team!]
@@ -804,6 +868,8 @@ type GetAccessCodeResponse {
 
 type CustomTeam {
   _id: String
+  createdAt: String
+  updatedAt: String
   name: String!
   logo: String
   active: Boolean!
@@ -827,6 +893,8 @@ type CustomTeam {
 
 type CustomGroup {
   _id: String
+  createdAt: String
+  updatedAt: String
   name: String!
   active: Boolean!
   division: String!
@@ -869,6 +937,8 @@ type PlayersResponse {
 
 type SearchPlayers {
   _id: String
+  createdAt: String
+  updatedAt: String
   firstName: String!
   lastName: String!
   name: String!
@@ -879,6 +949,7 @@ type SearchPlayers {
   phone: String
   division: String!
   events: [Event!]
+  archivedEvents: [Event!]
   teams: [CustomTeam!]!
   prevteams: [Team!]
   captainofteams: [Team!]
@@ -902,6 +973,8 @@ type SearchPlayersResponse {
 
 type CustomPlayer {
   _id: String
+  createdAt: String
+  updatedAt: String
   firstName: String!
   lastName: String!
   name: String!
@@ -912,6 +985,7 @@ type CustomPlayer {
   phone: String
   division: String!
   events: [Event!]
+  archivedEvents: [Event!]
   teams: [String!]!
   prevteams: [Team!]
   captainofteams: [String!]
@@ -926,6 +1000,8 @@ type CustomPlayer {
 
 type CustomPlayerRanking {
   _id: String
+  createdAt: String
+  updatedAt: String
   rankLock: Int!
   rankings: [String!]!
   team: String!
@@ -934,6 +1010,8 @@ type CustomPlayerRanking {
 
 type CustomPlayerRankingItem {
   _id: String
+  createdAt: String
+  updatedAt: String
   rank: Int!
   player: String!
   playerRanking: String
@@ -1000,6 +1078,8 @@ type PlayersStatsResponse {
 
 type CustomPlayerStats {
   _id: String
+  createdAt: String
+  updatedAt: String
   serveOpportunity: Float
   serveAce: Float
   serveCompletionCount: Float
@@ -1019,6 +1099,7 @@ type CustomPlayerStats {
   match: String
   net: String
   player: String
+  event: Event!
 }
 
 type PlayerStatsDetails {
@@ -1031,9 +1112,10 @@ type PlayerStatsDetails {
   matches: [CustomMatch!]
   rounds: [CustomRound!]
   nets: [CustomNet!]
-  multiplayer: ProStats
-  weight: ProStats
-  stats: ProStats
+  events: [CustomEvent!]
+  multiplayers: [ProStats!]
+  weights: [ProStats!]
+  stats: [ProStats!]
 }
 
 type PlayerWithStatsResponse {
@@ -1485,8 +1567,8 @@ type Mutation {
   updateRound(updateInput: UpdateRoundInput!): CreateOrUpdateRoundResponse!
   updateNet(input: UpdateNetInput!, netId: String!): GetNetResponse!
   updateNets(input: [UpdateMultipleNetInput!]!): GetNetsResponse!
-  createDirector(input: CreateDirector!): GetDirectorLDOResponse!
-  updateDirector(input: UpdateDirector!, dId: String): GetDirectorLDOResponse!
+  createDirector(input: CreateDirector!, logo: Upload): GetDirectorLDOResponse!
+  updateDirector(input: UpdateDirector!, logo: Upload, dId: String): GetDirectorLDOResponse!
   deleteEventDirector(dId: String!): GetDirectorLDOResponse!
   exportPlayers(eventId: String!): ExportPlayersResponse!
   createPlayer(input: CreatePlayerInput!, profile: Upload): PlayerResponse!

@@ -1,19 +1,59 @@
 ### Database operation
 
+// 68afc5f30bf9dbb4ac0f69cb
+Add eventId to each PlayerStats, ServerReceiverOnNet, and ServerReceiverSinglePlay
+
 ```
-db.players.find({ username: { $exists: false } }).forEach(player => {
-  // Generate a random 4-digit number
-  const randomNumber = Math.floor(1000 + Math.random() * 9000);
+const eventId = ObjectId('68afc5f30bf9dbb4ac0f69cb');
 
-  // Build a username: firstName + random number
-  const username = player.firstName.toLowerCase() + randomNumber;
 
-  // Update the document
-  db.players.updateOne(
-    { _id: player._id },
-    { $set: { username: username } }
+const playersWithEvent = db.players.find(
+   { events: eventId },
+   { _id: 1 }
+ ).toArray();
+
+
+const playerIds = playersWithEvent.map(function(p) { return p._id; });
+playerIds.length
+
+const updateResult = db.serverreceiveronnets.updateMany(
+    {
+      $or: [
+        { server: { $in: playerIds } },
+        { servingPartner: { $in: playerIds } },
+        { receiver: { $in: playerIds } },
+        { receivingPartner: { $in: playerIds } }
+      ]
+    },
+    {
+      $set: { event: eventId }
+    }
   );
-});
+print("Updated " + updateResult.modifiedCount + " documents");
+
+
+
+
+const updateResult1 = db.serverreceiversingleplays.updateMany(
+    {
+      $or: [
+        { server: { $in: playerIds } },
+        { servingPartner: { $in: playerIds } },
+        { receiver: { $in: playerIds } },
+        { receivingPartner: { $in: playerIds } }
+      ]
+    },
+    {
+      $set: { event: eventId }
+    }
+  );
+
+print("Updated " + updateResult1.modifiedCount + " documents");
+
+
+
+db.playerstats.updateMany({player: { $in: playerIds }}, {$set: {event: eventId}});
+print("Updated " + updateResult2.modifiedCount + " documents");
 
 ```
 

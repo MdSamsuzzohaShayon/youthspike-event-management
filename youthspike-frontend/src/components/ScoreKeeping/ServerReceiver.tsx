@@ -64,6 +64,7 @@ export default function ServerReceiver({
 }: IServerReceiverProps) {
   const dispatch = useAppDispatch();
   const socket = useSocket();
+  
 
   /* Redux slices */
   const {
@@ -138,6 +139,10 @@ export default function ServerReceiver({
       ),
     [serverReceiversOnNet]
   );
+
+  const eventId = useMemo(()=>{
+    return matchData?.event?._id || currMatch?.event
+  }, [matchData, currMatch]);
 
   const finalRoundIncomplete: boolean = useMemo(() => {
     if (currRound?.num === roundList.length && currRoundNets.length > 0) {
@@ -308,6 +313,7 @@ export default function ServerReceiver({
       match: currMatch._id,
       net: net?._id || null,
       room: currRoom?._id || null,
+      event: eventId,
       accessCode: token || accessCode?.code.toString() || null,
       play: toBeSelectedPlay,
     });
@@ -321,6 +327,7 @@ export default function ServerReceiver({
       match: currMatch._id,
       net: net?._id || null,
       room: currRoom?._id || null,
+      event: eventId,
       accessCode: accessCode?.code.toString() || token || null,
     });
 
@@ -362,6 +369,7 @@ export default function ServerReceiver({
       match: currMatch._id,
       net: net?._id,
       room: currRoom?._id,
+      event: eventId,
       accessCode: token || (accessCode && accessCode.code) || null,
       currRoundNets,
       roundList,
@@ -662,6 +670,7 @@ export default function ServerReceiver({
               net={currNet?._id || null}
               room={currRoom?._id || null}
               setAwardTo={setAwardTo}
+              eventId={eventId}
               currServerReceiver={currServerReceiver}
             />
           </div>
@@ -810,6 +819,7 @@ export default function ServerReceiver({
         token={token}
         teamA={teamA || null}
         teamB={teamB || null}
+        eventId={eventId}
       />
 
       {/* Server receiver change manually  */}
@@ -820,6 +830,7 @@ export default function ServerReceiver({
         teamA={teamA || null}
         teamB={teamB || null}
         srChangerEl={srChangerEl}
+        eventId={eventId}
       />
     </div>
   );

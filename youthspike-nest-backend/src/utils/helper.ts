@@ -1,4 +1,5 @@
 import * as jwt from 'jsonwebtoken';
+import { randomBytes } from 'crypto';
 
 interface JwtPayload {
   _id: string;
@@ -80,7 +81,7 @@ export function formatDate(isoString: string): string {
 }
 
 
-export function initPlayerStat(net: string, match: string, player: string){
+export function initPlayerStat(net: string, match: string, event: string, player: string){
   return {
     serveOpportunity: 0,
     serveAce: 0,
@@ -101,6 +102,7 @@ export function initPlayerStat(net: string, match: string, player: string){
     net,
     match,
     player,
+    event
   }
 }
 
@@ -116,4 +118,13 @@ export function netKey(netId: string, room: string) {
 export function playerKey(playerId: string, netId: string) {
   // A player can play in multiple nets in a match
   return `player:${playerId}:${netId}`;
+}
+
+
+
+
+export function randomString(length: number) {
+  return randomBytes(Math.ceil(length / 2)) // Each byte = 2 hex chars
+    .toString('hex')
+    .slice(0, length); // Trim to desired length
 }

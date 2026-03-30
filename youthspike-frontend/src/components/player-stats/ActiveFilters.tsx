@@ -10,16 +10,17 @@ import { IOption, EStatsFilter } from "@/types";
 interface ActiveFiltersProps {
   filter: Partial<Record<EStatsFilter, string | string[]>>;
   onClearAll?: () => void;
-
   matchOptions: IOption[];
   vsClubOptions: IOption[];
   teammateOptions: IOption[];
   vsPlayerOptions: IOption[];
   gameOptions: IOption[];
+  eventOptions: IOption[];
 }
 
 const FILTER_LABELS: Record<EStatsFilter, string> = {
   m: "Matches",
+  e: "Event",
   g: "Games",
   tm: "Teammates",
   cb: "VS Clubs",
@@ -59,6 +60,7 @@ export default function ActiveFilters({
   teammateOptions,
   vsPlayerOptions,
   gameOptions,
+  eventOptions
 }: ActiveFiltersProps) {
   // Filter out empty or undefined entries
   const activeFilterEntries = Object.entries(filter).filter(([_, val]) => {
@@ -68,6 +70,7 @@ export default function ActiveFilters({
   });
 
   if (activeFilterEntries.length === 0) return null;
+  
 
   // --------------------------------------------------
   // Value Resolver
@@ -76,9 +79,11 @@ export default function ActiveFilters({
     key: string,
     rawValue: string | string[]
   ): string => {
+    if(key = EStatsFilter.EVENT) return eventOptions.find(e=> e.value === rawValue)?.text || "";
     if (!Array.isArray(rawValue)) return rawValue;
 
     switch (key) {
+
       case EStatsFilter.VS_PLAYER:
         return resolveOptionValues(rawValue, vsPlayerOptions);
 
@@ -109,6 +114,7 @@ export default function ActiveFilters({
         {activeFilterEntries.map(([key, rawValue]) => {
           const label = FILTER_LABELS[key as EStatsFilter] ?? key;
           const displayValue = getDisplayValue(key, rawValue);
+
 
           return (
             <span

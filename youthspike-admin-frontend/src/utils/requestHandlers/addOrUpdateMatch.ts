@@ -1,11 +1,11 @@
-import { IAddMatch, IError, IMatchExpRel } from "@/types";
+import { IAddMatch, IMessage, IMatchExpRel } from "@/types";
 import { MutationFunction } from "@apollo/client";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import React from "react";
 import { handleError, handleResponse } from "../handleError";
 
 interface IAddOrUpdateMatchProps {
-    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+    showMessage: (message: Omit<IMessage, "id">) => void;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     eventId: string;
     mutateMatch: MutationFunction;
@@ -22,7 +22,7 @@ interface IAddOrUpdateMatchProps {
 }
 
 
-async function addOrUpdateMatch({ setActErr, setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, ldoIdUrl, currDivision, updateMatch, update, showAddMatch, router, addMatchCB }: IAddOrUpdateMatchProps) {
+async function addOrUpdateMatch({ showMessage, setIsLoading, eventId, mutateMatch, createMatch, matchId, addMatch, ldoIdUrl, currDivision, updateMatch, update, showAddMatch, router, addMatchCB }: IAddOrUpdateMatchProps) {
     try {
         setIsLoading(true);
         let matchRes = null;
@@ -37,14 +37,13 @@ async function addOrUpdateMatch({ setActErr, setIsLoading, eventId, mutateMatch,
             if (updateMatchObj.teams) delete updateMatchObj.teams;
             matchRes = await mutateMatch({ variables: { input: updateMatchObj, matchId } });
             matchRes = matchRes?.data?.updateMatch;
-            setActErr(null);
             // Get updated match
         } else {
-            // if (!currDivision || currDivision === '') return setActErr({ code: 400, success: false, message: 'You must select a division!' });
+            // if (!currDivision || currDivision === '') return showMessage({ type: 'error', code: 400, message: 'You must select a division!' });
             const addMatchObj = { ...addMatch, event: eventId };
             if (currDivision && currDivision !== '') addMatchObj.division = currDivision;
-            if (addMatchObj.teamA === '' || addMatchObj.teamB === '') return setActErr({ code: 400, success: false, message: 'Teams can not be empty to unselected!' });
-            if (addMatchObj.teamA === addMatchObj.teamB) return setActErr({ code: 400, success: false, message: 'Both teams are same!' });
+            if (addMatchObj.teamA === '' || addMatchObj.teamB === '') return showMessage({ type: 'error', code: 400, message: 'Teams can not be empty to unselected!' });
+            if (addMatchObj.teamA === addMatchObj.teamB) return showMessage({ type: 'error', code: 400, message: 'Both teams are same!' });
             // @ts-ignore
             if (addMatchObj.teams) delete addMatchObj.teams;
             matchRes = await createMatch({ variables: { input: addMatchObj } });
@@ -53,10 +52,9 @@ async function addOrUpdateMatch({ setActErr, setIsLoading, eventId, mutateMatch,
             if (resData && addMatchCB) addMatchCB(resData);
             dateObj.date = addMatchObj.date;
             dateObj.matchId = resData?._id || "";
-            setActErr(null);
         }
 
-        const success = await handleResponse({ response: matchRes, setActErr });
+        const success = await handleResponse({ response: matchRes, showMessage });
         // console.log({ success });
 
         if (success) {
@@ -70,7 +68,7 @@ async function addOrUpdateMatch({ setActErr, setIsLoading, eventId, mutateMatch,
 
     } catch (error: any) {
         console.log(error);
-        handleError({ error, setActErr });
+        handleError({ error, showMessage });
     } finally {
         setIsLoading(false);
     }

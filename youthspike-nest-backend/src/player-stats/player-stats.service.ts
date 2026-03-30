@@ -69,7 +69,7 @@ export class PlayerStatsService {
   }
 
   async proStatFindOne(filter: QueryFilter<ProStats>) {
-    return this.proStats.findOne(filter);
+    return this.proStats.findOne(filter).lean();
   }
 
   async proStatFind(filter: QueryFilter<ProStats>) {

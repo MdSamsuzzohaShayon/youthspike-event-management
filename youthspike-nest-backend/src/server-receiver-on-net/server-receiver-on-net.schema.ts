@@ -6,6 +6,7 @@ import { Net } from 'src/net/net.schema';
 import { Player } from 'src/player/player.schema';
 import { Round } from 'src/round/round.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
+import { Event } from 'src/event/event.schema';
 
 
 export enum EServerPositionPair {
@@ -96,6 +97,10 @@ export class ServerReceiverCommon extends AppDocument {
   @Prop({ required: true, immutable: true, type: mongoose.Schema.Types.ObjectId, ref: 'Net' })
   net: string | Net;
 
+  @Field((_type) => Event, { nullable: false })
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Event' })
+  event: Event | string;
+
   @Field((_type) => String, { nullable: true })
   netId?: string;
 
@@ -106,6 +111,8 @@ export class ServerReceiverCommon extends AppDocument {
   @Field({ nullable: false})
   @Prop({ required: false })
   teamBScore: number | null;
+
+
 }
 
 // Current
@@ -140,11 +147,13 @@ export class ServerReceiverSinglePlay extends ServerReceiverCommon {
 }
 
 export const ServerReceiverOnNetSchema = SchemaFactory.createForClass(ServerReceiverOnNet);
+ServerReceiverOnNetSchema.index({event: 1});
 export const ServerReceiverOnNetSchemaFactory = async () => {
   return ServerReceiverOnNetSchema;
 };
 
 export const ServerReceiverSinglePlaySchema = SchemaFactory.createForClass(ServerReceiverSinglePlay);
+ServerReceiverSinglePlaySchema.index({event: 1});
 export const ServerReceiverSinglePlaySchemaFactory = async () => {
   return ServerReceiverSinglePlaySchema;
 };

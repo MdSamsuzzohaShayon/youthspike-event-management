@@ -1,7 +1,6 @@
 import { ADD_TEAM_RAW, UPDATE_TEAM_RAW } from '@/graphql/teams';
-import { IError, IPlayer, ITeam, ITeamAdd } from '@/types';
+import { IMessage, IPlayer, ITeam, ITeamAdd } from '@/types';
 import { BACKEND_URL } from '../keys';
-import { ApolloError, MutationFunction } from '@apollo/client';
 import { handleError, handleResponse } from '../handleError';
 import { getCookie } from '../clientCookie';
 
@@ -10,7 +9,7 @@ interface IPrevTeam extends ITeamAdd {
 }
 
 interface IAddOrUpdateTeam {
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+  showMessage: (message: Omit<IMessage, "id">) => void;
   eventId: string | null;
   teamState: ITeamAdd;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -28,7 +27,7 @@ interface IAddOrUpdateTeam {
 }
 
 async function addOrUpdateTeam({
-  setActErr,
+  showMessage,
   eventId,
   teamState,
   setIsLoading,
@@ -51,7 +50,7 @@ async function addOrUpdateTeam({
     const teamObj = update && prevTeam ? { input: { ...updateTeamState }, teamId: prevTeam._id, eventId, logo: null } : { input: { ...teamState, players: playerIdList, event: eventId }, logo: null };
     if (!update) {
       if (!currDivision) {
-        setActErr({ message: 'You must select a division', success: false });
+        showMessage({ type: 'error', message: 'You must select a division' });
         return false;
       }
       const teamInput = { ...teamObj.input };
@@ -100,7 +99,7 @@ async function addOrUpdateTeam({
       }
     }
 
-    const success = await handleResponse({response, setActErr});
+    const success = await handleResponse({response, showMessage});
     if(success){
         setAvailablePlayers((prevState) => [...prevState.filter((p) => !playerIdList.includes(p._id))]);
         setPlayerIdList([]);
@@ -108,7 +107,7 @@ async function addOrUpdateTeam({
   } catch (error: any) {
     console.log(error);
     success = false;
-    handleError({ error, setActErr });
+    handleError({ error, showMessage });
   } finally {
     setIsLoading(false);
   }

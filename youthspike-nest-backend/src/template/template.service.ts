@@ -72,6 +72,12 @@ export class TemplateService {
   async delete(filter: QueryFilter<Template>) {
     return this.templateModel.deleteMany(filter);
   }
+  async deleteOne(filter: QueryFilter<Template>) {
+    return this.templateModel.deleteOne(filter);
+  }
+  async deleteMany(filter: QueryFilter<Template>) {
+    return this.templateModel.deleteMany(filter);
+  }
 
   async countDocuments(filter: QueryFilter<Template>) {
     return this.templateModel.countDocuments();

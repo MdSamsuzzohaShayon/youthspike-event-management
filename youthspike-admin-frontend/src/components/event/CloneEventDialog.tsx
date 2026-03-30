@@ -1,4 +1,4 @@
-import { IError, IEvent, IEventExpRel, IResponse } from '@/types';
+import { IEvent, IEventExpRel, IResponse } from '@/types';
 import React, { useEffect, useState } from 'react';
 import InputField from '../elements/forms/InputField';
 import DateInput from '../elements/forms/DateInput';
@@ -6,6 +6,7 @@ import { useMutation } from '@apollo/client/react';
 import { CLONE_EVENT } from '@/graphql/event';
 import { useRouter } from 'next/navigation';
 import { useLdoId } from '@/lib/LdoProvider';
+import { useMessage } from '@/lib/MessageProvider';
 
 interface ICloneEventData extends IResponse {
   data?: IEventExpRel;
@@ -13,14 +14,14 @@ interface ICloneEventData extends IResponse {
 
 interface IProps {
   event: null | IEvent;
-  copyEventEl: React.RefObject<HTMLDialogElement | null>;
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>; // Setting action error
+  copyEventRef: React.RefObject<HTMLDialogElement | null>;
 }
-function CloneEventDialog({ copyEventEl, event, setActErr }: IProps) {
+function CloneEventDialog({ copyEventRef, event }: IProps) {
   // Hook
   const [cloneEvent] = useMutation<{ cloneEvent: ICloneEventData }>(CLONE_EVENT);
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
+  const {showMessage} = useMessage();
 
   // Local State
   const [partialEvent, setPartialEvent] = useState<null | Partial<IEvent>>(null);
@@ -47,10 +48,10 @@ function CloneEventDialog({ copyEventEl, event, setActErr }: IProps) {
 
     if (eventResponse.data?.cloneEvent.success !== true) {
       console.error(eventResponse);
-      setActErr({ code: eventResponse.data?.cloneEvent.code, message: eventResponse.data?.cloneEvent.message, success: false });
-      copyEventEl.current?.close();
+      showMessage({ code: eventResponse.data?.cloneEvent.code, message: eventResponse.data?.cloneEvent.message, type: "error" });
       return;
     }
+    copyEventRef.current?.close();
     // return router.push(`/${eventResponse?.data?.cloneEvent?.data?._id || ""}/settings/${ldoIdUrl}`);
     router.push(`/${ldoIdUrl}`);
   };
@@ -58,7 +59,7 @@ function CloneEventDialog({ copyEventEl, event, setActErr }: IProps) {
 
 
   return (
-    <dialog ref={copyEventEl} className="modal-dialog">
+    <dialog ref={copyEventRef} className="modal-dialog">
       <div className="p-4 flex flex-col gap-y-2">
         <h3>Selected Event: {event?.name}</h3>
         <form onSubmit={handleCopyEvent} className='flex flex-col gap-y-6'>
@@ -71,7 +72,7 @@ function CloneEventDialog({ copyEventEl, event, setActErr }: IProps) {
             <button type="submit" className="btn-info">
               Copy
             </button>
-            <button type="button" className="btn-danger" onClick={()=> copyEventEl.current?.close()}>
+            <button type="button" className="btn-danger" onClick={()=> copyEventRef.current?.close()}>
               cancel
             </button>
           </div>

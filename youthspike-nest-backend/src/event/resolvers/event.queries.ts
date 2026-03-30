@@ -187,6 +187,7 @@ export class EventQueries implements IEventQueries {
         nets,
         this.redisService,
         this.playerStatsService,
+        event._id
       );
 
       // Prepare response

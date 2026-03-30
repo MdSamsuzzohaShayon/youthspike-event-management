@@ -1,5 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { ICheckedInput, IError, IEvent, IGroup, IResponse, ITeam } from '@/types';
+import { ICheckedInput, IEvent, IGroup, IMessage, IResponse, ITeam } from '@/types';
 import TeamCard from './TeamCard';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
@@ -10,7 +10,7 @@ import SelectInput from '../elements/forms/SelectInput';
 import { UPDATE_GROUP } from '@/graphql/group';
 import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
-import { useError } from '@/lib/ErrorProvider';
+import { useError } from '@/lib/MessageProvider';
 import Pagination from '../elements/Pagination';
 import { useMutation } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
@@ -29,7 +29,7 @@ const ITEMS_PER_PAGE = 20;
 function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refetchFunc }: TeamListProps) {
 
   // Hook
-  const { setActErr } = useError();
+  const { showMessage } = useError();
 
   // References
   const cngGroupEl = useRef<HTMLDialogElement | null>(null);
@@ -96,10 +96,10 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
         .filter(([_, isChecked]) => isChecked) // Filter for checked items
         .map(([teamId]) => teamId); // Map to just the team IDs
       const response = await deleteMultipleTeams({ variables: { teamIds: checkedTeamIds } });
-      const success = await handleResponseCheck(response.data?.deleteTeams, setActErr );
+      const success = await handleResponseCheck(response.data?.deleteTeams, showMessage );
       if (success && refetchFunc) await refetchFunc();
     } catch (error: any) {
-      handleError({ error, setActErr });
+      handleError({ error, showMessage });
     } finally {
       setIsLoading(false);
     }
@@ -129,7 +129,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
       .filter(([_, isChecked]) => isChecked) // Filter for checked items
       .map(([teamId]) => teamId); // Map to just the team IDs
     if (checkedTeamIds.length === 0) {
-      return setActErr({ message: 'You must select a few teams and do this action', success: false });
+      return showMessage({ type: 'error', message: 'You must select a few teams and do this action' });
     }
 
     setShowBulkAction(false);

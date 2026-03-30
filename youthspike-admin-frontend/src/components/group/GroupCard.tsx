@@ -2,7 +2,7 @@
 // GroupCard.tsx
 // ============================================================================
 import { useLdoId } from '@/lib/LdoProvider';
-import { useError } from '@/lib/ErrorProvider';
+import { useMessage } from '@/lib/MessageProvider';
 import { IGroupExpRel, IOption, IResponse } from '@/types';
 import { imgSize } from '@/utils/style';
 import { handleError } from '@/utils/handleError';
@@ -192,7 +192,7 @@ const MoveDivisionDialog: React.FC<MoveDivisionDialogProps> = ({
 
 function GroupCard({ group, setIsLoading, divisionList }: IGroupCardProps) {
   const { ldoIdUrl } = useLdoId();
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
   const params = useParams();
 
   const [deleteGroup] = useMutation(DELETE_A_GROUP, {
@@ -264,11 +264,11 @@ function GroupCard({ group, setIsLoading, divisionList }: IGroupCardProps) {
       });
     } catch (error: any) {
       console.error('Error deleting group:', error);
-      handleError({ error, setActErr });
+      handleError({ error, showMessage });
     } finally {
       setIsLoading(false);
     }
-  }, [group._id, deleteGroup, setIsLoading, setActErr]);
+  }, [group._id, deleteGroup, setIsLoading, showMessage]);
 
   const openMoveDialog = useCallback(() => {
     setIsActionMenuOpen(false);

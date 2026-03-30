@@ -7,7 +7,7 @@ import { ADD_GROUP } from '@/graphql/group';
 import { handleError } from '@/utils/handleError';
 import { useRouter } from 'next/navigation';
 import { EGroupRule, ICreateGroup } from '@/types/group';
-import { useError } from '@/lib/ErrorProvider';
+import { useMessage } from '@/lib/MessageProvider';
 import InputField from '../elements/forms/InputField';
 import { useMutation } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
@@ -25,7 +25,7 @@ function GroupAddOrUpdate({ eventId, teamList, update, prevGroup, division }: IG
   // Hooks
   const [eventAdd] = useMutation<{ createGroup: ICreateGroup }>(ADD_GROUP);
   const router = useRouter();
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
   const { ldoIdUrl } = useLdoId();
 
   // Local State
@@ -76,7 +76,7 @@ function GroupAddOrUpdate({ eventId, teamList, update, prevGroup, division }: IG
     e.preventDefault();
 
     if (!division || division === '') {
-      setActErr({ message: 'Must a division for the group', success: false });
+      showMessage({ message: 'Must a division for the group', type:"error" });
       return;
     }
 
@@ -84,13 +84,13 @@ function GroupAddOrUpdate({ eventId, teamList, update, prevGroup, division }: IG
       setIsLoading(true);
       const groupResponse = await eventAdd({ variables: { input: { ...groupState, division } } });
 
-      const success = await handleResponseCheck(groupResponse.data?.createGroup, setActErr);
+      const success = await handleResponseCheck(groupResponse.data?.createGroup, showMessage);
       if (success) {
         router.push(`/${eventId}/groups/${ldoIdUrl}`);
         router.refresh();
       }
     } catch (error: any) {
-      handleError({ error, setActErr });
+      handleError({ error, showMessage });
     } finally {
       setIsLoading(false);
     }

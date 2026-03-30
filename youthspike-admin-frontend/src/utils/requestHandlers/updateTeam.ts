@@ -18,7 +18,7 @@ interface IUpdateTeam extends IBaseTeamAction {
 }
 
 export async function updateTeam({
-  setActErr,
+  showMessage,
   eventId,
   prevTeam,
   updateTeamState,
@@ -58,7 +58,7 @@ export async function updateTeam({
     }
 
     // 🧩 Handle response
-    const isSuccess = await handleResponseCheck(response, setActErr);
+    const isSuccess = await handleResponseCheck(response, showMessage);
     if (isSuccess) {
       setAvailablePlayers((prev) => prev.filter((p) => !playerIdList.includes(p._id)));
       setPlayerIdList([]);
@@ -67,7 +67,7 @@ export async function updateTeam({
   } catch (error: any) {
     console.error(error);
     success = false;
-    handleError({ error, setActErr });
+    handleError({ error, showMessage });
   } finally {
     setIsLoading(false);
   }

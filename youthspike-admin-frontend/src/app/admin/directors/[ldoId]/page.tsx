@@ -1,24 +1,26 @@
-import { getEventDirector } from '@/app/_requests/ldo';
-import { notFound, redirect } from 'next/navigation';
-import LDOSingleMain from '@/components/ldo/LDOSingleMain';
-import { TParams } from '@/types';
+import { PreloadQuery } from '@/lib/client';
+import { QueryRef } from '@apollo/client/react';
+import { GET_LDO } from '@/graphql/director';
+import LDOContainer from '@/components/ldo/LDOContainer';
+import { IGetLdoResponse, TParams } from '@/types';
+
 
 interface ILDOSinglePageProps {
-  params: Promise<TParams>;
+  params: TParams;
 }
-async function LDOSinglePage({ params }: ILDOSinglePageProps) {
-  const searchParams = await params;
 
-  const ldoExist = await getEventDirector(searchParams.ldoId);
-  if (!ldoExist) {
-    notFound();
-  }
+export default async function LDOSinglePage({ params }: ILDOSinglePageProps) {
 
+  const { ldoId } = await params;
   return (
-    <div className="container mx-auto px-4 min-h-screen">
-      <LDOSingleMain ldo={ldoExist} ldoId={searchParams.ldoId} />
-    </div>
+    <PreloadQuery query={GET_LDO} variables={{ dId: ldoId }}>
+      {(queryRef) => (
+        <LDOContainer
+          queryRef={
+            queryRef as QueryRef<{ getEventDirector: IGetLdoResponse }>
+          }
+        />
+      )}
+    </PreloadQuery>
   );
 }
-
-export default LDOSinglePage;

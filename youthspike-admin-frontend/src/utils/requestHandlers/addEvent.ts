@@ -1,5 +1,5 @@
 import { ADD_EVENT_RAW } from '@/graphql/event';
-import { IError, IEventAdd, IEventSponsorAdd, IProStatsAdd } from '@/types';
+import { IEventAdd, IEventSponsorAdd, IMessage, IProStatsAdd } from '@/types';
 import { APP_NAME, BACKEND_URL } from '../keys';
 import { getCookie } from '../clientCookie';
 import { handleResponseCheck } from './playerHelpers';
@@ -19,7 +19,7 @@ export async function addEventWithFiles({
   directorId,
   multiplayer,
   weight,
-  setActErr,
+  showMessage,
 }: {
   eventState: IEventAdd;
   sponsorImgList: IEventSponsorAdd[];
@@ -27,7 +27,7 @@ export async function addEventWithFiles({
   directorId: string | null;
   multiplayer: IProStatsAdd;
   weight: IProStatsAdd;
-  setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+  showMessage: (message: Omit<IMessage, "id">) => void
 }) {
   const inputData = { ...eventState };
   inputData.ldo = directorId || 'auto_detect_from_server';
@@ -73,7 +73,7 @@ export async function addEventWithFiles({
   const responseData = await response.json();
 
   const eventRes = responseData?.data?.createEvent;
-  const res = handleResponseCheck(eventRes, setActErr);
+  const res = handleResponseCheck(eventRes, showMessage);
   return eventRes?.data?._id || null;
 }
 

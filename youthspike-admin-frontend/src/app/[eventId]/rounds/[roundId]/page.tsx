@@ -1,11 +1,10 @@
 'use client';
 
 import Loader from '@/components/elements/Loader';
-import Message from '@/components/elements/Message';
 import NetList from '@/components/net/NetList';
 import { GET_A_ROUND } from '@/graphql/round';
-import { useError } from '@/lib/ErrorProvider';
-import { IError, IRoundExpRel, IRoundRelatives, IRoundResponse } from '@/types';
+import { useMessage } from '@/lib/MessageProvider';
+import { IRoundExpRel, IRoundRelatives, IRoundResponse } from '@/types';
 import { isValidObjectId } from '@/utils/helper';
 import { useLazyQuery } from '@apollo/client/react';
 import React, { useEffect, useState } from 'react';
@@ -18,7 +17,7 @@ interface IRoundSingleProps {
 }
 
 function RoundSingle({ params }: IRoundSingleProps) {
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [fetchRound, { data, loading, error }] = useLazyQuery<{ getRound: IRoundResponse }>(GET_A_ROUND);
@@ -28,7 +27,7 @@ function RoundSingle({ params }: IRoundSingleProps) {
       if (isValidObjectId(params.roundId)) {
         fetchRound({ variables: { roundId: params.roundId } });
       } else {
-        setActErr({ success: false, message: 'Can not fetch data due to invalid round ObjectId!' });
+        showMessage({ type: "error", message: 'Can not fetch data due to invalid round ObjectId!' });
       }
     }
   }, [params.roundId]);
@@ -42,7 +41,7 @@ function RoundSingle({ params }: IRoundSingleProps) {
     console.error(error);
   }
   useEffect(() => {
-    setActErr({ message: error?.name, code: 400, success: false });
+    showMessage({ message: error?.name, code: 400, type: "error" });
   }, [error]);
 
   return (

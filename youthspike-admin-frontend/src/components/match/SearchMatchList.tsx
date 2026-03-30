@@ -3,7 +3,7 @@ import MatchCard from './MatchCard';
 import { EMatchStatus } from '@/types/match';
 import { useMemo } from 'react';
 import { getMatchStatus } from '@/utils/match';
-import { useError } from '@/lib/ErrorProvider';
+import { useMessage } from '@/lib/MessageProvider';
 
 interface IMatchListProps {
   matchList?: IMatch[];
@@ -11,7 +11,7 @@ interface IMatchListProps {
 }
 
 function SearchMatchList({ matchList = [], eventId }: IMatchListProps) {
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
 
   const sortedMatches = useMemo(() => {
     const statusPriority: Record<EMatchStatus, number> = {
@@ -69,7 +69,7 @@ function SearchMatchList({ matchList = [], eventId }: IMatchListProps) {
   return (
     <div className="matchList w-full flex flex-col gap-y-4">
       {sortedMatches.map((match, i) => (
-        <MatchCard key={`${match?._id}-${i}`} match={match} eventId={eventId} handleSelectMatch={() => {}} isChecked={false} setActErr={setActErr} sl={i + 1} />
+        <MatchCard key={`${match?._id}-${i}`} match={match} eventId={eventId} handleSelectMatch={() => {}} isChecked={false} showMessage={showMessage} sl={i + 1} />
       ))}
     </div>
   );

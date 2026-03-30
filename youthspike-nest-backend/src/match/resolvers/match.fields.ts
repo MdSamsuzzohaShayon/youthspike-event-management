@@ -185,6 +185,7 @@ export class MatchFields {
       receiverId: String(play.receiver) || play.receiverId || '',
       receivingPartnerId: String(play.receivingPartner) || play.receivingPartnerId || '',
       servingPartnerId: String(play.servingPartner) || play.servingPartnerId || '',
+      event: String(play.event) || ''
     };
   }
 

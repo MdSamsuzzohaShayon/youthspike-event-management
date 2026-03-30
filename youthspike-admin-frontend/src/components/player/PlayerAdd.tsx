@@ -12,7 +12,7 @@ import ImageInput from '../elements/forms/ImageInput';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
 import { useLdoId } from '@/lib/LdoProvider';
-import { useError } from '@/lib/ErrorProvider';
+import { useMessage } from '@/lib/MessageProvider';
 import InputField from '../elements/forms/InputField';
 import Loader from '../elements/Loader';
 import updatePlayerFn from '@/utils/requestHandlers/updatePlayerFn';
@@ -46,7 +46,7 @@ function PlayerAdd({ eventId, update, prevPlayer, teamList, division }: IProps) 
   const user = useUser();
   const searchParams = useSearchParams();
   const { ldoIdUrl } = useLdoId();
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
 
   const [playerState, setPlayerState] = useState<IPlayerAdd>(initialPlayerAdd);
   const [playerUpdate, setPlayerUpdate] = useState<Partial<IPlayerAdd>>({});
@@ -92,9 +92,9 @@ function PlayerAdd({ eventId, update, prevPlayer, teamList, division }: IProps) 
   const handleAddPlayer = async (e: React.SyntheticEvent) => {
       e.preventDefault();
       if (update) {
-        updatePlayerFn({ setActErr, setIsLoading, playerUpdate, prevPlayer: prevPlayer || null, uploadedProfile, updatePlayer});
+        updatePlayerFn({ showMessage, setIsLoading, playerUpdate, prevPlayer: prevPlayer || null, uploadedProfile, updatePlayer});
       } else {
-        createPlayer({ setActErr, setIsLoading, playerState, division, eventId, uploadedProfile, addPlayer });
+        createPlayer({ showMessage, setIsLoading, playerState, division, eventId, uploadedProfile, addPlayer });
       }
 
       if(teamId){

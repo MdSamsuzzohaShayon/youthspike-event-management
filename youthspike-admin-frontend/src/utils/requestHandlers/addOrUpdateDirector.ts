@@ -1,5 +1,5 @@
 import { ADD_DIRECTOR_RAW, UPDATE_DIRECTOR_RAW } from "@/graphql/director";
-import { IAddDirector, IError, ILDO, ILdoUpdate } from "@/types";
+import { IAddDirector, IMessage, ILDO, ILdoUpdate } from "@/types";
 import React from "react";
 import { BACKEND_URL } from "../keys";
 import { IUserContext, UserRole } from "@/types/user";
@@ -12,7 +12,7 @@ interface IAddUpdateDirectorProps {
     update: boolean;
     directorState: IAddDirector;
     ldoState: ILDO;
-    setActErr: React.Dispatch<React.SetStateAction<IError | null>>;
+    showMessage: (message: Omit<IMessage, "id">) => void;
     ldoUpdate: ILdoUpdate;
     uploadedLogo: React.RefObject<null | MediaSource | Blob>;
     setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -30,7 +30,7 @@ interface IAddUpdateDirectorProps {
     refetchFunc?:()=> Promise<void>;
 }
 
-async function addOrUpdateDirector({ directorUpdate, update, directorState, ldoState, setActErr,
+async function addOrUpdateDirector({ directorUpdate, update, directorState, ldoState, showMessage,
     ldoUpdate, uploadedLogo, setIsLoading, user, mutateUser, updateDirector, registerDirector,
     initialDirector, setDirectorState, initialLdo, setLdoState, setAddNetDirector, e, ldoId, refetchFunc }: IAddUpdateDirectorProps) {
 
@@ -38,7 +38,7 @@ async function addOrUpdateDirector({ directorUpdate, update, directorState, ldoS
     if (update) {
         if (directorUpdateObj.password && directorUpdateObj.password !== '') {
             if (directorUpdateObj.confirmPassword !== directorUpdateObj.password) {
-                return setActErr({ success: false, message: "Password did not match" });
+                return showMessage({ type: 'error', message: "Password did not match" });
             }
         } else {
             delete directorUpdateObj.password;
@@ -46,7 +46,7 @@ async function addOrUpdateDirector({ directorUpdate, update, directorState, ldoS
         delete directorUpdateObj.confirmPassword;
     } else {
         if (directorState.password !== directorState.confirmPassword) {
-            return setActErr({ success: false, message: "Password did not match" });
+            return showMessage({ type: 'error', message: "Password did not match" });
         }
     }
 
@@ -107,13 +107,11 @@ async function addOrUpdateDirector({ directorUpdate, update, directorState, ldoS
                 formEl.reset();
             }
         }
-        setActErr(null);
         if(refetchFunc) await refetchFunc();
         if (setAddNetDirector) setAddNetDirector(false);
     } catch (error: any) {
         console.error('Error during GraphQL mutation:', error);
-        handleError(error);
-        setActErr(error);
+        handleError({ error, showMessage });
     } finally {
         setIsLoading(false);
     }

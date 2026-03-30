@@ -12,6 +12,9 @@ export class RoomService {
     return this.roomModel.create(roomData);
   }
 
+  async find(filter: QueryFilter<Room>) {
+    return this.roomModel.find(filter);
+  }
   async findOne(filter: QueryFilter<Room>) {
     return this.roomModel.findOne(filter);
   }
@@ -22,5 +25,9 @@ export class RoomService {
 
   async deleteOne(filter: QueryFilter<Room>) {
     return this.roomModel.deleteOne(filter);
+  }
+
+  async deleteMany(filter: QueryFilter<Room>) {
+    return this.roomModel.deleteMany(filter);
   }
 }

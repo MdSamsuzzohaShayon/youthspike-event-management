@@ -16,12 +16,20 @@ import { GroupService } from 'src/group/group.service';
 import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { AppResponse } from 'src/shared/response';
 import { UserRole } from 'src/user/user.schema';
-import { tokenToUser } from 'src/utils/helper';
+import { randomString, tokenToUser } from 'src/utils/helper';
 import { CreateOrUpdateEventResponse, GetEventResponse } from './event.response';
 import { CreateEventBody, UpdateEventBody, UpdateEventInput } from './event.input';
 import { IEventMutations } from '../resolvers/event.types';
 import { Team } from 'src/team/team.schema';
-import { Player } from 'src/player/player.schema';
+import { EPlayerStatus, Player } from 'src/player/player.schema';
+import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
+import { ArchiveEventService, ArchiveGroupService, ArchiveMatchService, ArchiveNetService, ArchivePlayerRankingItemService, ArchivePlayerRankingService, ArchivePlayerStatsService, ArchiveRoomService, ArchiveRoundService, ArchiveServerReceiverOnNetService, ArchiveServerReceiverSinglePlayService, ArchiveSponsorService, ArchiveTeamService, ArchiveTemplateService } from 'src/archive/archive.service';
+import { TemplateService } from 'src/template/template.service';
+import { ProStats } from 'src/player-stats/player-stats.schema';
+import { RoomService } from 'src/room/room.service';
+import { ServerReceiverOnNetService } from 'src/server-receiver-on-net/server-receiver-on-net.service';
+import { PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
+
 
 @Injectable()
 export class EventMutations implements IEventMutations {
@@ -35,11 +43,31 @@ export class EventMutations implements IEventMutations {
     private playerStatsService: PlayerStatsService,
     private matchService: MatchService,
     private userService: UserService,
+    private roomService: RoomService,
     private roundService: RoundService,
     private netService: NetService,
     private groupService: GroupService,
+    private playerRankingService: PlayerRankingService,
     private sponsorService: SponsorService,
-  ) {}
+    private templateService: TemplateService,
+    private serverReceiverOnNetService: ServerReceiverOnNetService,
+
+    // Archive
+    private archiveTeamService: ArchiveTeamService,
+    private archiveMatchService: ArchiveMatchService,
+    private archiveGroupService: ArchiveGroupService,
+    private archiveSponsorService: ArchiveSponsorService,
+    private archiveTemplateService: ArchiveTemplateService,
+    private archivePlayerStatsService: ArchivePlayerStatsService,
+    private archiveNetService: ArchiveNetService,
+    private archivePlayerRankingService: ArchivePlayerRankingService,
+    private archivePlayerRankingItemService: ArchivePlayerRankingItemService,
+    private archiveRoomService: ArchiveRoomService,
+    private archiveRoundService: ArchiveRoundService,
+    private archiveServerReceiverOnNetService: ArchiveServerReceiverOnNetService,
+    private archiveServerReceiverSinglePlayService: ArchiveServerReceiverSinglePlayService,
+    private archiveEventService: ArchiveEventService,
+  ) { }
 
   async createEvent({
     sponsorsInput,
@@ -334,124 +362,335 @@ export class EventMutations implements IEventMutations {
     }
   }
 
-  async cloneEvent(eventId: string, updateInput: UpdateEventInput): Promise<CreateOrUpdateEventResponse> {
-    /**
-     * Same players, logos, teams
-     * No matches and no groups
-     */
+  async cloneEvent(
+    eventId: string,
+    updateInput: UpdateEventInput
+  ): Promise<CreateOrUpdateEventResponse> {
     try {
-      // This is the event we are cloning
       const event = await this.eventService.findOne({ _id: eventId });
-      if (!event) return AppResponse.notFound('Event not found!');
+      if (!event) return AppResponse.notFound("Event not found!");
 
-      let [players, teams] = await Promise.all([
+      const NAME_KEY = randomString(16);
+
+      const [players, teams] = await Promise.all([
         this.playerService.find({ events: eventId }),
         this.teamService.find({ event: eventId }),
       ]);
 
-      const prevEventObj = { ...event };
-      delete prevEventObj._id;
-      delete prevEventObj.multiplayer;
-      delete prevEventObj.weight;
-      prevEventObj.players = [];
-      prevEventObj.teams = [];
-      prevEventObj.matches = [];
-      prevEventObj.groups = [];
-      prevEventObj.sponsors = [];
-      prevEventObj.location = updateInput?.location || 'USA';
-      const newEvent = await this.eventService.create({ ...prevEventObj, ...updateInput });
+      // -------------------------
+      // Create new event
+      // -------------------------
+      const {
+        _id,
+        multiplayer,
+        weight,
+        ...eventData
+      } = event as Event;
 
-      // Check relationship
+      const [multiplayerStats, weightStats] = await Promise.all([
+        this.playerStatsService.proStatFindOne({ _id: String(multiplayer) }),
+        this.playerStatsService.proStatFindOne({ _id: String(weight) }),
+      ]);
 
-      // Create players
-      const organizedPlayers = [];
-      for (let i = 0; i < players.length; i += 1) {
-        const player = { ...players[i] };
-        delete player._id;
-        player.username = this.playerService.playerUsername(`${player.firstName}`);
-        player.serverReceiverOnNet = [];
-        player.serverReceiverSinglePlay = [];
-        // player.events = [newEvent._id];
-        organizedPlayers.push(player);
+      if (!multiplayerStats || !weightStats) {
+        return AppResponse.notFound('PlayerStats');
       }
-      const createdPlayers = await this.playerService.createMany(organizedPlayers);
 
-      // Create maps
+      
+
+      const newEvent = await this.eventService.create({
+        ...eventData,
+        ...updateInput,
+        players: [],
+        teams: [],
+        matches: [],
+        groups: [],
+        location: updateInput?.location || "USA",
+      });
+
+      const { _id: _mId, ...multiplayerPayload } = multiplayerStats;
+      const { _id: _wId, ...weightPayload } = weightStats;
+
+      const [newMultiplayer, newWeight] = await Promise.all([
+        this.playerStatsService.proStatCreate({...multiplayerPayload, event: newEvent._id}),
+        this.playerStatsService.proStatCreate({...weightPayload, event: newEvent._id}),
+      ]);
+
+      const updateEvent: Partial<Event> = {};
+      updateEvent.multiplayer = newMultiplayer._id;
+      updateEvent.weight = newWeight._id;
+
+      // -------------------------
+      // Player maps
+      // -------------------------
+      const playerIds = players.map((p) => String(p._id));
+      const playerMap = new Map(players.map((p) => [String(p._id), p]));
+
+      updateEvent.players = playerIds;
+
+      // -------------------------
+      // Prepare teams
+      // -------------------------
       const teamMap = new Map<string, Team>();
-      const playersByTeamMap = new Map<string, Player[]>();
-      const unassignedPlayers: Player[] = [];
-      // For preparing for teams use created players
-      for (const createdPlayer of createdPlayers) {
-        const player = createdPlayer.toObject ? createdPlayer.toObject() : createdPlayer;
-        if (player.teams.length > 0) {
-          for (const teamId of player.teams) {
-            // Initialize array if not exists
-            if (!playersByTeamMap.has(teamId)) {
-              playersByTeamMap.set(teamId, []);
-            }
+      const organizedTeams: Team[] = teams.map((team) => {
+        const uniqueName = `${team.name}_${NAME_KEY}`;
+        teamMap.set(uniqueName, team);
 
-            // Push player into team bucket
-            playersByTeamMap.get(teamId)!.push(player);
-          }
-        } else {
-          unassignedPlayers.push();
+        const { _id, createdAt, updatedAt, ...clean } = team as any;
+
+        return {
+          ...clean,
+          event: newEvent._id,
+          rankLock: false,
+          sendCredentials: false,
+          matches: [],
+          players: [],
+          moved: [],
+          nets: [],
+          group: null,
+          playerRankings: [],
+          captain: null,
+          cocaptain: null,
+        };
+      });
+
+      const createdTeams = await this.teamService.insertMany(organizedTeams);
+
+      // -------------------------
+      // Group players by team
+      // -------------------------
+      const playersByTeam = new Map<string, Player[]>();
+
+      for (const player of players) {
+        for (const teamId of player.teams || []) {
+          const key = String(teamId);
+          if (!playersByTeam.has(key)) playersByTeam.set(key, []);
+          playersByTeam.get(key)!.push(player);
         }
       }
+
+      const updatePromises: Promise<any>[] = [];
+      const newTeamIds: string[] = [];
+
+      // -------------------------
+      // Process created teams
+      // -------------------------
+      for (const team of createdTeams) {
+        const uniqueName = `${team.name}_${NAME_KEY}`;
+        const prevTeam = teamMap.get(uniqueName);
+        if (!prevTeam) continue;
+
+        newTeamIds.push(String(team._id));
+
+        const teamPlayers = playersByTeam.get(String(prevTeam._id)) || [];
+
+        if (teamPlayers.length) {
+          updatePromises.push(
+            this.playerService.updateMany(
+              { _id: teamPlayers.map((p) => p._id) },
+              { $addToSet: { teams: team._id } }
+            )
+          );
+        }
+
+        const rankings: PlayerRankingItem[] = [];
+
+        let rank = 1;
+
+        for (const player of teamPlayers) {
+          if (player.status !== EPlayerStatus.ACTIVE) continue;
+
+          rankings.push({
+            player: String(player._id),
+            rank: rank++,
+          } as PlayerRankingItem);
+        }
+
+        const newRanking = await this.playerRankingService.create({
+          rankings,
+          rankLock: false,
+          team,
+        });
+
+        updatePromises.push(
+          this.teamService.updateOne(
+            { _id: team._id },
+            {
+              players: teamPlayers.map((p) => String(p._id)),
+              playerRankings: [String(newRanking._id)],
+            }
+          )
+        );
+      }
+
+      updateEvent.teams = newTeamIds;
+
+      // -------------------------
+      // Update players
+      // -------------------------
+      updatePromises.push(
+        this.playerService.updateMany(
+          { _id: { $in: playerIds } },
+          { $addToSet: { events: newEvent._id } }
+        )
+      );
+
+      // -------------------------
+      // Update event
+      // -------------------------
+      updatePromises.push(
+        this.eventService.updateOne({ _id: newEvent._id }, updateEvent)
+      );
+
+      await Promise.all(updatePromises);
+
+      return {
+        code: HttpStatus.ACCEPTED,
+        success: true,
+        data: newEvent,
+        message: "Event has been cloned successfully",
+      };
     } catch (error) {
       return AppResponse.handleError(error);
     }
   }
 
   async deleteEvent(context: any, eventId: string): Promise<GetEventResponse> {
-    /**
-     * Delete all events assosiated with it
-     * Delete the user that is assosiated with it
-     * Delete all teams, players, rounds, nets assosiated with it
-     * Delete captain and players assosiated with it
-     */
     try {
-      const promisesToDelete = [];
+      const promisesToDelete: Promise<any>[] = [];
+      const promisesToArchive: Promise<any>[] = [];
+      const promisesToUpdate: Promise<any>[] = [];
       const eventExist = await this.eventService.findById(eventId);
-      if (!eventExist)
-        return AppResponse.handleError({ code: HttpStatus.NOT_FOUND, success: false, message: 'Event is not found' });
+      if (!eventExist) return AppResponse.notFound("Event");
 
-      if (eventExist.teams && eventExist.teams.length > 0) {
-        const teamIds = (eventExist.teams as Array<string | null | undefined>)
-          .filter((team): team is string => team != null)
-          .map((team) => team.toString());
-        promisesToDelete.push(this.teamService.delete({ _id: { $in: teamIds } }));
+      // Use archive instead of permanently delete
+      // team, match, group, sponsors, player stats, templates -> related fileds from both side
+      const [
+        teams,
+        matches,
+        groups,
+        sponsors,
+        templates,
+        multiplayers_weights,
+        nets,
+      ] = await Promise.all([
+        this.teamService.find({ event: eventId }),
+        this.matchService.find({ event: eventId }),
+        this.groupService.find({ event: eventId }),
+        this.sponsorService.find({ event: eventId }),
+        this.templateService.find({ event: eventId }),
+        this.playerStatsService.find({ event: eventId }),
+        this.netService.find({ event: eventId }),
+      ]);
 
-        // captains
-        const teams = await this.teamService.find({ _id: { $in: teamIds } });
-        if (teams && teams.length > 0) {
-          const captainPlayerIds = teams.filter((team) => team.captain).map((team) => team.captain.toString());
-          promisesToDelete.push(this.userService.delete({ captainplayer: { $in: captainPlayerIds } }));
+
+      if (teams.length > 0) {
+        promisesToArchive.push(this.archiveTeamService.createMany(teams))
+        promisesToDelete.push(this.teamService.deleteMany({ event: eventId }));
+      }
+
+
+      if (matches.length > 0) {
+        promisesToArchive.push(this.archiveMatchService.createMany(matches))
+        promisesToDelete.push(this.matchService.deleteMany({ event: eventId }));
+      }
+
+      if (groups.length > 0) {
+        promisesToArchive.push(this.archiveGroupService.createMany(groups))
+        promisesToDelete.push(this.groupService.deleteMany({ event: eventId }));
+      }
+
+      if (sponsors.length > 0) {
+        promisesToArchive.push(this.archiveSponsorService.createMany(sponsors))
+        promisesToDelete.push(this.sponsorService.deleteMany({ event: eventId }));
+      }
+
+      if (templates.length > 0) {
+        promisesToArchive.push(this.archiveTemplateService.createMany(templates))
+        promisesToDelete.push(this.templateService.deleteMany({ event: eventId }));
+      }
+
+      //  multiplayer, weight,  -> Both of them are pro stats
+      if (multiplayers_weights.length > 0) {
+        promisesToArchive.push(this.archivePlayerStatsService.createMany(multiplayers_weights));
+        promisesToDelete.push(this.playerStatsService.deleteMany({ event: eventId }));
+      }
+
+
+      // Update ldo, player 
+      promisesToUpdate.push(this.ldoService.updateOne({ events: eventId }, { $addToSet: { archivedEvents: eventId } }));
+      promisesToUpdate.push(this.playerService.updateMany({ events: eventId }, { $addToSet: { archivedEvents: eventId } }));
+
+      // net, player ranking, room, round, server receiver on net -> non related
+
+      if (nets.length > 0) {
+        promisesToArchive.push(this.archiveNetService.createMany(nets));
+        promisesToDelete.push(this.netService.deleteMany({ event: eventId }));
+      }
+
+
+      const playerRankings = await this.playerRankingService.find({ event: eventId });
+      if (playerRankings.length > 0) {
+        promisesToArchive.push(this.archivePlayerRankingService.createMany(playerRankings));
+        promisesToDelete.push(this.playerRankingService.deleteMany({ event: eventId }));
+
+        const rankingIds = playerRankings.map((pr) => String(pr._id));
+
+        const playerRankingItems = await this.playerRankingService.findItems({ playerRanking: { $in: rankingIds }, });
+        if (playerRankingItems.length > 0) {
+          promisesToArchive.push(
+            this.archivePlayerRankingItemService.createMany(playerRankingItems)
+          );
+
+          promisesToDelete.push(
+            this.playerRankingService.deleteManyItem({
+              _id: { $in: playerRankingItems.map((pri) => String(pri._id)) },
+            })
+          );
         }
       }
-      if (eventExist.players && eventExist.players.length > 0) {
-        const playerIds = eventExist.players.map((player) => player.toString());
-        promisesToDelete.push(this.playerService.delete({ _id: { $in: playerIds } }));
-      }
-      if (eventExist.matches && eventExist.matches.length > 0) {
-        const matchIds = eventExist.matches.map((match) => match.toString());
-        promisesToDelete.push(this.matchService.deleteMany({ _id: { $in: matchIds } }));
 
-        // Rounds, nets
-        const matches = await this.matchService.find({ _id: { $in: matchIds } });
-        if (matches && matches.length > 0) {
-          for (const match of matches) {
-            const roundIds = match.rounds.map((r) => r.toString());
-            promisesToDelete.push(this.roundService.deleteMany({ _id: { $in: roundIds } }));
 
-            const netIds = match.nets.map((r) => r.toString());
-            promisesToDelete.push(this.netService.deleteMany({ _id: { $in: netIds } }));
-          }
-        }
+      const [rooms, rounds, serverReceiverOnNets, serverReceiverOnNetPlays] = await Promise.all([
+        this.roomService.find({ match: { $in: [...new Set(matches.map((m) => String(m._id)))] } }),
+        this.roundService.find({ match: { $in: [...new Set(matches.map((m) => String(m._id)))] } }),
+        this.serverReceiverOnNetService.find({ event: eventId }),
+        this.serverReceiverOnNetService.findSinglePlay({ event: eventId }),
+      ]);
+
+
+      if (rooms.length > 0) {
+        promisesToArchive.push(this.archiveRoomService.createMany(rooms.map((r) => ({ ...r, teamA: r?.teamA || "", teamB: r?.teamB || "" }))));
+        promisesToArchive.push(this.roomService.deleteMany({ match: { $in: [...new Set(matches.map((m) => String(m._id)))] } }));
       }
 
+      if (rounds.length > 0) {
+        promisesToArchive.push(this.archiveRoundService.createMany(rounds));
+        promisesToArchive.push(this.roundService.deleteMany({ match: { $in: [...new Set(matches.map((m) => String(m._id)))] } }));
+      }
+
+      if (serverReceiverOnNets.length > 0) {
+        promisesToArchive.push(this.archiveServerReceiverOnNetService.createMany(serverReceiverOnNets));
+        promisesToDelete.push(this.serverReceiverOnNetService.deleteMany({ event: eventId }))
+      }
+
+
+      if (serverReceiverOnNetPlays.length > 0) {
+        promisesToArchive.push(this.archiveServerReceiverSinglePlayService.createMany(serverReceiverOnNetPlays));
+        promisesToDelete.push(this.archiveServerReceiverSinglePlayService.deleteMany({ event: eventId }))
+      }
+
+
+
+      promisesToArchive.push(this.archiveEventService.create({ ...eventExist }));
       promisesToDelete.push(this.eventService.delete({ _id: eventId }));
 
+
+      await Promise.all(promisesToArchive);
       await Promise.all(promisesToDelete);
+      await Promise.all(promisesToUpdate);
+
+
       return {
         code: HttpStatus.NO_CONTENT,
         success: true,

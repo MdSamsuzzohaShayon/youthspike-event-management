@@ -37,7 +37,7 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
   const { data: initialData } = useReadQuery(queryRef);
   const apolloClient = useApolloClient();
 
-  
+ 
 
   // Filter states
   const [localFilter, setLocalFilter] = useState<FilterState>({
@@ -243,6 +243,8 @@ export default function MatchesMain({ queryRef, eventId, initialSearchParams }: 
   const hasUnsavedChanges = JSON.stringify(localFilter) !== JSON.stringify(appliedFilter);
   const isLoading = isApplyingFilters || isLoadingMore;
   const showInitialLoading = isApplyingFilters && matches.length === 0;
+
+
 
   return (
     <div className="animate-fade-in">

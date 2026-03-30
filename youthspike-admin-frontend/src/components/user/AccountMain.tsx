@@ -6,13 +6,13 @@ import { motion } from 'motion/react';
 import Loader from '@/components/elements/Loader';
 import DirectorAdd from '@/components/ldo/DirectorAdd';
 import { GET_LDO } from '@/graphql/director';
-import { useError } from '@/lib/ErrorProvider';
+import { useMessage } from '@/lib/MessageProvider';
 import { IGetEventDirectorQuery, ILDO } from '@/types';
 import { useLazyQuery } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 
 export default function AccountMain() {
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
   const params = useSearchParams(); // ✅ safe: inside Client Component
   const ldoIdParam = params.get('ldoId');
 
@@ -22,7 +22,7 @@ export default function AccountMain() {
 
   const fetchLDO = async () => {
     const { data } = await getLdo({ variables: { dId: ldoIdParam } });
-    if (await handleResponseCheck(data?.getEventDirector, setActErr)) {
+    if (await handleResponseCheck(data?.getEventDirector, showMessage)) {
       if (data?.getEventDirector?.data) setLdo(data?.getEventDirector?.data);
     }
   };

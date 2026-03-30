@@ -168,6 +168,11 @@ export class Match extends AppDocument {
 }
 
 export const MatchSchema = SchemaFactory.createForClass(Match);
+
+MatchSchema.index({event: 1});
+MatchSchema.index({ event: 1, division: 1, group: 1 });
+MatchSchema.index({ event: 1, name: 1 });
+
 export const MatchSchemaFactory = async () => {
   return MatchSchema;
 };

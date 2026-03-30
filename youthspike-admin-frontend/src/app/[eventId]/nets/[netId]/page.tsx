@@ -3,7 +3,7 @@
 import Loader from '@/components/elements/Loader';
 import NetTeamCard from '@/components/net/NetTeamCard';
 import { GET_A_NET } from '@/graphql/net';
-import { useError } from '@/lib/ErrorProvider';
+import { useMessage } from '@/lib/MessageProvider';
 import { INetRes } from '@/types';
 import { isValidObjectId } from '@/utils/helper';
 import { useLazyQuery } from '@apollo/client/react';
@@ -18,7 +18,7 @@ interface INetSingleProps {
 
 function SingleNet({ params }: INetSingleProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const { setActErr } = useError();
+  const { showMessage } = useMessage();
 
   const [fetchNet, { data, loading, error }] = useLazyQuery<{ getNet: INetRes }>(GET_A_NET);
 
@@ -30,7 +30,7 @@ function SingleNet({ params }: INetSingleProps) {
       if (isValidObjectId(params.netId)) {
         fetchNet({ variables: { netId: params.netId } });
       } else {
-        setActErr({ success: false, message: 'Can not fetch data due to invalid net ObjectId!' });
+        showMessage({ message: 'Can not fetch data due to invalid net ObjectId!', type: "error" });
       }
     }
   }, [params.netId]);

@@ -16,6 +16,11 @@ export function useFilterState(
     // Initialize from URL params
     const params: Partial<Record<EStatsFilter, string | string[]>> = {};
 
+    if (searchParams.get(EStatsFilter.EVENT))
+      params[EStatsFilter.EVENT] = searchParams.get(
+        EStatsFilter.EVENT
+      )!;
+
     if (searchParams.get(EStatsFilter.START_DATE))
       params[EStatsFilter.START_DATE] = searchParams.get(
         EStatsFilter.START_DATE

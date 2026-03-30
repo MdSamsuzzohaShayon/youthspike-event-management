@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation';
 import { IGetEventDirectorQuery, IUserContext, TParams } from '@/types';
 import { UserRole } from '@/types/user';
 import { LDO_ID } from '@/utils/constant';
-import EventsMain from '@/components/event/EventsMain';
+import EventsContainer from '@/components/event/EventsContainer';
 import Loader from '@/components/elements/Loader';
 import { GET_LDO } from '@/graphql/director';
 import { PreloadQuery } from '@/lib/client';
@@ -47,7 +47,7 @@ export async function EventsPage({ searchParams }: IEventsPageProps) {
       >
         {(queryRef) => (
           <Suspense fallback={<Loader />}>
-            <EventsMain
+            <EventsContainer
               queryRef={
                 queryRef as QueryRef<{ getEventDirector: IGetEventDirectorQuery }>
               }

@@ -99,6 +99,7 @@ export class SetPlayersHandler {
         serverPositionPair: body.serverPositionPair,
         teamAScore: 0,
         teamBScore: 0,
+        event: String(matchExist.event)
       };
 
       // Setting initially
