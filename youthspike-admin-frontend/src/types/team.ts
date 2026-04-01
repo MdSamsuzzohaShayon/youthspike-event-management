@@ -20,6 +20,7 @@ import {
   IRoundRelatives,
   TMutationFunction,
 } from '.';
+// @ts-ignore
 import { ApolloCache } from '@apollo/client';
 
 export interface ITeam {
@@ -79,6 +80,10 @@ export interface IGetTeamDetailQuery extends IResponse {
   };
 }
 
+export interface IGetTeamsResponse extends IResponse {
+  data: ITeam[];
+}
+
 interface ITeamRoster {
   event: IEvent;
   players: IPlayer[];
@@ -88,10 +93,7 @@ interface ITeamRoster {
   playerRanking: IPlayerRankingExpRel;
 }
 
-export interface IGetTeamRosterResponse {
-  code: number;
-  success: boolean;
-  message: string;
+export interface IGetTeamRosterResponse  extends IResponse{
   data: ITeamRoster;
 }
 

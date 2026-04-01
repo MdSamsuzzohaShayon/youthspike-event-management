@@ -1,3 +1,4 @@
+// @ts-ignore
 import { gql } from '@apollo/client';
 
 const rankingResponse = `
@@ -284,8 +285,8 @@ query GetTeamDetails($teamId: String!) {
 const GET_TEAM_DETAIL = gql`${GET_TEAM_DETAIL_RAW}`;
 
 const GET_TEAMS_MIN_RAW = `
-query GetTeams {
-  getTeams {
+query GetTeams ($limit: Float, $offset: Float) {
+  getTeams (limit: $limit, offset: $offset) {
     code
     success
     message
@@ -312,6 +313,8 @@ query GetTeams {
   }
 }
 `;
+
+const GET_TEAMS_MIN = gql`${GET_TEAMS_MIN_RAW}`;
 
 const GET_TEAMS_BY_EVENT = gql`
   query GetTeams($eventId: String) {
@@ -944,6 +947,7 @@ export {
   GET_TEAM_DETAIL,
   GET_A_TEAM_RAW,
   GET_TEAMS_MIN_RAW,
+  GET_TEAMS_MIN,
   GET_TEAM_ROSTER,
   GET_TEAM_MATCHES,
   GET_TEAMS,

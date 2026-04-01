@@ -128,8 +128,8 @@ query GetPlayers($eventId: String!) {
 `;
 
 const GET_PLAYERS_MIN_RAW = `
-query GetPlayers {
-  getPlayers {
+query GetPlayers ($eventId: String, $limit: Float, $offset: Float) {
+  getPlayers (eventId: $eventId, limit: $limit, offset: $offset) {
     code
     message
     success
@@ -153,6 +153,9 @@ query GetPlayers {
   }
 }
 `;
+
+
+const GET_PLAYERS_MIN = gql`${GET_PLAYERS_MIN_RAW}`;
 
 const GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW = `
 query GetEventWithPlayers($eventId: String!) {
@@ -407,5 +410,6 @@ export {
   GET_PLAYER_AND_TEAMS_RAW,
   GET_PLAYER_AND_TEAMS,
   GET_PLAYERS_MIN_RAW,
-  SEARCH_PLAYERS
+  SEARCH_PLAYERS,
+  GET_PLAYERS_MIN
 };

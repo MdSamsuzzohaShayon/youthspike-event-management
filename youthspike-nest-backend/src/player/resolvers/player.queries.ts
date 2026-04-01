@@ -129,11 +129,16 @@ export class PlayerQueries implements IPlayerQueries {
     }
   }
 
-  async getPlayers(eventId: string) {
+  async getPlayers(eventId?: string, limit = 30, offset = 0) {
     try {
       let query: QueryOptions<Player> = {};
-      if (eventId) query = { events: { $in: [eventId] } };
-      const players = await this.playerService.find(query);
+  
+      if (eventId) {
+        query = { events: { $in: [eventId] } };
+      }
+  
+      const players = await this.playerService.find(query, limit, offset);
+  
       return {
         code: HttpStatus.OK,
         success: true,

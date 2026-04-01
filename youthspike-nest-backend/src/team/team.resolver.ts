@@ -78,9 +78,13 @@ export class TeamResolver {
   /**
    * Queries
    */
-  @Query((_returns) => GetTeamsResponse)
-  async getTeams(@Args('eventId', { nullable: true }) eventId: string) {
-    return this.teamQueris.getTeams(eventId);
+  @Query(() => GetTeamsResponse)
+  async getTeams(
+    @Args('eventId', { nullable: true }) eventId?: string,
+    @Args('limit', { nullable: true, defaultValue: 30 }) limit?: number,
+    @Args('offset', { nullable: true, defaultValue: 0 }) offset?: number,
+  ): Promise<GetTeamsResponse> {
+    return this.teamQueris.getTeams(eventId, limit, offset);
   }
 
   @Query((_returns) => GetEventWithTeamsResponse)

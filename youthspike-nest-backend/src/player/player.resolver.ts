@@ -106,11 +106,15 @@ export class PlayerResolver {
     return this.playerQueries.getPlayerAndTeams(playerId, eventId);
   }
 
-  @Query((_returns) => PlayersResponse) // Specify the return type
-  async getPlayers(@Args('eventId', { nullable: true }) eventId: string): Promise<PlayersResponse> {
-    return this.playerQueries.getPlayers(eventId);
+  @Query(() => PlayersResponse)
+  async getPlayers(
+    @Args('eventId', { nullable: true }) eventId?: string,
+    @Args('limit', { nullable: true, defaultValue: 30 }) limit?: number,
+    @Args('offset', { nullable: true, defaultValue: 0 }) offset?: number,
+  ): Promise<PlayersResponse> {
+    return this.playerQueries.getPlayers(eventId, limit, offset);
   }
-
+  
   @Query((_returns) => GetEventWithPlayersResponse)
   async getEventWithPlayers(@Context() context: any, @Args('eventId', { nullable: false }) eventId: string) {
     return this.playerQueries.getEventWithPlayers(context, eventId);

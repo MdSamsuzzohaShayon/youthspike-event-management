@@ -84,13 +84,9 @@ export interface IEventPlayersGroupsTeamsResponse {
   };
 }
 
-interface ISearchPlayerData {
-  event: IEvent;
-  groups: IGroup[];
-  players: IPlayer[];
-  teams: ITeam[];
-  statsOfPlayer: IAllStats[];
-  matches: IMatch[];
+
+export interface IGetPlayersResponse extends IResponse{
+  data: IPlayer[];
 }
 
 export interface ISearchPlayerResponse extends IResponse{

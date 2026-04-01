@@ -200,7 +200,7 @@ type Team {
   captain: Player
   cocaptain: Player
   matches: [Match!]
-  event: Event!
+  event: Event
   players: [Player!]
   moved: [Player!]
   nets: [Net!]!
@@ -494,7 +494,7 @@ type TeamWithStringPlayers {
   captain: String
   cocaptain: Player
   matches: [Match!]
-  event: Event!
+  event: Event
   players: [String!]
   moved: [Player!]
   nets: [Net!]!
@@ -882,7 +882,7 @@ type CustomTeam {
   captain: String
   cocaptain: String
   matches: [String!]
-  event: Event!
+  event: Event
   players: [String!]
   moved: [Player!]
   nets: [String!]
@@ -1442,7 +1442,7 @@ type Query {
   getEventWithGroupsAndUnassignedPlayers(eventId: String!): GetEventWithGroupsAndUnassignedPlayersResponse!
   getPlayerEventSetting(eventId: String): GetPlayerEventSettingResponse!
   getEvent(eventId: String!): GetEventResponse!
-  getTeams(eventId: String): GetTeamsResponse!
+  getTeams(eventId: String, limit: Float = 30, offset: Float = 0): GetTeamsResponse!
   getEventWithTeams(eventId: String): GetEventWithTeamsResponse!
   getTeam(teamId: String!): GetTeamResponse!
   getTeamDetails(teamId: String!): GetTeamDetailsResponse!
@@ -1463,7 +1463,7 @@ type Query {
   getSystemDetails: GetSystemDetailsResponse!
   getPlayer(playerId: String!): PlayerResponse!
   getPlayerAndTeams(playerId: String!, eventId: String!): GetPlayerAndTeamsResponse!
-  getPlayers(eventId: String): PlayersResponse!
+  getPlayers(eventId: String, limit: Float = 30, offset: Float = 0): PlayersResponse!
   getEventWithPlayers(eventId: String!): GetEventWithPlayersResponse!
   searchPlayers(eventId: String!, filter: PlayerSearchFilter): SearchPlayersResponse!
   getGroups(eventId: String): GetGroupsResponse!
