@@ -32,6 +32,8 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
   const isInitial = useRef<boolean>(true);
   const router = useRouter();
   const { data: initialData } = useReadQuery(queryRef);
+
+  
   const apolloClient = useApolloClient();
 
   // Filter states

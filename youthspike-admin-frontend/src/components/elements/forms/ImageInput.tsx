@@ -175,7 +175,7 @@ function ImageInput({ handleFileChange, name, label, className, defaultValue }: 
           ) : (
             <label
               htmlFor={name}
-              className="flex flex-col items-center justify-center h-full w-full rounded-lg p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 text-sm gap-2 cursor-pointer transition hover:border-yellow-400 hover:bg-yellow-50 dark:hover:bg-gray-800/40"
+              className="flex flex-col items-center justify-center h-full w-full rounded-lg p-4 border-2 border-dashed border-gray-300 dark:border-gray-600 text-gray-500 text-sm gap-2 cursor-pointer transition hover:border-yellow-400 hover:bg-gray-800"
               onClick={handleOpenImg}
             >
               <Image

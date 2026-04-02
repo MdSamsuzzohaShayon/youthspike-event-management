@@ -19,6 +19,12 @@ export class CreateOrUpdateTeamResponse extends AppResponse<Team> {
 }
 
 @ObjectType()
+export class CreateOrUpdateTeamsResponse extends AppResponse<Team[]> {
+  @Field((__type) => [CustomTeam], { nullable: true })
+  data?: CustomTeam[];
+}
+
+@ObjectType()
 export class GetTeamsResponse extends AppResponse<Team[]> {
   @Field((_type) => [Team], { nullable: true })
   data?: Team[];

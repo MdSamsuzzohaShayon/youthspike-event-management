@@ -473,6 +473,13 @@ type CreateOrUpdateTeamResponse {
   data: CustomTeam
 }
 
+type CreateOrUpdateTeamsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [CustomTeam!]
+}
+
 type GetTeamsResponse {
   code: Int!
   success: Boolean!
@@ -1561,6 +1568,7 @@ type Mutation {
   deleteEvent(eventId: String!): GetEventResponse!
   createTeam(input: CreateTeamInput!, logo: Upload): CreateOrUpdateTeamResponse!
   updateTeam(input: UpdateTeamInput!, teamId: String!, eventId: String!, logo: Upload): CreateOrUpdateTeamResponse!
+  updateTeams(input: UpdateTeamsInput!, eventId: String!, logo: Upload): CreateOrUpdateTeamsResponse!
   deleteTeam(teamId: String!): CreateOrUpdateTeamResponse!
   deleteTeams(teamIds: [String!]!): CreateOrUpdateTeamResponse!
   createMatch(input: CreateMatchInput!): GetMatchResponse!
@@ -1640,6 +1648,18 @@ input UpdateTeamInput {
   captain: String
   event: String
   players: [ID!]
+  cocaptain: String
+  email: String
+}
+
+input UpdateTeamsInput {
+  name: String
+  active: Boolean
+  division: String
+  group: String
+  captain: String
+  event: String
+  teamIds: [String!]
   cocaptain: String
   email: String
 }

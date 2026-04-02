@@ -3,7 +3,7 @@ import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/g
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { UserRole } from 'src/user/user.schema';
 import { Team } from './team.schema';
-import { CreateTeamInput, TeamSearchFilter, UpdateTeamInput } from './resolvers/team.input';
+import { CreateTeamInput, TeamSearchFilter, UpdateTeamInput, UpdateTeamsInput } from './resolvers/team.input';
 import { Player } from 'src/player/player.schema';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
@@ -12,6 +12,7 @@ import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-rank
 import { Match } from 'src/match/match.schema';
 import {
   CreateOrUpdateTeamResponse,
+  CreateOrUpdateTeamsResponse,
   GetEventWithTeamsResponse,
   GetTeamDetailsResponse,
   GetTeamMatchesResponse,
@@ -48,6 +49,7 @@ export class TeamResolver {
     return this.teamMutations.createTeam(input, logo);
   }
 
+  // For updating single team
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((_returns) => CreateOrUpdateTeamResponse)
@@ -59,6 +61,19 @@ export class TeamResolver {
     logo?: Promise<FileUpload>,
   ) {
     return this.teamMutations.updateTeam(input, teamId, eventId, logo);
+  }
+
+  // For updating multiple teams
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((_returns) => CreateOrUpdateTeamsResponse)
+  async updateTeams(
+    @Args('input') input: UpdateTeamsInput,
+    @Args('eventId') eventId: string,
+    @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })
+    logo?: Promise<FileUpload>,
+  ) {
+    return this.teamMutations.updateTeams(input, eventId, logo);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

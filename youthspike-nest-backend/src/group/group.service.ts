@@ -16,7 +16,7 @@ export class GroupService {
   }
 
   async findOne(query: any) {
-    return this.groupModal.findOne(query);
+    return this.groupModal.findOne(query).lean();
   }
 
   // async find(filter: QueryFilter<Group>) {

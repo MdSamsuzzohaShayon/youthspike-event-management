@@ -823,6 +823,31 @@ const UPDATE_TEAM = gql`
   ${UPDATE_TEAM_RAW}
 `;
 
+
+const UPDATE_TEAMS_RAW = `
+  mutation UpdateTeams($input: UpdateTeamsInput!, $eventId: String!, $logo: Upload) {
+    updateTeams(input: $input, eventId: $eventId, logo: $logo) {
+      code
+      success
+      message
+      data {
+        _id
+        active
+        name
+        logo
+        captain 
+        cocaptain 
+        division
+        group
+      }
+    }
+  }
+`;
+
+const UPDATE_TEAMS = gql`
+  ${UPDATE_TEAMS_RAW}
+`;
+
 const DELETE_TEAM = gql`
   mutation DeleteTeam($teamId: String!) {
     deleteTeam(teamId: $teamId) {
@@ -954,5 +979,6 @@ export {
   GET_TEAM_WITH_GROUPS_AND_UNASSIGNED_PLAYERS,
   GET_EVENT_WITH_TEAMS_LIGHT,
   SEARCH_TEAMS,
-  SEARCH_TEAM_LIST_LIGHT
+  SEARCH_TEAM_LIST_LIGHT,
+  UPDATE_TEAMS
 };
