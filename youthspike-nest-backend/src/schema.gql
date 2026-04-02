@@ -200,7 +200,7 @@ type Team {
   captain: Player
   cocaptain: Player
   matches: [Match!]
-  event: Event!
+  event: Event
   players: [Player!]
   moved: [Player!]
   nets: [Net!]!
@@ -344,6 +344,7 @@ type Event {
   sendCredentials: Boolean
   playerLimit: Int!
   fwango: String
+  defaulted: Boolean
   ldo: LDO!
   players: [Player!]!
   teams: [Team!]!
@@ -472,6 +473,13 @@ type CreateOrUpdateTeamResponse {
   data: CustomTeam
 }
 
+type CreateOrUpdateTeamsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [CustomTeam!]
+}
+
 type GetTeamsResponse {
   code: Int!
   success: Boolean!
@@ -493,7 +501,7 @@ type TeamWithStringPlayers {
   captain: String
   cocaptain: Player
   matches: [Match!]
-  event: Event!
+  event: Event
   players: [String!]
   moved: [Player!]
   nets: [Net!]!
@@ -658,6 +666,7 @@ type CustomEvent {
   sendCredentials: Boolean
   playerLimit: Int!
   fwango: String
+  defaulted: Boolean
   ldo: LDO!
   players: [Player!]!
   teams: [Team!]!
@@ -880,7 +889,7 @@ type CustomTeam {
   captain: String
   cocaptain: String
   matches: [String!]
-  event: Event!
+  event: Event
   players: [String!]
   moved: [Player!]
   nets: [String!]
@@ -1392,6 +1401,7 @@ input CreateEventInput {
   timeout: Int
   coachPassword: String!
   fwango: String
+  defaulted: Boolean
   description: String!
   location: String!
   accessCode: String
@@ -1419,6 +1429,7 @@ input UpdateEventInput {
   timeout: Int
   coachPassword: String
   fwango: String
+  defaulted: Boolean
   description: String
   location: String
   accessCode: String
@@ -1438,7 +1449,7 @@ type Query {
   getEventWithGroupsAndUnassignedPlayers(eventId: String!): GetEventWithGroupsAndUnassignedPlayersResponse!
   getPlayerEventSetting(eventId: String): GetPlayerEventSettingResponse!
   getEvent(eventId: String!): GetEventResponse!
-  getTeams(eventId: String): GetTeamsResponse!
+  getTeams(eventId: String, limit: Float = 30, offset: Float = 0): GetTeamsResponse!
   getEventWithTeams(eventId: String): GetEventWithTeamsResponse!
   getTeam(teamId: String!): GetTeamResponse!
   getTeamDetails(teamId: String!): GetTeamDetailsResponse!
@@ -1459,7 +1470,7 @@ type Query {
   getSystemDetails: GetSystemDetailsResponse!
   getPlayer(playerId: String!): PlayerResponse!
   getPlayerAndTeams(playerId: String!, eventId: String!): GetPlayerAndTeamsResponse!
-  getPlayers(eventId: String): PlayersResponse!
+  getPlayers(eventId: String, limit: Float = 30, offset: Float = 0): PlayersResponse!
   getEventWithPlayers(eventId: String!): GetEventWithPlayersResponse!
   searchPlayers(eventId: String!, filter: PlayerSearchFilter): SearchPlayersResponse!
   getGroups(eventId: String): GetGroupsResponse!
@@ -1557,6 +1568,7 @@ type Mutation {
   deleteEvent(eventId: String!): GetEventResponse!
   createTeam(input: CreateTeamInput!, logo: Upload): CreateOrUpdateTeamResponse!
   updateTeam(input: UpdateTeamInput!, teamId: String!, eventId: String!, logo: Upload): CreateOrUpdateTeamResponse!
+  updateTeams(input: UpdateTeamsInput!, eventId: String!, logo: Upload): CreateOrUpdateTeamsResponse!
   deleteTeam(teamId: String!): CreateOrUpdateTeamResponse!
   deleteTeams(teamIds: [String!]!): CreateOrUpdateTeamResponse!
   createMatch(input: CreateMatchInput!): GetMatchResponse!
@@ -1636,6 +1648,18 @@ input UpdateTeamInput {
   captain: String
   event: String
   players: [ID!]
+  cocaptain: String
+  email: String
+}
+
+input UpdateTeamsInput {
+  name: String
+  active: Boolean
+  division: String
+  group: String
+  captain: String
+  event: String
+  teamIds: [String!]
   cocaptain: String
   email: String
 }

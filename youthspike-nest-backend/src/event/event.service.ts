@@ -42,6 +42,11 @@ export class EventService {
     return updateEvent;
   }
 
+  async updateMany(filter: QueryFilter<Event>, updateData: UpdateQuery<Event>){
+    const updateEvent = await this.eventModel.updateMany(filter, updateData);
+    return updateEvent;
+  }
+
   async delete(filter: QueryFilter<Event>) {
     return this.eventModel.deleteMany(filter);
   }

@@ -5,6 +5,7 @@
 
 import { gql } from "@apollo/client";
 
+
 const GET_AN_EVENT_RAW = `
 query GetEventDetails($eventId: String!, $filter: EventFilterInput!) {
   getEventDetails(eventId: $eventId, filter: $filter) {
@@ -187,6 +188,7 @@ const GET_EVENTS_RAW = `
         divisions
         description
         location
+        defaulted
         matches {
           _id
           date
@@ -196,4 +198,6 @@ const GET_EVENTS_RAW = `
   }
 `;
 
-export { GET_AN_EVENT_RAW, GET_EVENTS_RAW, GET_AN_EVENT };
+const GET_EVENTS = gql`${GET_EVENTS_RAW}`;
+
+export { GET_AN_EVENT_RAW, GET_EVENTS_RAW, GET_AN_EVENT, GET_EVENTS };

@@ -39,8 +39,8 @@ export class GroupResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((returns) => GetGroupResponse)
-  async createGroup(@Context() context: any, @Args('input') input: CreateGroupInput): Promise<GetGroupResponse> {
+  @Mutation((_returns) => GetGroupResponse)
+  async createGroup(@Args('input') input: CreateGroupInput): Promise<GetGroupResponse> {
     try {
       /**
        * TODO:
@@ -70,7 +70,6 @@ export class GroupResolver {
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((_returns) => GetGroupResponse)
   async updateGroup(
-    @Context() context: any,
     @Args('updateInput') updateInput: UpdateGroupInput,
     @Args('eventId', { nullable: true }) eventId?: string,
   ): Promise<GetGroupResponse> {
@@ -79,6 +78,8 @@ export class GroupResolver {
        * TODO:
        *  Step-1: Get user id from token if not logged in as admin
        */
+      const groupExist = await this.groupService.findOne({_id: updateInput._id});
+      if(!groupExist) return AppResponse.notFound("Group");
       const updatePromises = [];
       const groupObj: UpdateQuery<Group> = { ...updateInput };
       // Update team
@@ -87,9 +88,7 @@ export class GroupResolver {
           const teamExist = await this.teamService.findOne({ _id: team });
           // Remove from previous group
           if (teamExist && teamExist.group) {
-            updatePromises.push(
-              this.groupService.updateOne({ _id: teamExist.group }, { $pull: { teams: teamExist._id } }),
-            );
+            await this.groupService.updateOne({ _id: teamExist.group }, { $pull: { teams: teamExist._id } })
           }
           updatePromises.push(this.teamService.updateOne({ _id: team }, { group: updateInput._id }));
         }
@@ -100,6 +99,7 @@ export class GroupResolver {
 
       await Promise.all(updatePromises);
       const findGroup = await this.groupService.findOne({ _id: updateInput._id });
+      const teams = await this.teamService.find({_id: {$in: updateInput.teams}});
 
       return {
         data: findGroup,

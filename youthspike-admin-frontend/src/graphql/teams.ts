@@ -1,3 +1,4 @@
+// @ts-ignore
 import { gql } from '@apollo/client';
 
 const rankingResponse = `
@@ -284,8 +285,8 @@ query GetTeamDetails($teamId: String!) {
 const GET_TEAM_DETAIL = gql`${GET_TEAM_DETAIL_RAW}`;
 
 const GET_TEAMS_MIN_RAW = `
-query GetTeams {
-  getTeams {
+query GetTeams ($limit: Float, $offset: Float) {
+  getTeams (limit: $limit, offset: $offset) {
     code
     success
     message
@@ -312,6 +313,8 @@ query GetTeams {
   }
 }
 `;
+
+const GET_TEAMS_MIN = gql`${GET_TEAMS_MIN_RAW}`;
 
 const GET_TEAMS_BY_EVENT = gql`
   query GetTeams($eventId: String) {
@@ -820,6 +823,31 @@ const UPDATE_TEAM = gql`
   ${UPDATE_TEAM_RAW}
 `;
 
+
+const UPDATE_TEAMS_RAW = `
+  mutation UpdateTeams($input: UpdateTeamsInput!, $eventId: String!, $logo: Upload) {
+    updateTeams(input: $input, eventId: $eventId, logo: $logo) {
+      code
+      success
+      message
+      data {
+        _id
+        active
+        name
+        logo
+        captain 
+        cocaptain 
+        division
+        group
+      }
+    }
+  }
+`;
+
+const UPDATE_TEAMS = gql`
+  ${UPDATE_TEAMS_RAW}
+`;
+
 const DELETE_TEAM = gql`
   mutation DeleteTeam($teamId: String!) {
     deleteTeam(teamId: $teamId) {
@@ -944,11 +972,13 @@ export {
   GET_TEAM_DETAIL,
   GET_A_TEAM_RAW,
   GET_TEAMS_MIN_RAW,
+  GET_TEAMS_MIN,
   GET_TEAM_ROSTER,
   GET_TEAM_MATCHES,
   GET_TEAMS,
   GET_TEAM_WITH_GROUPS_AND_UNASSIGNED_PLAYERS,
   GET_EVENT_WITH_TEAMS_LIGHT,
   SEARCH_TEAMS,
-  SEARCH_TEAM_LIST_LIGHT
+  SEARCH_TEAM_LIST_LIGHT,
+  UPDATE_TEAMS
 };

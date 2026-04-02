@@ -4,9 +4,9 @@ import { EEnv } from '@/types/elements';
 
 const NODE_ENV: string = process.env.NODE_ENV || EEnv.production;
 
-const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || "American Spikers League";
-let FRONTEND_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://aslsquads.com';
-let ADMIN_FRONTEND_URL = process.env.NEXT_PUBLIC_ADMIN_FRONTEND_URL || 'http://admin.aslsquads.com';
+const APP_NAME: string = process.env.NEXT_PUBLIC_APP_NAME || "American Spikers League";
+let FRONTEND_URL: string = process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://aslsquads.com';
+let ADMIN_FRONTEND_URL: string = process.env.NEXT_PUBLIC_ADMIN_FRONTEND_URL || 'http://admin.aslsquads.com';
 let BACKEND_URL: string = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://api.aslsquads.com/graphql';
 let SOCKET_URL: string = process.env.NEXT_PUBLIC_SOCKET_URL || 'wss://api.aslsquads.com/websocket';
 

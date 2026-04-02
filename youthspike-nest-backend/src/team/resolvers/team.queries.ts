@@ -36,21 +36,27 @@ export class TeamQueries {
     private groupService: GroupService,
     private playerRankingService: PlayerRankingService,
     private playerService: PlayerService,
-  ) {}
+  ) { }
 
-  async getTeams(eventId: string) {
+
+  async getTeams(eventId?: string, limit = 30, offset = 0) {
     try {
-      const query: Record<string, any> = {};
-      if (eventId) query.event = eventId;
-      const teams = await this.teamService.find(query);
+      let query: QueryFilter<Team> = {};
+
+      if (eventId) {
+        query = { event: eventId };
+      }
+
+      const teams = await this.teamService.find(query, offset, limit);
+
       return {
         code: HttpStatus.OK,
         success: true,
         message: 'List of teams!',
         data: teams,
       };
-    } catch (err) {
-      return AppResponse.handleError(err);
+    } catch (error) {
+      return AppResponse.handleError(error);
     }
   }
 
@@ -390,23 +396,23 @@ export class TeamQueries {
     }
   }
 
-  async getTeamWithGroupsAndUnassignedPlayers(eventId: string, teamId: string){
+  async getTeamWithGroupsAndUnassignedPlayers(eventId: string, teamId: string) {
     try {
-      const event = await this.eventService.findOne({_id: eventId});
-      if(!event) return AppResponse.notFound("Event");
+      const event = await this.eventService.findOne({ _id: eventId });
+      if (!event) return AppResponse.notFound("Event");
 
       // groups
       // players
       const [groups, players, team] = await Promise.all([
         this.groupService.find({ event: eventId }),
         this.playerService.find({ $or: [{ teams: { $size: 0 } }, { teams: { $exists: false } }, { teams: null }] }),
-        this.teamService.findOne({_id: teamId})
+        this.teamService.findOne({ _id: teamId })
       ]);
       return {
         code: HttpStatus.OK,
         success: true,
         message: "Getting event and team details",
-        data: {event, groups, players, team}
+        data: { event, groups, players, team }
       };
     } catch (err) {
       return AppResponse.handleError(err);
@@ -448,7 +454,7 @@ export class TeamQueries {
             matchIds.add(String(m));
           }
         }
-        if(t?.captain){
+        if (t?.captain) {
           captainIds.add(String(t.captain));
         }
       }
@@ -457,7 +463,7 @@ export class TeamQueries {
         this.matchService.find({ _id: { $in: [...matchIds] } }),
         this.netService.find({ match: { $in: [...matchIds] } }),
         this.roundService.find({ match: { $in: [...matchIds] } }),
-        this.playerService.find({_id: {$in: [...captainIds]}})
+        this.playerService.find({ _id: { $in: [...captainIds] } })
       ]);
 
       return {

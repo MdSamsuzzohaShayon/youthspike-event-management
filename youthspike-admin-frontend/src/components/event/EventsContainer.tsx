@@ -13,6 +13,7 @@ import {
   DELETE_AN_EVENT,
   EXPORT_PLAYERS,
   SEND_CREDENTIALS,
+  UPDATE_EVENT,
 } from '@/graphql/event';
 import Loader from '@/components/elements/Loader';
 import EventCard from '@/components/event/EventCard';
@@ -139,6 +140,8 @@ const EventsContainer: React.FC<EventsContainerProps> = ({
   const [exportPlayersMutation] =
     useMutation(EXPORT_PLAYERS);
 
+  const [setDefault] = useMutation<{ updateEvent: IResponse }>(UPDATE_EVENT);
+
   /* ---------------- Handlers ---------------- */
 
   const openFilterDialog = useCallback(() => {
@@ -225,6 +228,21 @@ const EventsContainer: React.FC<EventsContainerProps> = ({
 
       setSelectedEvent(event);
       cloneDialogRef.current?.showModal();
+    },
+    [eventMap]
+  );
+
+  const handleSetDefault = useCallback(
+    async (eventId: string, defaulted: boolean = false) => {
+      const event = eventMap.get(eventId);
+      if (!event) return;
+      const res = await setDefault({ variables: { sponsorsInput: [], updateInput: { defaulted }, eventId } });
+      if (!res.data?.updateEvent.success) {
+        showMessage({ message: res.data?.updateEvent?.message, type: "error" });
+        return;
+      }
+
+      // Update cache
     },
     [eventMap]
   );
@@ -332,7 +350,7 @@ const EventsContainer: React.FC<EventsContainerProps> = ({
         ))}
       </div>
 
-      <div className="events flex flex-wrap gap-2 justify-between">
+      <div className="events grid grid-cols-2 gap-2">
         <div className="event-card bg-yellow-gradient rounded-lg">
           <Link
             href={`/newevent/${ldoIdUrl}`}
@@ -349,6 +367,7 @@ const EventsContainer: React.FC<EventsContainerProps> = ({
             event={event}
             onCopy={(_, id) => handleCopyEvent(id)}
             onDelete={(_, id) => handleDeleteEvent(id)}
+            onSetDefault={handleSetDefault}
             onSendCredentials={handleSendCredentials}
             onExportPlayers={(_, id) => handleExportPlayers(id)}
           />

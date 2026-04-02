@@ -89,6 +89,11 @@ export class Event extends AppDocument {
   @Prop({ required: false, })
   fwango?: string;
 
+  // Default event
+  @Field(() => Boolean, { nullable: true, defaultValue: false })
+  @Prop({ required: false, default: false })
+  defaulted?: boolean;
+
   /**
    * Database Relationship
    */
@@ -184,8 +189,8 @@ export class Event extends AppDocument {
   @Prop({ required: true })
   location: string;
 
-  @Field({nullable: true})
-  @Prop({required: false})
+  @Field({ nullable: true })
+  @Prop({ required: false })
   accessCode?: string;
 
   @Field({ nullable: true, defaultValue: false })

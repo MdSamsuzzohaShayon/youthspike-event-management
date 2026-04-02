@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable import/no-cycle */
 import React from "react";
-import { IMessage } from "./elements";
+import { IMessage, IResponse } from "./elements";
 import { IDefaultMatch, IMatch, IMatchExpRel, IMatchRelatives } from "./match";
 import { ILDO } from "./ldo";
 import { IGroup, IGroupRelatives } from "./group";
@@ -46,6 +46,7 @@ export interface IEvent {
   coachPassword: string;
   description: string;
   location: string;
+  defaulted?: boolean;
 }
 
 export interface IEventWMatch extends IEvent {
@@ -91,6 +92,10 @@ export interface IEventDetailData {
 export interface IEventDetailProps {
   queryRef: QueryRef<{ getEventDetails: { data: IEventDetailData } }>;
   eventId: string;
+}
+
+export interface IGetEventsResponse extends IResponse{
+  data: IEventWMatch[];
 }
 
 export interface EventFilterState {

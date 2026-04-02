@@ -50,7 +50,7 @@ export default function TeamTable({ teams }: ITeamTableProps) {
                 <td className="py-4 px-6 text-center">
                   <Link
                   // @ts-ignore
-                    href={`/${team.event._id}/teams/${team._id}/?${LDO_ID}=${team.event?.ldo?._id || ''}`}
+                    href={`/${team?.event?._id}/teams/${team._id}/?${LDO_ID}=${team?.event?.ldo?._id || ''}`}
                     className="bg-yellow-400 text-black font-semibold px-4 py-2 rounded-md hover:bg-yellow-500 transition"
                   >
                     View Details
@@ -91,7 +91,7 @@ export default function TeamTable({ teams }: ITeamTableProps) {
             <div className="text-right">
               <Link
                 // @ts-ignore
-                href={`/${team.event._id}/teams/${team._id}/?${LDO_ID}=${team.event?.ldo?._id || ''}`}
+                href={`/${team?.event?._id}/teams/${team._id}/?${LDO_ID}=${team.event?.ldo?._id || ''}`}
                 className="inline-block bg-yellow-400 text-black font-semibold px-3 py-1.5 rounded-md hover:bg-yellow-500 transition"
               >
                 View Details

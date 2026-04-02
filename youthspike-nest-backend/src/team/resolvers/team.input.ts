@@ -1,7 +1,7 @@
 import { ArgsType, Field, ID, InputType, Int, PartialType } from '@nestjs/graphql';
 
 @InputType()
-export class CreateTeamInput {
+class CommonInput{
   @Field()
   name: string;
 
@@ -19,6 +19,10 @@ export class CreateTeamInput {
 
   @Field()
   event: string;
+}
+
+@InputType()
+export class CreateTeamInput  extends CommonInput{
 
   @Field(() => [ID], { nullable: true })
   players?: string[];
@@ -26,11 +30,24 @@ export class CreateTeamInput {
 
 @InputType()
 export class UpdateTeamInput extends PartialType(CreateTeamInput) {
-  @Field((type) => String, { nullable: true })
+  @Field((_type) => String, { nullable: true })
   cocaptain?: string;
 
-  @Field((type) => String, { nullable: true })
+  @Field((_type) => String, { nullable: true })
   email?: string;
+}
+
+@InputType()
+export class UpdateTeamsInput extends PartialType(CommonInput) {
+  @Field((_type) => [String], { nullable: true })
+  teamIds: string[];
+
+  @Field((_type) => String, { nullable: true })
+  cocaptain?: string;
+
+  @Field((_type) => String, { nullable: true })
+  email?: string;
+
 }
 
 

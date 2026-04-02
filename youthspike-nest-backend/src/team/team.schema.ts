@@ -60,9 +60,9 @@ export class Team extends AppDocument {
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Match' }] })
   matches?: Match[] | string[]; // Make the captain field nullable
 
-  @Field((_type) => Event, { nullable: false })
+  @Field((_type) => Event, { nullable: true })
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Event' })
-  event: Event | string;
+  event?: Event | string;
 
   @Field(() => [Player], { nullable: true })
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Player' }] })

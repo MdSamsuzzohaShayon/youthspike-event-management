@@ -214,12 +214,12 @@ export class EventMutations implements IEventMutations {
         directorId = eventExist.ldo;
       }
 
-      const findLdo = await this.ldoService.findByDirectorId(directorId);
+      const ldo = await this.ldoService.findByDirectorId(directorId);
 
       // ===== Arrange data and save to database =====
-      const eventData: any = {
+      const eventData: Partial<Event> = {
         ...updateInput,
-        ldo: findLdo._id,
+        ldo: ldo._id,
         // sponsors: cloudinaryUrls,
         divisions: eventExist.divisions,
       };
@@ -337,6 +337,11 @@ export class EventMutations implements IEventMutations {
         }
       }
 
+      if (eventData.defaulted) {
+        // Make all events  defaulted false except this one
+        await this.eventService.updateMany({ ldo: ldo._id, _id: { $ne: eventId } }, { defaulted: false });
+      }
+
       // ===== Update Stats =====
       const statsUpdatePromises = [];
       if (multiplayerInput && Object.entries(multiplayerInput).length > 0) {
@@ -396,7 +401,7 @@ export class EventMutations implements IEventMutations {
         return AppResponse.notFound('PlayerStats');
       }
 
-      
+
 
       const newEvent = await this.eventService.create({
         ...eventData,
@@ -412,8 +417,8 @@ export class EventMutations implements IEventMutations {
       const { _id: _wId, ...weightPayload } = weightStats;
 
       const [newMultiplayer, newWeight] = await Promise.all([
-        this.playerStatsService.proStatCreate({...multiplayerPayload, event: newEvent._id}),
-        this.playerStatsService.proStatCreate({...weightPayload, event: newEvent._id}),
+        this.playerStatsService.proStatCreate({ ...multiplayerPayload, event: newEvent._id }),
+        this.playerStatsService.proStatCreate({ ...weightPayload, event: newEvent._id }),
       ]);
 
       const updateEvent: Partial<Event> = {};

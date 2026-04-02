@@ -14,25 +14,18 @@ import { UserService } from 'src/user/user.service';
 import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { AppResponse } from 'src/shared/response';
 import { UserRole } from 'src/user/user.schema';
-import { playerKey, tokenToUser } from 'src/utils/helper';
+import { tokenToUser } from 'src/utils/helper';
 import { EEventItem, Event } from '../event.schema';
 import {
   GetEventDetailsResponse,
   GetEventResponse,
-  GetEventsResponse,
-  GetEventWithGroupsAndUnassignedPlayersResponse,
-  GetPlayerEventSettingResponse,
-  PlayerStatsEntry,
-  // PlayerStatsEntry,
+  GetEventsResponse, GetPlayerEventSettingResponse
 } from './event.response';
 import { IEventQueries } from '../resolvers/event.types';
 import { RedisService } from 'src/redis/redis.service';
 import { Net } from 'src/net/net.schema';
 import { CustomPlayerStats } from 'src/player-stats/resolvers/player-stats.response';
 import { EventFilterInput } from './event.input';
-import { Match } from 'src/match/match.schema';
-import { Team } from 'src/team/team.schema';
-import { Player } from 'src/player/player.schema';
 import getStatsOfPlayers from 'src/utils/getStatsOfPlayers';
 
 @Injectable()
@@ -51,7 +44,7 @@ export class EventQueries implements IEventQueries {
     private groupService: GroupService,
     private sponsorService: SponsorService,
     private redisService: RedisService,
-  ) {}
+  ) { }
 
   async getEvents(context: any, directorId?: string): Promise<GetEventsResponse> {
     try {
@@ -68,15 +61,17 @@ export class EventQueries implements IEventQueries {
           case UserRole.director:
             newDirectorId = loggedUser._id;
             break;
+          /*
           case UserRole.admin:
-            if (!directorId) {
-              return AppResponse.handleError({
-                success: false,
-                message: 'You must select a director in order to get all events!',
-              });
-            }
-            newDirectorId = directorId;
-            break;
+          if (!directorId) {
+            return AppResponse.handleError({
+              success: false,
+              message: 'You must select a director in order to get all events!',
+            });
+          }
+          newDirectorId = directorId;
+          break;
+          */
           default:
             break;
         }
@@ -232,10 +227,10 @@ export class EventQueries implements IEventQueries {
             teamB: String(typeof (n as any).teamB === 'object' ? ((n as any).teamB as any)._id : (n as any).teamB),
             serverReceiverOnNet: (n as any).serverReceiverOnNet
               ? String(
-                  typeof (n as any).serverReceiverOnNet === 'object'
-                    ? (n as any).serverReceiverOnNet._id
-                    : (n as any).serverReceiverOnNet,
-                )
+                typeof (n as any).serverReceiverOnNet === 'object'
+                  ? (n as any).serverReceiverOnNet._id
+                  : (n as any).serverReceiverOnNet,
+              )
               : undefined,
             serverReceiverSinglePlay:
               (n as any).serverReceiverSinglePlay?.map((s: any) => String(typeof s === 'object' ? s._id : s)) || [],
@@ -253,7 +248,7 @@ export class EventQueries implements IEventQueries {
     }
   }
 
-  async getEventWithGroupsAndUnassignedPlayers(eventId: string){
+  async getEventWithGroupsAndUnassignedPlayers(eventId: string) {
     try {
       // eventId, groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision, divisions
       const event = await this.eventService.findOne({ _id: eventId });

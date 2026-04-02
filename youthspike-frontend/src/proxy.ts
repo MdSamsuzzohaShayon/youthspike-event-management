@@ -1,8 +1,4 @@
-/* eslint-disable consistent-return */
-/* eslint-disable import/prefer-default-export */
-
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { IUser, UserRole } from "./types/user";
 
 /**
@@ -30,7 +26,9 @@ export function proxy(request: NextRequest) {
   const token = request.cookies.get("token");
   const user = request.cookies.get("user");
 
-  const currentEventId = process.env.NEXT_PUBLIC_CURRENT_EVENT_ID;
+  // const currentEventId = process.env.NEXT_PUBLIC_CURRENT_EVENT_ID;
+  const currentEventId = request.cookies.get("NEXT_PUBLIC_CURRENT_EVENT_ID")?.value || null;
+  
 
   /**
    * Root route handling (/)

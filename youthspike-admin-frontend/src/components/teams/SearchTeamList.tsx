@@ -1,10 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { IEvent, IGroup, IOption, IPlayer, IPlayerExpRel, IResponse, ITeam } from '@/types';
+import { IEvent, IGroup, IGroupRelatives, IOption, IPlayer, IPlayerExpRel, IResponse, ITeam } from '@/types';
 import TeamCard from './TeamCard';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
 import { handleError } from '@/utils/handleError';
-import { DELETE_MULTIPLE_TEAMS, DELETE_TEAM, UPDATE_TEAM } from '@/graphql/teams';
+import { DELETE_MULTIPLE_TEAMS, DELETE_TEAM, UPDATE_TEAM, UPDATE_TEAMS } from '@/graphql/teams';
 import { SEND_CREDENTIALS } from '@/graphql/event';
 import SelectInput from '../elements/forms/SelectInput';
 import { UPDATE_GROUP } from '@/graphql/group';
@@ -27,27 +27,30 @@ interface ISearchTeamListProps {
 interface ITeamUpdateResponse extends IResponse {
   data: ITeam;
 }
+interface ITeamsUpdateResponse extends IResponse {
+  data: ITeam[];
+}
 
 // Sub-component: Bulk Action Menu
 interface BulkActionMenuProps {
   isVisible: boolean;
   onBulkCredentials: (e: React.SyntheticEvent) => void;
   onShowChangeGroup: (e: React.SyntheticEvent) => void;
-  onBulkMoveTeam: (e: React.SyntheticEvent) => void;
+  onBulkTeamOpen: (e: React.SyntheticEvent) => void;
 }
 
 const BulkActionMenu: React.FC<BulkActionMenuProps> = ({
   isVisible,
   onBulkCredentials,
   onShowChangeGroup,
-  onBulkMoveTeam,
+  onBulkTeamOpen,
 }) => {
   if (!isVisible) return null;
 
   return (
     <AnimatePresence>
       <motion.ul
-        className="absolute z-10 left-12 top-6 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
+        className="absolute z-10 left-12 top-6 w-48 bg-gray-700 text-gray-300 rounded-md shadow-lg overflow-hidden"
         variants={menuVariants}
         initial="hidden"
         animate="visible"
@@ -56,7 +59,7 @@ const BulkActionMenu: React.FC<BulkActionMenuProps> = ({
       >
         <li
           role="presentation"
-          className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
+          className="capitalize px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
           onClick={onBulkCredentials}
         >
           <Image src="/icons/send-email.svg" alt="Send" width={16} height={16} />
@@ -64,7 +67,7 @@ const BulkActionMenu: React.FC<BulkActionMenuProps> = ({
         </li>
         <li
           role="presentation"
-          className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
+          className="capitalize px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
           onClick={onShowChangeGroup}
         >
           <Image src="/icons/share.svg" className="svg-white" alt="Send" width={16} height={16} />
@@ -72,8 +75,8 @@ const BulkActionMenu: React.FC<BulkActionMenuProps> = ({
         </li>
         <li
           role="presentation"
-          className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
-          onClick={onBulkMoveTeam}
+          className="capitalize px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
+          onClick={onBulkTeamOpen}
         >
           <Image className="svg-white" src="/icons/move.svg" alt="Move" width={16} height={16} />
           Move team
@@ -102,7 +105,7 @@ const GroupFilterMenu: React.FC<GroupFilterMenuProps> = ({
   return (
     <AnimatePresence>
       <motion.ul
-        className="absolute z-10 top-7 right-3 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
+        className="absolute z-10 top-7 right-3 w-48 bg-gray-100 bg-gray-900 text-gray-800 text-gray-200 rounded-md shadow-lg overflow-hidden"
         variants={menuVariants}
         initial="hidden"
         animate="visible"
@@ -112,7 +115,7 @@ const GroupFilterMenu: React.FC<GroupFilterMenuProps> = ({
         <li
           key="all"
           role="presentation"
-          className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+          className="capitalize px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer"
           onClick={(e) => onGroupFilter(e, null)}
         >
           All
@@ -121,7 +124,7 @@ const GroupFilterMenu: React.FC<GroupFilterMenuProps> = ({
           <li
             key={index}
             role="presentation"
-            className="capitalize px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+            className="capitalize px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer"
             onClick={(e) => onGroupFilter(e, group._id)}
           >
             {group.name}
@@ -170,13 +173,13 @@ const MoveTeamDialog: React.FC<IMoveTeamDialogProps> = ({
             handleSelect={onTeamUpdateChange}
             name="division"
             optionList={divisionOptions}
-            defaultValue={selectedTeam?.division}
+          // defaultValue={selectedTeam?.division}
           />
           <SelectInput
             name="group"
             optionList={groupOptions}
             handleSelect={onTeamUpdateChange}
-            defaultValue={typeof selectedTeam?.group === 'object' ? selectedTeam?.group._id : selectedTeam?.group}
+          // defaultValue={typeof selectedTeam?.group === 'object' ? selectedTeam?.group?._id : selectedTeam?.group}
           />
           <div className="actions flex gap-x-2 w-full justify-start items-center">
             <button className="btn-info" type="submit">
@@ -196,13 +199,13 @@ const MoveTeamDialog: React.FC<IMoveTeamDialogProps> = ({
 interface IChangeGroupDialogProps {
   dialogRef: React.RefObject<HTMLDialogElement | null>;
   groupList: IGroup[];
-  onBulkChangeGroup: (e: React.SyntheticEvent) => void;
+  onBulkGroupChange: (e: React.SyntheticEvent) => void;
 }
 
 const ChangeGroupDialog: React.FC<IChangeGroupDialogProps> = ({
   dialogRef,
   groupList,
-  onBulkChangeGroup,
+  onBulkGroupChange,
 }) => {
   const groupOptions = useMemo(
     () =>
@@ -216,8 +219,10 @@ const ChangeGroupDialog: React.FC<IChangeGroupDialogProps> = ({
 
   return (
     <dialog ref={dialogRef} className="modal-dialog">
-      <h3>Change Group</h3>
-      <SelectInput name="group" optionList={groupOptions} handleSelect={onBulkChangeGroup} />
+      <div className="p-4">
+        <h3>Change Group</h3>
+        <SelectInput name="group" optionList={groupOptions} handleSelect={onBulkGroupChange} />
+      </div>
     </dialog>
   );
 };
@@ -278,8 +283,9 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
   // Mutations
   const [sendCredentialsMutation, { data, error }] = useMutation(SEND_CREDENTIALS);
   const [deleteMultipleTeamsMutation] = useMutation<{ deleteTeams: IResponse }>(DELETE_MULTIPLE_TEAMS);
-  const [updateGroupMutation] = useMutation(UPDATE_GROUP);
+  const [updateGroupMutation] = useMutation<{ updateGroup: IResponse }>(UPDATE_GROUP);
   const [moveTeamMutation] = useMutation<{ updateTeam: ITeamUpdateResponse }>(UPDATE_TEAM);
+  const [moveTeamsMutation] = useMutation<{ updateTeams: ITeamsUpdateResponse }>(UPDATE_TEAMS);
   const [deleteTeam] = useMutation<{ deleteTeam: ITeamUpdateResponse }>(DELETE_TEAM);
 
   // Utility: Extract checked team IDs
@@ -353,7 +359,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       const isSuccessful = await handleResponseCheck(response?.data?.sendCredentials, showMessage);
       if (isSuccessful && refetchFunc) await refetchFunc();
     } catch (error) {
-      console.log(error);
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -381,12 +387,29 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
 
     try {
       setIsLoading(true);
-      await updateGroupMutation({
+      const res = await updateGroupMutation({
         variables: { updateInput: { _id: inputElement.value, teams: checkedTeamIds } },
       });
-      if (refetchFunc) await refetchFunc();
+      // Update cache
+      if(res.data && res.data.updateGroup.code === 202){
+        setFilteredTeamList((prev)=> {
+          // Set group Id to specific team
+          const updatedTeams: ITeam[] = [];
+          for (const t of prev) {
+            if(checkedTeamIds.includes(t._id)){
+              // @ts-ignore
+              updatedTeams.push({...t, group: inputElement.value});
+            }else{
+              updatedTeams.push(t);
+            }
+          }
+          return updatedTeams;
+        });
+      }
+
+      
     } catch (error) {
-      console.log(error);
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -400,11 +423,17 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       setIsLoading(true);
       if (refetchFunc) await refetchFunc();
     } catch (error) {
-      console.log(error);
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  const handleonBulkTeamOpen =(e: React.SyntheticEvent)=>{
+    e.preventDefault();
+    moveTeamDialogRef.current?.showModal();
+    setIsBulkActionMenuVisible(false);
+  }
 
   // Handlers: Individual Team Actions
   const handleSendSingleTeamCredential = async (e: React.SyntheticEvent, teamId: string): Promise<void> => {
@@ -415,8 +444,8 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       const isSuccessful = await handleResponseCheck(response?.data?.sendCredentials, showMessage);
       if (isSuccessful && refetchFunc) await refetchFunc();
     } catch (error) {
-      console.log(error);
-      handleError({error, showMessage});
+      console.error(error);
+      handleError({ error, showMessage });
     } finally {
       setIsLoading(false);
     }
@@ -438,6 +467,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
     e.preventDefault();
     const inputElement = e.target as HTMLInputElement;
     setTeamUpdateInput((previousInput) => ({ ...previousInput, [inputElement.name]: inputElement.value }));
+
   };
 
 
@@ -448,17 +478,28 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
     try {
       setIsLoading(true);
       moveTeamDialogRef.current?.close();
-      const response = await moveTeamMutation({
-        variables: { input: { ...teamUpdateInput }, teamId: selectedTeamForMove?._id, eventId: event._id },
+      // Change division and group
+      const checkedTeamIds = getCheckedTeamIds();
+
+
+      const input = {
+        teamIds: checkedTeamIds,
+        division: teamUpdateInput.division,
+        group: teamUpdateInput.group,
+      }
+
+      const response = await moveTeamsMutation({
+        variables: { input, eventId: event._id },
       });
-      const isSuccessful = await handleResponseCheck(response.data?.updateTeam, showMessage);
+      const isSuccessful = await handleResponseCheck(response.data?.updateTeams, showMessage);
       if (isSuccessful) {
-        if (response.data?.updateTeam.data) {
-          const updatedList = updateItemByIdMutable(filteredTeamList, response.data?.updateTeam.data);
-          setFilteredTeamList(updatedList)
+        if (response.data?.updateTeams.data) {
+          // const updatedList = updateItemByIdMutable(filteredTeamList, response.data?.updateTeams.data);
+          // setFilteredTeamList(updatedList)
         }
 
-        setSelectedTeamForMove(null)
+        setSelectedTeamForMove(null);
+        
 
       }
     } catch (error) {
@@ -485,7 +526,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
 
       }
     } catch (error) {
-      console.log(error);
+      console.error(error);
     } finally {
       setIsLoading(false);
     }
@@ -544,6 +585,9 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
     setFilteredTeamList(filteredTeams);
   }, [teamList, selectedGroupIdFilter]);
 
+  
+  
+
   if (isLoading) return <Loader />;
 
   return (
@@ -567,7 +611,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
             isVisible={isBulkActionMenuVisible}
             onBulkCredentials={handleBulkSendCredentials}
             onShowChangeGroup={handleShowChangeGroupDialog}
-            onBulkMoveTeam={handleBulkMoveTeams}
+            onBulkTeamOpen={handleonBulkTeamOpen}
           />
         </div>
 
@@ -601,14 +645,14 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
         {filteredTeamList.map((team) => (
           <TeamCard
             key={team._id}
-            team={({ ...team, captain: team.captain ? (captainMap.get(String(team.captain)) as unknown as IPlayerExpRel || null): null })}
+            team={({ ...team, captain: team.captain ? (captainMap.get(String(team.captain)) as unknown as IPlayerExpRel || null) : null })}
             eventId={event._id}
             groupList={groupList}
             isChecked={checkedTeamsMap.get(team._id) ?? false}
-            handleSendCredential={handleSendSingleTeamCredential}
-            handleMoveTeamOpen={handleOpenMoveTeamDialog}
-            handleCheckedTeam={handleTeamCheckboxToggle}
-            handleDeleteTeamOpen={handleDeleteTeamOpen}
+            onSendCredential={handleSendSingleTeamCredential}
+            onMoveTeamOpen={handleOpenMoveTeamDialog}
+            onCheckedTeam={handleTeamCheckboxToggle}
+            onDeleteTeamOpen={handleDeleteTeamOpen}
           />
         ))}
       </div>
@@ -630,7 +674,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       <ChangeGroupDialog
         dialogRef={changeGroupDialogRef}
         groupList={groupList}
-        onBulkChangeGroup={handleBulkChangeGroup}
+        onBulkGroupChange={handleBulkChangeGroup}
       />
     </div>
   );

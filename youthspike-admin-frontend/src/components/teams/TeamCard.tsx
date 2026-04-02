@@ -3,7 +3,6 @@ import Link from 'next/link';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CldImage } from 'next-cloudinary';
 import Image from 'next/image';
-import useClickOutside from '../../hooks/useClickOutside';
 import SelectInput from '../elements/forms/SelectInput';
 import CheckboxInput from '../elements/forms/CheckboxInput';
 import { useLdoId } from '@/lib/LdoProvider';
@@ -18,15 +17,15 @@ interface ITeamCardProps {
   eventId: string;
   groupList: IGroup[];
   isChecked: boolean;
-  handleCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
-  handleSendCredential: (e: React.SyntheticEvent, teamId: string) => void;
-  handleMoveTeamOpen: (e: React.SyntheticEvent, team: ITeam) => void;
-  handleDeleteTeamOpen: (e: React.SyntheticEvent, team: ITeam) => void;
+  onCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
+  onSendCredential: (e: React.SyntheticEvent, teamId: string) => void;
+  onMoveTeamOpen: (e: React.SyntheticEvent, team: ITeam) => void;
+  onDeleteTeamOpen: (e: React.SyntheticEvent, team: ITeam) => void;
 }
 
 
 
-function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, handleSendCredential, handleMoveTeamOpen, handleDeleteTeamOpen }: ITeamCardProps) {
+function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCredential, onMoveTeamOpen, onDeleteTeamOpen }: ITeamCardProps) {
   // Hooks
   const { ldoIdUrl } = useLdoId();
   const [updateGroup] = useMutation(UPDATE_GROUP);
@@ -40,13 +39,12 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
     team.group?.toString() || ''
   );
 
-  // Common handlers
 
 
   const toggleActionMenu = () => setActionOpen((prev) => !prev);
 
 
-  const handleGroupChange = async (e: React.SyntheticEvent) => {
+  const onGroupChange = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     const inputEl = e.target as HTMLInputElement;
     const newGroupId = inputEl.value;
@@ -62,19 +60,31 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
         },
       });
     } catch (error) {
-      console.log(error);
+      console.error(error);
 
       // ❌ rollback on error
       setSelectedGroup(team.group?.toString() || '');
     }
   };
 
+  const handleCheckedTeam = (e: React.SyntheticEvent, teamId: string) => {
+    onCheckedTeam(e, teamId);
+    setActionOpen(false);
+  }
+  const handleSendCredential = (e: React.SyntheticEvent, teamId: string) => {
+    onSendCredential(e, teamId);
+    setActionOpen(false);
+  }
+  const handleMoveTeamOpen = (e: React.SyntheticEvent, team: ITeam) => {
+    onMoveTeamOpen(e, team);
+    setActionOpen(false);
+  }
+  const handleDeleteTeamOpen = (e: React.SyntheticEvent, team: ITeam) => {
+    onDeleteTeamOpen(e, team);
+    setActionOpen(false);
+  }
 
 
-
-
-
-  // const playerCount = team?.players?.length || 0;
   const { activePlayers, inactivePlayers } = useMemo(() => {
     const active = [],
       inactive = [];
@@ -94,25 +104,30 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
 
 
   // Derived values
-  const filteredGroups = useMemo(() => {
-    const teamDivision = team.division.trim().toUpperCase();
+  // const filteredGroups = useMemo(() => {
+  //   const teamDivision = team.division.trim().toUpperCase();
 
-    let id = 1;
+  //   let id = 1;
 
-    return [...groupList].reduce<IOption[]>(
-      (acc, g) => {
-        if (g.division.trim().toUpperCase() === teamDivision) {
-          acc.push({
-            id: id++,
-            value: g._id,
-            text: g.name,
-          });
-        }
-        return acc;
-      },
-      []
-    );
-  }, [groupList, team.division]);
+  //   return [...groupList].reduce<IOption[]>(
+  //     (acc, g) => { 
+  //       if ( g.division.trim().toUpperCase() === teamDivision) {
+  //         acc.push({
+  //           id: id++,
+  //           value: g._id,
+  //           text: g.name,
+  //         });
+  //       }
+  //       return acc;
+  //     },
+  //     []
+  //   );
+  // }, [groupList, team]);
+
+
+  const groupOptions = useMemo(()=>{
+    return groupList.map((g, i )=> ({id: i+1, text: g.name, value: g._id}));
+  }, [groupList])
 
   const sendCredentialLabel = team.sendCredentials ? 'Resend' : 'Send';
 
@@ -140,7 +155,7 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
       {actionOpen && (
         <motion.ul
           ref={actionEl}
-          className="absolute z-20 right-0 top-10 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden border border-gray-300 dark:border-gray-700"
+          className="absolute z-20 right-0 top-10 w-48 bg-gray-700 rounded-md shadow-lg overflow-hidden"
           variants={menuVariants}
           initial="hidden"
           animate="visible"
@@ -148,7 +163,7 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
           transition={{ duration: 0.2 }}
         >
           <li>
-            <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+            <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer">
               <Image src="/icons/edit.svg" alt="Edit" width={16} height={16} className="svg-white" />
               <span className="text-sm">Edit</span>
             </Link>
@@ -156,7 +171,7 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
 
           <li
             onClick={(e) => handleMoveTeamOpen(e, team)}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer"
           >
             <Image src="/icons/move.svg" alt="Move Team" width={16} height={16} className="svg-white" />
             <span className="text-sm">Move Team</span>
@@ -165,9 +180,9 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
           <li
             onClick={(e) => {
               setActionOpen(false);
-              handleSendCredential(e, team._id);
+              onSendCredential(e, team._id);
             }}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer"
           >
             <Image src="/icons/send-email.svg" alt={`${sendCredentialLabel} Credential`} width={16} height={16} className={team.sendCredentials ? 'svg-green' : 'svg-white'} />
             <span className="text-sm">{sendCredentialLabel} Credential</span>
@@ -175,7 +190,7 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
 
           <li
             onClick={(e) => handleDeleteTeamOpen(e, team)}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer text-red-500 hover:text-red-400"
+            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer text-red-500 hover:text-red-400"
             role="presentation"
           >
             <Image src="/icons/delete.svg" alt="Delete" width={16} height={16} className="svg-white" />
@@ -216,10 +231,13 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
             className={`${team.sendCredentials ? 'svg-green' : 'svg-white'} opacity-80 hover:opacity-100 transition-opacity`}
           />
         </button>
+        <div className="flex justify-center items-start flex-col">
+          <span>{team.division}</span>
+          <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`}>
+            <button className="btn-info">Preview</button>
+          </Link>
+        </div>
 
-        <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`}>
-          <button className="btn-info">Preview</button>
-        </Link>
 
         <div className="relative">
           <button onClick={toggleActionMenu} className="w-8 h-8 flex items-center justify-center bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors" aria-label="Team options">
@@ -237,7 +255,7 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
       <div className="flex-1 min-w-0">
         <h3 className="text-xs font-semibold text-white truncate">{team.name}</h3>
         <div className="mt-1">
-          <SelectInput name="group" optionList={filteredGroups} handleSelect={handleGroupChange} value={selectedGroup} />
+          <SelectInput name="group" optionList={groupOptions} handleSelect={onGroupChange} value={selectedGroup} />
         </div>
       </div>
     </div>
@@ -260,8 +278,9 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
       </div>
     );
 
-    
 
+    
+    
 
   return (
     <div className="team-card w-full bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-700">
@@ -278,7 +297,7 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
           {/* Left Section */}
           <div className="flex items-center gap-x-2">
             <div className="flex flex-col  items-center gap-y-2">
-              <CheckboxInput _id={team._id} name="team-select" defaultValue={isChecked} handleInputChange={handleCheckedTeam} />
+              <CheckboxInput _id={team._id} name="team-select" defaultValue={isChecked} handleInputChange={onCheckedTeam} />
               <span className="bg-yellow-logo text-black font-bold rounded-full text-sm h-8 w-8 text-center flex justify-center items-center">{team.num}</span>
             </div>
 
@@ -291,7 +310,7 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
               <div className="">
                 <h3 className="text-xl font-semibold text-white truncate mb-2">{team.name}</h3>
                 <div className="w-full md:w-4/6">
-                  <SelectInput name="group" optionList={filteredGroups} handleSelect={handleGroupChange} value={selectedGroup} />
+                  <SelectInput name="group" optionList={groupOptions} handleSelect={onGroupChange} value={selectedGroup} />
                 </div>
               </div>
             </div>
@@ -325,6 +344,7 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
 
         {/* Bottom Section */}
         <div className="w-full flex items-center justify-end gap-2">
+          <span>Division: {team.division}</span>
           <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`}>
             <button className="btn-info">Preview</button>
           </Link>
@@ -336,7 +356,7 @@ function TeamCard({ team, eventId, groupList, isChecked, handleCheckedTeam, hand
             </span>
           </div>
           <Image
-            onClick={(e) => handleSendCredential(e, team._id)}
+            onClick={(e) => onSendCredential(e, team._id)}
             src="/icons/send-email.svg"
             alt="Send Email"
             width={24}

@@ -250,7 +250,6 @@ input:-ms-autofill:focus {
 /* Event card design  */
 .events-page .event-card {
   /* style={{ width: '48.5%', minHeight: '12rem' }} */
-  width: 48%;
   min-height: 12rem;
 }
 
