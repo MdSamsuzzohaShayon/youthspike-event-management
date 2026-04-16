@@ -1,61 +1,43 @@
 ### Database operation
 
-// 68afc5f30bf9dbb4ac0f69cb
-Add eventId to each PlayerStats, ServerReceiverOnNet, and ServerReceiverSinglePlay
+Rename event → events and convert it into an array containing the existing ObjectId.
 
 ```
-const eventId = ObjectId('68afc5f30bf9dbb4ac0f69cb');
-
-
-const playersWithEvent = db.players.find(
-   { events: eventId },
-   { _id: 1 }
- ).toArray();
-
-
-const playerIds = playersWithEvent.map(function(p) { return p._id; });
-playerIds.length
-
-const updateResult = db.serverreceiveronnets.updateMany(
+db.teams.updateMany(
+  { event: { $exists: true } },
+  [
     {
-      $or: [
-        { server: { $in: playerIds } },
-        { servingPartner: { $in: playerIds } },
-        { receiver: { $in: playerIds } },
-        { receivingPartner: { $in: playerIds } }
-      ]
+      $set: {
+        events: ["$event"]
+      }
     },
     {
-      $set: { event: eventId }
+      $unset: "event"
     }
-  );
-print("Updated " + updateResult.modifiedCount + " documents");
+  ]
+)
 
-
-
-
-const updateResult1 = db.serverreceiversingleplays.updateMany(
-    {
-      $or: [
-        { server: { $in: playerIds } },
-        { servingPartner: { $in: playerIds } },
-        { receiver: { $in: playerIds } },
-        { receivingPartner: { $in: playerIds } }
-      ]
-    },
-    {
-      $set: { event: eventId }
-    }
-  );
-
-print("Updated " + updateResult1.modifiedCount + " documents");
-
-
-
-db.playerstats.updateMany({player: { $in: playerIds }}, {$set: {event: eventId}});
-print("Updated " + updateResult2.modifiedCount + " documents");
 
 ```
+
+Group: Migrate a field from a single ObjectId → array of ObjectIds for all documents
+```
+db.teams.updateMany(
+  { group: { $exists: true } }, // only docs that have group
+  [
+    {
+      $set: {
+        groups: ["$group"] // convert to array
+      }
+    },
+    {
+      $unset: "group" // remove old field
+    }
+  ]
+)
+
+```
+
 
 ---
 

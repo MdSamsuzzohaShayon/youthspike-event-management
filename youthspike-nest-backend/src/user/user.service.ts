@@ -36,13 +36,13 @@ export class UserService {
   async createCapUser(
     playerExist: Player,
     playerUserExist: User | null,
-    eventExist: Event,
+    events: Event[],
     playerUsername: string,
     role: UserRole,
   ): Promise<User> {
     const userObj = {
       email: playerUsername.replace(/\s+/g, ''),
-      password: eventExist.coachPassword,
+      password: "eventExist.coachPassword", // temp
       firstName: playerExist.firstName,
       lastName: playerExist.lastName,
       role,
@@ -54,7 +54,7 @@ export class UserService {
     if (playerUserExist) {
       userObj.captainplayer = role === UserRole.captain ? playerExist._id : playerUserExist.captainplayer;
       userObj.cocaptainplayer = role === UserRole.co_captain ? playerExist._id : playerUserExist.cocaptainplayer;
-      const hashedPassword = await bcrypt.hash(eventExist.coachPassword, 10);
+      const hashedPassword = await bcrypt.hash("eventExist.coachPassword", 10); // temp
       userObj.password = hashedPassword;
       newCaptainUser = await this.updateOne({ _id: playerUserExist._id }, userObj);
     } else {

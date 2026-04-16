@@ -11,20 +11,36 @@ import { CustomGroup, CustomTeam, EventMatches } from 'src/match/resolvers/match
 
 @ObjectType()
 export class CreateOrUpdateEventResponse extends AppResponse<Event> {
-  @Field((type) => Event, { nullable: true })
+  @Field((_type) => Event, { nullable: true })
   data?: Event;
 }
 
 @ObjectType()
 export class GetEventsResponse extends AppResponse<Event[]> {
-  @Field((type) => [Event], { nullable: true })
+  @Field((_type) => [Event], { nullable: true })
   data?: Event[];
 }
 
 @ObjectType()
 export class GetEventResponse extends AppResponse<Event> {
-  @Field((type) => Event, { nullable: true })
+  @Field((_type) => Event, { nullable: true })
   data?: Event | null;
+}
+
+
+@ObjectType()
+export class CustomEvent extends Event {
+  @Field((_type) => [String], { nullable: false })
+  teams: string[];
+
+  @Field((_type) => [String], { nullable: true })
+  players: string[];
+
+  @Field((_type) => [String], { nullable: true })
+  matches: string[];
+
+  @Field((_type) => [String], { nullable: true })
+  groups: string[];
 }
 
 

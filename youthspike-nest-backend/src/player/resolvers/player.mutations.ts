@@ -183,13 +183,6 @@ export class PlayerMutations implements IPlayerMutations {
   }
 
   async createPlayer({ input, profile }: CreatePlayerBody): Promise<PlayerResponse> {
-    /**
-     * TODO:
-     *    Step-1: Get all the inputs
-     *    Step-2: Upload a profile picture
-     *    Step-3: Make one to many relationship with event
-     *    Step-4: Update events
-     */
     try {
       // Upload image to cloudinary
       let profileUrl: string | null = null;
@@ -614,7 +607,7 @@ export class PlayerMutations implements IPlayerMutations {
       const playerIds = new Set(players.map((p) => String(p._id)));
 
       const teams = await this.teamService.find({
-        event: eventId,
+        events: eventId,
         $or: [{ players: { $in: [...playerIds] } }, { moved: { $in: [...playerIds] } }],
       });
       // const teamIds = new Set(teams.map((t) => String(t._id)));

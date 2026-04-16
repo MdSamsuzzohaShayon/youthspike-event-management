@@ -353,7 +353,7 @@ const EventsContainer: React.FC<EventsContainerProps> = ({
       <div className="events grid grid-cols-2 gap-2">
         <div className="event-card bg-yellow-gradient rounded-lg">
           <Link
-            href={`/newevent/${ldoIdUrl}`}
+            href={`/events/new/${ldoIdUrl}`}
             className="flex flex-col items-center justify-center h-full"
           >
             <img src="/icons/plus.svg" alt="plus" className="w-12" />

@@ -4,9 +4,7 @@
 import { useEffect, useMemo } from 'react';
 import { useQuery, useReadQuery } from '@apollo/client/react';
 import { QueryRef } from '@apollo/client/react';
-import { IPlayer, IGetTeamRosterResponse, ITeam } from '@/types';
-import { CldImage } from 'next-cloudinary';
-import TextImg from '../elements/TextImg';
+import { IPlayer, IGetTeamRosterResponse, ITeam, IGetTeamsResponse } from '@/types';
 import { notFound, usePathname } from 'next/navigation';
 import RosterWrapper from './RosterWrapper';
 import { useLdoId } from '@/lib/LdoProvider';
@@ -14,6 +12,7 @@ import TeamNavigation from './TeamNavigation';
 import { GET_TEAMS } from '@/graphql/teams';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { TEAM } from '@/utils/constant';
+
 
 interface TeamRosterContainerProps {
   queryRef: QueryRef<{ getTeamRoster: IGetTeamRosterResponse }>;
@@ -24,36 +23,28 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
   const { ldoIdUrl } = useLdoId();
   const { data } = useReadQuery(queryRef);
 
-
   if (!data?.getTeamRoster?.data) {
     notFound();
   }
 
-  const { team, players, rankings, event, playerRanking } = data.getTeamRoster.data;
+  const { team, players, rankings, events, playerRanking } = data.getTeamRoster.data;
 
-  console.log({event});
-  
-
-  const { data: teamsData, loading, error } = useQuery(GET_TEAMS, {
-    variables: { eventId: event?._id },
-    fetchPolicy: "cache-first",   // default
+  const { data: teamsData, loading, error } = useQuery<{ getTeams: IGetTeamsResponse }>(GET_TEAMS, {
+    variables: { eventIds: events?.map(e => e._id) || undefined },
+    fetchPolicy: "cache-first",
   });
 
-
-  const teamList = useMemo(()=>{
-    // @ts-ignore
+  const teamList = useMemo(() => {
     return (teamsData?.getTeams?.data || []) as ITeam[];
   }, [teamsData]);
-  
+
   const playerList = useMemo(() => {
     if (!players?.length || !rankings?.length) return [];
 
-    const rankingIds = new Set<string>(rankings.map((r) => String(r.player))); // O(r)
-
-    const result: IPlayer[] = []; // output
+    const rankingIds = new Set<string>(rankings.map((r) => String(r.player)));
+    const result: IPlayer[] = [];
 
     for (const p of players) {
-      // O(p)
       if (rankingIds.has(p._id)) {
         result.push({
           ...p,
@@ -61,7 +52,6 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
         });
       }
     }
-
     return result;
   }, [players, rankings, team]);
 
@@ -73,63 +63,41 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
     notFound();
   }
 
-  const pathname = usePathname();
-
-
-  useEffect(()=>{
-    if(team){
-        SessionStorageService.setItem(TEAM, team._id);
-    }else{
-        SessionStorageService.removeItem(TEAM);
+  useEffect(() => {
+    if (team) {
+      SessionStorageService.setItem(TEAM, team._id);
+    } else {
+      SessionStorageService.removeItem(TEAM);
     }
-    
   }, [team]);
 
   return (
-    <div className="min-h-screen bg-gray-900 pb-4">
-      {/* Header Section */}
-      <div className="header bg-gray-800 rounded-xl mb-4">
-        {/* Compact Header */}
-        <div className="border-b border-yellow-500/30 px-3 py-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <TeamLogo team={team} />
-              <div className="min-w-0">
-                <h1 className="text-sm font-bold text-white truncate leading-tight">{team?.name || 'Loading...'}</h1>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <StatItem label="Players" value={playerList?.length || 0} />
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <TeamNavigation eventId={event?._id} ldoIdUrl={ldoIdUrl} pathname={pathname} team={team} />
+    <div className="min-h-screen">
+      {/* Animated Background Accent */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-yellow-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-yellow-600/5 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
-      {/* Page Content */}
-      <div className="min-h-screen">
-        <RosterWrapper event={event} players={players} team={team} playerRanking={playerRankingData} teamList={teamList} />
+      <TeamNavigation events={events} ldoIdUrl={ldoIdUrl} team={team} totalPlayers={playerList.length} />
+
+      <div className="relative z-10">
+
+
+        {/* Page Content with Fade-in Animation */}
+        <div className="animate-fadeInUp">
+          <RosterWrapper
+            events={events}
+            players={players}
+            team={team}
+            playerRanking={playerRankingData}
+            teamList={teamList}
+          />
+        </div>
       </div>
     </div>
   );
 }
-
-const TeamLogo = ({ team }: { team: ITeam }) =>
-  team?.logo ? (
-    <CldImage alt={team.name} width={32} height={32} src={team.logo} className="w-8 h-8 rounded-lg border border-yellow-500/30 object-cover object-center flex-shrink-0" crop="fit" />
-  ) : (
-    <TextImg className="w-8 h-8 rounded-lg border border-yellow-500/30 flex-shrink-0" fullText={team?.name || ''} txtCls="text-sm font-bold" />
-  );
-
-const StatItem = ({ label, value }: { label: string; value: number }) => (
-  <div className="text-right">
-    <div className="text-xs text-gray-400">{label}</div>
-    <div className="text-white font-bold text-sm">{value}</div>
-  </div>
-);
-
 
 
 export default TeamRosterContainer;

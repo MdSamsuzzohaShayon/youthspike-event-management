@@ -44,9 +44,6 @@ export class CustomTeam extends Team {
   matches: string[];
 
   @Field((_type) => [String], { nullable: true })
-  nets: string[];
-
-  @Field((_type) => [String], { nullable: true })
   players: string[];
 
   @Field((_type) => String, { nullable: true })
@@ -55,8 +52,8 @@ export class CustomTeam extends Team {
   @Field((_type) => String, { nullable: true })
   cocaptain: string;
 
-  @Field((_type) => String, { nullable: true })
-  group: string;
+  @Field((_type) => [String], { nullable: true })
+  groups: string[];
 }
 
 @ObjectType()

@@ -1,6 +1,5 @@
 import Teams from '@/components/teams/Teams';
 import { ITeamFilter } from '@/types';
-import React from 'react'
 
 interface ITeamsPageProps {
   params: Promise<{ eventId: string }>;

@@ -1,11 +1,12 @@
 /* eslint-disable import/no-cycle */
 import { IPlayer } from './player';
-import { IAllStats, IEvent } from './event';
-import { IPlayerRanking, IPlayerRankingItem } from './playerRanking';
-import { IGroup } from './group';
+import { IAllStats, IEvent, IEventWMatch } from './event';
+import { IPlayerRanking, IPlayerRankingItem, IPlayerRankingItemExpRel, IPlayerRankingExpRel } from './playerRanking';
+import { IGroup, IGroupRelatives } from './group';
 import { IMatch, IMatchExpRel, IMatchRelatives } from './match';
 import { INetRelatives } from './net';
 import { IRoundRelatives } from './round';
+import { IResponse } from './elements';
 
 
 
@@ -35,6 +36,7 @@ export interface ITeamScore {
   groupLoses: number;
   matchAvgDiff: number;
   gameAvgDiff: number;
+  groupMatches: number;
 }
 
 export interface ITeamFilter {
@@ -64,25 +66,39 @@ export interface ISearchTeamResponse{
 }
 
 
-interface ITeamRoster {
-  event: IEvent;
+interface ITeamStats {
+  events: IEventWMatch[];
+  matches: IMatchRelatives[];
   players: IPlayer[];
   team: ITeam;
-  statsOfPlayer: IAllStats[];
-  rankings: IPlayerRankingItem[];
+  oponents: ITeam[];
+  statsOfPlayers: IAllStats[];
+  nets: INetRelatives[];
+  rounds: IRoundRelatives[];
 }
 
-export interface IGetTeamRosterResponse{
-  code: number;
-  success: boolean;
-  message: string;
+export interface IGetPlayerStatsResponse extends IResponse{
+  data: ITeamStats;
+}
+
+interface ITeamRoster {
+  events: IEvent[];
+  players: IPlayer[];
+  groups: IGroupRelatives[];
+  team: ITeam;
+  rankings: IPlayerRankingItemExpRel[];
+  playerRanking: IPlayerRankingExpRel;
+}
+
+
+export interface IGetTeamRosterResponse  extends IResponse{
   data: ITeamRoster;
 }
 
 interface ITeamMatches {
-  event: IEvent;
+  events: IEvent[];
   team: ITeam;
-  teams: ITeam[];
+  oponents: ITeam[];
   matches: IMatch[];
   nets: INetRelatives[];
   rounds: IRoundRelatives[];

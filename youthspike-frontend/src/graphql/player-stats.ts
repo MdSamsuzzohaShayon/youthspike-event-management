@@ -1,6 +1,7 @@
 import { gql } from "@apollo/client";
 
-const GET_PLAYER_WITH_STATS_RAW = `query GetPlayerWithStats($playerId: String!) {
+const GET_PLAYER_WITH_STATS_RAW = `
+query GetPlayerWithStats($playerId: String!) {
   getPlayerWithStats(playerId: $playerId) {
     code
     message
@@ -10,6 +11,10 @@ const GET_PLAYER_WITH_STATS_RAW = `query GetPlayerWithStats($playerId: String!) 
         _id
         name
         divisions
+        teams
+        players
+        matches
+        groups
       }
       groups{
         _id
@@ -43,7 +48,7 @@ const GET_PLAYER_WITH_STATS_RAW = `query GetPlayerWithStats($playerId: String!) 
         _id
         active
         captain
-        group
+        groups
         cocaptain
         division
         logo
@@ -92,11 +97,9 @@ const GET_PLAYER_WITH_STATS_RAW = `query GetPlayerWithStats($playerId: String!) 
         pairRange
         points
         round
-        teamA
         teamAPlayerA
         teamAPlayerB
         teamAScore
-        teamB
         teamBPlayerA
         teamBPlayerB
         teamBScore
@@ -157,4 +160,117 @@ const GET_PLAYER_WITH_STATS_RAW = `query GetPlayerWithStats($playerId: String!) 
 
 const GET_PLAYER_WITH_STATS = gql`${GET_PLAYER_WITH_STATS_RAW}`;
 
-export { GET_PLAYER_WITH_STATS_RAW, GET_PLAYER_WITH_STATS };
+
+
+// Multiple players
+const STATS_OF_PLAYERS = gql`
+query GetStatsOfPlayers($teamId: String!) {
+  getStatsOfPlayers(teamId: $teamId) {
+    code
+    message
+    success
+    data {
+      events {
+        _id
+        active
+        startDate
+        endDate
+        divisions
+        description
+        logo
+        location
+        name
+        matches
+      }
+      players {
+        _id
+        captainofteams
+        cocaptainofteams
+        division
+        email
+        firstName
+        lastName
+        phone
+        profile
+        status
+        username
+      }
+      team {
+        _id
+        active
+        num
+        name
+        logo
+        sendCredentials
+      }
+      oponents {
+        _id
+        active
+        num
+        name
+        logo
+        sendCredentials
+      }
+      matches {
+        _id
+        nets
+        rounds
+        date
+        division
+        description
+        completed
+        includeStats
+      }
+      nets {
+        _id
+        num
+        match
+        round
+        teamAPlayerA
+        teamAPlayerB
+        teamBPlayerA
+        teamBPlayerB
+        points
+      }
+      rounds {
+        _id
+        num
+        match
+        nets
+        completed
+        teamBScore
+        teamBScore
+      }
+      statsOfPlayers {
+        playerId
+        stats {
+          _id
+          break
+          broken
+          cleanHits
+          cleanSets
+          defensiveConversion
+          defensiveOpportunity
+          hittingOpportunity
+          match
+          matchPlayed
+          net
+          noTouchAcedCount
+          player
+          receivedCount
+          receiverOpportunity
+          serveAce
+          serveCompletionCount
+          serveOpportunity
+          servingAceNoTouch
+          settingOpportunity
+        }
+      }
+    }
+  }
+}
+
+`;
+
+
+export { GET_PLAYER_WITH_STATS_RAW, GET_PLAYER_WITH_STATS, STATS_OF_PLAYERS };

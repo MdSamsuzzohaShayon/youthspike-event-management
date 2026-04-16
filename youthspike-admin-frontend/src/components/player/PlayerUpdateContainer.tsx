@@ -1,16 +1,12 @@
 'use client';
 
-import { IEvent, IPlayerAndTeamsResponse } from '@/types';
+import { IPlayerAndTeamsResponse } from '@/types';
 import { QueryRef, useReadQuery } from '@apollo/client/react';
-import EventNavigation from '../layout/EventNavigation';
 import PlayerAdd from './PlayerAdd';
-import { useEffect } from 'react';
-import SessionStorageService from '@/utils/SessionStorageService';
-import { TEAM } from '@/utils/constant';
 
 interface IProps {
   queryRef: QueryRef<{ getPlayerAndTeams: IPlayerAndTeamsResponse }>;
-  eventId: string;
+  eventId?: string;
 }
 function PlayerUpdateContainer({ eventId, queryRef }: IProps) {
   const { data } = useReadQuery(queryRef);
@@ -20,16 +16,13 @@ function PlayerUpdateContainer({ eventId, queryRef }: IProps) {
     throw new Error('Team not found');
   }
 
-  const { player, teams, event } = playerData;
+  const { player, teams, events } = playerData;
 
 
 
 
   return (
-    <div>
-      <div className="navigation my-8">
-        <EventNavigation event={event as unknown as IEvent} />
-      </div>
+    <div className='min-h-screen container mx-auto px-4'>
       <h1>Update Team</h1>
       <PlayerAdd eventId={eventId} update prevPlayer={player} teamList={teams || []} />
     </div>

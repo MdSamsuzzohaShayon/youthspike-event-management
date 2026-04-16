@@ -12,7 +12,7 @@ async function UpdatePlayerPage({ params }: IProps) {
   const pathParams = await params;
   const { playerId, eventId } = pathParams;
   return (
-    <PreloadQuery query={GET_PLAYER_AND_TEAMS} variables={{ playerId, eventId }}>
+    <PreloadQuery query={GET_PLAYER_AND_TEAMS} variables={{ playerId, eventIds: [eventId] }}>
       {(queryRef) => <PlayerUpdateContainer queryRef={queryRef as QueryRef<{ getPlayerAndTeams: IPlayerAndTeamsResponse }>} eventId={eventId} />}
     </PreloadQuery>
   );

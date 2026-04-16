@@ -1,20 +1,20 @@
 import { UPDATE_TEAM } from '@/graphql/teams';
 import { useMessage } from '@/lib/MessageProvider';
-import { EPlayerStatus, IEvent, IPlayer, IPlayerExpRel, IPlayerRankingExpRel, ITeam } from '@/types';
+import { EPlayerStatus, IEvent, IOption, IPlayer, IPlayerExpRel, IPlayerRankingExpRel, ITeam } from '@/types';
 import React, { useCallback, useMemo, useState } from 'react';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import PlayerList from '../player/PlayerList';
-import { divisionsToOptionList } from '@/utils/helper';
+import { divisionsOfEvents, divisionsToOptionList } from '@/utils/helper';
 import { useMutation } from '@apollo/client/react';
 
 interface IRosterWrapperProps {
-  event: IEvent;
+  events: IEvent[];
   team: ITeam;
   players: IPlayer[];
   playerRanking: IPlayerRankingExpRel;
   teamList: ITeam[];
 }
-function RosterWrapper({ event, team, players, playerRanking, teamList }: IRosterWrapperProps) {
+function RosterWrapper({ events, team, players, playerRanking, teamList }: IRosterWrapperProps) {
   // Local State
   const [playerIdsToAdd, setPlayerIdsToAdd] = useState<Set<string>>(new Set());
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
@@ -24,7 +24,7 @@ function RosterWrapper({ event, team, players, playerRanking, teamList }: IRoste
   const [mutateTeam] = useMutation(UPDATE_TEAM);
   const { showMessage } = useMessage();
 
-  
+
   // Event handlers
   const handleAddPlayersToTeam = useCallback(
     async (e: React.SyntheticEvent) => {
@@ -34,7 +34,7 @@ function RosterWrapper({ event, team, players, playerRanking, teamList }: IRoste
           variables: {
             input: { players: Array.from(playerIdsToAdd) },
             teamId: team._id,
-            eventId: event._id,
+            eventId: "event._id", // temp
           },
         });
         window.location.reload();
@@ -42,7 +42,7 @@ function RosterWrapper({ event, team, players, playerRanking, teamList }: IRoste
         showMessage({ type: 'error', message: (error as Error)?.message || 'An error occurred' });
       }
     },
-    [playerIdsToAdd, team, event, mutateTeam, showMessage],
+    [playerIdsToAdd, team, events, mutateTeam, showMessage],
   );
   const refetchFunc = useCallback(() => window.location.reload(), []);
   const handleCheckboxChange = useCallback((pId: string, isChecked: boolean) => {
@@ -58,7 +58,7 @@ function RosterWrapper({ event, team, players, playerRanking, teamList }: IRoste
     const active = [],
       inactive = [];
     for (let i = 0; i < players.length; i++) {
-      const p = {...players[i]};
+      const p = { ...players[i] };
       p.teams = team ? [team._id] : [];
 
       p.captainofteams = p.captainofteams?.length ? [String(team._id)] : [];
@@ -78,7 +78,33 @@ function RosterWrapper({ event, team, players, playerRanking, teamList }: IRoste
       inactivePlayers: inactive,
     };
   }, [players]);
-  const divisionList = useMemo(() => (event?.divisions ? divisionsToOptionList(event.divisions) : []), [event?.divisions]);
+
+
+  const unassignedPlayers = useMemo(() => {
+    const list = [];
+    for (const player of activePlayers) {
+      if (!player.teams) continue;
+      const teamIds = [];
+      for (const t of player.teams) {
+        if (typeof t === "object") {
+          teamIds.push(t._id);
+        }
+        else {
+          teamIds.push(t);
+        }
+      }
+      if (!teamIds?.includes(team._id)) {
+        list.push(player);
+      }
+    }
+    return list;
+  }, [team, activePlayers]);
+
+  const divisionList: IOption[] = useMemo(() => {
+    const divisions = divisionsOfEvents(events);
+    return divisionsToOptionList(divisions);
+  }, [events]) 
+
 
   if (addPlayer) {
     return (
@@ -97,7 +123,9 @@ function RosterWrapper({ event, team, players, playerRanking, teamList }: IRoste
         />
 
         <form onSubmit={handleAddPlayersToTeam} className="space-y-3">
-          <PlayerSelectInput availablePlayers={activePlayers as IPlayer[]} eventId={event._id} handleCheckboxChange={handleCheckboxChange} name="add-player-to-team" />
+          <PlayerSelectInput availablePlayers={unassignedPlayers as IPlayer[]}
+            eventId={"event._id"} // temp
+            handleCheckboxChange={handleCheckboxChange} name="add-player-to-team" />
           <button type="submit" className="w-full bg-yellow-400 text-gray-900 py-3 rounded-lg font-bold text-sm hover:bg-yellow-300 transition-colors shadow-lg">
             ADD SELECTED PLAYERS
           </button>
@@ -121,7 +149,6 @@ function RosterWrapper({ event, team, players, playerRanking, teamList }: IRoste
       <div className="space-y-2">
         <PlayerList
           playerList={activePlayers}
-          eventId={event?._id}
           setIsLoading={setIsLoading}
           rankControls
           refetchFunc={refetchFunc}
@@ -130,7 +157,7 @@ function RosterWrapper({ event, team, players, playerRanking, teamList }: IRoste
           teamId={team?._id}
           showRank
           playerRanking={playerRanking}
-          currEvent={event}
+          events={events} 
         />
       </div>
 
@@ -142,13 +169,12 @@ function RosterWrapper({ event, team, players, playerRanking, teamList }: IRoste
           </div>
           <PlayerList
             playerList={inactivePlayers}
-            eventId={event._id}
+            events={events} 
             setIsLoading={setIsLoading}
             refetchFunc={refetchFunc}
             teamList={teamList}
             divisionList={divisionList}
             teamId={team._id}
-            currEvent={event}
             inactive
           />
         </div>

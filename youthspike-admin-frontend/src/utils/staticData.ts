@@ -83,10 +83,11 @@ const initialUserMenuList: IMenuItem[] = [
 export const tieBreakingRules: IOption[] = [
     // { text: "Overtime round", value: ETieBreakingStrategy.OVERTIME_ROUND }, { text: "Two Points Net", value: ETieBreakingStrategy.TWO_POINTS_NET }
     { id: 1, value: ETieBreakingStrategy.OVERTIME_ROUND, text: "Overtime round" },
-    { id: 2, value: ETieBreakingStrategy.TWO_POINTS_NET, text: "Two Points Net" }
+    { id: 2, value: ETieBreakingStrategy.TWO_POINTS_NET, text: "Two Points Net" },
+    { id: 3, value: ETieBreakingStrategy.MATCH_TIE, text: "Match Can Be Tied" }
 ];
 
-const eventPaths: string[] = ['settings', 'teams', 'players', 'matches', 'account', 'newevent', 'admin'];
+const eventPaths: string[] = ['settings', 'teams', 'players', 'matches', 'account', 'events', 'admin'];
 
 
 export const ruleList:IOption[] = [

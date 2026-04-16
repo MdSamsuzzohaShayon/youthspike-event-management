@@ -89,3 +89,92 @@ export function handleError({ error, showMessage }: IHandleApolloErrorProps): vo
     }
   }
 }
+
+
+type IUnifiedResult = {
+  success: boolean;
+  code: number;
+  message: string;
+};
+
+type IHandleInput = {
+  response?: any;
+  error?: any;
+};
+
+export function handleApiResult({ response, error }: IHandleInput): IUnifiedResult {
+  try {
+    // -----------------------------
+    // 1. Handle GraphQL Errors
+    // -----------------------------
+    if (error && CombinedGraphQLErrors.is(error)) {
+      const firstError = error.errors?.[0];
+
+      const code = firstError?.extensions?.code || 500;
+      const message =
+        firstError?.extensions?.message ||
+        firstError?.message ||
+        'GraphQL Error';
+
+      // Business logic: UNAUTHENTICATED
+      if (code === 'UNAUTHENTICATED' || code === 401) {
+        removeCookie('user');
+        removeCookie('token');
+        if (typeof window !== 'undefined') window.location.reload();
+      }
+
+      console.error('GraphQL Error:', firstError);
+
+      return {
+        success: false,
+        code: typeof code === 'number' ? code : 500,
+        message: typeof message === 'string' ? message : JSON.stringify(message),
+      };
+    }
+
+    // -----------------------------
+    // 2. Handle API Response
+    // -----------------------------
+    if (response) {
+      const code = response?.code ?? 500;
+      const message = response?.message || 'An error occurred';
+      const success = code >= 200 && code < 300;
+
+      return {
+        success,
+        code,
+        message,
+      };
+    }
+
+    // -----------------------------
+    // 3. Handle Unknown Errors
+    // -----------------------------
+    if (error) {
+      console.error('Unexpected Error:', error);
+
+      return {
+        success: false,
+        code: 500,
+        message: typeof error === 'string' ? error : JSON.stringify(error),
+      };
+    }
+
+    // -----------------------------
+    // 4. Fallback (should not happen)
+    // -----------------------------
+    return {
+      success: false,
+      code: 500,
+      message: 'Unknown error occurred',
+    };
+  } catch (err) {
+    console.error('Error in handleApiResult:', err);
+
+    return {
+      success: false,
+      code: 500,
+      message: 'Error handling failed',
+    };
+  }
+}

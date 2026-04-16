@@ -310,7 +310,7 @@ mutation CreateEvent($sponsorsInput: [EventSponsorInput!]!, $input: CreateEventI
     success
     message
     data {
-      ${eventResponse}
+      _id
     }
   }
 }

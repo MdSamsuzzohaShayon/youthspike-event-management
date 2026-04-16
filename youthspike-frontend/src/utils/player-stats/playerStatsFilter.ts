@@ -2,6 +2,8 @@
 import {
   EGroupType,
   EStatsFilter,
+  IEvent,
+  IEventWMatch,
   IFilter,
   IGroup,
   IGroupRelatives,
@@ -92,6 +94,7 @@ export function isNetValidForPlayer(
  * Filter player stats by valid matches and nets.
  */
 export function filterPlayerStats(
+  events: IEventWMatch[],
   playerStats: IPlayerStats[],
   filter: Partial<Record<EStatsFilter, string | string[]>>,
   playerId: string,
@@ -126,7 +129,10 @@ export function filterPlayerStats(
 
     // Check event
     if(filter[EStatsFilter.EVENT]){
-      if(String(match.event) !== filter[EStatsFilter.EVENT] as string) continue;
+      const event = events.find((e)=> e._id === filter[EStatsFilter.EVENT]);
+      if(!event) continue;
+      const matchIdsOfEvent = new Set<string>(event.matches.map((m)=> typeof m === "object" ? m._id : m));
+      if(!matchIdsOfEvent.has(match._id)) continue;
     }
 
     

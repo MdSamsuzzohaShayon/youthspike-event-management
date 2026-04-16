@@ -103,8 +103,8 @@ export class GetEventWithPlayersResponse extends AppResponse<EventWithPlayers> {
 
 @ObjectType()
 export class PlayerAndTeams {
-  @Field((_type) => Event, { nullable: false })
-  event: Event;
+  @Field((_type) => [Event], { nullable: false })
+  events: Event[];
 
   @Field((_type) => CustomPlayer, { nullable: true })
   player?: CustomPlayer;

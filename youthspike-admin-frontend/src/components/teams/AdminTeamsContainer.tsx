@@ -1,6 +1,6 @@
 'use client'
 
-import { IGetTeamsResponse } from '@/types';
+import { IGetTeamsResponse, ITeam } from '@/types';
 import { QueryRef, useApolloClient, useReadQuery } from '@apollo/client/react';
 import TeamTable from './TeamTable';
 import { notFound } from 'next/navigation';
@@ -10,7 +10,11 @@ import { GET_TEAMS_MIN } from '@/graphql/teams';
 const TEAMS_LIMIT = 30;
 
 function TeamsContainer({ queryRef }: { queryRef: QueryRef<{ getTeams: IGetTeamsResponse }> }) {
-    const { data } = useReadQuery(queryRef);
+    const { data, error } = useReadQuery(queryRef);
+    console.log(data);
+    console.error(error);
+
+
     const apolloClient = useApolloClient();
 
     const [hasMoreTeams, setHasMoreTeams] = useState<boolean>(true);
@@ -25,13 +29,13 @@ function TeamsContainer({ queryRef }: { queryRef: QueryRef<{ getTeams: IGetTeams
     // Execute GraphQL query
     const executeSearchQuery = useCallback(
         async (offset: number = 0) => {
-            const result = await apolloClient.query({
+            const result = await apolloClient.query<{ getTeams: IGetTeamsResponse }>({
                 query: GET_TEAMS_MIN,
                 variables: { limit: TEAMS_LIMIT, offset },
                 fetchPolicy: 'network-only',
             });
 
-            return result.data.getTeams;
+            return result.data?.getTeams;
         },
         [apolloClient],
     );
@@ -50,17 +54,23 @@ function TeamsContainer({ queryRef }: { queryRef: QueryRef<{ getTeams: IGetTeams
 
             if (newTeams.length > 0) {
                 // ✅ 🔥 MANUAL CACHE UPDATE
-                apolloClient.cache.modify({
+                apolloClient.cache.modify<{ getTeams: IGetTeamsResponse }>({
                     fields: {
-                        getTeams(existing: IGetTeamsResponse | undefined) {
+                        getTeams(existing, { readField, isReference }) {
                             if (!existing) return existing;
-
+                            if (isReference(existing)) {
+                                const prev = readField<ITeam[]>('data', existing) ?? [];
+                                return {
+                                    __typename: readField('__typename', existing),
+                                    success: readField('success', existing),
+                                    code: readField('code', existing),
+                                    message: readField('message', existing),
+                                    data: [...prev, ...newTeams],
+                                };
+                            }
                             return {
                                 ...existing,
-                                data: [
-                                    ...(existing.data || []),
-                                    ...newTeams,
-                                ],
+                                data: [...(existing.data ?? []), ...newTeams],
                             };
                         },
                     },
@@ -79,8 +89,7 @@ function TeamsContainer({ queryRef }: { queryRef: QueryRef<{ getTeams: IGetTeams
         }
     }, [hasMoreTeams, isLoadingMore, currentOffset, executeSearchQuery]);
 
-    console.log(teams.length);
-    
+
 
     return (
         <div className="min-h-screen px-6 py-10 md:px-16">

@@ -28,12 +28,12 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
     return <div>Team not found</div>;
   }
 
-  const { team, matches, nets, rounds, teams, event } =
+  const { team, matches, nets, rounds, oponents, events } =
     data.getTeamMatches.data;
 
   const teamMap = useMemo(() => {
-    return new Map<string, ITeam>(teams.map((t) => [t._id, t]));
-  }, [teams]);
+    return new Map<string, ITeam>(oponents.map((t) => [t._id, t]));
+  }, [oponents]);
 
   const sortedMatches = useMemo(() => {
     const sortedMatches = [...matches].sort(
@@ -80,7 +80,7 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
         </div>
 
         {/* Navigation */}
-        <TeamNavigation eventId={event._id} ldoIdUrl={ldoIdUrl} pathname={pathname} team={team} />
+        <TeamNavigation events={events} ldoIdUrl={ldoIdUrl} team={team} totalPlayers={team?.players?.length || 0} />
       </div>
 
       {/* Page Content */}

@@ -11,7 +11,7 @@ export class UpdatePointsHandler {
     private readonly gatewayService: GatewayService,
     private readonly gatewayRedisService: GatewayRedisService,
     private readonly pointsHelper: PointsUpdateHelper,
-  ) {}
+  ) { }
 
   /**
    * Handle incoming "update points" event from a client socket.
@@ -110,7 +110,9 @@ export class UpdatePointsHandler {
 
           // If tied and match uses OVERTIME_ROUND but overtime not yet started — not completed
           if (matchTeamAPoints === matchTeamBPoints) {
-            if (matchDoc.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND && !matchDoc.extendedOvertime) {
+            if (matchDoc.tieBreaking === ETieBreakingStrategy.MATCH_TIE) {
+              isMatchCompleted = true
+            } else if (matchDoc.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND && !matchDoc.extendedOvertime) {
               isMatchCompleted = false;
             }
           }

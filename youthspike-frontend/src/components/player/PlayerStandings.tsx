@@ -24,11 +24,6 @@ interface IPlayerStandingsProps {
 }
 
 const ITEMS_PER_PAGE = 30;
-/*
- value={aggregatedStats.serveAce}
-                total={aggregatedStats.serveOpportunity}
-
-*/
 
 function PlayerStandings({
   playerList,

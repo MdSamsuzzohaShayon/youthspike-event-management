@@ -2,6 +2,7 @@ import { BACKEND_URL } from '../keys';
 import { getCookie } from '../clientCookie';
 import { IMessage } from '@/types';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import { handleError, handleResponse } from '../handleError';
 
 export const handleRedirect = async (
   router: AppRouterInstance,
@@ -47,8 +48,8 @@ export const handleResponseCheck = async (
   responseData: any,
   showMessage?: (message: Omit<IMessage, "id">) => void
 ) => {
-  console.log(responseData);
-  
+
+  const checkError = await handleResponse({response: responseData, showMessage});
   const successCode = responseData?.code >= 200 && responseData?.code < 300;
   if (!successCode) {
     if(showMessage)showMessage({ type: 'error', message: responseData?.message || 'An error occurred', code: responseData?.code });

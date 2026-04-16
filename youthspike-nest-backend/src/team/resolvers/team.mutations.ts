@@ -17,6 +17,7 @@ import { GroupService } from 'src/group/group.service';
 import { FileUpload } from 'graphql-upload/processRequest.mjs';
 import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
 import { QueryFilter } from 'mongoose';
+import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
 const GraphQLUpload = GraphQLUploadModule.default;
 
 @Injectable()
@@ -37,14 +38,14 @@ export class TeamMutations {
   async singleTeamUpdate(
     input: UpdateTeamInput,
     team: Team,
-    event: Event,
+    events: Event[],
     logo?: Promise<FileUpload>,
   ): Promise<Team> {
     const teamId = team._id.toString();
-    const eventId = event._id.toString();
+    const eventIds = events.map(e => e._id as string);
     const updatePromises: Promise<any>[] = [];
     const updatedTeamData: QueryFilter<Team> = { ...input };
-  
+
     // ===== Helper to update a captain or co-captain =====
     const updateTeamLeader = async (
       leaderType: 'captain' | 'cocaptain',
@@ -54,18 +55,18 @@ export class TeamMutations {
       const prevLeaderId = team[leaderType]?.toString();
       const newLeader = await this.playerService.findById(newLeaderId);
       if (!newLeader) return;
-  
+
       const newUsername = newLeader.username ?? this.playerService.playerUsername(newLeader.firstName);
       const existingUser = await this.userService.findOne({ email: newLeader.username });
       const createdUser = await this.userService.createCapUser(
         newLeader,
         existingUser,
-        event,
+        events,
         newUsername,
         leaderType === 'captain' ? UserRole.captain : UserRole.co_captain,
       );
       const newUserId = createdUser._id;
-  
+
       // Remove old leader if changed
       if (prevLeaderId && prevLeaderId !== newLeaderId) {
         const prevPlayer = await this.playerService.findById(prevLeaderId);
@@ -80,7 +81,7 @@ export class TeamMutations {
         const userToDeleteId = leaderType === 'captain' ? prevPlayer?.captainuser : prevPlayer?.cocaptainuser;
         if (userToDeleteId) updatePromises.push(this.userService.deleteOne({ _id: userToDeleteId.toString() }));
       }
-  
+
       // Assign new leader
       updatePromises.push(
         this.playerService.updateOne(
@@ -90,10 +91,10 @@ export class TeamMutations {
             : { $push: { cocaptainofteams: teamId }, cocaptainuser: newUserId, username: newUsername },
         ),
       );
-  
+
       updatedTeamData[leaderType] = newLeader._id;
     };
-  
+
     // ===== Update division =====
     if (input.division) {
       const division = input.division.toString().trim().toLowerCase();
@@ -102,31 +103,31 @@ export class TeamMutations {
         this.playerService.updateMany({ teams: { $in: [teamId] } }, { $set: { division } }),
       );
     }
-  
+
     // ===== Update group =====
-    if (input.group && input.group.toString() !== team.group?.toString()) {
-      const prevGroupId = team.group?.toString();
+    if (input.group && input.group.toString() !== team.groups?.toString()) {
+      const prevGroupIds = team.groups as string[];
       const nextGroupId = input.group.toString();
-      if (prevGroupId) updatePromises.push(this.groupService.updateOne({ _id: prevGroupId }, { $pull: { teams: teamId } }));
+      if (prevGroupIds) updatePromises.push(this.groupService.updateOne({ _id: { $in: prevGroupIds } }, { $pull: { teams: teamId } }));
       updatePromises.push(this.groupService.updateOne({ _id: nextGroupId }, { $addToSet: { teams: teamId } }));
     }
-  
+
     // ===== Update captain and co-captain =====
     await updateTeamLeader('captain', input.captain?.toString());
     await updateTeamLeader('cocaptain', input.cocaptain?.toString());
-  
+
     // ===== Update logo =====
     if (logo) {
       const logoUrl = await this.cloudinaryService.uploadFiles(logo);
       if (logoUrl) updatedTeamData.logo = logoUrl;
     }
-  
+
     // ===== Update event =====
-    if (input.event && input.event.toString() !== team.event.toString()) {
-      updatePromises.push(this.eventService.updateOne({ _id: eventId }, { $pull: { teams: teamId } }));
-      updatePromises.push(this.eventService.updateOne({ _id: input.event }, { $addToSet: { teams: teamId } }));
+    if (input.event && !(team.events as string[]).includes(input.event)) {
+      updatePromises.push(this.eventService.updateMany({ _id: { $in: eventIds } }, { $pull: { teams: teamId } }));
+      updatePromises.push(this.eventService.updateMany({ _id: input.event }, { $addToSet: { teams: teamId } }));
     }
-  
+
     // ===== Update players =====
     const inputPlayers = input.players ?? [];
     const prevPlayerIds = team.players.map((p) => p.toString());
@@ -134,10 +135,10 @@ export class TeamMutations {
       updatePromises.push(this.playerService.updateOne({ _id: playerId }, { $addToSet: { teams: teamId } }));
     }
     updatedTeamData.players = Array.from(new Set([...prevPlayerIds, ...inputPlayers]));
-  
+
     // ===== Update team in DB =====
     updatePromises.push(this.teamService.updateOne({ _id: teamId }, updatedTeamData));
-  
+
     // ===== Update player rankings =====
     const playerRankings = await this.playerRankingService.find({ team: teamId, rankLock: false });
     for (const pr of playerRankings) {
@@ -146,7 +147,7 @@ export class TeamMutations {
       const itemsToInsert = updatedTeamData.players
         .filter((playerId) => !rankings.some((r) => r.player.toString() === playerId))
         .map((playerId, index) => ({ player: playerId, rank: highestRank + index + 1, playerRanking: pr._id }));
-  
+
       if (itemsToInsert.length) {
         const insertedRankings = await this.playerRankingService.insertManyItems(itemsToInsert);
         await this.playerRankingService.updateOne(
@@ -155,14 +156,13 @@ export class TeamMutations {
         );
       }
     }
-  
+
     await Promise.all(updatePromises);
     return this.teamService.findById(teamId);
   }
 
   async singleDelete(teamExist: Team) {
     const teamPlayerIds = teamExist.players.map((p) => p.toString());
-    const teamNetIds = teamExist.nets.map((n) => n.toString());
     const teamMatchIds = teamExist.matches.map((m) => m.toString());
 
     const updatePromises = [];
@@ -171,7 +171,6 @@ export class TeamMutations {
     updatePromises.push(
       this.playerService.updateMany({ _id: { $in: teamPlayerIds } }, { $pull: { team: teamPlayerIds } }),
     );
-    updatePromises.push(this.netService.deleteMany({ _id: { $in: teamNetIds } }));
     if (teamExist.captain)
       updatePromises.push(this.playerService.updateOne({ _d: teamExist.captain }, { $pull: { teams: teamExist._id } }));
     if (teamExist.cocaptain)
@@ -196,7 +195,7 @@ export class TeamMutations {
       let logoUrl: string | null = null;
       if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
 
-      const teamExist = await this.teamService.findOne({ name: input.name, event: input.event });
+      const teamExist = await this.teamService.findOne({ name: input.name, events: input.event });
       if (teamExist) {
         return AppResponse.handleError({
           code: 404,
@@ -210,17 +209,13 @@ export class TeamMutations {
         logo: logoUrl,
         sendCredentials: false,
         captain: input.captain,
-        event: input.event,
+        events: [input.event],
         division: input.division.trim().toLowerCase(),
-        rankLock: false,
         active: true,
         players,
-        nets: [],
         playerRankings: [],
+        groups: input.group ? [input.group] : []
       };
-      if (input.group) {
-        teamObj.group = input.group;
-      }
       const [newTeam, findEvent] = await Promise.all([
         this.teamService.create(teamObj),
         this.eventService.findById(input.event.toString()),
@@ -228,7 +223,7 @@ export class TeamMutations {
 
       // ===== Captain - User - Player - Team Relationship update =====
       const promiseOperations = [];
-      promiseOperations.push(this.eventService.updateOne({ _id: input.event }, { $push: { teams: newTeam._id } }));
+      promiseOperations.push(this.eventService.updateOne({ _id: input.event }, { $addToSet: { teams: newTeam._id } }));
 
       // Create player ranking when creating match
       const playerRankings = [];
@@ -279,26 +274,17 @@ export class TeamMutations {
         );
       }
 
-      const [createdTeam, ...promises] = await Promise.all([this.teamService.findOne({ _id: newTeam._id }),
-      ...promiseOperations]);
+      const [createdTeam, ...promises] = await Promise.all([
+        this.teamService.findOne({ _id: newTeam._id }),
+        ...promiseOperations
+      ]);
 
-
-      // Convert Team to CustomTeam format
-      const customTeam = {
-        ...createdTeam,
-        matches: (newTeam.matches || []).map((m: any) => m?.toString?.() || String(m)),
-        nets: (newTeam.nets || []).map((n: any) => n?.toString?.() || String(n)),
-        players: (newTeam.players || []).map((p: any) => p?.toString?.() || String(p)),
-        captain: newTeam.captain ? String(newTeam.captain) : undefined,
-        cocaptain: newTeam.cocaptain ? String(newTeam.cocaptain) : undefined,
-        group: newTeam.group ? String(newTeam.group) : undefined,
-      };
 
       return {
         code: HttpStatus.CREATED,
         success: true,
         message: 'A team has been created successfully',
-        data: customTeam,
+        data: createdTeam as CustomTeam,
       };
     } catch (err) {
       return AppResponse.handleError(err);
@@ -308,38 +294,32 @@ export class TeamMutations {
   async updateTeam(
     input: UpdateTeamInput,
     teamId: string,
-    eventId: string,
     logo?: Promise<FileUpload>,
   ): Promise<CreateOrUpdateTeamResponse> {
     try {
-      const [teamExist, eventExist] = await Promise.all([
-        this.teamService.findById(teamId),
-        this.eventService.findById(eventId),
-      ]);
+      const teamExist = await this.teamService.findById(teamId);
       if (!teamExist) return AppResponse.notFound('Team');
-      if (!eventExist) return AppResponse.notFound('Event');
 
-      const updatedTeam = await this.singleTeamUpdate(input, teamExist, eventExist, logo);
+
+      const events = await this.eventService.find({ _id: { $in: teamExist.events as string[] } });
+
+      if (!events || events.length === 0) {
+        return AppResponse.notFound("Event");
+      }
+
+
+      const updatedTeam = await this.singleTeamUpdate(input, teamExist, events, logo);
       if (!updatedTeam) {
         return AppResponse.notFound('Team');
       }
 
-      // Convert Team to CustomTeam format
-      const customTeam = {
-        ...updatedTeam,
-        matches: (updatedTeam.matches || []).map((m: any) => m?.toString?.() || String(m)),
-        nets: (updatedTeam.nets || []).map((n: any) => n?.toString?.() || String(n)),
-        players: (updatedTeam.players || []).map((p: any) => p?.toString?.() || String(p)),
-        captain: updatedTeam.captain ? String(updatedTeam.captain) : undefined,
-        cocaptain: updatedTeam.cocaptain ? String(updatedTeam.cocaptain) : undefined,
-        group: updatedTeam.group ? String(updatedTeam.group) : undefined,
-      };
+
 
       return {
         code: HttpStatus.ACCEPTED,
         success: true,
         message: 'A team has been updated successfully',
-        data: customTeam,
+        data:  updatedTeam as CustomTeam,
       };
     } catch (err) {
       return AppResponse.handleError(err);
@@ -361,7 +341,7 @@ export class TeamMutations {
 
       const updatePromises = [];
       for (const team of teamsExist) {
-        updatePromises.push(this.singleTeamUpdate(input, team, eventExist, logo));
+        // updatePromises.push(this.singleTeamUpdate(input, team, eventExist, logo));
       }
 
       const updatedTeams = await Promise.all(updatePromises);;
@@ -444,9 +424,9 @@ export class TeamMutations {
             // this.matchService.updateMany({ _id: { $in: teamExist.matches } }, { $set: { teamA: null } });
           }
 
-          if (teamExist.event) {
+          if (teamExist.events) {
             deletePromises.push(
-              this.eventService.updateOne({ _id: teamExist.event.toString() }, { $pull: { teams: teamExist._id } }),
+              this.eventService.updateOne({ _id: teamExist.events.toString() }, { $pull: { teams: teamExist._id } }),
             );
           }
 
@@ -459,13 +439,10 @@ export class TeamMutations {
             );
           }
 
-          if (teamExist.nets && teamExist.nets.length > 0) {
-            // deletePromises.push(this.netService.update);
-          }
 
-          if (teamExist.group) {
+          if (teamExist.groups) {
             deletePromises.push(
-              this.groupService.updateOne({ _id: teamExist.group }, { $pull: { teams: teamExist._id.toString() } }),
+              this.groupService.updateOne({ _id: { $in: teamExist.groups as string[] } }, { $pull: { teams: teamExist._id.toString() } }),
             );
           }
 

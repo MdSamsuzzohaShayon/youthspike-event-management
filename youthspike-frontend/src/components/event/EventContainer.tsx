@@ -10,6 +10,8 @@ import Image from 'next/image';
 import { QueryRef, useReadQuery } from '@apollo/client/react';
 import { setCookie } from '@/utils/cookie';
 import { useLdoId } from '@/lib/LdoProvider';
+import { useUser } from '@/lib/UserProvider';
+import { UserRole } from '@/types';
 
 interface IEventContainerProps {
   queryRef: QueryRef<{getEvents: IGetEventsResponse;}>
@@ -25,7 +27,9 @@ const dateOptions = [EEventPeriod.CURRENT, EEventPeriod.PAST].map((o) => ({ id: 
 
 function EventContainer({queryRef}: IEventContainerProps) {
   const { data } = useReadQuery(queryRef);
+  const user = useUser();
 
+  
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -79,7 +83,9 @@ function EventContainer({queryRef}: IEventContainerProps) {
   useEffect(()=>{
     const list = [];
     for (const event of (data?.getEvents?.data || [])) {
-      if(event?.defaulted){
+
+      // Only admin can bypass this
+      if(event?.defaulted && user.info?.role !== UserRole.admin){
         setCookie("NEXT_PUBLIC_CURRENT_EVENT_ID", event._id, 7);
         // Redirect to this page
         return router.push(`/events/${event._id}/matches/${ldoIdUrl}`);
@@ -88,7 +94,7 @@ function EventContainer({queryRef}: IEventContainerProps) {
     }
     
     setEvents(list);
-  }, [data, router, ldoIdUrl]);
+  }, [data, router, ldoIdUrl, user]);
 
   return (
     <div className="event-wrapper w-full min-h-screen">

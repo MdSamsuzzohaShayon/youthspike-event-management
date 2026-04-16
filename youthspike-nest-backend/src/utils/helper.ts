@@ -23,16 +23,23 @@ export function rmInvalidProps(prevObj: Record<string, any>): Record<string, any
 
 
 export function tokenToUser(context, secret: string): JwtPayload | null {
-  const authToken = context.req.headers.authorization;
-  if (!authToken) return null;
-  const token = authToken.split(' ');
-  let user: JwtPayload | null = null;
-  const baseToken = token[1];
-  if (baseToken) {
-    user = jwt.verify(baseToken, secret) as JwtPayload | null;
+  try {    
+    const authToken = context.req.headers.authorization;
+    if (!authToken) return null;
+    const token = authToken.split(' ');
+    let user: JwtPayload | null = null;
+    const baseToken = token[1];
+    if (baseToken) {
+      user = jwt.verify(baseToken, secret) as JwtPayload | null;
+    }
+    if (!user || !user._id) return null;
+    return user;
+  } catch (error) {
+    console.error(error);
+    
   }
-  if (!user || !user._id) return null;
-  return user;
+
+  return null;
 }
 
 export function checkDateHasPassed(isoDate: string): boolean {

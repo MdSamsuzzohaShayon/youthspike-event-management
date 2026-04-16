@@ -14,13 +14,12 @@ import {
   CreateOrUpdateTeamResponse,
   CreateOrUpdateTeamsResponse,
   GetEventWithTeamsResponse,
-  GetTeamDetailsResponse,
+  GetPlayerStatsResponse,
   GetTeamMatchesResponse,
   GetTeamResponse,
   GetTeamRosterResponse,
   GetTeamSearchResponse,
   GetTeamsResponse,
-  GetTeamstandingsResponse,
   GetTeamWithGroupsAndUnAssignedPlayersResponse,
 } from './resolvers/team.response';
 import { TeamFields } from './resolvers/team.fields';
@@ -36,7 +35,7 @@ export class TeamResolver {
     private readonly teamFields: TeamFields,
     private readonly teamQueris: TeamQueries,
     private readonly teamMutations: TeamMutations,
-  ) {}
+  ) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
@@ -56,11 +55,10 @@ export class TeamResolver {
   async updateTeam(
     @Args('input') input: UpdateTeamInput,
     @Args('teamId') teamId: string,
-    @Args('eventId') eventId: string,
     @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })
     logo?: Promise<FileUpload>,
   ) {
-    return this.teamMutations.updateTeam(input, teamId, eventId, logo);
+    return this.teamMutations.updateTeam(input, teamId, logo);
   }
 
   // For updating multiple teams
@@ -95,11 +93,12 @@ export class TeamResolver {
    */
   @Query(() => GetTeamsResponse)
   async getTeams(
-    @Args('eventId', { nullable: true }) eventId?: string,
+    @Args('eventIds', { type: () => [String], nullable: true }) // array optional
+    eventIds?: string[],
     @Args('limit', { nullable: true, defaultValue: 30 }) limit?: number,
     @Args('offset', { nullable: true, defaultValue: 0 }) offset?: number,
   ): Promise<GetTeamsResponse> {
-    return this.teamQueris.getTeams(eventId, limit, offset);
+    return this.teamQueris.getTeams(eventIds ?? [], limit, offset); // default to empty array
   }
 
   @Query((_returns) => GetEventWithTeamsResponse)
@@ -112,9 +111,10 @@ export class TeamResolver {
     return this.teamQueris.getTeam(teamId);
   }
 
-  @Query((_returns) => GetTeamDetailsResponse)
-  async getTeamDetails(@Args('teamId') teamId: string) {
-    return this.teamQueris.getTeamDetails(teamId);
+
+  @Query((_returns) => GetPlayerStatsResponse)
+  async getStatsOfPlayers(@Args('teamId') teamId: string) {
+    return this.teamQueris.getStatsOfPlayers(teamId);
   }
 
   @Query((_returns) => GetTeamRosterResponse)
@@ -128,18 +128,14 @@ export class TeamResolver {
   }
 
   @Query((_returns) => GetTeamSearchResponse)
-  async searchTeams(@Args('eventId') eventId: string, @Args('filter', { nullable: true }) filter: TeamSearchFilter) {
-    return this.teamQueris.searchTeams(eventId, filter);
+  async searchTeams(@Args('eventIds', { type: () => [String], nullable: true }) eventIds: string[], @Args('filter', { nullable: true }) filter: TeamSearchFilter) {
+    return this.teamQueris.searchTeams(eventIds, filter);
   }
 
-  @Query((_returns) => GetTeamstandingsResponse)
-  async getTeamStandings(@Args('eventId') eventId: string) {
-    return this.teamQueris.getTeamStandings(eventId);
-  }
 
   @Query((_returns) => GetTeamWithGroupsAndUnAssignedPlayersResponse)
-  async getTeamWithGroupsAndUnassignedPlayers(@Args('eventId') eventId: string, @Args('teamId') teamId: string) {
-    return this.teamQueris.getTeamWithGroupsAndUnassignedPlayers(eventId, teamId);
+  async getTeamWithGroupsAndUnassignedPlayers(@Args('eventIds', { type: () => [String], nullable: true }) eventIds: string[], @Args('teamId') teamId: string) {
+    return this.teamQueris.getTeamWithGroupsAndUnassignedPlayers(eventIds, teamId);
   }
 
   /**
@@ -183,13 +179,13 @@ export class TeamResolver {
   }
 
   @ResolveField()
-  async event(@Parent() team: Team) {
-    return this.teamFields.event(team);
+  async events(@Parent() team: Team) {
+    return this.teamFields.events(team);
   }
 
   @ResolveField()
-  async group(@Parent() team: Team) {
-    return this.teamFields.group(team);
+  async groups(@Parent() team: Team) {
+    return this.teamFields.groups(team);
   }
 
   @ResolveField() // Specify the return type for "players"

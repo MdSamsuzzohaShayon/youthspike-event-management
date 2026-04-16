@@ -33,10 +33,6 @@ export class Team extends AppDocument {
   @Prop({ required: true })
   division: string;
 
-  @Field((_type) => Boolean, { nullable: true, defaultValue: false })
-  @Prop({ required: false, default: false })
-  rankLock: boolean;
-
   @Field({ nullable: true })
   @Prop({ required: false, default: false })
   sendCredentials: boolean;
@@ -60,9 +56,9 @@ export class Team extends AppDocument {
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Match' }] })
   matches?: Match[] | string[]; // Make the captain field nullable
 
-  @Field((_type) => Event, { nullable: true })
-  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Event' })
-  event?: Event | string;
+  @Field((_type) => [Event], { nullable: true })
+  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }] })
+  events?: Event[] | string[];
 
   @Field(() => [Player], { nullable: true })
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Player' }] })
@@ -72,17 +68,15 @@ export class Team extends AppDocument {
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Player' }] })
   moved?: Player[] | string[];
 
-  @Field(() => [Net], { nullable: false })
-  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Net' }] })
-  nets?: Net[] | string[]; // Update the type of Nets to allow null values
 
   @Field((_type) => [PlayerRanking], { nullable: true })
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PlayerRanking' }] })
   playerRankings?: PlayerRanking[] | string[];
 
-  @Field((_type) => Group, { nullable: true })
-  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Group' })
-  group?: Group | string;
+
+  @Field(() => [Group], { nullable: false })
+  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }] })
+  groups: Group[] | string[];
 }
 
 export const TeamSchema = SchemaFactory.createForClass(Team);

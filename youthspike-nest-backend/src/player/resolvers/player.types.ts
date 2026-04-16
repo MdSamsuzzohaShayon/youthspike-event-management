@@ -12,7 +12,6 @@ export interface IPlayerMutations {
 
 export interface IPlayerQueries {
   getPlayer(playerId: string): Promise<PlayerResponse>;
-  getPlayerAndTeams(playerId: string, eventId: string): Promise<GetPlayerAndTeamsResponse>;
-  getPlayers(eventId: string): Promise<PlayersResponse>;
-  getEventWithPlayers(context: any, eventId: string): Promise<GetEventWithPlayersResponse>;
+  getPlayerAndTeams(playerId: string, eventIds: string[]): Promise<GetPlayerAndTeamsResponse>;
+  getPlayers(eventId?: string): Promise<PlayersResponse>;
 }

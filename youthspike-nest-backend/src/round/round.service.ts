@@ -57,7 +57,7 @@ export class RoundService {
   }
 
   async findById(id: string) {
-    return this.roundModel.findById(id);
+    return this.roundModel.findById(id).lean();
   }
 
   async delete(filter: QueryFilter<Round>) {

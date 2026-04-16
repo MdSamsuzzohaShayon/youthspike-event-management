@@ -237,6 +237,7 @@ export class LdoResolver {
       }
       const secret = this.configService.get<string>('JWT_SECRET');
       const userPayload = tokenToUser(context, secret);
+      if (!userPayload?._id) return AppResponse.unauthorized();
 
       const loggedUser = await this.userService.findById(userPayload._id);
       if (!loggedUser) return AppResponse.unauthorized();
@@ -334,7 +335,7 @@ export class LdoResolver {
               promisesToDelete.push(this.teamService.delete({ event: event._id }));
 
               // captains
-              const teams = await this.teamService.find({ event: event._id });
+              const teams = await this.teamService.find({ events: event._id });
               if (teams && teams.length > 0) {
                 const captainPlayerIds = teams.filter((team) => team.captain).map((team) => team.captain.toString());
                 promisesToDelete.push(this.userService.delete({ captainplayer: { $in: captainPlayerIds } }));

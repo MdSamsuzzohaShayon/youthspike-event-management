@@ -16,19 +16,16 @@ import { GroupService } from 'src/group/group.service';
 import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { AppResponse } from 'src/shared/response';
 import { UserRole } from 'src/user/user.schema';
-import { randomString, tokenToUser } from 'src/utils/helper';
+import { tokenToUser } from 'src/utils/helper';
 import { CreateOrUpdateEventResponse, GetEventResponse } from './event.response';
 import { CreateEventBody, UpdateEventBody, UpdateEventInput } from './event.input';
 import { IEventMutations } from '../resolvers/event.types';
-import { Team } from 'src/team/team.schema';
-import { EPlayerStatus, Player } from 'src/player/player.schema';
+import { Player } from 'src/player/player.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { ArchiveEventService, ArchiveGroupService, ArchiveMatchService, ArchiveNetService, ArchivePlayerRankingItemService, ArchivePlayerRankingService, ArchivePlayerStatsService, ArchiveRoomService, ArchiveRoundService, ArchiveServerReceiverOnNetService, ArchiveServerReceiverSinglePlayService, ArchiveSponsorService, ArchiveTeamService, ArchiveTemplateService } from 'src/archive/archive.service';
 import { TemplateService } from 'src/template/template.service';
-import { ProStats } from 'src/player-stats/player-stats.schema';
 import { RoomService } from 'src/room/room.service';
 import { ServerReceiverOnNetService } from 'src/server-receiver-on-net/server-receiver-on-net.service';
-import { PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
 
 
 @Injectable()
@@ -89,6 +86,7 @@ export class EventMutations implements IEventMutations {
       // Get user id
       const secret = this.configService.get<string>('JWT_SECRET');
       const userPayload = tokenToUser(context, secret);
+      if (!userPayload?._id) return AppResponse.unauthorized();
 
       // Get user
       const loggedUser = await this.userService.findById(userPayload._id);
@@ -196,6 +194,7 @@ export class EventMutations implements IEventMutations {
        */
       const secret = this.configService.get<string>('JWT_SECRET');
       const userPayload = tokenToUser(context, secret);
+      if (!userPayload?._id) return AppResponse.unauthorized();
 
       // ===== Get user =====
       const [loggedUser, eventExist] = await Promise.all([
@@ -312,7 +311,7 @@ export class EventMutations implements IEventMutations {
 
       // ===== Update Coach Password =====
       if (eventData.coachPassword) {
-        const teamsOfEvent = await this.teamService.find({ event: eventId });
+        const teamsOfEvent = await this.teamService.find({ events: eventId });
         const cap = [],
           coCap = [];
         for (const t of teamsOfEvent) {
@@ -375,11 +374,9 @@ export class EventMutations implements IEventMutations {
       const event = await this.eventService.findOne({ _id: eventId });
       if (!event) return AppResponse.notFound("Event not found!");
 
-      const NAME_KEY = randomString(16);
-
       const [players, teams] = await Promise.all([
         this.playerService.find({ events: eventId }),
-        this.teamService.find({ event: eventId }),
+        this.teamService.find({ events: eventId }),
       ]);
 
       // -------------------------
@@ -403,15 +400,14 @@ export class EventMutations implements IEventMutations {
 
 
 
-      const newEvent = await this.eventService.create({
+      const newEventData = {
         ...eventData,
         ...updateInput,
-        players: [],
-        teams: [],
         matches: [],
         groups: [],
         location: updateInput?.location || "USA",
-      });
+      };
+      const newEvent = await this.eventService.create(newEventData);
 
       const { _id: _mId, ...multiplayerPayload } = multiplayerStats;
       const { _id: _wId, ...weightPayload } = weightStats;
@@ -429,37 +425,14 @@ export class EventMutations implements IEventMutations {
       // Player maps
       // -------------------------
       const playerIds = players.map((p) => String(p._id));
-      const playerMap = new Map(players.map((p) => [String(p._id), p]));
 
-      updateEvent.players = playerIds;
 
       // -------------------------
-      // Prepare teams
+      // Update teams
       // -------------------------
-      const teamMap = new Map<string, Team>();
-      const organizedTeams: Team[] = teams.map((team) => {
-        const uniqueName = `${team.name}_${NAME_KEY}`;
-        teamMap.set(uniqueName, team);
-
-        const { _id, createdAt, updatedAt, ...clean } = team as any;
-
-        return {
-          ...clean,
-          event: newEvent._id,
-          rankLock: false,
-          sendCredentials: false,
-          matches: [],
-          players: [],
-          moved: [],
-          nets: [],
-          group: null,
-          playerRankings: [],
-          captain: null,
-          cocaptain: null,
-        };
+      const updatedTeams = await this.teamService.updateMany({ _id: {$in: (newEventData?.teams || []) as string[]} }, {
+        $addToSet: {events: newEvent._id}
       });
-
-      const createdTeams = await this.teamService.insertMany(organizedTeams);
 
       // -------------------------
       // Group players by team
@@ -475,60 +448,7 @@ export class EventMutations implements IEventMutations {
       }
 
       const updatePromises: Promise<any>[] = [];
-      const newTeamIds: string[] = [];
 
-      // -------------------------
-      // Process created teams
-      // -------------------------
-      for (const team of createdTeams) {
-        const uniqueName = `${team.name}_${NAME_KEY}`;
-        const prevTeam = teamMap.get(uniqueName);
-        if (!prevTeam) continue;
-
-        newTeamIds.push(String(team._id));
-
-        const teamPlayers = playersByTeam.get(String(prevTeam._id)) || [];
-
-        if (teamPlayers.length) {
-          updatePromises.push(
-            this.playerService.updateMany(
-              { _id: teamPlayers.map((p) => p._id) },
-              { $addToSet: { teams: team._id } }
-            )
-          );
-        }
-
-        const rankings: PlayerRankingItem[] = [];
-
-        let rank = 1;
-
-        for (const player of teamPlayers) {
-          if (player.status !== EPlayerStatus.ACTIVE) continue;
-
-          rankings.push({
-            player: String(player._id),
-            rank: rank++,
-          } as PlayerRankingItem);
-        }
-
-        const newRanking = await this.playerRankingService.create({
-          rankings,
-          rankLock: false,
-          team,
-        });
-
-        updatePromises.push(
-          this.teamService.updateOne(
-            { _id: team._id },
-            {
-              players: teamPlayers.map((p) => String(p._id)),
-              playerRankings: [String(newRanking._id)],
-            }
-          )
-        );
-      }
-
-      updateEvent.teams = newTeamIds;
 
       // -------------------------
       // Update players
@@ -579,7 +499,7 @@ export class EventMutations implements IEventMutations {
         multiplayers_weights,
         nets,
       ] = await Promise.all([
-        this.teamService.find({ event: eventId }),
+        this.teamService.find({ events: eventId }),
         this.matchService.find({ event: eventId }),
         this.groupService.find({ event: eventId }),
         this.sponsorService.find({ event: eventId }),

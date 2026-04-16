@@ -4,9 +4,8 @@ import { CustomPlayer } from "src/player/resolvers/player.response";
 import { CustomGroup, CustomTeam } from "src/match/resolvers/match.response";
 import { CustomMatch, CustomNet, CustomRound } from "src/team/resolvers/team.response";
 import { PlayerStats, ProStats } from "../player-stats.schema";
-import { PlayerStatsEntry } from "src/event/resolvers/event.response";
+import { PlayerStatsEntry, CustomEvent } from "src/event/resolvers/event.response";
 import { Event } from 'src/event/event.schema';
-import { CustomEvent } from "src/team/resolvers/team.response";
 
 @ObjectType()
 export class PlayerStatsResponse extends AppResponse<PlayerStats[]> {

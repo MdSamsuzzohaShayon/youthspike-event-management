@@ -114,14 +114,6 @@ export class EventResolver {
     return this.eventQueries.getEvents(context, directorId);
   }
 
-  @Query((__returns) => GetEventDetailsResponse)
-  async getEventDetails(
-    @Args('eventId', { nullable: false }) eventId: string,
-    @Args('filter', { nullable: false }) filter: EventFilterInput,
-  ) {
-    // , @Args('filter') filter: EventFilterInput
-    return this.eventQueries.getEventDetails(eventId, filter);
-  }
   
   @Query((__returns) => GetEventWithGroupsAndUnassignedPlayersResponse)
   async getEventWithGroupsAndUnassignedPlayers(

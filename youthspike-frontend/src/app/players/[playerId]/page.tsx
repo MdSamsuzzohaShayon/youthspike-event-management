@@ -1,6 +1,4 @@
-import { Suspense } from "react";
 import { QueryRef } from "@apollo/client/react";
-import Loader from "@/components/elements/Loader";
 import { PreloadQuery } from "@/lib/client";
 import { IGetPlayerStats } from "@/types";
 import { GET_PLAYER_WITH_STATS } from "@/graphql/player-stats";

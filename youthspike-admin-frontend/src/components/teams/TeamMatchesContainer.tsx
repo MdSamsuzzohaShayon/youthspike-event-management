@@ -14,6 +14,7 @@ import { useMessage } from '@/lib/MessageProvider';
 import TeamNavigation from './TeamNavigation';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { TEAM } from '@/utils/constant';
+import { Calendar, Trophy, Swords, Frown } from 'lucide-react';
 
 interface TeamMatchesContainerProps {
   queryRef: QueryRef<{ getTeamMatches: IGetTeamMatchesResponse }>;
@@ -32,15 +33,15 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
     return <div>Team not found</div>;
   }
 
-  const { team, matches, nets, rounds, teams, event } = data.getTeamMatches.data;
+  const { team, matches, nets, rounds, oponents, events } = data.getTeamMatches.data;
 
   // Event handlers
-  const handleSelectMatch = useCallback(() => {}, []);
+  const handleSelectMatch = useCallback(() => { }, []);
 
   // Memoization
   const teamMap = useMemo(() => {
-    return new Map<string, ITeam>(teams.map((t) => [t._id, t]));
-  }, [teams]);
+    return new Map<string, ITeam>(oponents.map((t) => [t._id, t]));
+  }, [oponents]);
 
   const netsMapByMatch = useMemo(() => {
     const map = new Map<string, INetRelatives[]>();
@@ -102,68 +103,52 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
     return <div>Team not found</div>;
   }
 
-  useEffect(()=>{
-    if(team){
-        SessionStorageService.setItem(TEAM, team._id);
-    }else{
-        SessionStorageService.removeItem(TEAM);
+  useEffect(() => {
+    if (team) {
+      SessionStorageService.setItem(TEAM, team._id);
+    } else {
+      SessionStorageService.removeItem(TEAM);
     }
-    
+
   }, [team]);
 
-  return (
-    <div className="min-h-screen bg-gray-900 pb-4">
-      {/* Header Section */}
-      <div className="header bg-gray-800 rounded-xl mb-4">
-        {/* Compact Header */}
-        <div className="border-b border-yellow-500/30 px-3 py-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <TeamLogo team={team} />
-              <div className="min-w-0">
-                <h1 className="text-sm font-bold text-white truncate leading-tight">{team?.name || 'Loading...'}</h1>
-                <p className="text-xs text-gray-400 truncate leading-tight">{event?.name || 'Loading...'}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <StatItem label="Matches" value={matches?.length || 0} />
-            </div>
-          </div>
-        </div>
 
-        {/* Navigation */}
-        <TeamNavigation eventId={event._id} ldoIdUrl={ldoIdUrl} pathname={pathname} team={team} />
+
+
+
+  return (
+    <div className="min-h-screen">
+      {/* Animated Background Accent */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-yellow-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-yellow-600/5 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
-      {/* Page Content */}
-      {sortedMatches.length > 0 ? (
-        <div className="space-y-2">
-          {sortedMatches.map((match, i) => (
-            <MatchCard key={match._id} showMessage={showMessage} eventId={event._id} handleSelectMatch={handleSelectMatch} isChecked={false} match={match} sl={i + 1} />
-          ))}
+      <TeamNavigation events={events} ldoIdUrl={ldoIdUrl} team={team} totalPlayers={team?.players?.length || 0} />
+
+      <div className="relative z-10">
+
+
+        {/* Page Content with Fade-in Animation */}
+        <div className="animate-fadeInUp">
+        {sortedMatches.map((match, i) => (
+              <div
+                key={match._id}
+                className="transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+              >
+                <MatchCard
+                  showMessage={showMessage}
+                  handleSelectMatch={handleSelectMatch}
+                  isChecked={false}
+                  match={match}
+                  sl={i + 1}
+                />
+              </div>
+            ))}
         </div>
-      ) : (
-        <div className="text-center py-8">
-          <div className="text-gray-400 text-sm mb-1">No matches found</div>
-          <p className="text-gray-500 text-xs">This team hasn't played any matches yet</p>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
-
-const TeamLogo = ({ team }: { team: ITeam }) =>
-  team?.logo ? (
-    <CldImage alt={team.name} width={32} height={32} src={team.logo} className="w-8 h-8 rounded-lg border border-yellow-500/30 object-cover object-center flex-shrink-0" crop="fit" />
-  ) : (
-    <TextImg className="w-8 h-8 rounded-lg border border-yellow-500/30 flex-shrink-0" fullText={team?.name || ''} txtCls="text-sm font-bold" />
-  );
-
-const StatItem = ({ label, value }: { label: string; value: number }) => (
-  <div className="text-right">
-    <div className="text-xs text-gray-400">{label}</div>
-    <div className="text-white font-bold text-sm">{value}</div>
-  </div>
-);
 
 export default TeamMatchesContainer;

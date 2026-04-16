@@ -23,10 +23,10 @@ import { EGroupType, PlayerSearchFilter } from 'src/player/resolvers/player.inpu
 import { Group } from 'src/group/group.schema';
 import getStatsOfPlayers from 'src/utils/getStatsOfPlayers';
 import { PlayerStatsSearchFilter } from './player-stats.input';
-import { Event } from 'src/event/event.schema';
 import { CustomPlayer } from 'src/player/resolvers/player.response';
 import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
-import { CustomMatch, CustomNet, CustomRound, CustomEvent } from 'src/team/resolvers/team.response';
+import { CustomMatch, CustomNet, CustomRound } from 'src/team/resolvers/team.response';
+import {CustomEvent} from 'src/event/resolvers/event.response';
 
 
 @Injectable()
@@ -132,8 +132,10 @@ export class PlayerStatsQueries {
           const t = teams[i];
           teamIds.add(t._id);
 
-          if (group && t.group) {
-            groupIds.add(String(t.group));
+          if (group && t.groups) {
+            for (const g of t.groups) {
+              groupIds.add(String(g));
+            }
           }
 
           for (let j = 0; j < t.players.length; j++) {
@@ -202,7 +204,7 @@ export class PlayerStatsQueries {
             net: String(ps.net),
             player: String(ps.player),
             match: String(ps.match),
-            event: ps?.event? String(ps?.event) : null,
+            event: ps?.event ? String(ps?.event) : null,
           }));
 
           playerstats = [...playerstatsRedis, ...playerstatsDBPlain];
@@ -260,7 +262,7 @@ export class PlayerStatsQueries {
           players: players as CustomPlayer[],
           groups: groups as CustomGroup[],
           events: events as CustomEvent[],
-          stats: []
+          stats: [] // ProStats
         },
       };
     } catch (error) {

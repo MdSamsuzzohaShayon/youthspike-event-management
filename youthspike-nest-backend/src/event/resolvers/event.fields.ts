@@ -27,7 +27,7 @@ export class EventFields {
   async teams(@Parent() event: Event) {
     try {
       // If not cached, fetch the teams from the database
-      const teamList = await this.teamService.find({ event: event._id });
+      const teamList = await this.teamService.find({ events: event._id });
 
       return teamList;
     } catch (err) {

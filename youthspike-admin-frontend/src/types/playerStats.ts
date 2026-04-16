@@ -111,6 +111,7 @@ export enum EPlayerStatType {
 
 // Keys (To make url clean)
 export enum EStatsFilter {
+  EVENT = 'e', // Match
   MATCH = 'm', // Match
   GAME = 'g', // game
   TEAMMATE = 'tm', // teammate
@@ -122,8 +123,21 @@ export enum EStatsFilter {
 }
 
 
+
 export enum EGroupType{
   OVERALL = "OVERALL",
   CONFERENCE = "CONFERENCE",
   NON_CONFERENCE = "NON_CONFERENCE",
+}
+
+export interface IFilter {
+  startDate: string;
+  endDate: string;
+  event: string;
+  match: string[];
+  game: string[];
+  conference?: string;
+  teammate?: string[];
+  club?: string[];
+  vsPlayer?: string[];
 }

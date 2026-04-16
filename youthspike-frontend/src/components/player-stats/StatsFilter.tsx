@@ -5,7 +5,6 @@ import DateInput from "../elements/DateInput";
 import SelectInput from "../elements/SelectInput";
 import MultiSelectInput from "../elements/MultiSelectInput";
 import { EGroupType, EStatsFilter, IFilter, IOption, IStatsFilterProps } from "@/types";
-import useStatsFilterData from "@/hooks/player-stats/useStatsFilterData";
 
 /** Conference options (unchanged) */
 const CONFERENCE_OPTIONS: IOption[] = [

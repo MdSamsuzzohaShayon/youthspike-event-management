@@ -1,4 +1,4 @@
-import { IAggregatedStats, IDefaultEventMatch, IDefaultMatchProps, IMenuItem, INetRelatives, IOption, IPlayerExpRel, IPlayerRank, IPlayerRankingItemExpRel, IPlayerStats, IRoundRelatives, ITeam, IUserContext } from "@/types";
+import { IAggregatedStats, IDefaultEventMatch, IDefaultMatchProps, IEvent, IMenuItem, INetRelatives, IOption, IPlayerExpRel, IPlayerRank, IPlayerRankingItemExpRel, IPlayerStats, IRoundRelatives, ITeam, IUserContext } from "@/types";
 import { eventPaths, initialUserMenuList } from "./staticData";
 import { UserRole } from "@/types/user";
 import { ETeam } from "@/types/team";
@@ -114,7 +114,7 @@ export function calcRoundScore(findNets: INetRelatives[], teamE: ETeam): number 
 
 
 export const getRankedPlayers = (pl: IPlayerExpRel[] /** pl = Player List */, rankings?: IPlayerRankingItemExpRel[] /** pr = Player Ranking */): IPlayerRank[] => {
-  if(!rankings) return pl;
+  if (!rankings) return pl;
   const rankingMap = new Map(pl.map((p) => [p._id, p]));
   const npl = rankings
     .filter((r) => rankingMap.has(r.player._id))
@@ -124,7 +124,7 @@ export const getRankedPlayers = (pl: IPlayerExpRel[] /** pl = Player List */, ra
 
 
 // Helper to check if a string is a valid MongoDB ObjectId
-export const isMongoId=(pathname: string) =>{
+export const isMongoId = (pathname: string) => {
   // ObjectId is 24 hex characters
   const objectIdRegex = /^\/[a-f\d]{24}$/i;
   return objectIdRegex.test(pathname);
@@ -152,7 +152,7 @@ export const aggregatePlayerStats = (stats: IPlayerStats[]): IAggregatedStats =>
     matchPlayed: 0,
   };
 
-  
+
 
   // Just sum all the numeric fields from each stat object
   stats.forEach((stat: IPlayerStats) => {
@@ -204,4 +204,45 @@ export function updateItemByIdMutable<T extends { _id: string }>(
   items[index] = { ...items[index], ...updatedItem };
   return items;
 }
+
+export const checkGroupIsWithinTheEvent = (groupSetOfEvent: Set<string>, teamGroups: string[]): string | null => {
+  let groupId: string | null = null;
+  // const groupSetOfEvent = new Set(groupList.map(g => g._id));
+  for (const g of teamGroups) {
+    if (groupSetOfEvent.has(g as unknown as string)) {
+      groupId = g as unknown as string;
+      break;
+    }
+  }
+
+  return groupId;
+}
+
+
+export const divisionsOfEvents = (events: IEvent[]): string => {
+  if (!events?.length) return '';
+
+  const divisionSet = new Set<string>();
+
+  for (const { divisions } of events) {
+    if (!divisions) continue;
+
+    let current = '';
+    for (let i = 0; i < divisions.length; i++) {
+      const char = divisions[i];
+
+      if (char === ',') {
+        if (current) divisionSet.add(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+
+    // Add last division
+    if (current) divisionSet.add(current.trim());
+  }
+
+  return [...divisionSet].join(',');
+};
 

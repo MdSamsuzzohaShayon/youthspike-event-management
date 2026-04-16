@@ -123,9 +123,9 @@ export class PlayerService {
                 division,
                 captain: null,
                 cocaptain: null,
-                event,
+                events: [event],
                 logo: '',
-                rankLock: false,
+                groups: [],
                 sendCredentials: false,
               });
             }

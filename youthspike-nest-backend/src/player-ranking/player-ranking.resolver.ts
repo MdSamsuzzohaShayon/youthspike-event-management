@@ -144,6 +144,7 @@ export class PlayerRankingResolver {
     try {
       const secret = this.configService.get<string>('JWT_SECRET');
       const userPayload = tokenToUser(context, secret);
+      if (!userPayload?._id) return AppResponse.unauthorized();
       const loggedUser = await this.userService.findById(userPayload._id);
 
       const allowedRoles = new Set([UserRole.director, UserRole.admin, UserRole.captain, UserRole.co_captain]);
@@ -158,10 +159,15 @@ export class PlayerRankingResolver {
 
       if (!loggedUser) return AppResponse.unauthorized();
 
-      const eventExist = await this.eventService.findById(String(teamExist.event));
-      if (!eventExist) return AppResponse.notFound('Event');
+      // const eventExist = await this.eventService.findById(String(teamExist.event));
+      // if (!eventExist) return AppResponse.notFound('Event');
+      const events = await this.eventService.find({_id: {$in: teamExist.events as string[]}})
 
-      await this.checkRosterLock(eventExist, loggedUser, userPayload);
+      const lockPromises = [];
+      for (const event of events) {
+        lockPromises.push(this.checkRosterLock(event, loggedUser, userPayload));
+      }
+      await Promise.all(lockPromises);
 
       // Get player rankings
       const playerRankings = await this.playerRankingService.find({ team: teamId, rankLock: false });
@@ -171,10 +177,6 @@ export class PlayerRankingResolver {
       // Ensure team ranking exists
       const teamRanking = playerRankings.find((pr) => pr.team && !pr.match);
       if (!teamRanking) return AppResponse.notFound('Team Player Ranking');
-
-      // Get active team players
-      // const teamPlayers = await this.playerService.find({ teams: teamId, status: EPlayerStatus.ACTIVE });
-      // const playerIds = new Set(teamPlayers.map((p) => String(p._id)));
 
       await this.recreatePlayerRankings(playerRankings, input, teamId);
 

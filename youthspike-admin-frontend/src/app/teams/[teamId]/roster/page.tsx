@@ -11,6 +11,8 @@ interface TeamRosterPageProps {
   params: Promise<{ teamId: string }>;
 }
 
+
+// Get team with it's players and players rankings
 async function TeamRosterPage({ params }: TeamRosterPageProps) {
   const { teamId } = await params;
 

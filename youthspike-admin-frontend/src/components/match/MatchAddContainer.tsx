@@ -18,6 +18,7 @@ interface IMatchAddContainerProps {
 // East Conference Pro
 function MatchAddContainer({ queryRef, eventId }: IMatchAddContainerProps) {
   const { data } = useReadQuery(queryRef);
+  
   // Event, teams, groups
   const eventData = data?.getEvent?.data;
   if (!eventData) {
@@ -89,9 +90,9 @@ function MatchAddContainer({ queryRef, eventId }: IMatchAddContainerProps) {
 
   return (
     <div>
-      <div className="navigation my-8">
+      {/* <div className="navigation my-8">
         <EventNavigation event={eventData} />
-      </div>
+      </div> */}
       <h1>Add New Match</h1>
       {/* Need an input item for division selection */}
       <div className="mt-2 division-selection w-full">

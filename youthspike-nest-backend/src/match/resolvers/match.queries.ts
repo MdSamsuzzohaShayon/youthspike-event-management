@@ -246,7 +246,7 @@ export class MatchQueries {
        * 12. Fetch Related Data in Parallel
        * ---------------------------------------------------------
        */
-      const teamFilter: QueryFilter<Team> = eventId ? { event: eventId } : {};
+      const teamFilter: QueryFilter<Team> = eventId ? { events: {$in: [eventId]}, matches: {$in: matchIds} } : {};
   
       const [nets, rounds, teams] = await Promise.all([
         this.netService.find({ match: { $in: matchIds } }),
@@ -339,7 +339,7 @@ export class MatchQueries {
       const [event, matches, teams, ldo, groups] = await Promise.all([
         this.eventService.findById(eventId),
         this.matchService.find({ event: eventId }),
-        this.teamService.find({ event: eventId }),
+        this.teamService.find({ events: eventId }),
         this.ldoService.findOne({ events: { $in: [eventId] } }),
         this.groupService.find({ event: eventId }),
       ]);

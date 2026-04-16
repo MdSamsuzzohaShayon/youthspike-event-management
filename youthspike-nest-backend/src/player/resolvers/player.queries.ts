@@ -13,7 +13,7 @@ import { AppResponse } from 'src/shared/response';
 import { QueryFilter, QueryOptions } from 'mongoose';
 import { Player } from '../player.schema';
 import {
-  GetEventWithPlayersResponse,
+
   GetPlayerAndTeamsResponse,
   PlayerResponse,
   CustomPlayer,
@@ -21,7 +21,8 @@ import {
 import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
 import { PlayerSearchFilter } from './player.input';
 import { Team } from 'src/team/team.schema';
-import { Group } from 'src/group/group.schema';
+import { Event } from 'src/event/event.schema';
+import { LdoService } from 'src/ldo/ldo.service';
 
 @Injectable()
 export class PlayerQueries implements IPlayerQueries {
@@ -32,113 +33,21 @@ export class PlayerQueries implements IPlayerQueries {
     private playerService: PlayerService,
     private userService: UserService,
     private groupService: GroupService,
-    private playerRankingService: PlayerRankingService,
+    private ldoService: LdoService,
 
   ) { }
 
-  async getEventWithPlayers(context: any, eventId: string): Promise<GetEventWithPlayersResponse> {
-    try {
-      // Get user id
-      const secret = this.configService.get<string>('JWT_SECRET');
-      const userPayload = tokenToUser(context, secret);
-
-      // Get user
-      const loggedUser = userPayload && userPayload?._id ? await this.userService.findById(userPayload._id) : null;
-
-      // Assuming matchService is injected in your class
-      const [event, players, teams, groups] = await Promise.all([
-        this.eventService.findById(eventId),
-        this.playerService.find({ events: { $in: [eventId] } }),
-        this.teamService.find({ event: eventId }),
-        this.groupService.find({ event: eventId }),
-      ]);
-
-      // Get player ranking
-      let playerRankings = [],
-        rankings = [];
-      if (loggedUser?.role === UserRole.captain || loggedUser?.role === UserRole.co_captain) {
-        const capPlayer = await this.playerService.findOne({
-          $or: [{ captainuser: loggedUser._id }, { cocaptainuser: loggedUser._id }],
-        });
-
-        if (capPlayer?.teams?.length) {
-          const teamIds = capPlayer.teams.map((t) => t._id.toString());
-          playerRankings = await this.playerRankingService.find({ team: { $in: teamIds } });
-
-          const playerRankingIds = playerRankings.map((pr) => pr._id.toString());
-          rankings = await this.playerRankingService.findItems({ playerRanking: { $in: playerRankingIds } });
-        } else {
-          // Optional: log or handle case when capPlayer is null
-          console.warn('No captain player found for logged user:', loggedUser._id);
-        }
-      }
-
-      // Normalize to Custom* GraphQL output shapes (string IDs for refs)
-      const normalizedPlayers: CustomPlayer[] = players.map((p: Player) => {
-        const obj = { ...p };
-        if (!obj?.username) {
-          obj.username = this.playerService.playerUsername((obj?.firstName || '') + '2');
-          (async () => {
-            await this.playerService.updateOne({ _id: obj._id }, { username: obj.username });
-          })();
-        }
-        return {
-          ...obj,
-          teams: (obj?.teams || []).map((t: any) => t?.toString?.() || String(t)),
-          captainofteams: (obj?.captainofteams || []).map((t: any) => t?.toString?.() || String(t)),
-          cocaptainofteams: (obj?.cocaptainofteams || []).map((t: any) => t?.toString?.() || String(t)),
-        } as CustomPlayer;
-      });
-
-      const normalizedTeams: CustomTeam[] = teams.map((t: Team) => {
-        const obj = { ...t };
-        return {
-          ...obj,
-          matches: (obj?.matches || []).map((m: any) => m?.toString?.() || String(m)),
-          nets: (obj?.nets || []).map((n: any) => n?.toString?.() || String(n)),
-          players: (obj?.players || []).map((p: any) => p?.toString?.() || String(p)),
-          captain: obj?.captain?.toString?.() || (obj?.captain ? String(obj.captain) : null),
-          cocaptain: obj?.cocaptain?.toString?.() || (obj?.cocaptain ? String(obj.cocaptain) : null),
-          group: obj?.group?.toString?.() || (obj?.group ? String(obj.group) : null),
-        } as CustomTeam;
-      });
-
-      const normalizedGroups: CustomGroup[] = groups.map((g: Group) => {
-        const obj = { ...g };
-        return {
-          ...obj,
-          teams: (obj?.teams || []).map((tm: any) => tm?.toString?.() || String(tm)),
-        } as CustomGroup;
-      });
-
-      return {
-        code: HttpStatus.OK,
-        success: true,
-        message: 'Get details of Players, teams, groups',
-        data: {
-          event,
-          players: normalizedPlayers,
-          teams: normalizedTeams,
-          groups: normalizedGroups,
-          playerRankings,
-          rankings,
-        },
-      };
-    } catch (err) {
-      return AppResponse.handleError(err);
-    }
-  }
 
   async getPlayers(eventId?: string, limit = 30, offset = 0) {
     try {
       let query: QueryOptions<Player> = {};
-  
+
       if (eventId) {
         query = { events: { $in: [eventId] } };
       }
-  
+
       const players = await this.playerService.find(query, limit, offset);
-  
+
       return {
         code: HttpStatus.OK,
         success: true,
@@ -153,22 +62,22 @@ export class PlayerQueries implements IPlayerQueries {
   async searchPlayers(context: any, eventId: string, filter: PlayerSearchFilter) {
     try {
       const playerQuery: QueryFilter<Player> = {};
-      const teamQuery: QueryFilter<Team> = { event: eventId };
+      const teamQuery: QueryFilter<Team> = { events: eventId };
 
       // Return any one of them between player and event
       const secret = this.configService.get<string>('JWT_SECRET');
       const userPayload = tokenToUser(context, secret);
 
-      
+
 
       // Get user
       const [loggedUser, event, groups] = await Promise.all([
         this.userService.findById(userPayload?._id),
-        this.eventService.findOne({_id: eventId}),
-        this.groupService.find({event: eventId})
+        this.eventService.findOne({ _id: eventId }),
+        this.groupService.find({ event: eventId })
       ]);
 
-      if(!event){
+      if (!event) {
         return AppResponse.notFound("Event");
       }
 
@@ -259,46 +168,35 @@ export class PlayerQueries implements IPlayerQueries {
 
 
 
-  async getPlayerAndTeams(playerId: string, eventId: string): Promise<GetPlayerAndTeamsResponse> {
+  async getPlayerAndTeams(playerId: string, eventIds?: string[]): Promise<GetPlayerAndTeamsResponse> {
     try {
-      const [event, player, teams] = await Promise.all([
-        this.eventService.findOne({ _id: eventId }),
-        this.playerService.findById(playerId.toString()),
-        this.teamService.find({ event: eventId }),
-      ]);
-      const normalizedPlayer: CustomPlayer = (() => {
-        const obj = { ...player };
-        // if(obj?.username){
-        //   obj.username = this.playerService.playerUsername((obj?.firstName || "abc") + "4");
-        //   (async()=>{
-        //     await this.playerService.updateOne({_id: obj._id}, {username: obj.username});
-        //   })()
-        // }
-        return {
-          ...obj,
-          teams: (obj?.teams || []).map((t: any) => t?.toString?.() || String(t)),
-          captainofteams: (obj?.captainofteams || []).map((t: any) => t?.toString?.() || String(t)),
-          cocaptainofteams: (obj?.cocaptainofteams || []).map((t: any) => t?.toString?.() || String(t)),
-        } as CustomPlayer;
-      })();
-
-      const normalizedTeams: CustomTeam[] = teams.map((t: any) => {
-        const obj = { ...t };
-        return {
-          ...obj,
-          matches: (obj?.matches || []).map((m: any) => m?.toString?.() || String(m)),
-          nets: (obj?.nets || []).map((n: any) => n?.toString?.() || String(n)),
-          players: (obj?.players || []).map((p: any) => p?.toString?.() || String(p)),
-          captain: obj?.captain?.toString?.() || (obj?.captain ? String(obj.captain) : null),
-          cocaptain: obj?.cocaptain?.toString?.() || (obj?.cocaptain ? String(obj.cocaptain) : null),
-          group: obj?.group?.toString?.() || (obj?.group ? String(obj.group) : null),
-        } as CustomTeam;
-      });
+      let events = [], player = null, teams = [];
+      if (eventIds && eventIds.length > 0) {
+        [events, player, teams] = await Promise.all([
+          this.eventService.find({ _id: { $in: eventIds } }),
+          this.playerService.findById(playerId.toString()),
+          this.teamService.find({ events: { $in: eventIds } }),
+        ]);
+      } else {
+        // Find player first, then find ldo ides, get all events  of that ldo
+        player = await this.playerService.findById(playerId.toString());
+        if (!player) return AppResponse.notFound("Player");
+        const firstEvent = await this.eventService.findOne({ _id: { $in: player.events } });
+        if (!firstEvent) return AppResponse.notFound("Event");
+        const ldo = await this.ldoService.findOne({ events: firstEvent._id });
+        if (!ldo) return AppResponse.notFound("LDO");
+        events = await this.eventService.find({ _id: { $in: ldo.events as string[] } });
+        teams = await this.teamService.find({ events: { $in: ldo.events } });
+      }
       return {
         code: HttpStatus.OK,
         success: true,
         message: 'Get one player and all teams of an event!',
-        data: { player: normalizedPlayer, teams: normalizedTeams, event },
+        data: {
+          player: player as CustomPlayer,
+          teams: teams as CustomTeam[],
+          events: events as Event[]
+        },
       };
     } catch (error) {
       return AppResponse.handleError(error);

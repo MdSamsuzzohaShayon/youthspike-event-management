@@ -87,6 +87,7 @@ function SearchTeamList({ teamList, matchList, nets, rounds, selectedGroup }: IT
       const teamRecord: ITeamScore = {
         rank: 0,
         totalMatches: 0,
+        groupMatches: 0,
         overallWins: 0,
         overallLoses: 0,
         groupWins: 0,
@@ -132,6 +133,7 @@ function SearchTeamList({ teamList, matchList, nets, rounds, selectedGroup }: IT
       }
 
       teamRecord.totalMatches = teamMatches.length;
+      teamRecord.groupMatches = totalGroupMatches;
 
       // Only for group records
       teamRecord.matchAvgDiff = totalGroupMatches > 0 ? totalMatchDiff / totalGroupMatches : 0;
@@ -205,6 +207,10 @@ function SearchTeamList({ teamList, matchList, nets, rounds, selectedGroup }: IT
           <thead>
             <tr className="bg-yellow-logo text-black font-semibold">
               <th className="py-3 px-2">Team</th>
+
+              <th className="py-3 px-2">Matches</th>
+              <th className="py-3 px-2">Points</th>
+
               {selectedGroup && <th className="py-3 px-2">Group Record</th>}
               <th className="py-3 px-2">Overall</th>
               <th className="py-3 px-2">Match PT DIFF/AVG</th>

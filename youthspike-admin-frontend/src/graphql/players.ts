@@ -54,13 +54,13 @@ const playerResponse = `
  */
 
 const GET_PLAYER_AND_TEAMS_RAW = `
-query GetPlayerAndTeams($playerId: String!, $eventId: String!) {
-  getPlayerAndTeams(playerId: $playerId, eventId: $eventId) {
+query GetPlayerAndTeams($playerId: String!, $eventIds: [String!]) {
+  getPlayerAndTeams(playerId: $playerId, eventIds: $eventIds) {
     code
     success
     message
     data {
-      event {
+      events {
         _id
         name
         divisions
@@ -97,22 +97,7 @@ query GetPlayerAndTeams($playerId: String!, $eventId: String!) {
 }
 `;
 const GET_PLAYER_AND_TEAMS = gql`${GET_PLAYER_AND_TEAMS_RAW}`;
-const GET_A_PLAYER_RAW = `
-query GetPlayer($playerId: String!) {
-  getPlayer(playerId: $playerId) {
-    code
-    message
-    success
-    data {
-      ${playerResponse}
-    }
-  }
-}
-`;
 
-const GET_A_PLAYER = gql`
-  ${GET_A_PLAYER_RAW}
-`;
 
 const GET_PLAYERS = gql`
 query GetPlayers($eventId: String!) {
@@ -157,114 +142,7 @@ query GetPlayers ($eventId: String, $limit: Float, $offset: Float) {
 
 const GET_PLAYERS_MIN = gql`${GET_PLAYERS_MIN_RAW}`;
 
-const GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW = `
-query GetEventWithPlayers($eventId: String!) {
-  getEventWithPlayers(eventId: $eventId) {
-    code
-    success
-    message
-    data {
-      event {
-        _id
-        name
-        logo
-        startDate
-        endDate
-        active
-        sendCredentials
-        description
-        location
-        divisions
-      }
-      players {
-        _id
-        firstName
-        lastName
-        username
-        email
-        status
-        profile
-        phone
-        division
-        teams
-      }
-      groups {
-        _id
-        name
-        teams
-        rule
-        division
-        active
-      }
-      teams {
-        _id
-        name
-        logo
-        active
-        division
-        rankLock
-        sendCredentials
-        num
-        players
-        captain
-        cocaptain
-      }
-      rankings {
-        _id
-        player
-        playerRanking
-        rank
-      }
-      playerRankings {
-        _id
-        match
-        rankLock
-        rankings
-        team
-      }
-    }
-  }
-}
-`;
 
-const GET_EVENT_PLAYERS_GROUPS_TEAMS = gql`${GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW}`;
-
-const GET_EVENT_WITH_TEAM_PLAYERS_RAW = `
-query GetEvent($eventId: String!) {
-  getEvent(eventId: $eventId) {
-    code
-    message
-    success
-     data {
-        ${eventResponse}
-        players {
-          ${playerResponse}
-        }
-        teams{
-          _id
-          name
-          division
-          rankLock
-          ${rankingResponse}
-        }
-        ldo {
-          _id
-          name
-          logo
-        }
-        groups {
-          _id
-          name
-          division
-        }
-     }
-  }
-}
-`;
-
-const GET_EVENT_WITH_PLAYERS = gql`
-  ${GET_EVENT_WITH_TEAM_PLAYERS_RAW}
-`;
 
 
 const SEARCH_PLAYERS = gql`
@@ -393,11 +271,6 @@ const DELETE_A_PLAYER = gql`
 
 export {
   GET_PLAYERS,
-  GET_EVENT_WITH_PLAYERS,
-  GET_A_PLAYER,
-  GET_A_PLAYER_RAW,
-  GET_EVENT_PLAYERS_GROUPS_TEAMS_RAW,
-  GET_EVENT_PLAYERS_GROUPS_TEAMS,
   CREATE_MULTIPLE_PLAYERS_RAW,
   CREATE_MULTIPLE_PLAYERS,
   CREATE_PLAYER_RAW,
@@ -406,7 +279,6 @@ export {
   UPDATE_PLAYERS,
   UPDATE_PLAYER,
   DELETE_A_PLAYER,
-  GET_EVENT_WITH_TEAM_PLAYERS_RAW,
   GET_PLAYER_AND_TEAMS_RAW,
   GET_PLAYER_AND_TEAMS,
   GET_PLAYERS_MIN_RAW,

@@ -1,4 +1,4 @@
-import { IEventPlayersGroupsTeamsResponse, IEventWithMatchesResponse, IGetGroupsRespone, TParams } from '@/types';
+import { IGetGroupsRespone, TParams } from '@/types';
 import { PreloadQuery } from '@/lib/client';
 import { GET_EVENT_WITH_GROUP } from '@/graphql/group';
 import GroupAddContainer from '@/components/group/GroupAddContainer';

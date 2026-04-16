@@ -41,6 +41,7 @@ const EVENT_ITEM = 'event_item'; // Name of the query params
 const LDO_ID = 'ldoId';
 const ACCESS_CODE = 'access_code';
 const MATCH = 'match';
+const TEAM = "team";
 
 // eslint-disable-next-line import/prefer-default-export
-export { screen, netSize, EXTRA_HEIGHT, MUSIC_TIME_PASSED, MATCHES_LS, imgW, eventPeriods, EVENT_ITEM, LDO_ID, APP_NAME, ACCESS_CODE, MATCH };
+export { screen, netSize, EXTRA_HEIGHT, MUSIC_TIME_PASSED, MATCHES_LS, imgW, eventPeriods, EVENT_ITEM, LDO_ID, APP_NAME, ACCESS_CODE, MATCH, TEAM };

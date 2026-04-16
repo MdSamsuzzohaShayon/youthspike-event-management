@@ -73,7 +73,7 @@ export default function TeamsContainer({
   // Build query variables
   const buildQueryVariables = useCallback(
     (filter: ITeamFilter, offset: number = 0) => ({
-      eventId,
+      eventIds: [eventId],
       filter: {
         limit: PAGE_SIZE,
         offset,
@@ -240,11 +240,6 @@ export default function TeamsContainer({
         <div className="team-list w-full flex flex-col gap-y-4">
           <div className="grid gap-4">
             {teams.length > 0 ? (
-              // <SearchTeamList
-              //   teamList={teams as unknown as ITeamCaptain[]}
-              //   matchesByTeamId={matchesByTeamId}
-              //   selectedGroup={appliedFilter?.group}
-              // />
               <SearchTeamList matchList={matches} selectedGroup={appliedFilter?.group} teamList={teams as unknown as ITeam[]} nets={nets} rounds={rounds} />
             ) : (
               <div className="text-center py-8 text-gray-400">
