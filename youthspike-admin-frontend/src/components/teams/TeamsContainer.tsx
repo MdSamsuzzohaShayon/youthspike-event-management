@@ -11,7 +11,7 @@ import EventNavigation from '../layout/EventNavigation';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
 import MultiPlayerAddDialog from './MultiPlayerAddDialog';
-import { divisionsToOptionList } from '@/utils/helper';
+import { divisionsOfEvents, divisionsToOptionList } from '@/utils/helper';
 import ActiveFiltersBar from '../event/ActiveFiltersBar';
 
 interface ITeamsContainerProps {
@@ -47,7 +47,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
   // Server data state
   const [teams, setTeams] = useState<ITeam[]>([]);
   const [groups, setGroups] = useState<IGroup[]>([]);
-  const [event, setEvent] = useState<IEvent | null>(null);
+  const [events, setEvents] = useState<IEvent[]>([]);
   const [playerMap, setPlayerMap] = useState<Map<string, IPlayer>>(new Map());
 
   // Loading states
@@ -59,7 +59,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
   // Build query variables
   const buildQueryVariables = useCallback(
     (filter: ITeamFilter, offset: number = 0) => ({
-      eventId,
+      eventIds: [eventId],
       filter: {
         limit: PAGE_SIZE,
         offset,
@@ -84,7 +84,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
       map.set(cap._id, cap);
     }
     setPlayerMap(map);
-    setEvent(searchData.event || null);
+    setEvents(searchData.events || []);
     setHasMore((searchData.teams || []).length === PAGE_SIZE);
   }, []);
 
@@ -106,9 +106,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
     [apolloClient, buildQueryVariables],
   );
 
-  const divivionList = useMemo(() => {
-    return event?.divisions ? divisionsToOptionList(event?.divisions) : [];
-  }, [event?.divisions]);
+ 
 
   // Apply filters
   const handleApplyFilters = useCallback(async () => {
@@ -177,6 +175,11 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
     }
   }, [teams.length, appliedFilter, executeSearchQuery]);
 
+
+  const selectedEvent = useMemo(()=> {return events.find((e)=> e._id === eventId)}, [events, eventId]);
+  const divisions = useMemo(()=> divisionsOfEvents(events), [events]);
+  const divivionList = useMemo(()=> divisionsToOptionList(divisions), [divisions]);
+
   
 
   // Initialize with preloaded data
@@ -202,14 +205,14 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
   return (
     <div className="animate-fade-in">
       <div className="navigation my-8">
-        <EventNavigation event={event} />
+        <EventNavigation event={selectedEvent || null} />
       </div>
 
       <FilterContent
         eventId={eventId}
         filterPage={EFilterPage.TEAMS}
         groups={groups}
-        divisions={event?.divisions ?? ''}
+        divisions={divisions}
         loading={isApplyingFilters}
         filter={localFilter}
         updateFilter={updateLocalFilter}
@@ -248,7 +251,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
         <div className="team-list w-full flex flex-col gap-y-4">
           <div className="grid gap-4">
             {teams.length > 0 ? (
-              <SearchTeamList teamList={teams as unknown as ITeam[]} groupList={groups} event={event} captainMap={playerMap} />
+              <SearchTeamList teamList={teams as unknown as ITeam[]} groupList={groups} event={selectedEvent || null} captainMap={playerMap} />
             ) : (
               <div className="text-center py-8 text-gray-400">No teams found teaming your criteria.</div>
             )}

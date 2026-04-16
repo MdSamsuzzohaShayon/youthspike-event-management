@@ -28,10 +28,9 @@ interface MatchCardProps {
   isChecked: boolean;
   handleSelectMatch: (e: React.SyntheticEvent, _id: string) => void;
   showMessage: (message: Omit<IMessage, "id">) => void;
-  eventId?: string;
 }
 
-function MatchCard({ match, isChecked, handleSelectMatch, showMessage, eventId }: MatchCardProps) {
+function MatchCard({ match, isChecked, handleSelectMatch, showMessage }: MatchCardProps) {
   const user = useUser();
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();

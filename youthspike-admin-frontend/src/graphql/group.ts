@@ -60,7 +60,7 @@ const GET_EVENT_WITH_GROUP_RAW = `
             _id
             name
             division
-            group{
+            groups{
               _id
               name
             }

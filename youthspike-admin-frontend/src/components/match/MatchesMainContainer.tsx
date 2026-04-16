@@ -10,7 +10,7 @@ import SearchMatchList from './SearchMatchList';
 import EventNavigation from '../layout/EventNavigation';
 import ActiveFiltersBar from '../event/ActiveFiltersBar';
 
-interface MatchesMainProps {
+interface MatchesMainContainerProps {
   queryRef: QueryRef<{ searchMatches: ISearchMatchResponse }>;
   initialSearchParams: Partial<ISearchFilter>;
   eventId?: string;
@@ -32,9 +32,11 @@ const DEFAULT_FILTER_STATE: FilterState = {
 
 const PAGE_SIZE = 30;
 
-export default function MatchesMain({ queryRef, eventId, initialSearchParams }: MatchesMainProps) {
+export default function MatchesMainContainer({ queryRef, eventId, initialSearchParams }: MatchesMainContainerProps) {
   const router = useRouter();
   const { data: initialData } = useReadQuery(queryRef);
+
+  
   const apolloClient = useApolloClient();
 
  

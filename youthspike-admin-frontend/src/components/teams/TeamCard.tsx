@@ -11,6 +11,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
 import TextImg from '../elements/TextImg';
 import { useMutation } from '@apollo/client/react';
+import { checkGroupIsWithinTheEvent } from '@/utils/helper';
 
 interface ITeamCardProps {
   team: ITeam;
@@ -35,9 +36,7 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
   const [actionOpen, setActionOpen] = useState<boolean>(false);
 
   // Local State
-  const [selectedGroup, setSelectedGroup] = useState<string>(
-    team.group?.toString() || ''
-  );
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
 
 
@@ -63,7 +62,9 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
       console.error(error);
 
       // ❌ rollback on error
-      setSelectedGroup(team.group?.toString() || '');
+      const groupSetOfEvent = new Set(groupList.map(g => g._id));
+      const groupId = checkGroupIsWithinTheEvent(groupSetOfEvent, (team?.groups || []) as unknown as string[]);
+      setSelectedGroup(groupId);
     }
   };
 
@@ -125,15 +126,18 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
   // }, [groupList, team]);
 
 
-  const groupOptions = useMemo(()=>{
-    return groupList.map((g, i )=> ({id: i+1, text: g.name, value: g._id}));
+  const groupOptions = useMemo(() => {
+    return groupList.map((g, i) => ({ id: i + 1, text: g.name, value: g._id }));
   }, [groupList])
 
   const sendCredentialLabel = team.sendCredentials ? 'Resend' : 'Send';
 
   useEffect(() => {
-    setSelectedGroup(team.group?.toString() || '');
-  }, [team.group]);
+    const groupSetOfEvent = new Set(groupList.map(g => g._id));
+    const groupId = checkGroupIsWithinTheEvent(groupSetOfEvent, (team?.groups || []) as unknown as string[]);
+    setSelectedGroup(groupId);
+  }, [team.groups]);
+
 
   // Reusable components
   const TeamLogo = () =>
@@ -228,7 +232,7 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
             alt="Send Email"
             width={18}
             height={18}
-            className={`${team.sendCredentials ? 'svg-green' : 'svg-white'} opacity-80 hover:opacity-100 transition-opacity`}
+            className={`h-12 ${team.sendCredentials ? 'svg-green' : 'svg-white'} opacity-80 hover:opacity-100 transition-opacity`}
           />
         </button>
         <div className="flex justify-center items-start flex-col">
@@ -279,8 +283,8 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
     );
 
 
-    
-    
+
+
 
   return (
     <div className="team-card w-full bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-700">

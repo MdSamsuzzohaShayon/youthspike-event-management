@@ -31,7 +31,7 @@ export interface IPlayer extends IDocument {
   email: string;
   status: EPlayerStatus,
   events?: string[];
-  teams?: string[];
+  teams?: ITeam[] | string[];
   captainofteams: ITeam[] | string[] | null;
   cocaptainofteams: ITeam[] | string[] | null;
 }
@@ -65,24 +65,10 @@ export interface IPlayerAndTeamsResponse extends IResponse{
   data: {
     player: IPlayer;
     teams: ITeam[];
-    event: IEvent;
+    events: IEvent[];
   };
 }
 
-export interface IEventPlayersGroupsTeamsResponse {
-  getEventWithPlayers: {
-    code: number,
-    message: string;
-    data: {
-      event: IEvent;
-      players: IPlayerExpRel[];
-      groups: IGroup[];
-      teams: ITeam[];
-      playerRankings: IPlayerRanking[];
-      rankings: IPlayerRankingItem[];
-    };
-  };
-}
 
 
 export interface IGetPlayersResponse extends IResponse{

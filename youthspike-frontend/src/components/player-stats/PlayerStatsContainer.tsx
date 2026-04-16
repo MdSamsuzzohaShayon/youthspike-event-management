@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { QueryRef, useApolloClient, useReadQuery } from "@apollo/client/react";
 import StatBox from "./StatBox";
 import { CldImage } from "next-cloudinary";
@@ -55,6 +55,9 @@ function PlayerStatsContainer({ queryRef }: IPlayerStatsContainerProps) {
   } = data.getPlayerWithStats.data;
 
   const { filter, handleInputChange, clearAllFilters } = useFilterState();
+
+
+
 
   usePlayerSocket({
     socket,
@@ -125,6 +128,7 @@ function PlayerStatsContainer({ queryRef }: IPlayerStatsContainerProps) {
     if (!playerstats || !Array.isArray(playerstats)) return [];
 
     return filterPlayerStats(
+      events,
       playerstats,
       filter,
       player._id,

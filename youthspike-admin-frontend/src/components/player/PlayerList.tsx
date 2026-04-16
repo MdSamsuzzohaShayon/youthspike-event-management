@@ -21,8 +21,9 @@ import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 
 interface IPlayerListProps {
   playerList: IPlayerExpRel[];
-  eventId: string;
+  // eventId: string;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  events: IEvent[];
   divisionList?: IOption[];
   showRank?: boolean;
   teamList?: ITeam[];
@@ -30,7 +31,6 @@ interface IPlayerListProps {
   teamId?: string | null;
   refetchFunc?: () => void;
   playerRanking?: IPlayerRankingExpRel | null;
-  currEvent?: null | IEvent;
   inactive?: boolean;
 }
 
@@ -39,7 +39,7 @@ interface IUpdateRank {
   rank: number;
 }
 
-function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFunc, teamList, showRank, divisionList, teamId, playerRanking, currEvent, inactive }: IPlayerListProps) {
+function PlayerList({ playerList, setIsLoading, rankControls, refetchFunc, teamList, showRank, divisionList, teamId, playerRanking, events, inactive }: IPlayerListProps) {
   const listRef = useRef<HTMLUListElement>(null);
   const isMounted = useRef<boolean>(false);
   const screenWidth = useScreenWidth();
@@ -74,7 +74,6 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
         const rankingRes = await mutatePlayerRanking({ variables: { teamId, input: upr } });
 
         const success = handleResponseCheck(rankingRes?.data?.updatePlayerRanking, showMessage);
-        console.log({ success, rankingRes });
         // Update rank players with match id and team id
         // if (refetchFunc) await refetchFunc();
       } catch (error: any) {
@@ -161,7 +160,7 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
   /** Memoize Sortable Initialization **/
   useEffect(() => {
     const newCanRank = (() => {
-      if (!user?.info || !currEvent) return false; // Default to true if data is missing
+      if (!user?.info || !events) return false; // Default to true if data is missing
       if (user?.info.role === UserRole.player) return false;
       if (playerRanking?.rankLock) {
         if (user.info.role === UserRole.admin || user.info.role === UserRole.director) return true;
@@ -170,11 +169,14 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
         const isCaptainRole = role === UserRole.captain || role === UserRole.co_captain;
 
         if (isCaptainRole) {
+          // temp
+          /*
           const isIsoTime = isISODateString(currEvent.rosterLock);
           if (isIsoTime) {
             const timePassed = new Date() > new Date(currEvent.rosterLock);
             if (timePassed && !passcode) return false;
           }
+            */
           // playerRanking
         }
       }
@@ -197,7 +199,7 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
     });
 
     return () => sortableList.destroy();
-  }, [handleSortEnd, rankControls, screenWidth, user, currEvent]);
+  }, [handleSortEnd, rankControls, screenWidth, user, events]);
 
   /** Derived State: Sorted Players */
   const sortedPlayerList: IPlayerRank[] = useMemo(() => {
@@ -231,7 +233,6 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
 
             {/* Player Card */}
             <PlayerCard
-              eventId={eventId}
               isChecked={checkedPlayers.get(player._id) ?? false}
               handleSelectPlayer={handleSelectPlayer}
               player={player}
@@ -253,19 +254,7 @@ function PlayerList({ playerList, eventId, setIsLoading, rankControls, refetchFu
           </motion.li>
         ))}
       </ul>
-      {/* {totalPages > 1 && (
-        <div className="flex items-center space-x-2 mt-4">
-          <button onClick={handlePrev} disabled={currentPage === 1} className="px-3 py-1 rounded-md text-white bg-blue-500 disabled:bg-gray-300">
-            Prev
-          </button>
-          <span className="font-semibold">
-            Page {currentPage} of {totalPages}
-          </span>
-          <button onClick={handleNext} disabled={currentPage === totalPages} className="px-3 py-1 rounded-md text-white bg-blue-500 disabled:bg-gray-300">
-            Next
-          </button>
-        </div>
-      )} */}
+
     </>
   );
 }

@@ -16,9 +16,9 @@ interface ICreatePlayer {
   showMessage: (message: Omit<IMessage, "id">) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   playerState: IPlayerAdd;
-  eventId: string;
   uploadedProfile: React.RefObject<File | null>;
   addPlayer: IAddPlayer;
+  eventId?: string;
   division?: string;
 }
 
@@ -27,9 +27,9 @@ async function createPlayer({
   setIsLoading,
   playerState,
   division,
-  eventId,
   uploadedProfile,
-  addPlayer
+  addPlayer,
+  eventId,
 }: ICreatePlayer) {
   try {
     setIsLoading(true);
@@ -39,7 +39,10 @@ async function createPlayer({
       return;
     }
 
-    const playerAddObj = { ...playerState, division, event: eventId };
+    const playerAddObj = { ...playerState, division };
+    if(eventId){
+      playerAddObj.event = eventId;
+    }
 
     let playerRes;
     if (uploadedProfile?.current) {

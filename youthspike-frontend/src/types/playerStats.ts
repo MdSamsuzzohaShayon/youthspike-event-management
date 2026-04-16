@@ -1,4 +1,4 @@
-import { IEvent, IOption } from ".";
+import { IEvent, IEventWMatch, IOption } from ".";
 import { IGroupRelatives } from "./group";
 import { IMatch, IMatchRelatives } from "./match";
 import { INetRelatives } from "./net";
@@ -69,7 +69,7 @@ export interface IProStats extends IProStatsCommon {
 }
 
 export interface IGetPlayerStats {
-  events: IEvent[];
+  events: IEventWMatch[];
   player: IPlayer;
   players: IPlayer[];
   team: ITeam;

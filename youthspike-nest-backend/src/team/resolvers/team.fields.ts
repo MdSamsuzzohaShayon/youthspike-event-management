@@ -17,7 +17,7 @@ export class TeamFields {
     private matchService: MatchService,
     private playerRankingService: PlayerRankingService,
     private playerService: PlayerService,
-  ) {}
+  ) { }
 
   async players(team: Team): Promise<Player[]> {
     try {
@@ -123,18 +123,18 @@ export class TeamFields {
     }
   }
 
-  async event(team: Team) {
+  async events(team: Team) {
     try {
-      const event = await this.eventService.findById(team.event.toString());
-      return event;
+      const events = await this.eventService.find({ _id: { $in: team.events as string[] } });
+      return events;
     } catch (error) {
       console.log(error);
       return null;
     }
   }
 
-  async group(team: Team) {
-    const groupExist = await this.groupService.findOne({ _id: team.group });
+  async groups(team: Team) {
+    const groupExist = await this.groupService.find({ _id: {$in: team.groups as string[]}});
     return groupExist;
   }
 

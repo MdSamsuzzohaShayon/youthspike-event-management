@@ -24,6 +24,7 @@ export enum ERosterLock {
 export enum ETieBreakingStrategy {
   TWO_POINTS_NET = 'TWO_POINTS_NET',
   OVERTIME_ROUND = 'OVERTIME_ROUND',
+  MATCH_TIE = 'MATCH_TIE'
 }
 
 export interface IEventSponsor {

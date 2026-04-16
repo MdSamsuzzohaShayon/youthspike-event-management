@@ -4,12 +4,11 @@ import { Team } from '../team.schema';
 import { Group } from 'src/group/group.schema';
 import { Player } from 'src/player/player.schema';
 import { Event } from 'src/event/event.schema';
-import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
 import { Match } from 'src/match/match.schema';
 import { Round } from 'src/round/round.schema';
 import { Net } from 'src/net/net.schema';
 import { CustomPlayer, CustomPlayerRanking, CustomPlayerRankingItem } from 'src/player/resolvers/player.response';
-import { PlayerStatsEntry } from 'src/event/resolvers/event.response';
+import { PlayerStatsEntry, CustomEvent } from 'src/event/resolvers/event.response';
 import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
 
 @ObjectType()
@@ -99,10 +98,16 @@ export class CustomNet extends Net {
   round: string;
 
   @Field((_type) => String, { nullable: true })
-  teamA: string;
+  teamAPlayerA: string;
 
   @Field((_type) => String, { nullable: true })
-  teamB: string;
+  teamAPlayerB: string;
+
+  @Field((_type) => String, { nullable: true })
+  teamBPlayerA: string;
+
+  @Field((_type) => String, { nullable: true })
+  teamBPlayerB: string;
 }
 
 @ObjectType()
@@ -127,12 +132,6 @@ export class CustomMatch extends Match {
 }
 
 @ObjectType()
-export class CustomEvent extends Event {
-  @Field((_type) => [String], { nullable: true })
-  groups: string[];
-}
-
-@ObjectType()
 export class CaptainPlayer extends Player {
   @Field((_type) => [String], { nullable: true })
   captainofteams: string[];
@@ -144,16 +143,41 @@ export class CoCaptainPlayer extends Player {
   cocaptainofteams: string[];
 }
 
-// { team, playerRanking, players, group, captain, event }
 
-/*
-          team,
-          playerRanking,
-          players,
-          event,
-          statsOfPlayer: statsArray,
-          rankings,
-*/
+@ObjectType()
+export class TeamPlayerStats {
+  @Field((_type) => CustomTeam, { nullable: true })
+  team: CustomTeam;
+
+  @Field((_type) => [CustomTeam], { nullable: true })
+  oponents: CustomTeam[];
+
+  @Field((_type) => [CustomPlayer], { nullable: true })
+  players: CustomPlayer[];
+
+
+  @Field((_type) => [CustomRound], { nullable: true })
+  rounds: CustomRound[];
+
+  @Field((_type) => [CustomNet], { nullable: true })
+  nets: CustomNet[];
+
+  @Field((_type) => [CustomEvent], { nullable: true })
+  events: CustomEvent[];
+
+  @Field((_type) => [CustomMatch], { nullable: true })
+  matches: CustomMatch[];
+
+  @Field(() => [PlayerStatsEntry])
+  statsOfPlayers: PlayerStatsEntry[];
+}
+
+@ObjectType()
+export class GetPlayerStatsResponse extends AppResponse<TeamPlayerStats> {
+  @Field((_type) => TeamPlayerStats, { nullable: true })
+  data?: TeamPlayerStats;
+}
+
 
 @ObjectType()
 export class TeamRoster {
@@ -169,11 +193,9 @@ export class TeamRoster {
   @Field((_type) => [CustomPlayerRankingItem], { nullable: true })
   rankings: CustomPlayerRankingItem[];
 
-  @Field((_type) => Event, { nullable: true })
-  event: Event;
+  @Field((_type) => [Event], { nullable: true })
+  events: Event[];
 
-  @Field(() => [PlayerStatsEntry])
-  statsOfPlayer: PlayerStatsEntry[];
 }
 
 @ObjectType()
@@ -182,10 +204,10 @@ export class TeamMatches {
   team: CustomTeam;
 
   @Field((_type) => [CustomTeam], { nullable: true })
-  teams: CustomTeam[];
+  oponents: CustomTeam[];
 
-  @Field((_type) => Event, { nullable: true })
-  event: Event;
+  @Field((_type) => [CustomEvent], { nullable: true })
+  events: CustomEvent[];
 
   @Field((_type) => [CustomMatch], { nullable: true })
   matches: CustomMatch[];
@@ -199,8 +221,8 @@ export class TeamMatches {
 
 @ObjectType()
 export class TeamDetails extends TeamRoster {
-  @Field((_type) => Group, { nullable: true })
-  group: Group;
+  @Field((_type) => [CustomGroup], { nullable: true })
+  groups: CustomGroup[];
 
   @Field((_type) => CaptainPlayer, { nullable: true })
   captain: CaptainPlayer;
@@ -229,6 +251,7 @@ export class GetTeamDetailsResponse extends AppResponse<TeamDetails> {
   data?: TeamDetails;
 }
 
+
 @ObjectType()
 export class GetTeamRosterResponse extends AppResponse<TeamRoster> {
   @Field((_type) => TeamRoster, { nullable: true })
@@ -244,8 +267,8 @@ export class GetTeamMatchesResponse extends AppResponse<TeamMatches> {
 // // event, teams, matches, nets, rounds, groups
 @ObjectType()
 export class TeamSearch {
-  @Field((_type) => CustomEvent, { nullable: true })
-  event: CustomEvent;
+  @Field((_type) => [CustomEvent], { nullable: true })
+  events: CustomEvent[];
 
   @Field((_type) => [CustomTeam], { nullable: true })
   teams: CustomTeam[];
@@ -273,38 +296,12 @@ export class GetTeamSearchResponse extends AppResponse<TeamSearch> {
   data?: TeamSearch;
 }
 
-@ObjectType()
-class Teamstandings {
-  // event, groups, matches, teams
-  @Field((_type) => Event, { nullable: true })
-  event: Event;
 
-  @Field((_type) => [CustomTeam], { nullable: true })
-  teams: CustomTeam[];
-
-  @Field((_type) => [CustomGroup], { nullable: true })
-  groups: CustomGroup[];
-
-  @Field((_type) => [CustomMatch], { nullable: true })
-  matches: CustomMatch[];
-
-  @Field((_type) => [CustomRound], { nullable: true })
-  rounds: CustomRound[];
-
-  @Field((_type) => [CustomNet], { nullable: true })
-  nets: CustomNet[];
-}
-
-@ObjectType()
-export class GetTeamstandingsResponse extends AppResponse<Teamstandings> {
-  @Field((_type) => Teamstandings, { nullable: true })
-  data?: Teamstandings;
-}
 
 @ObjectType()
 class TeamWithGroupsAndUnAssignedPlayers{
-  @Field((_type) => Event, { nullable: true })
-  event: Event;
+  @Field((_type) => [Event], { nullable: true })
+  events: Event[];
 
   @Field((_type) => CustomTeam, { nullable: true })
   team: CustomTeam;

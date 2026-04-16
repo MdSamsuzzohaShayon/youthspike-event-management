@@ -35,7 +35,7 @@ export class GroupResolver {
     private groupService: GroupService,
     private eventService: EventService,
     private matchService: MatchService,
-  ) {}
+  ) { }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
@@ -52,7 +52,7 @@ export class GroupResolver {
       // Update teams and event
       await Promise.all([
         this.eventService.updateOne({ _id: newGroup.event }, { $addToSet: { groups: newGroup._id } }),
-        this.teamService.updateMany({ _id: { $in: input.teams } }, { group: newGroup._id }),
+        this.teamService.updateMany({ _id: { $in: input.teams } }, { $addToSet: { groups: newGroup._id } }),
       ]);
 
       return {
@@ -68,45 +68,86 @@ export class GroupResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
-  @Mutation((_returns) => GetGroupResponse)
+  @Mutation(() => GetGroupResponse)
   async updateGroup(
     @Args('updateInput') updateInput: UpdateGroupInput,
     @Args('eventId', { nullable: true }) eventId?: string,
   ): Promise<GetGroupResponse> {
     try {
-      /**
-       * TODO:
-       *  Step-1: Get user id from token if not logged in as admin
-       */
-      const groupExist = await this.groupService.findOne({_id: updateInput._id});
-      if(!groupExist) return AppResponse.notFound("Group");
-      const updatePromises = [];
-      const groupObj: UpdateQuery<Group> = { ...updateInput };
-      // Update team
-      if (updateInput.teams && updateInput.teams.length > 0) {
-        for (const team of updateInput.teams) {
-          const teamExist = await this.teamService.findOne({ _id: team });
-          // Remove from previous group
-          if (teamExist && teamExist.group) {
-            await this.groupService.updateOne({ _id: teamExist.group }, { $pull: { teams: teamExist._id } })
-          }
-          updatePromises.push(this.teamService.updateOne({ _id: team }, { group: updateInput._id }));
-        }
-        groupObj.$addToSet = { teams: { $each: updateInput.teams } };
-        delete groupObj.teams;
-      }
-      updatePromises.push(this.groupService.updateOne({ _id: updateInput._id }, groupObj));
+      const { _id: groupId, teams: newTeamIds, ...restUpdateData } = updateInput;
 
-      await Promise.all(updatePromises);
-      const findGroup = await this.groupService.findOne({ _id: updateInput._id });
-      const teams = await this.teamService.find({_id: {$in: updateInput.teams}});
+      // ✅ Step 1: Validate Group
+      const existingGroup = await this.groupService.findOne({ _id: groupId });
+      if (!existingGroup) return AppResponse.notFound("Group");
+
+      // ✅ Step 2: Validate Event (use eventId if provided)
+      const targetEventId = eventId || existingGroup.event;
+
+      const event = await this.eventService.findOne({ _id: targetEventId });
+      if (!event) return AppResponse.notFound("Event");
+
+      // ✅ Step 3: Prepare groupIds to remove (other groups in same event)
+      const otherGroupIds = event.groups
+        .filter((g) => String(g) !== String(groupId)) as string[];
+
+      const updateOperations: Promise<any>[] = [];
+
+      // ✅ Step 4: Handle Teams in BULK (no loop queries)
+      if (newTeamIds?.length) {
+
+        // 🔥 4.1 Remove teams from other groups (bulk)
+        updateOperations.push(
+          this.groupService.updateMany(
+            { _id: { $in: otherGroupIds } },
+            { $pull: { teams: { $in: newTeamIds } } }
+          )
+        );
+
+        // 🔥 4.2 Remove old group references from teams
+        updateOperations.push(
+          this.teamService.updateMany(
+            { _id: { $in: newTeamIds } },
+            { $pull: { groups: { $in: otherGroupIds } } }
+          )
+        );
+
+        // 🔥 4.3 Add new group to teams
+        updateOperations.push(
+          this.teamService.updateMany(
+            { _id: { $in: newTeamIds } },
+            { $addToSet: { groups: groupId } }
+          )
+        );
+
+        // 🔥 4.4 Add teams to current group
+        updateOperations.push(
+          this.groupService.updateOne(
+            { _id: groupId },
+            { $addToSet: { teams: { $each: newTeamIds } } }
+          )
+        );
+      }
+
+      // ✅ Step 5: Update group fields
+      updateOperations.push(
+        this.groupService.updateOne(
+          { _id: groupId },
+          { $set: restUpdateData }
+        )
+      );
+
+      // ✅ Execute all in parallel
+      await Promise.all(updateOperations);
+
+      const updatedGroup = await this.groupService.findOne({ _id: groupId });
 
       return {
-        data: findGroup,
+        data: updatedGroup,
         success: true,
         message: 'Group has been updated successfully.',
         code: HttpStatus.ACCEPTED,
       };
+
     } catch (err) {
       return AppResponse.handleError(err);
     }
@@ -128,7 +169,9 @@ export class GroupResolver {
       const deletePromises = [];
       if (groupExist.teams.length > 0) {
         deletePromises.push(
-          this.teamService.updateMany({ _id: { $in: groupExist.teams.map(g => String(g)) } }, { $pull: { group: groupId } }),
+          this.teamService.updateMany(
+            { _id: { $in: groupExist.teams.map(g => String(g)) } },
+            { $pull: { groups: groupId } }),
         );
       }
 
@@ -152,12 +195,12 @@ export class GroupResolver {
     }
   }
 
-  @Query((returns) => GetGroupsResponse)
+  @Query((_returns) => GetGroupsResponse)
   async getGroups(@Context() context: any, @Args('eventId', { nullable: true }) eventId?: string) {
     try {
       const queryParams: QueryFilter<Group> = {};
       if (eventId) queryParams.event = eventId;
-      const groupList = await this.groupService.find({});
+      const groupList = await this.groupService.find(queryParams);
       return {
         code: HttpStatus.OK,
         success: true,
@@ -168,7 +211,7 @@ export class GroupResolver {
     }
   }
 
-  @Query((returns) => GetGroupResponse)
+  @Query((_returns) => GetGroupResponse)
   async getGroup(@Args('groupId') groupId: string) {
     try {
       const findGroup = await this.groupService.findById(groupId);

@@ -20,7 +20,6 @@ import {
   formatMatchLabel,
   isPlayerParticipatingInNet,
 } from "@/utils/player-stats/formatDescription";
-import SessionStorageService from "@/utils/SessionStorageService";
 import { useMemo } from "react";
 
 interface IStatsFilterDataProps {

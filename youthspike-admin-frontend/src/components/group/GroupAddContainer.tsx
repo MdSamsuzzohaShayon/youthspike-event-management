@@ -21,7 +21,6 @@ function GroupAddContainer({ queryRef, eventId }: IProps) {
   if (!eventData) throw new Error('Event not found!');
 
   const [selectedDivision, setSelectedDivision] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // -------------------- Memoized Values --------------------
   const divisionOptions = useMemo(() => divisionsToOptionList(eventData?.divisions || ''), [eventData?.divisions]);
@@ -42,8 +41,23 @@ function GroupAddContainer({ queryRef, eventId }: IProps) {
 
   const filteredTeams = useMemo<ITeam[]>(() => {
     if (!selectedDivision) return eventData.teams;
-    return filterByDivision(eventData.teams, selectedDivision);
+    const teamsFilteredByDivision =  filterByDivision(eventData.teams, selectedDivision);
+    
+    const teamsFilteredByGroup = [];
+    const groupSet = new Set(eventData.groups.map((g)=> g._id));
+    for (const team of teamsFilteredByDivision) {
+      let hasGroup = false;
+      for (const g of (team?.groups || [])) {
+        if(groupSet.has(g._id))  hasGroup = true;
+      }
+      if(hasGroup) continue;
+      teamsFilteredByGroup.push(team);
+    }
+
+
+    return teamsFilteredByGroup;
   }, [eventData.teams, selectedDivision]);
+  
   
 
   // -------------------- Effects --------------------
@@ -56,9 +70,9 @@ function GroupAddContainer({ queryRef, eventId }: IProps) {
 
   return (
     <div>
-      <div className="navigation my-8">
+      {/* <div className="navigation my-8">
         <EventNavigation event={eventData} />
-      </div>
+      </div> */}
 
       <h1>Add New Group</h1>
 

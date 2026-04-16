@@ -1,4 +1,3 @@
-
 ---
 
 ### 🎯 **Create Sports Scoreboard Layout next.js component and tailwind css**

@@ -93,10 +93,6 @@ function TeamAddContainer({ queryRef, eventId }: TeamAddContainerProps) {
   if (isLoading) return <Loader />
   return (
     <div>
-      <div className="navigation my-8">
-        <EventNavigation event={eventData.event} />
-      </div>
-
       <h1>Add New Team</h1>
 
       <div className="mt-2 division-selection w-full">

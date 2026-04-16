@@ -102,8 +102,8 @@ export class PlayerResolver {
   }
 
   @Query((_returns) => GetPlayerAndTeamsResponse) // Specify the return type
-  async getPlayerAndTeams(@Args('playerId') playerId: string, @Args('eventId') eventId: string) {
-    return this.playerQueries.getPlayerAndTeams(playerId, eventId);
+  async getPlayerAndTeams(@Args('playerId') playerId: string, @Args('eventIds', {type: ()=> [String], nullable: true}) eventIds?: string[]) {
+    return this.playerQueries.getPlayerAndTeams(playerId, eventIds);
   }
 
   @Query(() => PlayersResponse)
@@ -115,10 +115,7 @@ export class PlayerResolver {
     return this.playerQueries.getPlayers(eventId, limit, offset);
   }
   
-  @Query((_returns) => GetEventWithPlayersResponse)
-  async getEventWithPlayers(@Context() context: any, @Args('eventId', { nullable: false }) eventId: string) {
-    return this.playerQueries.getEventWithPlayers(context, eventId);
-  }
+
 
   @Query((_returns) => SearchPlayersResponse)
   async searchPlayers(

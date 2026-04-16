@@ -13,7 +13,7 @@ import { menuVariants } from '@/utils/animation';
 import { useMessage } from '@/lib/MessageProvider';
 import { useMutation } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
-import { divisionsToOptionList, updateItemByIdMutable } from '@/utils/helper';
+import { divisionsToOptionList } from '@/utils/helper';
 import Loader from '../elements/Loader';
 
 interface ISearchTeamListProps {
@@ -176,7 +176,7 @@ const MoveTeamDialog: React.FC<IMoveTeamDialogProps> = ({
           // defaultValue={selectedTeam?.division}
           />
           <SelectInput
-            name="group"
+            name="groups"
             optionList={groupOptions}
             handleSelect={onTeamUpdateChange}
           // defaultValue={typeof selectedTeam?.group === 'object' ? selectedTeam?.group?._id : selectedTeam?.group}
@@ -277,7 +277,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedTeamForMove, setSelectedTeamForMove] = useState<ITeam | null>(null);
   const [selectedTeamForDelete, setSelectedTeamForDelete] = useState<ITeam | null>(null);
-  const [teamUpdateInput, setTeamUpdateInput] = useState<Partial<Pick<ITeam, 'division' | 'group'>>>({});
+  const [teamUpdateInput, setTeamUpdateInput] = useState<Partial<Pick<ITeam, 'division' | 'groups'>>>({});
   const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>(teamList);
 
   // Mutations
@@ -391,15 +391,15 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
         variables: { updateInput: { _id: inputElement.value, teams: checkedTeamIds } },
       });
       // Update cache
-      if(res.data && res.data.updateGroup.code === 202){
-        setFilteredTeamList((prev)=> {
+      if (res.data && res.data.updateGroup.code === 202) {
+        setFilteredTeamList((prev) => {
           // Set group Id to specific team
           const updatedTeams: ITeam[] = [];
           for (const t of prev) {
-            if(checkedTeamIds.includes(t._id)){
+            if (checkedTeamIds.includes(t._id)) {
               // @ts-ignore
-              updatedTeams.push({...t, group: inputElement.value});
-            }else{
+              updatedTeams.push({ ...t, group: inputElement.value });
+            } else {
               updatedTeams.push(t);
             }
           }
@@ -407,7 +407,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
         });
       }
 
-      
+
     } catch (error) {
       console.error(error);
     } finally {
@@ -429,7 +429,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
     }
   };
 
-  const handleonBulkTeamOpen =(e: React.SyntheticEvent)=>{
+  const handleonBulkTeamOpen = (e: React.SyntheticEvent) => {
     e.preventDefault();
     moveTeamDialogRef.current?.showModal();
     setIsBulkActionMenuVisible(false);
@@ -466,7 +466,13 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
   const handleTeamUpdateInputChange = (e: React.SyntheticEvent): void => {
     e.preventDefault();
     const inputElement = e.target as HTMLInputElement;
-    setTeamUpdateInput((previousInput) => ({ ...previousInput, [inputElement.name]: inputElement.value }));
+    let val = null;
+    if (inputElement.name === 'groups') {
+      val = [inputElement.value];
+    } else {
+      val = inputElement.value;
+    }
+    setTeamUpdateInput((previousInput) => ({ ...previousInput, [inputElement.name]: val }));
 
   };
 
@@ -485,7 +491,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       const input = {
         teamIds: checkedTeamIds,
         division: teamUpdateInput.division,
-        group: teamUpdateInput.group,
+        groups: teamUpdateInput.groups
       }
 
       const response = await moveTeamsMutation({
@@ -499,7 +505,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
         }
 
         setSelectedTeamForMove(null);
-        
+
 
       }
     } catch (error) {
@@ -560,12 +566,6 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
     return options;
   }, [groupList, teamUpdateInput]);
 
-  // const filteredTeamList = useMemo(() => {
-  //   return teamList.filter((team) => {
-  //     if (!selectedGroupIdFilter) return true;
-  //     return team.group?._id === selectedGroupIdFilter || String(team.group) === selectedGroupIdFilter;
-  //   });
-  // }, [teamList, selectedGroupIdFilter]);
 
   const selectedGroupName = useMemo(() => {
     return selectedGroupIdFilter ? groupList.find((group) => group._id === selectedGroupIdFilter)?.name : 'Group';
@@ -573,20 +573,22 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
 
 
   useEffect(() => {
-    const filteredTeams = teamList.filter((team) => {
-      if (!selectedGroupIdFilter) return true;
-
-      return (
-        team.group?._id === selectedGroupIdFilter ||
-        String(team.group) === selectedGroupIdFilter
-      );
-    });
-
+    if (!selectedGroupIdFilter) {
+      setFilteredTeamList(teamList);
+      return;
+    }
+  
+    const filterId = selectedGroupIdFilter;
+  
+    const filteredTeams = teamList.filter((team) =>
+      team.groups?.some((g) => String(g) == filterId) // loose equality avoids String()
+    );
+  
     setFilteredTeamList(filteredTeams);
   }, [teamList, selectedGroupIdFilter]);
 
-  
-  
+
+
 
   if (isLoading) return <Loader />;
 

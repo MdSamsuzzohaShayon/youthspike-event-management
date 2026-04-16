@@ -9,6 +9,7 @@ import { SEARCH_TEAMS } from '@/graphql/teams';
 import TeamStandings from './TeamStandings';
 import EventNavigation from '../layout/EventNavigation';
 import ActiveFiltersBar from '../event/ActiveFiltersBar';
+import { divisionsOfEvents } from '@/utils/helper';
 
 interface ITeamStandingsContainerProps {
   queryRef: QueryRef<{ searchTeams: ISearchTeamResponse }>;
@@ -44,7 +45,7 @@ export default function TeamStandingsContainer({ queryRef, eventId, initialSearc
   const [matches, setMatches] = useState<IMatch[]>([]);
   const [rounds, setRounds] = useState<IRoundRelatives[]>([]);
   const [groups, setGroups] = useState<IGroup[]>([]);
-  const [event, setEvent] = useState<IEvent | null>(null);
+  const [events, setEvents] = useState<IEvent[]>([]);
 
   // Loading states
   const [hasMore, setHasMore] = useState(true);
@@ -54,7 +55,7 @@ export default function TeamStandingsContainer({ queryRef, eventId, initialSearc
   // Build query variables
   const buildQueryVariables = useCallback(
     (filter: ITeamFilter, offset: number = 0) => ({
-      eventId,
+      eventIds: [eventId],
       filter: {
         limit: PAGE_SIZE,
         offset,
@@ -76,9 +77,11 @@ export default function TeamStandingsContainer({ queryRef, eventId, initialSearc
     setMatches(searchData.matches || []);
     setRounds(searchData.rounds || []);
     setGroups(searchData.groups || []);
-    setEvent(searchData.event || null);
+    setEvents(searchData.events || []);
     setHasMore((searchData.teams || []).length === PAGE_SIZE);
   }, []);
+
+
 
   // Execute GraphQL query
   const executeSearchQuery = useCallback(
@@ -182,6 +185,10 @@ export default function TeamStandingsContainer({ queryRef, eventId, initialSearc
     return map;
   }, [rounds]);
 
+
+  const selectedEvent = useMemo(()=> {return events.find((e)=> e._id === eventId)}, [events, eventId]);
+  const divisions = useMemo(() => divisionsOfEvents(events), [events]);
+
   const netsByMatchId = useMemo(() => {
     const map = new Map<string, INetRelatives[]>();
     nets.forEach((n) => {
@@ -229,14 +236,14 @@ export default function TeamStandingsContainer({ queryRef, eventId, initialSearc
   return (
     <div className="animate-fade-in">
       <div className="navigation my-8">
-        <EventNavigation event={event} />
+        <EventNavigation event={selectedEvent || null} />
       </div>
 
       <FilterContent
         eventId={eventId}
         filterPage={EFilterPage.TEAMS}
         groups={groups}
-        divisions={event?.divisions ?? ''}
+        divisions={divisions}
         loading={isApplyingFilters}
         filter={localFilter}
         updateFilter={updateLocalFilter}

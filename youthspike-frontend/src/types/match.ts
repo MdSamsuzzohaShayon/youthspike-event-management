@@ -20,6 +20,7 @@ export enum ETieBreakingStrategy {
   TWO_POINTS_NET = "TWO_POINTS_NET",
   // eslint-disable-next-line no-unused-vars
   OVERTIME_ROUND = "OVERTIME_ROUND",
+  MATCH_TIE = 'MATCH_TIE',
 }
 
 export enum EMatchStatus {

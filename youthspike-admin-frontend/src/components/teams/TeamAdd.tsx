@@ -60,12 +60,13 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
   const [updateTeamState, setUpdateTeamState] = useState<Partial<ITeamAdd>>({});
   const [playerIdList, setPlayerIdList] = useState<string[]>([]);
   const [availablePlayers, setAvailablePlayers] = useState<IPlayer[]>([]);
+  const [availableAddition, setAvailableAdition] = useState(false);
 
   const uploadedLogo = useRef<null | MediaSource | Blob>(null);
 
   // GraphQL
-  const [addTeam, { data, loading, error }] = useMutation<{createTeam: ITeamRes}>(ADD_A_TEAM);
-  const [mutateTeam, { data: mData, loading: mLoading, error: mError }] = useMutation<{updateTeam: IUpdateTeamRes}>(UPDATE_TEAM);
+  const [addTeam, { data, loading, error }] = useMutation<{ createTeam: ITeamRes }>(ADD_A_TEAM);
+  const [mutateTeam, { data: mData, loading: mLoading, error: mError }] = useMutation<{ updateTeam: IUpdateTeamRes }>(UPDATE_TEAM);
 
   const refetch = (url?: string) => {
     // if (url) {
@@ -115,12 +116,12 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
         setAvailablePlayers,
         setPlayerIdList,
       });
-      if(success){
+      if (success) {
         router.push(`/${eventId}/teams/${ldoIdUrl}`);
       }
     }
 
-    
+
   };
 
   const handleSaveAndCreate = async (e: React.SyntheticEvent) => {
@@ -207,8 +208,8 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
   useEffect(() => {
     setAvailablePlayers(players || []);
   }, [players]);
-  
-  
+
+
 
   return (
     <form onSubmit={handleTeamAdd} className="flex flex-col gap-2">
@@ -238,11 +239,14 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
         <ImageInput name="logo" defaultValue={teamState.logo} handleFileChange={handleFileChange} />
       </div>
 
-      {!update && (
+      {!update ? (
         <div className="player-input mb-4">
           <PlayerSelectInput availablePlayers={availablePlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name="player-select" />
         </div>
-      )}
+      ) : (<div className="player-input mb-4">
+        <button type='button' className="btn-info" onClick={() => setAvailableAdition((prev)=> !prev)}> {availableAddition ? "Hide players": "Add Players"}</button>
+        {availableAddition && <PlayerSelectInput availablePlayers={availablePlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name="player-select" />}
+      </div>)}
       {playerIdList.length > 0 && !update && toBeCaptains}
 
       <div className="input-group w-full mb-4">

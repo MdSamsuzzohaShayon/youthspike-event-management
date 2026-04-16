@@ -39,7 +39,7 @@ export default async function TeamsPage({
   return (
     <PreloadQuery
       query={SEARCH_TEAMS}
-      variables={{ eventId, filter: initialFilter }}
+      variables={{ eventIds: [eventId], filter: initialFilter }}
     >
       {(queryRef) => (
         <Suspense fallback={<Loader />}>

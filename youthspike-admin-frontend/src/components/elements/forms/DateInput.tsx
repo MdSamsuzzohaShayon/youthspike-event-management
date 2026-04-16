@@ -16,15 +16,31 @@ const DateInput: React.FC<DateInputProps> = ({
   required = false,
   compact = false
 }) => {
+
   const handleDateInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.preventDefault();
-    const inputEl = e.target;
-    
-    const now = new Date();
-    const inputValue = new Date(`${inputEl.value}T${now.toISOString().split("T")[1]}`);
-    
-    if (handleDateChange) {
-      handleDateChange(name, inputValue.toISOString());
+    const inputValue = e.target.value;
+
+    // ✅ 1. Handle empty value
+    if (!inputValue) {
+      console.warn(`Input valie is not valid ${inputValue}`);
+      return;
+    }
+
+    try {
+      // ✅ 2. Create date safely (local date)
+      const date = new Date(inputValue);
+
+      // ✅ 3. Validate date
+      if (isNaN(date.getTime())) {
+        console.warn(`Invalid date input: ${inputValue}`);
+        return;
+      }
+
+      // ✅ 4. Convert safely
+      handleDateChange?.(name, date.toISOString());
+
+    } catch (error) {
+      console.error('Date parsing error:', error);
     }
   };
 
@@ -36,44 +52,39 @@ const DateInput: React.FC<DateInputProps> = ({
     required,
   };
 
-  // Handle value and defaultValue with proper type checking
-  if (value !== undefined) {
-    const formattedValue = defaultInputValue(value as string);
-    inputProps.value = formattedValue;
+  // ✅ Safe value handling
+  const safeFormat = (val?: string) => {
+    if (!val) return undefined;
+
+    try {
+      const formatted = defaultInputValue(val);
+      return formatted || undefined;
+    } catch {
+      console.warn(`Invalid default/value for date: ${val}`);
+      return undefined;
+    }
+  };
+
+  if (value && value !== undefined) {
+    inputProps.value = safeFormat(value as string);
   } else if (defaultValue !== undefined) {
-    const formattedDefaultValue = defaultInputValue(defaultValue);
-    inputProps.defaultValue = formattedDefaultValue;
+    inputProps.defaultValue = safeFormat(defaultValue);
   }
 
-  if (compact) {
-    return (
-      <div className={`flex flex-col gap-1 ${className}`}>
-        <label 
-          htmlFor={name} 
-          className="text-xs font-medium text-gray-300 uppercase"
-        >
-          {label || name}
-        </label>
-        <input
-          {...inputProps}
-          className="text-sm p-2 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-yellow-400 text-white"
-        />
-      </div>
-    );
-  }
+  const inputClass = compact
+    ? "text-sm p-2 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-yellow-400 text-white"
+    : "p-2 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-yellow-400 text-white text-sm";
+
+  const labelClass = compact
+    ? "text-xs font-medium text-gray-300 uppercase"
+    : "text-sm font-medium text-gray-300 mb-1 uppercase";
 
   return (
     <div className={`flex flex-col gap-1 ${className}`}>
-      <label 
-        htmlFor={name} 
-        className="text-sm font-medium text-gray-300 mb-1 uppercase"
-      >
+      <label htmlFor={name} className={labelClass}>
         {label || name}
       </label>
-      <input
-        {...inputProps}
-        className="p-2 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-yellow-400 text-white text-sm"
-      />
+      <input {...inputProps} className={inputClass} />
     </div>
   );
 };

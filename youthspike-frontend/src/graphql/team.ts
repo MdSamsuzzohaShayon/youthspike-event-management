@@ -168,185 +168,81 @@ const GET_A_TEAM = gql`
 `;
 
 
-const GET_TEAM_DETAIL_RAW = `
-query GetTeamDetails($teamId: String!) {
-  getTeamDetails(teamId: $teamId) {
+
+
+
+const GET_TEAM_ROSTER = gql`
+query GetTeamRoster($teamId: String!) {
+  getTeamRoster(teamId: $teamId) {
     code
-    success
     message
+    success
     data {
-      team {
+      events{
         _id
         name
         logo
         active
-        division
-        rankLock
-        sendCredentials
-        num
-      }
-      playerRanking {
-        _id
-        rankLock
+        autoAssign
+        autoAssignLogic
+        coachPassword
+        divisions
+        endDate
+        homeTeam
+        description
+        netVariance
+        playerLimit
+        rosterLock
+        timeout
+        startDate
       }
       players {
         _id
-        firstName
-        lastName
-        username
-        email
-        status
-        profile
-        phone
-        division
         captainofteams
         cocaptainofteams
+        division
+        email
+        firstName
+        lastName
+        phone
+        profile
+        status
+        username
       }
-      group {
+      team {
         _id
-        name
         active
-        division
-        rule
-      }
-      captain {
-        _id
-        firstName
-        lastName
-        username
-        email
-        status
-        profile
-        phone
-        division
-        captainofteams
-      }
-      cocaptain {
-        _id
-        firstName
-        lastName
-        username
-        email
-        status
-        profile
-        phone
-        division
-        cocaptainofteams
-      }
-      event {
-        _id
+        num
         name
         logo
-        startDate
-        endDate
-        active
         sendCredentials
-        playerLimit
-        fwango
       }
-      matches {
+      playerRanking {
         _id
-        date
-        division
-        numberOfNets
-        numberOfRounds
-        netVariance
-        homeTeam
-        autoAssign
-        autoAssignLogic
-        rosterLock
-        tieBreaking
-        timeout
-        location
-        description
-        fwango
-        completed
-        extendedOvertime
-        rounds 
-        nets
-        teamA 
-        teamB
+        team
+        rankLock
+        rankings
       }
       rankings {
         _id
-        rank
         player
-      }
-      rounds {
-        _id
-        num
-        match
-        teamAScore
-        teamBScore
-        teamAProcess
-        teamBProcess
-        completed
-        firstPlacing
-        nets
-      }
-      nets {
-        _id
-        num
-        points
-        netType
-        teamAScore
-        teamBScore
-        pairRange
-        match
-        round
-        teamA
-        teamB
-        teamAPlayerA
-        teamAPlayerB
-        teamBPlayerA
-        teamBPlayerB
-      }
-      teams {
-        _id
-        name
-        logo
-        num
-      }
-
-      statsOfPlayer {
-        playerId
-        stats {
-          _id
-          break
-          broken
-          cleanHits
-          cleanSets
-          defensiveConversion
-          defensiveOpportunity
-          match
-          hittingOpportunity
-          matchPlayed
-          net
-          noTouchAcedCount
-          player
-          receivedCount
-          receiverOpportunity
-          serveAce
-          serveCompletionCount
-          serveOpportunity
-          servingAceNoTouch
-          settingOpportunity
-        }
+        playerRanking
+        rank
       }
     }
   }
 }
+
 `;
 
-
 const SEARCH_TEAMS = gql`
-query SearchTeams($eventId: String!, $filter: TeamSearchFilter) {
-  searchTeams(eventId: $eventId, filter: $filter) {
+query SearchTeams($eventIds: [String!], $filter: TeamSearchFilter) {
+  searchTeams(eventIds: $eventIds, filter: $filter) {
     code
     message
     success
     data {
-      event {
+      events {
         _id
         logo
         location
@@ -400,11 +296,10 @@ query SearchTeams($eventId: String!, $filter: TeamSearchFilter) {
       }
       teams {
         _id
-        group
+        groups
         logo
         name
         num
-        nets
         matches
         division
       }
@@ -415,81 +310,6 @@ query SearchTeams($eventId: String!, $filter: TeamSearchFilter) {
 `;
 
 
-const GET_TEAM_ROSTER = gql`
-query GetTeamRoster($teamId: String!) {
-  getTeamRoster(teamId: $teamId) {
-    code
-    message
-    success
-    data {
-      event {
-          _id
-          active
-          divisions
-          description
-          logo
-          location
-          name
-      }
-      players {
-        _id
-        captainofteams
-        cocaptainofteams
-        division
-        email
-        firstName
-        lastName
-        phone
-        profile
-        status
-        username
-      }
-      team {
-        _id
-        active
-        num
-        name
-        logo
-        rankLock
-        sendCredentials
-      }
-      statsOfPlayer {
-        playerId
-        stats {
-          _id
-          break
-          broken
-          cleanHits
-          cleanSets
-          defensiveConversion
-          defensiveOpportunity
-          hittingOpportunity
-          match
-          matchPlayed
-          net
-          noTouchAcedCount
-          player
-          receivedCount
-          receiverOpportunity
-          serveAce
-          serveCompletionCount
-          serveOpportunity
-          servingAceNoTouch
-          settingOpportunity
-        }
-      }
-      rankings {
-        _id
-        player
-        playerRanking
-        rank
-      }
-    }
-  }
-}
-
-`;
-
 
 const GET_TEAM_MATCHES = gql`
 query GetTeamMatches($teamId: String!) {
@@ -498,7 +318,7 @@ query GetTeamMatches($teamId: String!) {
     message
     success
     data {
-      event {
+      events {
         _id
         active
         divisions
@@ -514,7 +334,6 @@ query GetTeamMatches($teamId: String!) {
         logo
         name
         num
-        rankLock
       }
       matches {
         _id
@@ -564,13 +383,12 @@ query GetTeamMatches($teamId: String!) {
         teamBScore
         teamAProcess
       }
-      teams {
+      oponents {
         _id
         matches
         logo
         name
         num
-        rankLock
         division
       }
     }
@@ -579,5 +397,25 @@ query GetTeamMatches($teamId: String!) {
 
 `;
 
+
+const GET_TEAMS = gql`
+query GetTeams ($eventIds: [String!], $limit: Float, $offset: Float) {
+  getTeams (eventIds: $eventIds, limit: $limit, offset: $offset) {
+    code
+    message
+    success
+    data {
+      _id
+      name
+      division
+      groups {
+        _id
+        name
+      }
+    }
+  }
+}
+`;
+
 // eslint-disable-next-line import/prefer-default-export
-export { SEARCH_TEAMS, GET_A_TEAM, GET_TEAM_DETAIL_RAW, GET_TEAM_ROSTER, GET_TEAM_MATCHES };
+export { SEARCH_TEAMS, GET_A_TEAM, GET_TEAM_MATCHES, GET_TEAM_ROSTER, GET_TEAMS };

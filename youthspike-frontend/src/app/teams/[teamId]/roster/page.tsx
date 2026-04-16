@@ -3,14 +3,16 @@ import React, { Suspense } from "react";
 import { PreloadQuery } from "@/lib/client";
 import { QueryRef } from "@apollo/client/react";
 import Loader from "@/components/elements/Loader";
-import TeamRosterContainer from "@/components/team/TeamRosterContainer";
 import { IGetTeamRosterResponse, ITeam } from "@/types";
 import { GET_TEAM_ROSTER } from "@/graphql/team";
+import TeamRosterContainer from "@/components/team/TeamRosterContainer";
 
 interface TeamRosterPageProps {
   params: Promise<{ teamId: string }>;
 }
 
+
+// Get team with it's players and players rankings
 async function TeamRosterPage({ params }: TeamRosterPageProps) {
   const { teamId } = await params;
 

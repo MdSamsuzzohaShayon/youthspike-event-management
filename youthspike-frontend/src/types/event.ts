@@ -89,11 +89,6 @@ export interface IEventDetailData {
 }
 
 
-export interface IEventDetailProps {
-  queryRef: QueryRef<{ getEventDetails: { data: IEventDetailData } }>;
-  eventId: string;
-}
-
 export interface IGetEventsResponse extends IResponse{
   data: IEventWMatch[];
 }

@@ -56,9 +56,9 @@ function PlayerAddContainer({ eventId, queryRef }: IProps) {
 
   return (
     <div>
-      <div className="navigation my-8">
+      {/* <div className="navigation my-8">
         <EventNavigation event={eventData} />
-      </div>
+      </div> */}
 
       <h1>Add New Player</h1>
 

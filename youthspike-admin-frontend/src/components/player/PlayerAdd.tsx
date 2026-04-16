@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { IPlayer, IPlayerAdd, IPlayerExpRel, IUpdatePlayerRes } from '@/types/player';
+import { IPlayer, IPlayerAdd, IUpdatePlayerRes } from '@/types/player';
 import SelectInput from '../elements/forms/SelectInput';
 import { IOption, IResponse, ITeam } from '@/types';
 import { CREATE_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
@@ -21,8 +21,8 @@ import { DIVISION, TEAM } from '@/utils/constant';
 import { useMutation } from '@apollo/client/react';
 
 interface IProps {
-  eventId: string;
   teamList: ITeam[];
+  eventId?: string;
   division?: string;
   prevPlayer?: IPlayer | null;
   update?: boolean;
@@ -41,7 +41,7 @@ const initialPlayerAdd: IPlayerAdd = {
   division: '',
 };
 
-function PlayerAdd({ eventId, update, prevPlayer, teamList, division }: IProps) {
+function PlayerAdd({ update, prevPlayer, teamList, division, eventId }: IProps) {
   const router = useRouter();
   const user = useUser();
   const searchParams = useSearchParams();
@@ -88,6 +88,8 @@ function PlayerAdd({ eventId, update, prevPlayer, teamList, division }: IProps) 
   const handleFileChange = useCallback((uploadedFile: Blob | MediaSource) => {
     uploadedProfile.current = uploadedFile as File;
   }, []);
+
+
 
   const handleAddPlayer = async (e: React.SyntheticEvent) => {
       e.preventDefault();

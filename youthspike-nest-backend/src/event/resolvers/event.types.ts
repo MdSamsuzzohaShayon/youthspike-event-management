@@ -15,7 +15,6 @@ export interface IEventMutations {
 
 export interface IEventQueries {
   getEvents(context: any, directorId?: string): Promise<GetEventsResponse>;
-  getEventDetails(eventId: string, filter: EventFilterInput): Promise<GetEventDetailsResponse>;
   getPlayerEventSetting(context: any, eventId: string): Promise<GetPlayerEventSettingResponse>;
   getEvent(eventId: string): Promise<GetEventResponse>;
 }

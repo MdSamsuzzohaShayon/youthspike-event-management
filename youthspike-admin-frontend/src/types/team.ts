@@ -19,6 +19,7 @@ import {
   IResponse,
   IRoundRelatives,
   TMutationFunction,
+  IMatchRelatives,
 } from '.';
 // @ts-ignore
 import { ApolloCache } from '@apollo/client';
@@ -33,12 +34,13 @@ export interface ITeam {
   sendCredentials: false;
   num: number;
   event: IEvent;
+  matches: IMatch[];
   players: IPlayerExpRel[];
   captain: IPlayerExpRel | null;
   cocaptain: IPlayerExpRel | null;
   nets: INetRelatives[];
   playerRanking: IPlayerRankingExpRel;
-  group?: IGroupRelatives;
+  groups?: IGroupRelatives[];
 }
 
 export interface ITeamAdd {
@@ -62,39 +64,37 @@ export interface ITeamScore {
   gameAvgDiff: number;
 }
 
-export interface IGetTeamDetailQuery extends IResponse {
-  data: {
-    team: ITeam;
-    playerRanking: IPlayerRanking;
-    players: IPlayer[];
-    group: IGroupRelatives;
-    captain?: IPlayer;
-    cocaptain?: IPlayer;
-    event: IEvent;
-    matches: IMatchExpRel[];
-    rankings: IPlayerRankingItem[];
-    rounds: IRoundRelatives[];
-    nets: INetRelatives[];
-    teams: ITeam[];
-    statsOfPlayer: IPlayerStats[];
-  };
-}
 
 export interface IGetTeamsResponse extends IResponse {
   data: ITeam[];
 }
 
 interface ITeamRoster {
-  event: IEvent;
+  events: IEvent[];
   players: IPlayer[];
+  groups: IGroupRelatives[];
   team: ITeam;
-  statsOfPlayer: IAllStats[];
   rankings: IPlayerRankingItemExpRel[];
   playerRanking: IPlayerRankingExpRel;
 }
 
+interface ITeamStats {
+  events: IEventExpRel[];
+  matches: IMatchRelatives[];
+  players: IPlayer[];
+  team: ITeam;
+  oponents: ITeam[];
+  statsOfPlayers: IAllStats[];
+  nets: INetRelatives[];
+  rounds: IRoundRelatives[];
+}
+
 export interface IGetTeamRosterResponse  extends IResponse{
   data: ITeamRoster;
+}
+
+export interface IGetTeamStatsResponse  extends IResponse{
+  data: ITeamStats;
 }
 
 interface IEventWithTeams {
@@ -132,24 +132,21 @@ export interface ITeamFilter {
 }
 
 interface ITeamMatches {
-  event: IEvent;
+  events: IEvent[];
   team: ITeam;
-  teams: ITeam[];
+  oponents: ITeam[];
   matches: IMatchExpRel[];
   nets: INetRelatives[];
   rounds: IRoundRelatives[];
 }
 
-export interface IGetTeamMatchesResponse {
-  code: number;
-  success: boolean;
-  message: string;
+export interface IGetTeamMatchesResponse extends IResponse{
   data: ITeamMatches;
 }
 
 interface ISearchTeamData {
-  event: IEvent;
-  groups: IGroup[];
+  events: IEvent[];
+  groups: IGroupRelatives[];
   matches: IMatch[];
   nets: INetRelatives[];
   rounds: IRoundRelatives[];
@@ -168,7 +165,7 @@ export interface IUpdateTeamRes extends IResponse {
 export interface IGetTeamWithGroupsAndUnassignedPlayersResponse extends IResponse{
   data?: {
     team: ITeam;
-    event: IEvent;
+    events: IEvent[];
     players: IPlayer[];
     groups: IGroup[];
   }

@@ -30,8 +30,8 @@ export interface IPlayer extends IDocument {
   status: EPlayerStatus,
   event?: string;
   teams?: ITeam[] | string[];
-  captainofteams: ITeam[];
-  cocaptainofteams: ITeam[];
+  captainofteams: ITeam[] | string[];
+  cocaptainofteams: ITeam[] | string[];
 }
 
 export interface IPlayerRank extends IPlayer {

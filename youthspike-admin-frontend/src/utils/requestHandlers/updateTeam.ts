@@ -36,7 +36,7 @@ export async function updateTeam({
     setIsLoading(true);
 
     // Build update input
-    const input = { ...updateTeamState };
+    const input = { ...updateTeamState, players: playerIdList };
     if (!input.captain) delete input.captain;
     delete input.logo;
 

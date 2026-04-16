@@ -5,6 +5,7 @@ import { Match } from 'src/match/match.schema';
 import { Player } from 'src/player/player.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { Team } from 'src/team/team.schema';
+import { Event } from 'src/event/event.schema';
 
 @ObjectType()
 @Schema()
@@ -17,7 +18,7 @@ export class PlayerRankingItem extends AppDocument {
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Player' })
   player: string | Player;
 
-  @Field((type) => PlayerRanking)
+  @Field((_type) => PlayerRanking)
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'PlayerRanking' })
   playerRanking: string | PlayerRanking;
 }
@@ -31,19 +32,20 @@ export class PlayerRanking extends AppDocument {
   @Prop({ required: true, default: false })
   rankLock: boolean;
 
-  @Field((type) => [PlayerRankingItem], { nullable: true })
+  @Field((_type) => [PlayerRankingItem], { nullable: true })
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PlayerRankingItem' }] })
   rankings: PlayerRankingItem[] | string[];
 
   // Make relationship with team(not nullable) and match
   // One to many relationship with team
-  @Field((type) => Team)
+  @Field((_type) => Team)
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Team' })
   team: string | Team;
 
-  @Field((type) => Match, { nullable: true })
+  @Field((_type) => Match, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Match' })
   match?: string | Match;
+
 }
 
 const PlayerRankingItemSchema = SchemaFactory.createForClass(PlayerRankingItem);

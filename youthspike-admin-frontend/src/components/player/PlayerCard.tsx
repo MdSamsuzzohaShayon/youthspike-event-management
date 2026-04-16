@@ -27,7 +27,6 @@ import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 
 interface IProps {
   player: IPlayerRank;
-  eventId: string;
   isChecked: boolean;
   handleSelectPlayer: (e: React.SyntheticEvent, _id: string) => void;
   setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -40,7 +39,7 @@ interface IProps {
   rank?: number | null;
 }
 
-export default function PlayerCard({ player, team, rank, divisionList, refetchFunc, teamList, setIsLoading, eventId, rankControls }: IProps) {
+export default function PlayerCard({ player, team, rank, divisionList, refetchFunc, teamList, setIsLoading, rankControls }: IProps) {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
@@ -77,8 +76,8 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
       setActionOpen((prev) => !prev);
       try {
         if(setIsLoading)setIsLoading(true);
-        if (teamId && eventId) {
-          const response = await mutateTeam({ variables: { input, teamId, eventId } });
+        if (teamId ) {
+          const response = await mutateTeam({ variables: { input, teamId } });
           const success = await handleResponseCheck(response.data?.updateTeam, showMessage);
           if (!success) return;
           window.location.reload();
@@ -89,7 +88,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
         if(setIsLoading)setIsLoading(false);
       }
     },
-    [teamId, eventId, mutateTeam, showMessage, setIsLoading],
+    [teamId, mutateTeam, showMessage, setIsLoading],
   );
 
   const handleMakeCaptain = useCallback(
@@ -299,7 +298,7 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
               {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
                 <>
                   <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-                    <Link href={`/${eventId}/players/${player._id}/${ldoIdUrl}`}>Edit</Link>
+                    <Link href={`/players/${player._id}/${ldoIdUrl}`}>Edit</Link>
                   </li>
                   {rankControls && player.status === EPlayerStatus.ACTIVE && (
                     <>
@@ -347,7 +346,6 @@ export default function PlayerCard({ player, team, rank, divisionList, refetchFu
     ),
     [
       actionOpen,
-      eventId,
       player._id,
       player.email,
       player.status,

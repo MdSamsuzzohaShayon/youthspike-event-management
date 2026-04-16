@@ -1,4 +1,4 @@
-import { EStatsFilter, IAggregatedStats, IFilter, IOption, IPlayer, IPlayerRankingItemExpRel, IPlayerStats, IServerReceiverSinglePlay } from '@/types';
+import { EStatsFilter, IAggregatedStats, IEvent, IFilter, IOption, IPlayer, IPlayerRankingItemExpRel, IPlayerStats, IServerReceiverSinglePlay } from '@/types';
 import { GraphQLError } from 'graphql';
 import { netSize, screen } from './constant';
 
@@ -75,6 +75,34 @@ export const sortPlayerRanking = (pl: IPlayer[], rankings?: IPlayerRankingItemEx
   return { sortedRankings, sortedPlayers };
 };
 
+export const divisionsOfEvents = (events: IEvent[]): string => {
+  if (!events?.length) return '';
+
+  const divisionSet = new Set<string>();
+
+  for (const { divisions } of events) {
+    if (!divisions) continue;
+
+    let current = '';
+    for (let i = 0; i < divisions.length; i++) {
+      const char = divisions[i];
+
+      if (char === ',') {
+        if (current) divisionSet.add(current.trim());
+        current = '';
+      } else {
+        current += char;
+      }
+    }
+
+    // Add last division
+    if (current) divisionSet.add(current.trim());
+  }
+
+  return [...divisionSet].join(',');
+};
+
+
 export const divisionsToOptionList = (divisions: string) => {
   const divs: IOption[] = [];
   if (divisions && divisions.trim() !== '') {
@@ -141,10 +169,10 @@ export const aggregatePlayerStats = (stats: IPlayerStats[]): IAggregatedStats =>
     matchPlayed: 0,
   };
 
-  
-
   // Just sum all the numeric fields from each stat object
-  stats.forEach((stat: IPlayerStats) => {
+  for (let i = 0; i < stats.length; i++) {
+    const stat: IPlayerStats = stats[i];
+
     aggregated.serveOpportunity += stat.serveOpportunity || 0;
     aggregated.serveAce += stat.serveAce || 0;
     aggregated.serveCompletionCount += stat.serveCompletionCount || 0;
@@ -161,7 +189,7 @@ export const aggregatePlayerStats = (stats: IPlayerStats[]): IAggregatedStats =>
     aggregated.break += stat.break || 0;
     aggregated.broken += stat.broken || 0;
     aggregated.matchPlayed += stat.matchPlayed || 0;
-  });
+  }
 
   return aggregated;
 };

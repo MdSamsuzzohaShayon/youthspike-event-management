@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 import { UserRole } from './types/user';
 
 const unauthenticatedPages = ['/login', '/signup', '/userSignup'];
-const directorAuthPages = ['/', '/players', '/matches', '/settings', '/teams', '/new', '/account', '/newevent', '/teamstandings'];
+const directorAuthPages = ['/', '/players', '/matches', '/settings', '/teams', '/new', '/account', '/teamstandings'];
 const capCoPlayerPages = ['/players', '/matches', '/settings', '/teamstandings']; // Player
 const adminPages = ['/', '/admin', '/directors', '/settings', '/teamstandings'];
 

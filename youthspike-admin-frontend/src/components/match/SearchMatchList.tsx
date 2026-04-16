@@ -1,4 +1,4 @@
-import { IMatch, INetRelatives, IRoundRelatives } from '@/types';
+import { IMatch } from '@/types';
 import MatchCard from './MatchCard';
 import { EMatchStatus } from '@/types/match';
 import { useMemo } from 'react';
@@ -12,6 +12,7 @@ interface IMatchListProps {
 
 function SearchMatchList({ matchList = [], eventId }: IMatchListProps) {
   const { showMessage } = useMessage();
+
 
   const sortedMatches = useMemo(() => {
     const statusPriority: Record<EMatchStatus, number> = {

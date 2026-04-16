@@ -5,6 +5,7 @@ import { handleRedirect, sendGraphQLFormData, handleResponseCheck } from './play
 import { IMessage, IResponse } from '@/types';
 import { useMutation } from '@apollo/client/react';
 import { ApolloCache } from '@apollo/client';
+import { handleApiResult } from '../handleError';
 
 interface IUpdatePlayerData extends IResponse{
   data?: IPlayerExpRel;
@@ -43,16 +44,16 @@ async function updatePlayerFn({ showMessage, setIsLoading, playerUpdate, prevPla
       });
     }
 
+    
+    if(playerRes?.errors){
+      const result = handleApiResult({ error: playerRes?.errors });
+      return result;
+    }
     const responseData = playerRes?.data?.updatePlayer;
-    const success = await handleResponseCheck(responseData, showMessage);
-    // if (!success) return;
 
-    // // if (refetch) await refetch();
-    // if (responseData?.data) {
-    //   await handleRedirect(router, eventId, ldoIdUrl, team);
-    //   // router.push(` /${eventId}/players`)
-    // }
-    return success;
+    const result = handleApiResult({ response: responseData });
+    return result;
+
   } catch (err) {
     console.error(err);
   } finally {

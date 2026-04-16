@@ -194,18 +194,16 @@ type Team {
   logo: String
   active: Boolean!
   division: String!
-  rankLock: Boolean
   sendCredentials: Boolean
   num: Float
   captain: Player
   cocaptain: Player
   matches: [Match!]
-  event: Event
+  events: [Event!]
   players: [Player!]
   moved: [Player!]
-  nets: [Net!]!
   playerRankings: [PlayerRanking!]
-  group: Group
+  groups: [Group!]!
   playerRanking: PlayerRanking
   rankings: [PlayerRankingItem!]!
   player: PlayerRankingItem!
@@ -495,21 +493,20 @@ type TeamWithStringPlayers {
   logo: String
   active: Boolean!
   division: String!
-  rankLock: Boolean
   sendCredentials: Boolean
   num: Float
   captain: String
   cocaptain: Player
   matches: [Match!]
-  event: Event
+  events: [Event!]
   players: [String!]
   moved: [Player!]
-  nets: [Net!]!
   playerRankings: [PlayerRanking!]
-  group: String
+  groups: [Group!]!
   playerRanking: PlayerRanking
   rankings: [PlayerRankingItem!]!
   player: PlayerRankingItem!
+  group: String
 }
 
 type PlayerWithTeam {
@@ -611,8 +608,6 @@ type CustomNet {
   teamBScore: Int
   pairRange: Int!
   streamUrl: String
-  teamA: String
-  teamB: String
 }
 
 type CustomMatch {
@@ -652,45 +647,6 @@ type CustomMatch {
   teamBRanking: PlayerRanking
   group: String
   playerstats: [PlayerStats!]
-}
-
-type CustomEvent {
-  _id: String
-  createdAt: String
-  updatedAt: String
-  name: String!
-  logo: String
-  startDate: String!
-  endDate: String!
-  active: Boolean!
-  sendCredentials: Boolean
-  playerLimit: Int!
-  fwango: String
-  defaulted: Boolean
-  ldo: LDO!
-  players: [Player!]!
-  teams: [Team!]!
-  matches: [Match!]!
-  groups: [String!]
-  sponsors: [Sponsor!]!
-  multiplayer: ProStats
-  weight: ProStats
-  templates: [Template!]!
-  divisions: String!
-  nets: Float!
-  rounds: Float!
-  netVariance: Float!
-  homeTeam: String!
-  autoAssign: Boolean!
-  autoAssignLogic: String!
-  rosterLock: String!
-  tieBreaking: String
-  timeout: Float!
-  coachPassword: String!
-  description: String
-  location: String
-  accessCode: String
-  defaultSponsor: Boolean
 }
 
 type CaptainPlayer {
@@ -747,19 +703,36 @@ type CoCaptainPlayer {
   event: Event!
 }
 
+type TeamPlayerStats {
+  team: CustomTeam
+  oponents: [CustomTeam!]
+  players: [CustomPlayer!]
+  rounds: [CustomRound!]
+  nets: [CustomNet!]
+  events: [CustomEvent!]
+  matches: [CustomMatch!]
+  statsOfPlayers: [PlayerStatsEntry!]!
+}
+
+type GetPlayerStatsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: TeamPlayerStats
+}
+
 type TeamRoster {
   team: Team
   players: [CustomPlayer!]
   playerRanking: CustomPlayerRanking
   rankings: [CustomPlayerRankingItem!]
-  event: Event
-  statsOfPlayer: [PlayerStatsEntry!]!
+  events: [Event!]
 }
 
 type TeamMatches {
   team: CustomTeam
-  teams: [CustomTeam!]
-  event: Event
+  oponents: [CustomTeam!]
+  events: [CustomEvent!]
   matches: [CustomMatch!]
   rounds: [CustomRound!]
   nets: [CustomNet!]
@@ -770,22 +743,14 @@ type TeamDetails {
   players: [CustomPlayer!]
   playerRanking: CustomPlayerRanking
   rankings: [CustomPlayerRankingItem!]
-  event: Event
-  statsOfPlayer: [PlayerStatsEntry!]!
-  group: Group
+  events: [Event!]
+  groups: [CustomGroup!]
   captain: CaptainPlayer
   cocaptain: CoCaptainPlayer
   matches: [CustomMatch!]
   rounds: [CustomRound!]
   nets: [CustomNet!]
   teams: [Team!]
-}
-
-type GetTeamDetailsResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: TeamDetails
 }
 
 type GetTeamRosterResponse {
@@ -803,7 +768,7 @@ type GetTeamMatchesResponse {
 }
 
 type TeamSearch {
-  event: CustomEvent
+  events: [CustomEvent!]
   teams: [CustomTeam!]
   groups: [CustomGroup!]
   nets: [CustomNet!]
@@ -819,24 +784,8 @@ type GetTeamSearchResponse {
   data: TeamSearch
 }
 
-type Teamstandings {
-  event: Event
-  teams: [CustomTeam!]
-  groups: [CustomGroup!]
-  matches: [CustomMatch!]
-  rounds: [CustomRound!]
-  nets: [CustomNet!]
-}
-
-type GetTeamstandingsResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: Teamstandings
-}
-
 type TeamWithGroupsAndUnAssignedPlayers {
-  event: Event
+  events: [Event!]
   team: CustomTeam
   groups: [CustomGroup!]
   players: [CustomPlayer!]
@@ -883,18 +832,16 @@ type CustomTeam {
   logo: String
   active: Boolean!
   division: String!
-  rankLock: Boolean
   sendCredentials: Boolean
   num: Float
   captain: String
   cocaptain: String
   matches: [String!]
-  event: Event
+  events: [Event!]
   players: [String!]
   moved: [Player!]
-  nets: [String!]
   playerRankings: [PlayerRanking!]
-  group: String
+  groups: [String!]
   playerRanking: PlayerRanking
   rankings: [PlayerRankingItem!]!
   player: PlayerRankingItem!
@@ -1035,15 +982,8 @@ type EventWithPlayers {
   rankings: [CustomPlayerRankingItem!]!
 }
 
-type GetEventWithPlayersResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: EventWithPlayers
-}
-
 type PlayerAndTeams {
-  event: Event!
+  events: [Event!]!
   player: CustomPlayer
   teams: [CustomTeam!]
 }
@@ -1171,6 +1111,45 @@ type GetEventResponse {
   data: Event
 }
 
+type CustomEvent {
+  _id: String
+  createdAt: String
+  updatedAt: String
+  name: String!
+  logo: String
+  startDate: String!
+  endDate: String!
+  active: Boolean!
+  sendCredentials: Boolean
+  playerLimit: Int!
+  fwango: String
+  defaulted: Boolean
+  ldo: LDO!
+  players: [String!]
+  teams: [String!]!
+  matches: [String!]
+  groups: [String!]
+  sponsors: [Sponsor!]!
+  multiplayer: ProStats
+  weight: ProStats
+  templates: [Template!]!
+  divisions: String!
+  nets: Float!
+  rounds: Float!
+  netVariance: Float!
+  homeTeam: String!
+  autoAssign: Boolean!
+  autoAssignLogic: String!
+  rosterLock: String!
+  tieBreaking: String
+  timeout: Float!
+  coachPassword: String!
+  description: String
+  location: String
+  accessCode: String
+  defaultSponsor: Boolean
+}
+
 type PlayerStatsEntry {
   playerId: String!
   stats: [CustomPlayerStats!]!
@@ -1198,13 +1177,6 @@ type PlayerEventSetting {
   weight: ProStats
   stats: ProStats
   player: CustomPlayer
-}
-
-type GetEventDetailsResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-  data: EventDetails
 }
 
 type GroupsAndUnassignedPlayers {
@@ -1445,19 +1417,17 @@ type Query {
   searchTemplates(eventId: String!, filter: TemplateSearchFilter): GetTemplateSearchResponse!
   getUser(userId: String!): UserResponse!
   getEvents(directorId: String): GetEventsResponse!
-  getEventDetails(eventId: String!, filter: EventFilterInput!): GetEventDetailsResponse!
   getEventWithGroupsAndUnassignedPlayers(eventId: String!): GetEventWithGroupsAndUnassignedPlayersResponse!
   getPlayerEventSetting(eventId: String): GetPlayerEventSettingResponse!
   getEvent(eventId: String!): GetEventResponse!
-  getTeams(eventId: String, limit: Float = 30, offset: Float = 0): GetTeamsResponse!
+  getTeams(eventIds: [String!], limit: Float = 30, offset: Float = 0): GetTeamsResponse!
   getEventWithTeams(eventId: String): GetEventWithTeamsResponse!
   getTeam(teamId: String!): GetTeamResponse!
-  getTeamDetails(teamId: String!): GetTeamDetailsResponse!
+  getStatsOfPlayers(teamId: String!): GetPlayerStatsResponse!
   getTeamRoster(teamId: String!): GetTeamRosterResponse!
   getTeamMatches(teamId: String!): GetTeamMatchesResponse!
-  searchTeams(eventId: String!, filter: TeamSearchFilter): GetTeamSearchResponse!
-  getTeamStandings(eventId: String!): GetTeamstandingsResponse!
-  getTeamWithGroupsAndUnassignedPlayers(eventId: String!, teamId: String!): GetTeamWithGroupsAndUnAssignedPlayersResponse!
+  searchTeams(eventIds: [String!], filter: TeamSearchFilter): GetTeamSearchResponse!
+  getTeamWithGroupsAndUnassignedPlayers(eventIds: [String!], teamId: String!): GetTeamWithGroupsAndUnAssignedPlayersResponse!
   getMatches(filter: FilterQueryInput): GetMatchesResponse!
   searchMatches(filter: SearchFilterInput, eventId: String): GetEventWithMatchesResponse!
   getEventWithMatches(eventId: String!): GetEventWithMatchesResponse!
@@ -1469,9 +1439,8 @@ type Query {
   getEventDirectors: GetDirectorsLDOResponse!
   getSystemDetails: GetSystemDetailsResponse!
   getPlayer(playerId: String!): PlayerResponse!
-  getPlayerAndTeams(playerId: String!, eventId: String!): GetPlayerAndTeamsResponse!
+  getPlayerAndTeams(playerId: String!, eventIds: [String!]): GetPlayerAndTeamsResponse!
   getPlayers(eventId: String, limit: Float = 30, offset: Float = 0): PlayersResponse!
-  getEventWithPlayers(eventId: String!): GetEventWithPlayersResponse!
   searchPlayers(eventId: String!, filter: PlayerSearchFilter): SearchPlayersResponse!
   getGroups(eventId: String): GetGroupsResponse!
   getGroup(groupId: String!): GetGroupResponse!
@@ -1486,20 +1455,6 @@ input TemplateSearchFilter {
   search: String
   offset: Int = 0
   limit: Int = 30
-}
-
-input EventFilterInput {
-  item: EEventItem
-  search: String
-  division: String
-  group: String
-  limit: Int
-}
-
-enum EEventItem {
-  PLAYER
-  MATCH
-  TEAM
 }
 
 input TeamSearchFilter {
@@ -1567,7 +1522,7 @@ type Mutation {
   updateEventCache(eventId: String!): CreateOrUpdateEventResponse!
   deleteEvent(eventId: String!): GetEventResponse!
   createTeam(input: CreateTeamInput!, logo: Upload): CreateOrUpdateTeamResponse!
-  updateTeam(input: UpdateTeamInput!, teamId: String!, eventId: String!, logo: Upload): CreateOrUpdateTeamResponse!
+  updateTeam(input: UpdateTeamInput!, teamId: String!, logo: Upload): CreateOrUpdateTeamResponse!
   updateTeams(input: UpdateTeamsInput!, eventId: String!, logo: Upload): CreateOrUpdateTeamsResponse!
   deleteTeam(teamId: String!): CreateOrUpdateTeamResponse!
   deleteTeams(teamIds: [String!]!): CreateOrUpdateTeamResponse!

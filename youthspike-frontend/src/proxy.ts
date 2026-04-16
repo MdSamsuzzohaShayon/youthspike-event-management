@@ -33,7 +33,7 @@ export function proxy(request: NextRequest) {
   /**
    * Root route handling (/)
    */
-  if (pathname === "/") {
+  if (pathname === "/" && currentEventId) {
     if (token?.value && user?.value) {
       try {
         const userObj: IUser = JSON.parse(user.value);
@@ -55,7 +55,7 @@ export function proxy(request: NextRequest) {
   /**
    * Redirect /events/:id → /events/:id/matches
    */
-  if (pathname === `/events/${currentEventId}`) {
+  if (currentEventId && pathname === `/events/${currentEventId}`) {
     return NextResponse.redirect(
       new URL(`/events/${currentEventId}/matches`, request.url)
     );

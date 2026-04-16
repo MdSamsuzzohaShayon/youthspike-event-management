@@ -7,11 +7,11 @@ import { IGetTeamMatchesResponse } from "@/types";
 import { GET_TEAM_MATCHES } from "@/graphql/teams";
 import TeamMatchesContainer from "@/components/teams/TeamMatchesContainer";
 
-interface TeamMatchesPageProps {
+interface ITeamMatchesPageProps {
   params: Promise<{ teamId: string }>;
 }
 
-async function TeamMatchesPage({ params }: TeamMatchesPageProps) {
+async function TeamMatchesPage({ params }: ITeamMatchesPageProps) {
   const { teamId } = await params;
 
   return (

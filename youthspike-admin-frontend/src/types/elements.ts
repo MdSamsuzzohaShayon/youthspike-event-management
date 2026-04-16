@@ -30,7 +30,7 @@ export interface ITextCommon {
   label?: string;
   className?: string;
   required?: boolean;
-  value?: string | number;
+  value?: string | number | null;
   readOnly?: boolean;
 }
 

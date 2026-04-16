@@ -42,6 +42,11 @@ export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, pr
   const [eventState, setEventState] = useState<IEventAdd>(
     prevEvent ? { ...prevEvent, coachPassword: initialEvent.coachPassword } : initialEvent
   );
+
+  console.log("undefined" in eventState);
+  console.log(eventState);
+  
+  
   const [multiplayer, setMultiplayer] = useState<IProStatsAdd>(prevMultiplayer || initialProStats);
   const [weight, setWeight] = useState<IProStatsAdd>(prevWight || initialProStats);
   

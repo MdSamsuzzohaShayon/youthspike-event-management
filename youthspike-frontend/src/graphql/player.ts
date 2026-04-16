@@ -122,7 +122,7 @@ query SearchPlayerStats($eventId: String!, $filter: PlayerStatsSearchFilter) {
       teams {
         _id
         logo
-        group
+        groups
         name
         division
         captain

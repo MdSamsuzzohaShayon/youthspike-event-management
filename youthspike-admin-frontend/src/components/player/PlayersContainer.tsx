@@ -1,11 +1,12 @@
 'use client'
 
-import { IGetPlayersResponse } from '@/types';
+import { IGetPlayersResponse, IPlayerExpRel } from '@/types';
 import { QueryRef, useApolloClient, useReadQuery } from '@apollo/client/react';
 import PlayerTable from './PlayerTable';
 import { notFound } from 'next/navigation';
-import { useCallback, useState } from 'react';
+import { Reference, useCallback, useState } from 'react';
 import { GET_PLAYERS_MIN } from '@/graphql/players';
+import { StoreObject } from '@apollo/client';
 
 const PLAYERS_LIMIT = 30;
 
@@ -25,13 +26,13 @@ function PlayersContainer({ queryRef }: { queryRef: QueryRef<{ getPlayers: IGetP
     // Execute GraphQL query
     const executeSearchQuery = useCallback(
         async (offset: number = 0) => {
-            const result = await apolloClient.query({
+            const result = await apolloClient.query<{ getPlayers: IGetPlayersResponse }>({
                 query: GET_PLAYERS_MIN,
                 variables: { limit: PLAYERS_LIMIT, offset },
                 fetchPolicy: 'network-only',
             });
 
-            return result.data.getPlayers;
+            return result.data?.getPlayers;
         },
         [apolloClient],
     );
@@ -50,21 +51,23 @@ function PlayersContainer({ queryRef }: { queryRef: QueryRef<{ getPlayers: IGetP
 
             if (newPlayers.length > 0) {
                 // ✅ 🔥 MANUAL CACHE UPDATE
+
                 apolloClient.cache.modify({
                     fields: {
-                        getPlayers(existing: IGetPlayersResponse | undefined) {
-                            if (!existing) return existing;
-
-                            return {
-                                ...existing,
-                                data: [
-                                    ...(existing.data || []),
-                                    ...newPlayers,
-                                ],
-                            };
-                        },
+                      getPlayers(
+                        existing: Reference | StoreObject | undefined,
+                        { readField }
+                      ) {
+                        if (!existing) return existing;
+                        // @ts-ignore
+                        const existingData = (readField('data', existing) as IPlayerExpRel[] | undefined) ?? [];
+                        return {
+                          ...(existing as StoreObject),
+                          data: [...existingData, ...newPlayers],
+                        };
+                      },
                     },
-                });
+                  });
 
                 setCurrentOffset(newOffset);
                 // Check if there are more players
@@ -85,7 +88,7 @@ function PlayersContainer({ queryRef }: { queryRef: QueryRef<{ getPlayers: IGetP
                 <h2 className="text-3xl md:text-4xl font-bold text-yellow-400 text-center mb-6">Players</h2>
 
                 <div className="overflow-hidden shadow-lg rounded-lg border border-gray-700">
-                    <PlayerTable players={players} />
+                    {players && <PlayerTable players={players as IPlayerExpRel[]} /> }
                 </div>
 
                 <div className="mt-8 text-center">

@@ -467,7 +467,8 @@ export default function ServerReceiver({
 
   if (
     finalRoundIncomplete &&
-    currMatch.tieBreaking !== ETieBreakingStrategy.OVERTIME_ROUND
+    currMatch.tieBreaking !== ETieBreakingStrategy.OVERTIME_ROUND &&
+    currMatch.tieBreaking !== ETieBreakingStrategy.MATCH_TIE // Allow match tie 
   ) {
     return (
       <div className="w-full">

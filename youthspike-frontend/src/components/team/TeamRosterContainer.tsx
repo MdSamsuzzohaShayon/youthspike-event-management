@@ -1,22 +1,14 @@
-// components/team/TeamRosterContainer.tsx
-"use client";
+'use client';
 
-import React, { useMemo } from "react";
-import { useReadQuery } from "@apollo/client/react";
-import { QueryRef } from "@apollo/client/react";
-import {
-  IPlayer,
-  IMatch,
-  IAllStats,
-  IGetTeamRosterResponse,
-  ITeam,
-} from "@/types";
-import PlayerStandings from "@/components/player/PlayerStandings";
-import { CldImage } from "next-cloudinary";
-import TextImg from "../elements/TextImg";
-import { usePathname } from "next/navigation";
-import TeamNavigation from "./TeamNavigation";
-import { useLdoId } from "@/lib/LdoProvider";
+import { useEffect, useMemo } from 'react';
+import { useReadQuery, QueryRef } from '@apollo/client/react';
+import { IPlayer, IGetTeamRosterResponse, IPlayerRankingExpRel } from '@/types';
+import { notFound } from 'next/navigation';
+import { useLdoId } from '@/lib/LdoProvider';
+import TeamNavigation from './TeamNavigation';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { TEAM } from '@/utils/constant';
+import RosterWrapper from './RosterWrapper';
 
 interface TeamRosterContainerProps {
   queryRef: QueryRef<{ getTeamRoster: IGetTeamRosterResponse }>;
@@ -24,108 +16,96 @@ interface TeamRosterContainerProps {
 }
 
 function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
+  const { ldoIdUrl } = useLdoId();
   const { data } = useReadQuery(queryRef);
-  const {ldoIdUrl} = useLdoId();
 
-  if (!data?.getTeamRoster?.data) {
-    return <div>Team not found</div>;
-  }
+  const rosterData = data?.getTeamRoster?.data;
+  if (!rosterData) notFound();
 
-  const { team, players, rankings, statsOfPlayer, event } = data.getTeamRoster.data;
+  const { team, players, rankings, events, playerRanking } = rosterData;
 
-  
+  if (!team) notFound();
 
-  const playerStatsMap = useMemo(
-    () =>
-      new Map(statsOfPlayer.map((ps: IAllStats) => [ps.playerId, ps.stats])),
-    [statsOfPlayer]
-  );
-
+  /**
+   * ✅ Optimized:
+   * - Single pass over rankings
+   * - O(1) lookup using Map
+   * - Avoid unnecessary spreads unless needed
+   */
   const playerList = useMemo(() => {
-    const rankingIds = new Set<string>(rankings.map((r: any) => r.player));
+    if (!players?.length || !rankings?.length) return [];
 
-    return players
-      .filter((p: IPlayer) => rankingIds.has(p._id))
-      .map((p: IPlayer) => ({
-        ...p,
-        teams: [team],
-      }));
-  }, [players, rankings, team]);
+    const rankingMap = new Map<string, true>();
 
-  if (!team) {
-    return <div>Team not found</div>;
-  }
+    for (let i = 0; i < rankings.length; i++) {
+      rankingMap.set(String(rankings[i].player), true);
+    }
 
-  const pathname = usePathname();
+    const result: IPlayer[] = [];
 
+    for (let i = 0; i < players.length; i++) {
+      const p = players[i];
 
+      if (rankingMap.has(p._id)) {
+        // Only create new object if required
+        result.push({
+          ...p,
+          teams: [team._id as unknown as string],
+        });
+      }
+    }
+
+    return result;
+  }, [players, rankings, team._id]);
+
+  /**
+   * ✅ Avoid unnecessary object recreation
+   */
+  const playerRankingData: IPlayerRankingExpRel | null = useMemo(() => {
+    if (!playerRanking) return null;
+    return {
+      ...playerRanking,
+      rankings,
+    };
+  }, [playerRanking, rankings]);
+
+  /**
+   * ✅ Side effect (unchanged but safe)
+   */
+  useEffect(() => {
+    SessionStorageService.setItem(TEAM, team._id);
+    return () => {
+      SessionStorageService.removeItem(TEAM);
+    };
+  }, [team._id]);
 
   return (
-    <div className="min-h-screen bg-gray-900 pb-4">
-      {/* Header Section */}
-      <div className="header bg-gray-800 rounded-xl mb-4">
-        {/* Compact Header */}
-        <div className="border-b border-yellow-500/30 px-3 py-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <TeamLogo team={team} />
-              <div className="min-w-0">
-                <h1 className="text-sm font-bold text-white truncate leading-tight">
-                  {team?.name || "Loading..."}
-                </h1>
-                {/* <p className="text-xs text-gray-400 truncate leading-tight">
-                  {event?.name || "Loading..."}
-                </p> */}
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <StatItem label="Players" value={playerList?.length || 0} />
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <TeamNavigation eventId={event?._id} ldoIdUrl={ldoIdUrl} pathname={pathname} team={team} />
+    <div className="min-h-screen">
+      {/* Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-yellow-500/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-yellow-600/5 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
-      {/* Page Content */}
-      <div className="min-h-screen">
-        <PlayerStandings
-          playerStatsMap={playerStatsMap}
-          matchList={team.matches as IMatch[]}
-          playerList={playerList}
-          teamRank
-        />
+      <TeamNavigation
+        events={events}
+        ldoIdUrl={ldoIdUrl}
+        team={team}
+        totalPlayers={playerList.length}
+      />
+
+      <div className="relative z-10">
+        <div className="animate-fadeInUp">
+          <RosterWrapper
+            events={events}
+            players={playerList} // ✅ USE FILTERED LIST
+            team={team}
+            playerRanking={playerRankingData}
+          />
+        </div>
       </div>
     </div>
   );
 }
-
-const TeamLogo = ({ team }: { team: ITeam }) =>
-  team?.logo ? (
-    <CldImage
-      alt={team.name}
-      width={32}
-      height={32}
-      src={team.logo}
-      className="w-8 h-8 rounded-lg border border-yellow-500/30 object-cover object-center flex-shrink-0"
-      crop="fit"
-    />
-  ) : (
-    <TextImg
-      className="w-8 h-8 rounded-lg border border-yellow-500/30 flex-shrink-0"
-      fullText={team?.name || ""}
-      txtCls="text-sm font-bold"
-    />
-  );
-
-const StatItem = ({ label, value }: { label: string; value: number }) => (
-  <div className="text-right">
-    <div className="text-xs text-gray-400">{label}</div>
-    <div className="text-white font-bold text-sm">{value}</div>
-  </div>
-);
-
-
 
 export default TeamRosterContainer;

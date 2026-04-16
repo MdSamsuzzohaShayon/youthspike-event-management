@@ -211,7 +211,6 @@ query GetEventWithMatches($eventId: String!) {
         logo
         active
         division
-        rankLock
         sendCredentials
         num
         matches
@@ -315,7 +314,6 @@ query GetMatches {
     }
   }
 }
-
 `;
 
 const SEARCH_MATCHES = gql`
@@ -387,7 +385,7 @@ const SEARCH_MATCHES = gql`
           division
           matches
           logo
-          group
+          groups
           active
         }
       }

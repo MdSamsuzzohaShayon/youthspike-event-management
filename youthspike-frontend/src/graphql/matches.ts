@@ -239,7 +239,7 @@ query SearchMatches($eventId: String!, $filter: SearchFilterInput) {
         division
         matches
         logo
-        group
+        groups
         active
       }
     }
