@@ -36,6 +36,7 @@ export interface ITeamScore {
   groupLoses: number;
   matchAvgDiff: number;
   gameAvgDiff: number;
+  groupMatches: number;
 }
 
 export interface ITeamFilter {
