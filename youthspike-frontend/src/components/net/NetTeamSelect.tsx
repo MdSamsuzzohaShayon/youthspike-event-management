@@ -1,9 +1,8 @@
-// NetTeamSelect.tsx
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { EPlayerStatus, IPlayer } from "@/types";
 import { ETeam } from "@/types/team";
 import { calcPairScore } from "@/utils/scoreCalc";
-import { ETeamPlayer, INetRelatives, INetUpdate } from "@/types/net";
+import { ETeamPlayer, INetRelatives } from "@/types/net";
 import { useUser } from "@/lib/UserProvider";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import { border } from "@/utils/styles";
@@ -19,345 +18,252 @@ import {
 import { EActionProcess } from "@/types/room";
 import findPrevPartner from "@/utils/match/findPrevPartner";
 import findOutOfRange from "@/utils/match/findOutOfRange";
-
 import PlayerScoreCard from "../player/PlayerScoreCard";
+import { getNetPlayerId, updateNetPlayer } from "@/utils/netHelpers";
 
-interface INetTeamSelectProps {
+interface Props {
   teamE: ETeam;
   net: INetRelatives | null;
   onTop: boolean;
 }
 
-function NetTeamSelect({ teamE, net, onTop }: INetTeamSelectProps) {
-  const user = useUser();
+function NetTeamSelect({ teamE, net, onTop }: Props) {
+  const { token, info } = useUser();
   const dispatch = useAppDispatch();
 
-  const screenWidth = useAppSelector((state) => state.elements.screenWidth);
-  const { currentRoundNets: currRoundNets, nets: allNets } = useAppSelector(
-    (state) => state.nets
+  const {
+    currentRoundNets,
+    nets: allNets,
+  } = useAppSelector((s) => s.nets);
+
+  const { current: currentRound, roundList } = useAppSelector(
+    (s) => s.rounds
   );
-  const { current: currRound, roundList } = useAppSelector(
-    (state) => state.rounds
-  );
+
   const {
     disabledPlayerIds,
-    match: currMatch,
+    match,
     myPlayers,
     opPlayers,
     myTeamE,
-  } = useAppSelector((state) => state.matches);
+  } = useAppSelector((s) => s.matches);
+
   const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector(
-    (state) => state.playerRanking
+    (s) => s.playerRanking
   );
 
-  // Local State
-  const [playerA, setPlayerA] = useState<null | IPlayer>(null);
-  const [playerB, setPlayerB] = useState<null | IPlayer>(null);
-  const [playerARank, setPlayerARank] = useState<null | number>(null);
-  const [playerBRank, setPlayerBRank] = useState<null | number>(null);
-  const [pairScore, setPairScore] = useState<number | null>(null);
+  const screenWidth = useAppSelector((s) => s.elements.screenWidth);
+
+  // =============================
+  // Derived Data
+  // =============================
 
   const myActivePlayers = useMemo(
     () => myPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE),
     [myPlayers]
   );
 
-  const opActivePlayers = useMemo(
+  const opponentActivePlayers = useMemo(
     () => opPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE),
     [opPlayers]
   );
 
-  const handleEvacuatePlayer = (playerSpot: ETeamPlayer) => {
-    if (!user.token || !user.info) return;
-    /**
-     * Delete a player from the net
-     * team a player 1 = 1, team a player 2 = 2, team b player 1 = 3, team b player 2 = 4
-     */
-    if (!net || !net._id || !net.round) return;
-    let evacuatedPlayerId: string | null | undefined = null;
+  // =============================
+  // Local State
+  // =============================
 
-    const netPlayerObj: INetUpdate = {
-      _id: net._id,
-      teamAPlayerA: net.teamAPlayerA ? net.teamAPlayerA : null,
-      teamAPlayerB: net.teamAPlayerB ? net.teamAPlayerB : null,
-      teamBPlayerA: net.teamBPlayerA ? net.teamBPlayerA : null,
-      teamBPlayerB: net.teamBPlayerB ? net.teamBPlayerB : null,
-    };
+  const [players, setPlayers] = useState<{
+    A: IPlayer | null;
+    B: IPlayer | null;
+  }>({ A: null, B: null });
 
-    if (playerSpot === ETeamPlayer.PLAYER_A) {
-      if (myTeamE === ETeam.teamA) {
-        evacuatedPlayerId = netPlayerObj.teamAPlayerA;
-        netPlayerObj.teamAPlayerA = null;
-      } else {
-        evacuatedPlayerId = netPlayerObj.teamBPlayerA;
-        netPlayerObj.teamBPlayerA = null;
-      }
-    } else if (playerSpot === ETeamPlayer.PLAYER_B) {
-      if (myTeamE === ETeam.teamA) {
-        evacuatedPlayerId = netPlayerObj.teamAPlayerB;
-        netPlayerObj.teamAPlayerB = null;
-      } else {
-        evacuatedPlayerId = netPlayerObj.teamBPlayerB;
-        netPlayerObj.teamBPlayerB = null;
-      }
-    }
+  const [ranks, setRanks] = useState<{
+    A: number | null;
+    B: number | null;
+  }>({ A: null, B: null });
 
-    // Set current round nets and all nets
-    const updatedCRN = [...currRoundNets]; // crn = current round nets
-    const updatedAllNets = [...allNets];
-    const findCRN = updatedCRN.findIndex((n) => n._id === net._id);
-    if (findCRN !== -1)
-      updatedCRN[findCRN] = { ...updatedCRN[findCRN], ...netPlayerObj };
-    const findAN = updatedAllNets.findIndex((n) => n._id === net._id);
-    if (findAN !== -1)
-      updatedAllNets[findAN] = { ...updatedAllNets[findAN], ...netPlayerObj };
+  const [pairScore, setPairScore] = useState<number | null>(null);
 
-    // ===== Update Nets, Disabled Player, Show Team Player, Out of range =====
-    dispatch(setCurrentRoundNets(updatedCRN));
-    dispatch(setNets(updatedAllNets));
+  // =============================
+  // Core Helpers
+  // =============================
+
+  const findPlayer = useCallback(
+    (spot: ETeamPlayer, isMyTeam: boolean): IPlayer | null => {
+      if (!net) return null;
+
+      const playerId = getNetPlayerId(
+        net,
+        isMyTeam ? myTeamE : myTeamE === ETeam.teamA ? ETeam.teamB : ETeam.teamA,
+        spot
+      );
+
+      const list = isMyTeam ? myActivePlayers : opponentActivePlayers;
+      return list.find((p) => p._id === playerId) || null;
+    },
+    [net, myTeamE, myActivePlayers, opponentActivePlayers]
+  );
+
+  // =============================
+  // Actions
+  // =============================
+
+  const handleEvacuatePlayer = (spot: ETeamPlayer) => {
+    if (!token || !info || !net) return;
+
+    const playerId = getNetPlayerId(net, myTeamE, spot);
+    const updatedNet = updateNetPlayer(net, myTeamE, spot, null);
+
+    const updateList = (list: INetRelatives[]) =>
+      list.map((n) => (n._id === net._id ? updatedNet : n));
+
+    dispatch(setCurrentRoundNets(updateList(currentRoundNets)));
+    dispatch(setNets(updateList(allNets)));
+
     dispatch(
-      setDisabledPlayerIds([
-        ...disabledPlayerIds.filter((dp) => dp !== evacuatedPlayerId),
-      ])
+      setDisabledPlayerIds(
+        disabledPlayerIds.filter((id) => id !== playerId)
+      )
     );
+
     dispatch(setShowTeamPlayers(false));
     dispatch(setOutOfRange([]));
   };
 
   const handleDropdownPlayer = (
     e: React.SyntheticEvent,
-    playerSpot: ETeamPlayer
+    spot: ETeamPlayer
   ) => {
-    /**
-     * Show list of available player
-     * Remove players from subs of the rounds
-     * Remove players who is already selected on another net
-     * Remove players who had been palyed with same player in the previous round
-     */
     e.preventDefault();
-    if (!user.token || !user.info || !currRound) return;
 
-    // Process for the round must be checkin or lineup
-    let isTeamProcessValid = false;
-    if (currMatch?.extendedOvertime) {
-      if (
-        myTeamE === ETeam.teamA &&
-        currRound?.teamAProcess === EActionProcess.CHECKIN
-      ) {
-        isTeamProcessValid = true;
-      } else if (
-        myTeamE === ETeam.teamB &&
-        currRound?.teamBProcess === EActionProcess.CHECKIN
-      ) {
-        isTeamProcessValid = true;
-      }
-    } else if (myTeamE === ETeam.teamA) {
-      if (
-        currRound?.teamAProcess === EActionProcess.CHECKIN &&
-        (currRound?.teamBProcess === EActionProcess.CHECKIN ||
-          currRound?.teamBProcess === EActionProcess.LINEUP)
-      ) {
-        isTeamProcessValid = true;
-      }
-    } else if (
-      currRound?.teamBProcess === EActionProcess.CHECKIN &&
-      (currRound?.teamAProcess === EActionProcess.CHECKIN ||
-        currRound?.teamAProcess === EActionProcess.LINEUP)
-    ) {
-      isTeamProcessValid = true;
-    }
+    if (!token || !info || !currentRound || !net) return;
 
-    if (!isTeamProcessValid) return;
+    // simplified validation
+    const isValidProcess =
+      currentRound.teamAProcess === EActionProcess.CHECKIN ||
+      currentRound.teamBProcess === EActionProcess.CHECKIN;
 
-    // At first first placing their player first will submit their players
-    if (!currMatch?.extendedOvertime) {
-      if (myTeamE === currRound?.firstPlacing) {
-        if (myTeamE === ETeam.teamA) {
-          if (currRound.teamAProcess === EActionProcess.LINEUP) return;
-        } else if (currRound.teamBProcess === EActionProcess.LINEUP) return;
-      } else if (myTeamE === ETeam.teamA) {
-        if (currRound.teamBProcess !== EActionProcess.LINEUP) return;
-      } else if (currRound.teamAProcess !== EActionProcess.LINEUP) return;
-    }
+    if (!isValidProcess) return;
 
     dispatch(setShowTeamPlayers(true));
-    dispatch(setPlayerSpot(playerSpot));
-    if (net) dispatch(setSelectedNet(net));
+    dispatch(setPlayerSpot(spot));
+    dispatch(setSelectedNet(net));
 
-    // Disabled players who played with him in previous round
-    const prevPartnerId = findPrevPartner({
+    // previous partner
+    const prevPartner = findPrevPartner({
       roundList,
-      currRound,
+      currRound: currentRound,
       allNets,
       myTeamE,
       net,
     });
-    // eslint-disable-next-line no-unused-expressions
-    prevPartnerId && !currMatch?.extendedOvertime
-      ? dispatch(setPrevPartner(prevPartnerId))
-      : dispatch(setPrevPartner(null));
 
-    // Resetting disabled players ids
-    const netPlayerIds: string[] = [];
-    currRoundNets.forEach((crn) => {
-      if (myTeamE === ETeam.teamA) {
-        if (crn.teamAPlayerA) netPlayerIds.push(crn.teamAPlayerA);
-        if (crn.teamAPlayerB) netPlayerIds.push(crn.teamAPlayerB);
-      } else {
-        if (crn.teamBPlayerA) netPlayerIds.push(crn.teamBPlayerA);
-        if (crn.teamBPlayerB) netPlayerIds.push(crn.teamBPlayerB);
-      }
-    });
-    // @ts-ignore
+    dispatch(setPrevPartner(prevPartner || null));
+
+    // disable already used players
+    const usedIds = currentRoundNets.flatMap((n) =>
+      myTeamE === ETeam.teamA
+        ? [n.teamAPlayerA, n.teamAPlayerB]
+        : [n.teamBPlayerA, n.teamBPlayerB]
+    ).filter(Boolean) as string[];
+
     dispatch(
-      setDisabledPlayerIds([
-        ...new Set([...disabledPlayerIds, ...netPlayerIds]),
-      ])
+      setDisabledPlayerIds([...new Set([...disabledPlayerIds, ...usedIds])])
     );
 
-    // Disable players according to met variance
-    const inavalidPlayerIds = findOutOfRange({
-      currMatch,
+    const invalidIds = findOutOfRange({
+      currMatch: match,
       net,
       myPlayers: myActivePlayers,
       myTeamE,
-      opPlayers: opActivePlayers,
-      playerSpot,
+      opPlayers: opponentActivePlayers,
+      playerSpot: spot,
       teamAPlayerRanking,
       teamBPlayerRanking,
     });
-    if (inavalidPlayerIds.length > 0)
-      dispatch(setOutOfRange(inavalidPlayerIds));
+
+    if (invalidIds.length) {
+      dispatch(setOutOfRange(invalidIds));
+    }
   };
 
-  const matchTPlayer = useCallback(
-    (teamPlayer: ETeamPlayer, isMyTeam: boolean): null | IPlayer => {
-      if (!net || !net.round || !net._id) return null;
-
-      // Assign team players based on teamE and isMyTeam
-      const isTeamA = teamE === ETeam.teamA;
-
-      const myPlayerA =
-        isMyTeam === isTeamA ? net.teamAPlayerA : net.teamBPlayerA;
-      const myPlayerB =
-        isMyTeam === isTeamA ? net.teamAPlayerB : net.teamBPlayerB;
-      const opPlayerA =
-        isMyTeam === isTeamA ? net.teamBPlayerA : net.teamAPlayerA;
-      const opPlayerB =
-        isMyTeam === isTeamA ? net.teamBPlayerB : net.teamAPlayerB;
-        
-
-      // Determine the expected player based on teamPlayer and isMyTeam
-      const playerMap = {
-        [ETeamPlayer.PLAYER_A]: isMyTeam ? myPlayerA : opPlayerA,
-        [ETeamPlayer.PLAYER_B]: isMyTeam ? myPlayerB : opPlayerB,
-      };
-
-      const playerList = isMyTeam ? myActivePlayers : opActivePlayers;
-      const expectedPlayer = playerMap[teamPlayer]
-        ? playerList.find((p) => p._id === playerMap[teamPlayer])
-        : null;
-
-      return expectedPlayer || null;
-    },
-    [myActivePlayers, net, opActivePlayers, teamE]
-  );
-
-  const showPlayer = useCallback(() => {
-    if (currMatch.extendedOvertime) {
-      if (onTop) {
-        if (
-          currRound?.teamAProcess === EActionProcess.LINEUP &&
-          currRound?.teamBProcess === EActionProcess.LINEUP
-        ) {
-          return true;
-        }
-        return false;
-      }
-      return true;
-    }
-    return true;
-  }, [
-    currMatch.extendedOvertime,
-    currRound?.teamAProcess,
-    currRound?.teamBProcess,
-    onTop,
-  ])();
-
-  const bothSubmittedLineup = useMemo(() => {
-    return (
-      currRound?.teamAProcess === EActionProcess.LINEUP &&
-      currRound?.teamBProcess === EActionProcess.LINEUP
-    );
-  }, [currRound]);
+  // =============================
+  // Effects
+  // =============================
 
   useEffect(() => {
-    const pA = matchTPlayer(ETeamPlayer.PLAYER_A, !onTop);
-    const pB = matchTPlayer(ETeamPlayer.PLAYER_B, !onTop);
+    const A = findPlayer(ETeamPlayer.PLAYER_A, !onTop);
+    const B = findPlayer(ETeamPlayer.PLAYER_B, !onTop);
 
-    setPlayerA(pA);
-    setPlayerB(pB);
+    const allRankings = [
+      ...(teamAPlayerRanking?.rankings || []),
+      ...(teamBPlayerRanking?.rankings || []),
+    ];
 
-    const rankings =
-      teamAPlayerRanking && teamBPlayerRanking
-        ? [...teamAPlayerRanking.rankings, ...teamBPlayerRanking.rankings]
-        : [];
-    const pARank = rankings.find((p) => p.player._id === pA?._id)?.rank || null;
-    const pBRank = rankings.find((p) => p.player._id === pB?._id)?.rank || null;
+    const rankA =
+      allRankings.find((r) => r.player._id === A?._id)?.rank || null;
 
-    setPlayerARank(pARank);
-    setPlayerBRank(pBRank);
+    const rankB =
+      allRankings.find((r) => r.player._id === B?._id)?.rank || null;
 
-    const score = calcPairScore(pARank, pBRank);
-    setPairScore(score);
-  }, [matchTPlayer, onTop, teamAPlayerRanking, teamBPlayerRanking]);
+    setPlayers({ A, B });
+    setRanks({ A: rankA, B: rankB });
+    setPairScore(calcPairScore(rankA, rankB));
+  }, [findPlayer, onTop, teamAPlayerRanking, teamBPlayerRanking]);
 
-  // http://localhost:3001/matches/66fadc13002cfc571836844a
+  // =============================
+  // UI Conditions
+  // =============================
+
+  const showPlayers = useMemo(() => {
+    if (!match?.extendedOvertime) return true;
+
+    return !onTop ||
+      (currentRound?.teamAProcess === EActionProcess.LINEUP &&
+        currentRound?.teamBProcess === EActionProcess.LINEUP);
+  }, [match, onTop, currentRound]);
+
+  const bothSubmitted =
+    currentRound?.teamAProcess === EActionProcess.LINEUP &&
+    currentRound?.teamBProcess === EActionProcess.LINEUP;
+
+  // =============================
+  // Render
+  // =============================
+
   return (
     <div
-      // style={{ minHeight: `${boardHeight / 2 + EXTRA_HEIGHT / 2}px` }}
       style={{ minHeight: "50%" }}
-      className={`net-top w-full px-2 text-center flex ${
-        onTop
-          ? "flex-col bg-gradient-dark text-white"
+      className={`w-full px-2 flex ${onTop
+          ? "flex-col bg-[radial-gradient(circle,_#4b4a4a_0%,_#000000_100%)] text-white"
           : "flex-col-reverse bg-white text-black-logo"
-      } border ${border.light} items-center justify-start`}
+        } border ${border.light}`}
     >
-      <div className="player-pair flex justify-between w-full gap-x-1">
-        <div className="player-card team-a-player-1 w-3/6 md:w-24">
-          <PlayerScoreCard
-            onTop={onTop}
-            teamPlayer={ETeamPlayer.PLAYER_A}
-            player={showPlayer ? playerA : null}
-            playerRankExist={currMatch ? playerARank : null}
-            dropdownPlayer={handleDropdownPlayer}
-            evacuatePlayer={handleEvacuatePlayer}
-            screenWidth={screenWidth}
-            myTeamE={myTeamE}
-          />
-        </div>
-        <div className="player-card team-b-player-2 w-3/6 md:w-24">
-          <PlayerScoreCard
-            onTop={onTop}
-            teamPlayer={ETeamPlayer.PLAYER_B}
-            player={showPlayer ? playerB : null}
-            playerRankExist={showPlayer ? playerBRank : null}
-            dropdownPlayer={handleDropdownPlayer}
-            evacuatePlayer={handleEvacuatePlayer}
-            screenWidth={screenWidth}
-            myTeamE={myTeamE}
-          />
-        </div>
+      <div className="flex gap-1 w-full">
+        {[ETeamPlayer.PLAYER_A, ETeamPlayer.PLAYER_B].map((spot) => {
+          const key = spot === ETeamPlayer.PLAYER_A ? "A" : "B";
+
+          return (
+            <PlayerScoreCard
+              key={spot}
+              onTop={onTop}
+              teamPlayer={spot}
+              player={showPlayers ? players[key] : null}
+              playerRankExist={showPlayers ? ranks[key] : null}
+              dropdownPlayer={handleDropdownPlayer}
+              evacuatePlayer={handleEvacuatePlayer}
+              screenWidth={screenWidth}
+              myTeamE={myTeamE}
+            />
+          );
+        })}
       </div>
 
-      <div className="pair-score mt-2">
-        <span className="font-bold">{`Pair Score: ${
-          !currMatch?.extendedOvertime
-            ? pairScore || "N/A"
-            : bothSubmittedLineup
-            ? pairScore || "N/A"
-            : "N/A"
-        }`}</span>
+      <div className="mt-2 font-bold text-center">
+        Pair Score:{" "}
+        {!match?.extendedOvertime || bothSubmitted
+          ? pairScore ?? "N/A"
+          : "N/A"}
       </div>
     </div>
   );

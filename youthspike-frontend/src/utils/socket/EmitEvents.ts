@@ -47,6 +47,7 @@ import {
 import { Socket } from "socket.io-client";
 import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
 import LocalStorageService from "../LocalStorageService";
+import autoAssignClock from "../assignStrategies/autoAssignClock";
 
 class EmitEvents {
   isAuthenticated: boolean;
@@ -159,7 +160,7 @@ class EmitEvents {
     this.socket.emit("leave-player-room-from-client", { playerId });
   }
 
-  checkIn({ user, currRoom, currRound, roundList, myTeamE }: IStatusChange) {
+  checkIn({ user, currRoom, currRound, roundList, myTeamE, match }: IStatusChange) {
     if (!currRoom || !currRound || !user?.info) return;
 
     const actionData: ICheckInData = {
@@ -177,6 +178,12 @@ class EmitEvents {
       userRole: user.info.role,
       teamE: myTeamE,
     };
+
+    const success = autoAssignClock({...currRound, teamAProcess: actionData.teamAProcess, teamBProcess: actionData.teamBProcess}, match, myTeamE);
+    if(!success){
+      console.warn("Auto assign failed");
+      console.log(success);
+    }
 
     this.updateRoundList(currRound, roundList, actionData);
     this.socket?.emit("check-in-from-client", actionData);

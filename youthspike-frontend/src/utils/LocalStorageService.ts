@@ -1,5 +1,6 @@
 import { ETeam } from "@/types/team";
-import { MATCHES_LS, MUSIC_TIME_PASSED } from "./constant";
+import { ASSIGN_CLOCK, MATCHES_LS, MUSIC_TIME_PASSED } from "./constant";
+import { IAssignClock } from "@/types";
 
 interface IMatchLS {
   matchId: string;
@@ -11,7 +12,7 @@ interface IMatchLS {
 class LocalStorageService {
   private static instance: LocalStorageService;
 
-  private constructor() {} // Private to enforce singleton
+  private constructor() { } // Private to enforce singleton
 
   public static getInstance(): LocalStorageService {
     if (!LocalStorageService.instance) {
@@ -117,6 +118,65 @@ class LocalStorageService {
     if (!Array.isArray(matches)) return null;
     return matches.find((m) => m.matchId === matchId) || null;
   }
+
+  public setAssignedClock(assignClock: Partial<IAssignClock>): void {
+    if (!assignClock.round) {
+      console.error("No round in assignClock");
+      console.error(assignClock);
+      return;
+    }
+    const currentAssignClock = this.getAssignedClock(assignClock.round, assignClock.team || "");
+
+    if (currentAssignClock) {
+      console.warn("A clock already exist in this round that is why we do not need to set assign clock again");
+      console.warn(assignClock);
+    }
+
+    const assignClockAllStr = this.getItem(ASSIGN_CLOCK) as string;
+    if (!assignClockAllStr) {
+      this.setItem(ASSIGN_CLOCK, JSON.stringify([assignClock]));
+    } else {
+      const assignClockList = JSON.parse(assignClockAllStr) as IAssignClock[];
+      if (currentAssignClock) {
+        // this.setItem(ASSIGN_CLOCK, JSON.stringify([
+        //   ...assignClockList,
+        //   // Update assign clock for current round
+        //   { ...currentAssignClock, ...assignClock, start: currentAssignClock.start }
+        // ]));
+      } else {
+        this.setItem(ASSIGN_CLOCK, JSON.stringify([...assignClockList, assignClock]));
+      }
+    }
+  }
+
+
+
+  public getAssignedClock(roundId: string, teamId: string): IAssignClock | null {
+    if (!roundId || !teamId) return null;
+    const assignClockStr = this.getItem(ASSIGN_CLOCK) as string;
+    if (!assignClockStr) {
+      return null;
+    }
+    const assignClockList = JSON.parse(assignClockStr) as IAssignClock[];
+    const currentAssignClock = assignClockList.find((ac) => ac.round === roundId);
+    if (!currentAssignClock) return null;
+    if (currentAssignClock.team !== teamId) return null;
+    return currentAssignClock;
+  }
+
+
+  public removeAssignClock(roundId: string): void {
+    try {
+      if (typeof window === "undefined") return; // SSR Guard
+      const assignClockStr = this.getItem(ASSIGN_CLOCK) as string;
+      if (!assignClockStr) return;
+      const assignClockList = JSON.parse(assignClockStr) as IAssignClock[];
+      this.setItem(ASSIGN_CLOCK, JSON.stringify(assignClockList.filter((timer) => timer.round !== roundId)));
+    } catch (error) {
+      console.error("Error clearing localStorage:", error);
+    }
+  }
+
 
   // Event-related methods
   public setEvent(eventId: string): void {

@@ -56,8 +56,8 @@ export interface IDirectorItem {
   captainplayer: string | null;
 }
 
-interface IUserEvent extends IUser{
-  event?: string;
+export interface IUserEvent extends IUser{
+  events?: string[];
 }
 
 export interface IUserContext {

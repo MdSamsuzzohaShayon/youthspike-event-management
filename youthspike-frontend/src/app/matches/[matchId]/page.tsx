@@ -1,7 +1,7 @@
 import { IMatchExpRel, TParams } from "@/types";
 import { PreloadQuery } from "@/lib/client";
 import { GET_MATCH_DETAIL } from "@/graphql/matches";
-import MatchMain from "@/components/match/MatchMain";
+import MatchContainer from "@/components/match/MatchContainer";
 import { QueryRef } from "@apollo/client/react";
 
 interface IMatchPageProps {
@@ -19,7 +19,7 @@ export async function MatchPage({ params }: IMatchPageProps) {
       }}
     >
       {(queryRef) => (
-        <MatchMain
+        <MatchContainer
           queryRef={queryRef as QueryRef<{ getMatch: { data: IMatchExpRel } }>}
         />
       )}

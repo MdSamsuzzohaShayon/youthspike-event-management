@@ -33,6 +33,15 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
   const router = useRouter();
   const { data: initialData } = useReadQuery(queryRef);
 
+  console.log(initialData);
+  
+
+  if(!initialData?.searchTeams?.data?.events || initialData?.searchTeams?.data?.events?.length === 0){
+    const error = new Error(`${initialData?.searchTeams?.message || "There is an error fetching Event!"}`);
+    error.name = "No event found!";
+    throw error;
+  }
+
   
   const apolloClient = useApolloClient();
 

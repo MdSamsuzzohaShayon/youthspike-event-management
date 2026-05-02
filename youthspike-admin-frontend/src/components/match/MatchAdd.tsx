@@ -273,8 +273,8 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
           <InputField key="field-netVariance" type="number" required={!update} label="Net Variance" name="netVariance" value={String(addMatch.netVariance)} handleInputChange={handleNumInputChange} />
           <SelectInput key="select-homeTeam" name="homeTeam" defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} label="How is home team decided?" handleSelect={handleInputChange} />
           <SelectInput key="select-tieBreaking" name="tieBreaking" value={addMatch.tieBreaking} optionList={tieBreakingRules} label="Tie breaking strategy" handleSelect={handleInputChange} />
-          <ToggleInput handleInputChange={handleToggleInput} name="autoAssign" label="Auto assign when clock runs out" defaultValue={addMatch.autoAssign} />
-          <ToggleInput handleInputChange={handleToggleInput} name="includeStats" label="Include stats for this match in player stats" positive='Yes' negative='No' defaultValue={addMatch.includeStats} />
+          <ToggleInput onChange={handleToggleInput} name="autoAssign" label="Auto assign when clock runs out" defaultValue={addMatch.autoAssign} />
+          <ToggleInput onChange={handleToggleInput} name="includeStats" label="Include stats for this match in player stats" positive='Yes' negative='No' defaultValue={addMatch.includeStats} />
 
           <SelectInput
             key="select-autoAssignLogic"

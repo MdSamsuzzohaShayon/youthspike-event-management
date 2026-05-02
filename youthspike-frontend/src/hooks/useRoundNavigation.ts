@@ -11,10 +11,11 @@ import { EActionProcess } from "@/types/room";
 import { ETeam } from "@/types/team";
 import { EMessage, IMatchRelatives, INetRelatives, IRoundRelatives } from "@/types";
 import { setMessage } from "@/redux/slices/elementSlice";
+import autoAssignClock from "@/utils/assignStrategies/autoAssignClock";
 
 interface UseRoundNavigationProps {
   roundList: IRoundRelatives[];
-  netsByRound: Record<string, INetRelatives[]>;
+  allNets: INetRelatives[];
   myTeamE: ETeam;
   currentRound?: IRoundRelatives | null;
   match: IMatchRelatives
@@ -22,12 +23,21 @@ interface UseRoundNavigationProps {
 
 export const useRoundNavigation = ({
   roundList,
-  netsByRound,
+  allNets,
   myTeamE,
   currentRound,
   match
 }: UseRoundNavigationProps) => {
   const dispatch = useAppDispatch();
+
+  const netsByRound = useMemo(() => {
+    const map: Record<string, INetRelatives[]> = {};
+    allNets.forEach((net) => {
+      if (!map[net.round]) map[net.round] = [];
+      map[net.round].push(net);
+    });
+    return map;
+  }, [allNets]);
 
   // Precompute round index lookup for O(1) access
   const roundIdToIndex = useMemo(() => {
@@ -59,14 +69,14 @@ export const useRoundNavigation = ({
       // Only create new object if changes are needed
       const newRoundObj = shouldUpdateTeamA || shouldUpdateTeamB
         ? {
-            ...roundObj,
-            teamAProcess: shouldUpdateTeamA
-              ? EActionProcess.CHECKIN
-              : roundObj.teamAProcess,
-            teamBProcess: shouldUpdateTeamB
-              ? EActionProcess.CHECKIN
-              : roundObj.teamBProcess,
-          }
+          ...roundObj,
+          teamAProcess: shouldUpdateTeamA
+            ? EActionProcess.CHECKIN
+            : roundObj.teamAProcess,
+          teamBProcess: shouldUpdateTeamB
+            ? EActionProcess.CHECKIN
+            : roundObj.teamBProcess,
+        }
         : roundObj;
 
       // Only update if changes were made
@@ -94,8 +104,8 @@ export const useRoundNavigation = ({
 
       const targetRound = roundList[targetRoundIndex];
 
-      if(match?.completed && targetRound.num > currentRound.num && !targetRound.completed){
-        dispatch(setMessage({message: "This  match is finished. Unselect the finish match box to go to the next round.", type: EMessage.ERROR}));
+      if (match?.completed && targetRound.num > currentRound.num && !targetRound.completed) {
+        dispatch(setMessage({ message: "This  match is finished. Unselect the finish match box to go to the next round.", type: EMessage.ERROR }));
         return false;
       }
 
@@ -103,15 +113,17 @@ export const useRoundNavigation = ({
       if (targetRound.num > currentRound.num) {
         const prevRound = roundList[targetRoundIndex - 1];
         if (!prevRound?.completed) {
-          dispatch(setMessage({message: "Complete the previous round by putting players on all nets and points.", type: EMessage.ERROR}))
+          dispatch(setMessage({ message: "Complete the previous round by putting players on all nets and points.", type: EMessage.ERROR }))
           return false;
         }
       }
 
+      autoAssignClock(targetRound, match, myTeamE);
+
       changeTheRound(targetRoundIndex);
       dispatch(setDisabledPlayerIds([]));
       dispatch(setPrevPartner(null));
-      
+
       return true;
     },
     [changeTheRound, currentRound, dispatch, roundIdToIndex, roundList, match]

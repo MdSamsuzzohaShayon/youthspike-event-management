@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { UserRole } from './types/user';
+import { IUserContext, IUserEvent, UserRole } from './types/user';
 
 const unauthenticatedPages = ['/login', '/signup', '/userSignup'];
 const directorAuthPages = ['/', '/players', '/matches', '/settings', '/teams', '/new', '/account', '/teamstandings'];
@@ -55,7 +55,7 @@ function handleUnauthenticatedPage(request: NextRequest) {
   return NextResponse.redirect(new URL('/', request.url).toString());
 }
 
-function isAuthenticatedPage(pathname: string, userObj: any) {
+function isAuthenticatedPage(pathname: string, userObj: IUserEvent) {
   const authorizedPages = [...directorAuthPages, ...capCoPlayerPages];
 
   return authorizedPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname)) && userObj?.role !== UserRole.admin;
@@ -66,8 +66,8 @@ function handleAuthenticatedPage(request: NextRequest, pathname: string, userObj
     return NextResponse.next();
   } else if ((userObj?.role === UserRole.captain || userObj?.role === UserRole.co_captain || userObj?.role === UserRole.player) && capCoPlayerPages.some(page => new RegExp(`${page}/?$`, 'i').test(pathname))) {
     return NextResponse.next();
-  } else if ((userObj?.role === UserRole.captain || userObj?.role === UserRole.co_captain || userObj?.role === UserRole.player) && userObj.event) {
-    return NextResponse.redirect(new URL(`/${userObj.event}/players`, request.url).toString());
+  } else if ((userObj?.role === UserRole.captain || userObj?.role === UserRole.co_captain || userObj?.role === UserRole.player) && userObj?.teamId) {
+    return NextResponse.redirect(new URL(`/teams/${userObj.teamId}/roster`, request.url).toString());
   }
 
   return NextResponse.redirect(new URL('/not-found/404', request.url).toString());

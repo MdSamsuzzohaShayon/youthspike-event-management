@@ -61,19 +61,12 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
 
   // Precompute lookups for faster access
 
-  const netsByRound = useMemo(() => {
-    const map: Record<string, INetRelatives[]> = {};
-    allNets.forEach((net) => {
-      if (!map[net.round]) map[net.round] = [];
-      map[net.round].push(net);
-    });
-    return map;
-  }, [allNets]);
+
 
 
   const { handleRoundChange } = useRoundNavigation({
     roundList,
-    netsByRound,
+    allNets,
     myTeamE,
     currentRound,
     match,
@@ -268,6 +261,7 @@ function NetScoreOfRound({ currRoundId }: { currRoundId: string }) {
     myTeam,
     myTeamE,
   ]);
+  
 
   const rightSideContent = useMemo(
     () => (

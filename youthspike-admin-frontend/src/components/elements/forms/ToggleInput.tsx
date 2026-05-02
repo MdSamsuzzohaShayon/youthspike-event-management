@@ -6,29 +6,37 @@ function ToggleInput({
   label,
   value,
   defaultValue = false,
-  handleInputChange,
+  onChange,
   className = '',
   negative,
   positive
 }: IToggleInputProps & { className?: string }) {
   const [isChecked, setIsChecked] = useState<boolean>(defaultValue);
 
-  // Sync external value/defaultValue
+  // Only sync when value prop actually changes (not on every render)
   useEffect(() => {
+    // Only update if value is explicitly provided (not undefined)
     if (value !== undefined) {
       setIsChecked(value);
-    } else {
-      setIsChecked(defaultValue);
     }
-  }, [value, defaultValue]);
+  }, [value]); // Remove defaultValue from dependencies
 
   const handleToggle = (e: React.SyntheticEvent) => {
     const newValue = !isChecked;
     setIsChecked(newValue);
-
-    // Emit event compatible with input fields
-    if (handleInputChange) {
-      handleInputChange(e);
+    
+    // Create a synthetic event-like object for the hidden checkbox
+    if (onChange) {
+      // If onChange expects a ChangeEvent, you might need to create one
+      const fakeEvent = {
+        target: {
+          name: name,
+          value: newValue,
+          type: 'checkbox',
+          checked: newValue
+        }
+      } as unknown as React.SyntheticEvent;
+      onChange(fakeEvent);
     }
   };
 
@@ -42,7 +50,6 @@ function ToggleInput({
       </label>
 
       <div className="flex items-center justify-between bg-gray-800 border border-gray-700 rounded-md p-2">
-        {/* ON / OFF text visible always */}
         <span className="text-sm font-semibold text-gray-300">{negative || "OFF"}</span>
 
         <button
@@ -67,12 +74,12 @@ function ToggleInput({
         <span className="text-sm font-semibold text-gray-300">{positive || "ON"}</span>
       </div>
 
-      {/* Real form input for forms */}
+      {/* Hidden checkbox for form submission */}
       <input
         type="checkbox"
         name={name}
         checked={isChecked}
-        onChange={handleInputChange}
+        onChange={() => {}} // Empty onChange to avoid React warning
         className="hidden"
       />
     </div>

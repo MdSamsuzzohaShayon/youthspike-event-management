@@ -1,43 +1,6 @@
 ### Database operation
 
-Rename event → events and convert it into an array containing the existing ObjectId.
-
-```
-db.teams.updateMany(
-  { event: { $exists: true } },
-  [
-    {
-      $set: {
-        events: ["$event"]
-      }
-    },
-    {
-      $unset: "event"
-    }
-  ]
-)
-
-
-```
-
-Group: Migrate a field from a single ObjectId → array of ObjectIds for all documents
-```
-db.teams.updateMany(
-  { group: { $exists: true } }, // only docs that have group
-  [
-    {
-      $set: {
-        groups: ["$group"] // convert to array
-      }
-    },
-    {
-      $unset: "group" // remove old field
-    }
-  ]
-)
-
-```
-
+ None for now
 
 ---
 

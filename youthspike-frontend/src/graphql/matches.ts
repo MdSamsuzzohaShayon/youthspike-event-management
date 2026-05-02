@@ -206,6 +206,7 @@ query SearchMatches($eventId: String!, $filter: SearchFilterInput) {
         division
         description
         completed
+        autoAssign
       }
       nets {
         _id

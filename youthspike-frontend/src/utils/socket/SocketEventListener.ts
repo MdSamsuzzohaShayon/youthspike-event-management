@@ -15,9 +15,14 @@ import {
 } from "@/redux/slices/serverReceiverOnNetSlice";
 import {
   EMessage,
+  ETeam,
+  IAssignClock,
   IChangeServerReceiverResponse,
   ICheckInResponse,
+  ICheckInUndoResponse,
   ILineUpResponse,
+  IMatch,
+  IMatchRelatives,
   IPlayerStats,
   IPlayerStatsResponse,
   IResetServerReceiverResponse,
@@ -35,10 +40,12 @@ import {
   IUpdateRound,
 } from "@/types";
 import { ETieBreaker, ITieBreakerNetResponse } from "@/types/net";
-import { IRoomRoundProcess } from "@/types/room";
+import { EActionProcess, IRoomRoundProcess } from "@/types/room";
 import { gql, StoreObject } from "@apollo/client";
 import React from "react";
 import { Socket } from "socket.io-client";
+import LocalStorageService from "../LocalStorageService";
+import autoAssignClock from "../assignStrategies/autoAssignClock";
 
 // Class to handle socket events
 class SocketEventListener {
@@ -78,6 +85,10 @@ class SocketEventListener {
       this.audioPlayEl.current.click();
   }
 
+
+
+
+
   /**
    * Running a match
    * ========================================================================
@@ -87,6 +98,8 @@ class SocketEventListener {
     dispatch,
     roundList,
     currentRound,
+    match,
+    myTeamE
   }: ICheckInResponse) {
     this.restartAudio();
 
@@ -103,17 +116,25 @@ class SocketEventListener {
           };
           const roundObj = roundList.find((r) => r._id === roomRounds[i]._id);
           if (roundObj) {
-            // @ts-ignore
-            updatedRoundList.push({ ...roundObj, ...teamProcessObj });
+            updatedRoundList.push({ ...roundObj, ...teamProcessObj } as IRoundRelatives);
             if (roomRounds[i]._id === currentRound?._id) {
-              // @ts-ignore
-              currRoundObj = { ...roundObj, ...teamProcessObj };
+              currRoundObj = { ...roundObj, ...teamProcessObj } as IRoundRelatives;
             }
           }
         }
       }
-      // console.log("Running-----");
-      
+
+
+
+
+      if(currRoundObj){
+        const success = autoAssignClock(currRoundObj, match, myTeamE);
+        if(!success){
+          console.warn("Auto assign failed");
+          console.log(success);
+        }
+      }
+
 
       // Temp - Creating an issue running this again and again 
       dispatch(setRoundList(updatedRoundList));
@@ -126,7 +147,7 @@ class SocketEventListener {
     dispatch,
     roundList,
     currentRound,
-  }: ICheckInResponse) {
+  }: ICheckInUndoResponse) {
     this.restartAudio();
 
     // Set current round and round list
@@ -257,7 +278,7 @@ class SocketEventListener {
     match,
   }: IUpdatePointsResponse) {
     this.dispatch = dispatch;
-    
+
     // ===== set current round nets =====
     const netsOfRound = [...currRoundNets];
     const newAllNets = [...allNets];
@@ -286,9 +307,8 @@ class SocketEventListener {
       }
     }
     console.log("Updating nets");
-    console.log(netsOfRound);
-    
-    
+
+
 
     dispatch(setNets(newAllNets));
     dispatch(setCurrentRoundNets(netsOfRound));
@@ -692,7 +712,7 @@ class SocketEventListener {
       };
       serverReceiversOnNetClone[index] = newSr;
       dispatch(setServerReceiversOnNet(serverReceiversOnNetClone));
-      if(data.net === currServerReceiver?.net){
+      if (data.net === currServerReceiver?.net) {
         dispatch(setCurrentServerReceiver(newSr));
       }
     }

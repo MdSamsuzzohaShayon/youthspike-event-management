@@ -2,23 +2,31 @@ import { useSocket } from '@/lib/SocketProvider';
 import { useUser } from '@/lib/UserProvider';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setVerifyLineup } from '@/redux/slices/matchesSlice';
-import { ETeam } from '@/types/team';
+import { ETeam, ITeam } from '@/types/team';
 import EmitEvents from '@/utils/socket/EmitEvents';
 import React, { useMemo, useCallback } from 'react';
 import Image from 'next/image';
 import { imgW } from '@/utils/constant';
 import NetBox from '../net/NetBox';
-import { EPlayerStatus } from '@/types';
+import { EPlayerStatus, IMatch, IMatchRelatives, INetRelatives, IPlayer, IRoundRelatives } from '@/types';
+import LocalStorageService from '@/utils/LocalStorageService';
 
-function VerifyLineup() {
+interface IVerifyLineupProps {
+  teamA: ITeam | null;
+  teamB: ITeam | null;
+  myTeamE: ETeam;
+  myPlayers: IPlayer[];
+  match: IMatchRelatives;
+  currentRoundNets: INetRelatives[];
+  currentRound: IRoundRelatives | null;
+  roundList: IRoundRelatives[];
+}
+
+function VerifyLineup({ teamA, teamB, myTeamE, myPlayers, match, currentRoundNets, currentRound, roundList }: IVerifyLineupProps) {
   const socket = useSocket();
   const user = useUser();
   const dispatch = useAppDispatch();
 
-  const { teamA, teamB } = useAppSelector((state) => state.teams);
-  const { myTeamE, myPlayers, match: currMatch } = useAppSelector((state) => state.matches);
-  const { currentRoundNets: currRoundNets } = useAppSelector((state) => state.nets);
-  const { current: currRound, roundList } = useAppSelector((state) => state.rounds);
   const currRoom = useAppSelector((state) => state.rooms.current);
   const { teamAPlayers, teamBPlayers } = useAppSelector((state) => state.players);
   const { current: currEvent } = useAppSelector((state) => state.events);
@@ -32,20 +40,21 @@ function VerifyLineup() {
     e.preventDefault();
     const emitEvents = new EmitEvents(socket, dispatch);
     // Player must be active
-    const myPlayerIds: string[] = myPlayers.filter((p)=> p.status === EPlayerStatus.ACTIVE).map((mp) => mp._id);
-    emitEvents.submitLineup({ eventId: currEvent?._id || "", currRoom, currRound, currRoundNets, dispatch, myPlayerIds, myTeamE, roundList, socket, user, teamA, teamB });
+    const myPlayerIds: string[] = myPlayers.filter((p) => p.status === EPlayerStatus.ACTIVE).map((mp) => mp._id);
+    emitEvents.submitLineup({ eventId: currEvent?._id || "", currRoom, currRound: currentRound, currRoundNets: currentRoundNets, dispatch, myPlayerIds, myTeamE, roundList, socket, user, teamA, teamB, match });
+    LocalStorageService.removeAssignClock(currentRound?._id || "");
   };
 
   // Precompute assigned players for efficiency
   const assignedPlayers = useMemo(() => {
     const assigned = new Set();
-    currRoundNets.forEach((crn) => {
+    currentRoundNets.forEach((crn) => {
       [crn.teamAPlayerA, crn.teamAPlayerB, crn.teamBPlayerA, crn.teamBPlayerB].forEach((playerId) => {
         if (playerId) assigned.add(playerId);
       });
     });
     return assigned;
-  }, [currRoundNets]);
+  }, [currentRoundNets]);
 
   // Filter subbed players
   const subbedPlayers = useMemo(() => {
@@ -79,12 +88,12 @@ function VerifyLineup() {
           <div className="w-full">
             <h3 className="text-xl font-bold mb-4">Assigned Nets</h3>
             <div className="grid grid-cols-1 gap-4">
-              {currRoundNets && currRoundNets.map((crn) => <NetBox key={crn._id} crn={crn} myTeamE={myTeamE} teamPlayerList={myTeamE === ETeam.teamA ? teamAPlayers : teamBPlayers} />)}
+              {currentRoundNets && currentRoundNets.map((crn) => <NetBox key={crn._id} crn={crn} myTeamE={myTeamE} teamPlayerList={myTeamE === ETeam.teamA ? teamAPlayers : teamBPlayers} />)}
             </div>
           </div>
 
           {/* Subbed Players Section */}
-          {!currMatch?.extendedOvertime && <div className="w-full">{renderSubbedPlayers()}</div>}
+          {!match?.extendedOvertime && <div className="w-full">{renderSubbedPlayers()}</div>}
 
           {/* Buttons Section */}
           <div className="flex justify-center items-center gap-4 mt-6">

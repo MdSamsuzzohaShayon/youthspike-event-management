@@ -17,7 +17,7 @@ interface ITeamScoreInputProps {
   currRound: IRoundRelatives | null;
   wTeam: ETeam | null;
   currRoundNets: INetRelatives[];
-  handlePointChange: (e: React.SyntheticEvent, netId: string | null, teamAorB: string) => void;
+  handlePointChange: (e: React.SyntheticEvent<HTMLInputElement>, netId: string | null, teamAorB: "teamAScore" | "teamBScore") => void;
 }
 function TeamScoreInput({ net, teamE, wTeam, screenWidth, teamName, user, currRound, currRoundNets, handlePointChange }: ITeamScoreInputProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -44,12 +44,12 @@ function TeamScoreInput({ net, teamE, wTeam, screenWidth, teamName, user, currRo
       }
     }
 
-    
+
 
     return !isUserAuthorized || currRound?.teamBProcess !== EActionProcess.LINEUP || currRound?.teamAProcess !== EActionProcess.LINEUP || banningNet;
   }, [currMatch, currRound?.teamAProcess, currRound?.teamBProcess, currRoundNets, user]);
 
-  
+
 
 
   useEffect(() => {
@@ -67,7 +67,7 @@ function TeamScoreInput({ net, teamE, wTeam, screenWidth, teamName, user, currRo
         type="number"
         ref={inputRef}
         name={teamName}
-        onChange={(e) => handlePointChange(e, net?._id ?? null, teamE)}
+        onChange={(e) => handlePointChange(e, net?._id ?? null, teamE === ETeam.teamA ? 'teamAScore' : 'teamBScore')}
         defaultValue={defaultVal}
         style={fsToggle(screenWidth)}
         className={`w-5/6 md:w-2/6 rounded-lg ${wTeam === teamE ? 'bg-green-500 text-gray-100' : 'bg-white text-black-logo'}  p-1 text-center outline-none`}

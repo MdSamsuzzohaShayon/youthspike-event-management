@@ -16,14 +16,7 @@ interface ITeamStandingsProps {
   matchList?: IMatchExpRel[];
   selectedGroup?: string | null;
 }
-/*
-FC Barcelona
-8 - 6 (2 matches)
 
-PSG
-6 - 8 (2 matches)
-
-*/
 
 function SearchTeamList({ teamList, matchList, nets, rounds, selectedGroup }: ITeamStandingsProps) {
   const [teamScores, setTeamScores] = useState<Map<string, ITeamScore>>(new Map());

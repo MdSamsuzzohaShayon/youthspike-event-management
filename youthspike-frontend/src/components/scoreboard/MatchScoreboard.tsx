@@ -298,7 +298,7 @@ export function MatchScoreBoard({ queryRef, matchId }: IMatchScoreBoardProps) {
     serverReceiversOnNet,
     currentServerReceiver,
   } = useAppSelector((state) => state.serverReceiverOnNets);
-  const { match: currentMatch } = useAppSelector((state) => state.matches);
+  const { match: currentMatch, myTeamE } = useAppSelector((state) => state.matches);
 
   const netByNumber = useNetMaps(currentRoundNets);
 
@@ -330,6 +330,7 @@ export function MatchScoreBoard({ queryRef, matchId }: IMatchScoreBoardProps) {
     serverReceiversOnNet,
     serverReceiverPlays,
     currServerReceiver: currentServerReceiver,
+    myTeamE
   });
 
   // ============================================================================

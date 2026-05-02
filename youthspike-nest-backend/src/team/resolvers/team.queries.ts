@@ -21,7 +21,7 @@ import { Team } from '../team.schema';
 import { MatchService } from 'src/match/match.service';
 import { Match } from 'src/match/match.schema';
 import { CustomMatch, CustomNet, CustomRound, GetTeamSearchResponse, GetTeamRosterResponse, GetTeamMatchesResponse, GetPlayerStatsResponse } from './team.response';
-import {CustomEvent} from 'src/event/resolvers/event.response';
+import { CustomEvent } from 'src/event/resolvers/event.response';
 import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
 import { CustomPlayer, CustomPlayerRanking, CustomPlayerRankingItem } from 'src/player/resolvers/player.response';
 
@@ -137,9 +137,9 @@ export class TeamQueries {
 
       for (const m of matches) {
         matchIds.add(String(m._id));
-        if(String(m.teamA) !== String(team._id)){
+        if (String(m.teamA) !== String(team._id)) {
           oponentIds.add(String(m.teamA));
-        }else if(String(m.teamB) !== String(team._id)){
+        } else if (String(m.teamB) !== String(team._id)) {
           oponentIds.add(String(m.teamB));
         }
       }
@@ -148,7 +148,7 @@ export class TeamQueries {
       const [rounds, nets, oponents] = await Promise.all([
         this.roundService.find({ match: { $in: [...matchIds] } }),
         this.netService.find({ match: { $in: [...matchIds] } }),
-        this.teamService.find({_id: {$in: [...oponentIds]}})
+        this.teamService.find({ _id: { $in: [...oponentIds] } })
       ]);
       // All player stats
       const playerToNets: Record<string, Net[]> = {};
@@ -240,7 +240,7 @@ export class TeamQueries {
   async getTeamRoster(teamId: string): Promise<GetTeamRosterResponse> {
     try {
       const team = await this.teamService.findById(teamId);
-      if(!team) return AppResponse.notFound("Team");
+      if (!team) return AppResponse.notFound("Team");
       const [players, playerRanking, events] = await Promise.all([
         this.playerService.find({ events: { $in: team.events }, teams: { $in: [team._id] } }),
         this.playerRankingService.findOne({
@@ -253,10 +253,25 @@ export class TeamQueries {
         this.eventService.find({ _id: { $in: team.events as string[] } }),
       ]);
 
+      const playerList = [];
+
+      // Create username if there are not any for a player
+      const usernamePromises = [];
+      for (let i = 0; i < players.length; i += 1) {
+        const player = { ...players[i] };
+        if (!player?.username) {
+          const username = this.playerService.playerUsername(player.firstName);
+          usernamePromises.push(this.playerService.updateOne({ _id: player._id }, { $set: { username } }));
+          player.username = username;
+        }
+        playerList.push(player);
+      }
+
 
       // Attributes of matches
-      const [rankings] = await Promise.all([
+      const [rankings, ...updatePlayers] = await Promise.all([
         this.playerRankingService.findItems({ playerRanking: playerRanking._id }),
+        ...usernamePromises
       ]);
 
       return {
@@ -265,7 +280,7 @@ export class TeamQueries {
         data: {
           events: events as CustomEvent[],
           team,
-          players: players as CustomPlayer[],
+          players: playerList as CustomPlayer[],
           playerRanking: playerRanking as CustomPlayerRanking,
           rankings: rankings as CustomPlayerRankingItem[],
         },
@@ -314,13 +329,13 @@ export class TeamQueries {
 
   async getTeamWithGroupsAndUnassignedPlayers(eventIds: string[], teamId: string) {
     try {
-    const events = await this.eventService.find({ _id: {$in: eventIds} });
+      const events = await this.eventService.find({ _id: { $in: eventIds } });
       if (!events) return AppResponse.notFound("Event");
 
 
       const [groups, players, team] = await Promise.all([
-        this.groupService.find({ event: {$in: eventIds} }),
-        this.playerService.find({ events: {$in: eventIds}, $or: [{ teams: { $size: 0 } }, { teams: { $exists: false } }, { teams: null }] }),
+        this.groupService.find({ event: { $in: eventIds } }),
+        this.playerService.find({ events: { $in: eventIds }, $or: [{ teams: { $size: 0 } }, { teams: { $exists: false } }, { teams: null }] }),
         this.teamService.findOne({ _id: teamId })
       ]);
       return {
@@ -340,43 +355,43 @@ export class TeamQueries {
     try {
       // 🔹 Build query safely
       const teamQuery: QueryFilter<Team> = {};
-  
+
       if (eventIds?.length) {
         teamQuery.events = { $in: eventIds };
       }
-  
+
       if (filter?.division) {
         teamQuery.division = { $regex: filter.division, $options: 'i' };
       }
-  
+
       if (filter?.group) {
         teamQuery.groups = filter.group;
       }
-  
+
       if (filter?.search) {
         teamQuery.name = { $regex: filter.search, $options: 'i' };
       }
-  
+
       // 🔹 Pagination
       const offset = filter?.offset ?? 0;
       const limit = filter?.limit ?? 30;
-  
+
       const teams = await this.teamService.find(teamQuery, offset, limit);
-  
+
       // 🔹 Extract IDs (optimized loop)
       const matchIdSet = new Set<string>();
       const captainIdSet = new Set<string>();
       const eventIdTeamsSet = new Set<string>();
-  
+
       for (const team of teams) {
         team.matches?.forEach(m => matchIdSet.add(String(m)));
         if (team.captain) captainIdSet.add(String(team.captain));
-        team.events.forEach((t)=> eventIdTeamsSet.add(String(t)));
+        team.events.forEach((t) => eventIdTeamsSet.add(String(t)));
       }
-  
+
       const matchIds = Array.from(matchIdSet);
       const captainIds = Array.from(captainIdSet);
-  
+
       // 🔹 Conditional queries (avoid empty DB hits)
       const [matches, nets, rounds, captains, events, groups] = await Promise.all([
         matchIds.length
@@ -398,7 +413,7 @@ export class TeamQueries {
           ? this.groupService.find({ event: { $in: eventIds } })
           : this.groupService.find({ event: { $in: [...eventIdTeamsSet] } }),
       ]);
-  
+
       return {
         code: HttpStatus.OK,
         success: true,
