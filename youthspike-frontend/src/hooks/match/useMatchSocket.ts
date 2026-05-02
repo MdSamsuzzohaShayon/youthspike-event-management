@@ -21,7 +21,7 @@ import {
   IUpdateScoreResponse,
 } from "@/types";
 
-interface UseMatchSocketProps {
+interface IUseMatchSocketProps {
   currNetNum: number;
   netByNum: Map<number, INetRelatives>;
   teamA: ITeam | null;
@@ -35,6 +35,7 @@ interface UseMatchSocketProps {
   serverReceiversOnNet: IServerReceiverOnNetMixed[];
   serverReceiverPlays: IServerReceiverSinglePlay[];
   currServerReceiver: IServerReceiverOnNetMixed | null;
+  myTeamE: ETeam;
 }
 
 export default function useMatchSocket({
@@ -51,7 +52,8 @@ export default function useMatchSocket({
   serverReceiversOnNet,
   serverReceiverPlays,
   currServerReceiver,
-}: UseMatchSocketProps) {
+  myTeamE
+}: IUseMatchSocketProps) {
   const dispatch = useAppDispatch();
   const joinRoomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const handlersRegisteredRef = useRef(false);
@@ -112,6 +114,8 @@ export default function useMatchSocket({
           dispatch,
           roundList,
           currentRound: currRound,
+          match,
+          myTeamE
         }),
       "undo-check-in-response-to-all": (data: IRoom) =>
         listener.handleUndoCheckInResponse({

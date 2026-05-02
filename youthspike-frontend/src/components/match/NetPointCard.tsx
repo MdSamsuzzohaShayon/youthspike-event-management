@@ -1,6 +1,14 @@
+import React, { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+
 import { useUser } from "@/lib/UserProvider";
+import { useSocket } from "@/lib/SocketProvider";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+
+import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
 import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
+
 import {
   EView,
   IMatchRelatives,
@@ -9,230 +17,268 @@ import {
 } from "@/types";
 import { IRoom } from "@/types/room";
 import { ETeam } from "@/types/team";
-import { fsToggle } from "@/utils/helper";
-import React, { useEffect, useMemo, useState } from "react";
-import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
-import { useSocket } from "@/lib/SocketProvider";
-import EmitEvents from "@/utils/socket/EmitEvents";
 import { ETieBreaker } from "@/types/net";
-import Image from "next/image";
-import { screen } from "@/utils/constant";
-import TeamScoreInput from "../team/TeamScoreInput";
+
+import EmitEvents from "@/utils/socket/EmitEvents";
 import LocalStorageService from "@/utils/LocalStorageService";
-import Link from "next/link";
+import { fsToggle } from "@/utils/helper";
+import { screen } from "@/utils/constant";
+
+import TeamScoreInput from "../team/TeamScoreInput";
 
 interface INetPointCardProps {
-  net: INetRelatives | null | undefined;
-  handleRightShift: () => void;
-  handleLeftShift: () => void;
+  net?: INetRelatives | null;
+  onNavigateRight: () => void;
+  onNavigateLeft: () => void;
   screenWidth: number;
-  currRoom: IRoom | null;
+  currentRoom: IRoom | null;
   roundList: IRoundRelatives[];
-  currMatch: IMatchRelatives;
+  currentMatch: IMatchRelatives;
 }
+
+/**
+ * Update a specific net score inside a list
+ */
+const updateNetScores = (
+  nets: INetRelatives[],
+  netId: string,
+  updatedFields: Partial<INetRelatives>
+): INetRelatives[] => {
+  return nets.map((net) =>
+    net._id === netId ? { ...net, ...updatedFields } : net
+  );
+};
+
+/**
+ * Calculate total round scores
+ */
+const calculateRoundScores = (nets: INetRelatives[]) => {
+  let teamATotalScore: number | null = 0;
+  let teamBTotalScore: number | null = 0;
+
+  for (const net of nets) {
+    if (net.teamAScore != null && net.teamBScore != null) {
+      teamATotalScore! += net.teamAScore;
+      teamBTotalScore! += net.teamBScore;
+    } else {
+      return { teamATotalScore: null, teamBTotalScore: null };
+    }
+  }
+
+  return { teamATotalScore, teamBTotalScore };
+};
+
+/**
+ * Determine winning team
+ */
+const getWinningTeam = (net?: INetRelatives | null): ETeam | null => {
+  if (!net || net.teamAScore == null || net.teamBScore == null) return null;
+
+  if (net.teamAScore > net.teamBScore) return ETeam.teamA;
+  if (net.teamBScore > net.teamAScore) return ETeam.teamB;
+
+  return null;
+};
 
 function NetPointCard({
   net,
-  handleRightShift,
-  handleLeftShift,
+  onNavigateRight,
+  onNavigateLeft,
   screenWidth,
-  currRoom,
+  currentRoom,
   roundList,
-  currMatch,
+  currentMatch,
 }: INetPointCardProps) {
   const user = useUser();
-  const dispatch = useAppDispatch();
   const socket = useSocket();
+  const dispatch = useAppDispatch();
 
-  const [wTeam, setWTeam] = useState<ETeam | null>(null);
+  const [winningTeam, setWinningTeam] = useState<ETeam | null>(null);
 
-  const { current: currRound } = useAppSelector((state) => state.rounds);
-  const { nets: allNets, currentRoundNets: currRoundNets } = useAppSelector(
-    (state) => state.nets
-  );
+  const { current: currentRound } = useAppSelector((state) => state.rounds);
+  const { nets, currentRoundNets } = useAppSelector((state) => state.nets);
   const { myTeamE, opTeamE } = useAppSelector((state) => state.matches);
   const teamA = useAppSelector((state) => state.teams.teamA);
 
   /**
-   * Optimized point change handler
-   * - Single-pass updates (no unnecessary array cloning)
-   * - Reduces O(n) operations into direct updates
+   * Handle score change
    */
-  const handlePointChange = (
-    e: React.SyntheticEvent,
+  const handleScoreChange = (
+    event: React.SyntheticEvent<HTMLInputElement>,
     netId: string | null,
-    teamAorB: string
+    teamKey: "teamAScore" | "teamBScore"
   ) => {
-    e.preventDefault();
+    event.preventDefault();
     if (!netId) return;
 
-    const inputEl = e.target as HTMLInputElement;
-    const raw = inputEl.value.trim();
-    if (!raw) return;
+    const value = event.currentTarget.value.trim();
+    if (!value) return;
 
-    const teamScore = parseInt(raw, 10);
-    const updateObj =
-      teamAorB === ETeam.teamA
-        ? { teamAScore: teamScore, teamBScore: net?.teamBScore ?? null }
-        : { teamBScore: teamScore, teamAScore: net?.teamAScore ?? null };
+    const parsedScore = Number(value);
+    if (isNaN(parsedScore)) return;
 
-    // Mutate once instead of cloning and finding multiple times
-    const updatedCRN = currRoundNets.map((n) =>
-      n._id === netId ? { ...n, ...updateObj } : n
+    const updatedFields: Partial<INetRelatives> = {
+      [teamKey]: parsedScore,
+      [teamKey === "teamAScore" ? "teamBScore" : "teamAScore"]:
+        net?.[teamKey === "teamAScore" ? "teamBScore" : "teamAScore"] ?? null,
+    };
+
+    const updatedCurrentRoundNets = updateNetScores(
+      currentRoundNets,
+      netId,
+      updatedFields
     );
-    const updatedAllNets = allNets.map((n) =>
-      n._id === netId ? { ...n, ...updateObj } : n
-    );
 
-    dispatch(setCurrentRoundNets(updatedCRN));
+    const updatedAllNets = updateNetScores(nets, netId, updatedFields);
+
+    dispatch(setCurrentRoundNets(updatedCurrentRoundNets));
     dispatch(setNets(updatedAllNets));
 
-    // Aggregate team scores in a single pass
-    let tas: number | null = 0;
-    let tbs: number | null = 0;
-    for (const n of updatedCRN) {
-      if (n.teamAScore != null && n.teamBScore != null) {
-        tas! += n.teamAScore;
-        tbs! += n.teamBScore;
-      } else {
-        tas = null;
-        tbs = null;
-        break; // no need to continue, incomplete round
-      }
-    }
+    const { teamATotalScore, teamBTotalScore } =
+      calculateRoundScores(updatedCurrentRoundNets);
 
-    const currNet = updatedCRN.find((n) => n._id === netId) ?? null;
-
-    const currRoundObj: IRoundRelatives = {
-      ...currRound,
-      teamAScore: tas,
-      teamBScore: tbs,
-      completed: tas != null && tbs != null,
+    const updatedRound: IRoundRelatives = {
+      ...currentRound,
+      teamAScore: teamATotalScore,
+      teamBScore: teamBTotalScore,
+      completed: teamATotalScore != null && teamBTotalScore != null,
     } as IRoundRelatives;
 
-    dispatch(setCurrentRound(currRoundObj));
+    dispatch(setCurrentRound(updatedRound));
 
-    const updatedRoundList = roundList.map((r) =>
-      r._id === currRound?._id ? { ...currRoundObj } : r
+    const updatedRoundList = roundList.map((round) =>
+      round._id === currentRound?._id ? updatedRound : round
     );
+
     dispatch(setRoundList(updatedRoundList));
 
-    // Emit event once
+    const updatedNet =
+      updatedCurrentRoundNets.find((n) => n._id === netId) ?? null;
+
     new EmitEvents(socket, dispatch).updatePoints({
-      currRoom,
-      currRound,
-      currNet,
+      currRoom: currentRoom,
+      currRound: currentRound,
+      currNet: updatedNet,
       myTeamE,
     });
   };
 
-  const handleKeyUp = (e: React.SyntheticEvent) => e.preventDefault();
+  /**
+   * Navigate to scoreboard
+   */
+  const navigateToScoreboard = () => {
+    if (!currentRound || !net) return;
 
-  const handleScorekeeperNavigation = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    // Persist round + net to localStorage
-    LocalStorageService.setMatch(currMatch._id, currRound?._id || "", net?._id);
+    LocalStorageService.setMatch(
+      currentMatch._id,
+      currentRound._id,
+      net._id
+    );
+
     window.location.assign(
-      `/matches/${currMatch._id}/scoreboard?view=${EView.NET}`
-    ); // preserves back button history
+      `/matches/${currentMatch._id}/scoreboard?view=${EView.NET}`
+    );
   };
 
   /**
-   * Memoized winner calculation instead of re-setting every render
+   * Determine winning team
    */
   useEffect(() => {
-    if (net?.teamAScore != null && net?.teamBScore != null) {
-      if (net.teamAScore > net.teamBScore) setWTeam(ETeam.teamA);
-      else if (net.teamAScore < net.teamBScore) setWTeam(ETeam.teamB);
-      else setWTeam(null);
-    } else {
-      setWTeam(null);
-    }
-  }, [net?.teamAScore, net?.teamBScore]);
+    setWinningTeam(getWinningTeam(net));
+  }, [net]);
 
-  const teamACapOrCo = useMemo(
-    () =>
+  /**
+   * Check if user is captain or co-captain
+   */
+  const isTeamALead = useMemo(() => {
+    return (
       user.info?.captainplayer === teamA?.captain?._id ||
-      user.info?.cocaptainplayer === teamA?.cocaptain?._id,
-    [user.info, teamA]
-  );
+      user.info?.cocaptainplayer === teamA?.cocaptain?._id
+    );
+  }, [user.info, teamA]);
 
   return (
     <div className="absolute z-10 w-11/12 left-2 bg-yellow-logo top-1/2 transform -translate-y-1/2 flex justify-around items-center gap-x-2">
+      
+      {/* Spectate Button */}
       <div className="px-2">
         <Image
           width={30}
           height={30}
-          role="presentation"
-          onClick={handleScorekeeperNavigation}
+          onClick={navigateToScoreboard}
           src="/icons/spectate.svg"
           alt="Scorekeeper"
           className="w-6 md:w-6 svg-black"
         />
       </div>
 
-      <div className="flex flex-col justify-around items-center p-1 rounded-lg ">
+      <div className="flex flex-col items-center p-1 rounded-lg">
+        
+        {/* Top Score */}
         <TeamScoreInput
           key={`top-${net?._id}`}
-          currRound={currRound}
+          currRound={currentRound}
           net={net ?? null}
           user={user}
-          teamName={user && teamACapOrCo ? "teamBScore" : "teamAScore"}
+          teamName={isTeamALead ? "teamBScore" : "teamAScore"}
           screenWidth={screenWidth}
-          handlePointChange={handlePointChange}
+          handlePointChange={handleScoreChange}
           teamE={opTeamE}
-          wTeam={wTeam}
-          currRoundNets={currRoundNets}
+          wTeam={winningTeam}
+          currRoundNets={currentRoundNets}
         />
-        <div className="net-card flex justify-around items-center w-full py-1">
+
+        {/* Net Info */}
+        <div className="net-card flex items-center w-full py-1">
           {screenWidth <= screen.xs && (
             <Image
-              width={50}
+              width={30}
               height={30}
               src="/icons/right-arrow.svg"
-              alt="right-arrow"
-              onKeyUp={handleKeyUp}
-              onClick={handleRightShift}
-              role="presentation"
+              alt="Right"
+              onClick={onNavigateRight}
               className="w-4 svg-black transform scale-x-[-1]"
             />
           )}
-          <div className="texts text-center">
-            <h3 style={fsToggle(screenWidth)} className="leading-3 uppercase">
+
+          <div className="text-center flex-1">
+            <h3 style={fsToggle(screenWidth)} className="uppercase">
               Net {net?.num}
             </h3>
             {net?.netType === ETieBreaker.TIE_BREAKER_NET && (
-              <p className="w-full">Worth 2 points</p>
+              <p>Worth 2 points</p>
             )}
           </div>
+
           {screenWidth <= screen.xs && (
             <Image
-              width={50}
+              width={30}
               height={30}
               src="/icons/right-arrow.svg"
-              alt="left-arrow"
-              onKeyUp={handleKeyUp}
-              onClick={handleLeftShift}
-              role="presentation"
+              alt="Left"
+              onClick={onNavigateLeft}
               className="w-4 svg-black"
             />
           )}
         </div>
+
+        {/* Bottom Score */}
         <TeamScoreInput
           key={`bottom-${net?._id}`}
-          currRound={currRound}
+          currRound={currentRound}
           net={net ?? null}
           user={user}
-          teamName={user && teamACapOrCo ? "teamAScore" : "teamBScore"}
+          teamName={isTeamALead ? "teamAScore" : "teamBScore"}
           screenWidth={screenWidth}
-          handlePointChange={handlePointChange}
+          handlePointChange={handleScoreChange}
           teamE={myTeamE}
-          wTeam={wTeam}
-          currRoundNets={currRoundNets}
+          wTeam={winningTeam}
+          currRoundNets={currentRoundNets}
         />
       </div>
 
-      <Link href={`/score-keeping/${currMatch._id}`} className="px-2">
+      {/* Scorekeeper Link */}
+      <Link href={`/score-keeping/${currentMatch._id}`} className="px-2">
         <Image
           width={30}
           height={30}

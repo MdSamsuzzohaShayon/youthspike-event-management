@@ -19,11 +19,11 @@ import MatchAuthenticatedView from "./MatchAuthenticatedView";
 import useMatchSocket from "@/hooks/match/useMatchSocket";
 import useNetMaps from "@/hooks/score-keeping/useNetMaps";
 
-interface IMatchMainProps {
+interface IMatchContainerProps {
   queryRef: QueryRef<{ getMatch: { data: IMatchExpRel } }>;
 }
 
-export function MatchMain({ queryRef }: IMatchMainProps) {
+export function MatchContainer({ queryRef }: IMatchContainerProps) {
   // Context and Redux
   const { data, error } = useReadQuery(queryRef);
 
@@ -35,6 +35,8 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
     err.name = "MatchDataNotFoundError";
     throw err;
   }
+
+  
 
   const dispatch = useAppDispatch();
   const socket = useSocket();
@@ -64,6 +66,7 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
   } = useAppSelector((state) => state.matches);
 
   const netByNum = useNetMaps(currRoundNets);
+  
 
   useMatchSocket({
     currNetNum,
@@ -79,6 +82,7 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
     serverReceiversOnNet,
     serverReceiverPlays,
     currServerReceiver,
+    myTeamE
   });
 
   const audioPlayEl = useRef<HTMLButtonElement>(null);
@@ -130,6 +134,8 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
     dispatch(setRoundMap(roundMap));
   }, [allNets, roundList, dispatch]);
 
+  
+
   if (error) {
     console.error("Error loading match:", error);
     return <div className="text-red-500">Error loading match details</div>;
@@ -155,4 +161,4 @@ export function MatchMain({ queryRef }: IMatchMainProps) {
   );
 }
 
-export default MatchMain;
+export default MatchContainer;

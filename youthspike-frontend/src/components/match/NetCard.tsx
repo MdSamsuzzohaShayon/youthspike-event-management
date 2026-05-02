@@ -61,6 +61,8 @@ function NetCard({ net, screenWidth, currRoom }: INetCardProps) {
     }
   };
 
+  
+
   return (
     <div
       className="net-detail w-full h-full relative flex justify-center items-center flex-col"
@@ -76,12 +78,12 @@ function NetCard({ net, screenWidth, currRoom }: INetCardProps) {
       <div className="flex-grow flex justify-center items-center cursor-pointer">
         {/* Pass direction prop */}
         <NetPointCard net={net}
-          handleRightShift={handleRightShift}
-          handleLeftShift={handleLeftShift}
+          onNavigateRight={handleRightShift}
+          onNavigateLeft={handleLeftShift}
           screenWidth={screenWidth}
-          currRoom={currRoom}
+          currentRoom={currRoom}
           roundList={roundList}
-          currMatch={currMatch} />
+          currentMatch={currMatch} />
       </div>
 
       {/* Net bottom section start */}

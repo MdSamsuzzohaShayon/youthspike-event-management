@@ -586,7 +586,7 @@ const UPDATE_TEAM_RAW = `
         captain 
         cocaptain 
         division
-        group
+        groups
       }
     }
   }

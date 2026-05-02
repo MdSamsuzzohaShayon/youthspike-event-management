@@ -25,21 +25,21 @@ import DeletePlayerDialog from './DeletePlayerDialog';
 import { useMutation } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
 
-interface IProps {
+interface IPlayerCardProps {
   player: IPlayerRank;
   isChecked: boolean;
-  handleSelectPlayer: (e: React.SyntheticEvent, _id: string) => void;
+  onSelect: (e: React.SyntheticEvent, _id: string) => void;
+  team: ITeam | null;
+  teamList: ITeam[];
   setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
   showRank?: boolean;
   rankControls?: boolean;
   divisionList?: IOption[];
-  team: ITeam | null;
-  teamList: ITeam[];
   refetchFunc?: () => void;
   rank?: number | null;
 }
 
-export default function PlayerCard({ player, team, rank, divisionList, refetchFunc, teamList, setIsLoading, rankControls }: IProps) {
+export default function PlayerCard({ player, isChecked, onSelect, team, teamList, setIsLoading, rank, divisionList, refetchFunc, rankControls }: IPlayerCardProps) {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);

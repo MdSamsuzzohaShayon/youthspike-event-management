@@ -1,5 +1,6 @@
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { setclosePSCAvailable } from '@/redux/slices/matchesSlice';
+import { setclosePSCAvailable, setDisabledPlayerIds } from '@/redux/slices/matchesSlice';
+import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
 import { IMatchRelatives, INetRelatives, IPlayer, IRoundRelatives } from '@/types';
 import { EAssignStrategies } from '@/types/elements';
 import { EActionProcess } from '@/types/room';
@@ -42,13 +43,19 @@ function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, c
       [...(teamA?.moved ?? []), ...(teamB?.moved ?? [])].map((p) => [p._id, p])
     );
 
-    const newOpPlayers = opPlayers.filter((p)=> !movedPlayersMap.has(p._id));
-    const newMyPlayers = myPlayers.filter((p)=> !movedPlayersMap.has(p._id));
+    const newOpPlayers = opPlayers.filter((p) => !movedPlayersMap.has(p._id));
+    const newMyPlayers = myPlayers.filter((p) => !movedPlayersMap.has(p._id));
 
     // Make sure selecting all players subbed previously
     switch (pas) {
       case EAssignStrategies.RANDOM:
-        randomAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers: newMyPlayers, opPlayers: newOpPlayers, roundList, currRound, myTeamE, dispatch, tapr: teamAPlayerRanking, tbpr: teamBPlayerRanking });
+        const { updatedAllNets, updatedCurrRoundNets, selectedPlayerIds } = randomAssign({
+          currMatch, matchUp, allNets, currRoundNets, myPlayers: newMyPlayers,
+          opPlayers: newOpPlayers, roundList, currRound, myTeam: myTeamE, teamAPlayerRanking: teamAPlayerRanking, teamBPlayerRanking: teamBPlayerRanking
+        });
+        dispatch(setCurrentRoundNets(updatedCurrRoundNets));
+        dispatch(setNets(updatedAllNets));
+        dispatch(setDisabledPlayerIds(selectedPlayerIds));
         break;
 
       case EAssignStrategies.ANCHOR:

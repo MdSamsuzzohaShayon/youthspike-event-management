@@ -37,4 +37,11 @@ interface IRoundExpRel extends IRoundBase {
   subs: IPlayer[];
 }
 
-export type { IRoundBase, IRoundRelatives, IRoundExpRel };
+
+interface IAssignClock{
+  team: string;
+  start: string;
+  round: string;
+}
+
+export type { IRoundBase, IRoundRelatives, IRoundExpRel, IAssignClock };

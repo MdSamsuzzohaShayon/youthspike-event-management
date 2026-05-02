@@ -6,7 +6,7 @@ import { cardAnimate, headingAnimate } from '@/utils/animation';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Loader from '@/components/elements/Loader';
 import { LOGIN_USER } from '@/graphql/admin';
-import { ILoginResponse, UserRole } from '@/types/user';
+import { ILoginResponse, IUserContext, UserRole } from '@/types/user';
 import { useMessage } from '@/lib/MessageProvider';
 import InputField from '../elements/forms/InputField';
 import { useState, useCallback, useMemo } from 'react';
@@ -113,7 +113,7 @@ const LoginForm = ({
 }: {
   showPasscodeField: boolean;
   onTogglePasscode: () => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.SyntheticEvent) => void;
   onChange: (name: string, value: string) => void;
 }) => {
   const handleInputChange = useCallback(
@@ -180,14 +180,20 @@ function LoginPage() {
   }, []);
 
   const navigateAfterLogin = useCallback(
-    (userRole: UserRole, userEventId?: string) => {
+    (loggedUser: IUserContext) => {
+      if (!loggedUser.info) {
+        console.error("No info in the user!");
+
+        return;
+      }
+      const userRole = loggedUser.info.role
       if (matchId) {
         router.push(`${FRONTEND_URL}/matches/${matchId}`);
-      } else if (userRole === UserRole.admin) {
+      } else if (loggedUser.info.role === UserRole.admin) {
         router.push('/admin/directors');
-      } else if ([UserRole.captain, UserRole.co_captain, UserRole.player].includes(userRole)) {
-        const eventIdOfPlayer = userEventId;
-        router.push(eventIdOfPlayer ? `/${eventIdOfPlayer}/matches` : '/');
+      } else if (loggedUser?.info?.teamId && [UserRole.captain, UserRole.co_captain, UserRole.player].includes(userRole)) {
+        // router.push(eventIdOfPlayer ? `/${eventIdOfPlayer}/matches` : '/');
+        router.push(`/teams/${loggedUser.info.teamId}/roster`);
       } else {
         router.push('/');
       }
@@ -221,7 +227,7 @@ function LoginPage() {
       if (resultData?.data?.token) setCookie('token', resultData?.data?.token, 7);
       if (resultData?.data?.info) {
         setCookie('user', JSON.stringify(resultData.data.info), 7);
-        if (resultData?.data?.info) navigateAfterLogin(resultData.data.info.role, resultData.data.info.event);
+        if (resultData?.data?.info) navigateAfterLogin(resultData.data);
       }
 
       // Navigate based on user role
@@ -229,7 +235,7 @@ function LoginPage() {
   });
 
   const handleSubmit = useCallback(
-    async (e: React.FormEvent) => {
+    async (e: React.SyntheticEvent) => {
       e.preventDefault();
 
       if (!formData.email || !formData.password) {

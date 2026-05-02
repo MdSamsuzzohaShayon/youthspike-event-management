@@ -3,8 +3,6 @@ import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { hash } from 'bcrypt';
 import mongoose, { Document } from 'mongoose';
-import { Event } from 'src/event/event.schema';
-import { LDO } from 'src/ldo/ldo.schema';
 import { Player } from 'src/player/player.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
 import { Team } from 'src/team/team.schema';

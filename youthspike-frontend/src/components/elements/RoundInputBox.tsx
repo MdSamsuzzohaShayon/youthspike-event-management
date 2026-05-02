@@ -34,6 +34,7 @@ function RoundInputBox({currMatch, roundList, currRound, allNets, myTeamE, dispa
     netsByRound,
     myTeamE,
     currentRound: currRound,
+    match: currMatch
   });
 
   // Simplified event handler using the hook

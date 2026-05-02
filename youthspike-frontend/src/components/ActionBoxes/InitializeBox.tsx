@@ -39,7 +39,7 @@ function InitializeBox({ currRoom, socket, user, currRound, roundList, mtp }: IB
       if (!socket || !currRoom || !currRound || !user || roundList.length === 0) return;
 
       const emitEvents = new EmitEvents(socket, dispatch);
-      emitEvents.checkIn({ currRoom, socket, currRound, dispatch, myTeamE, roundList, user });
+      emitEvents.checkIn({ currRoom, socket, currRound, dispatch, myTeamE, roundList, user, match: currMatch });
     },
     [socket, currRoom, currRound, dispatch, myTeamE, roundList, user],
   );

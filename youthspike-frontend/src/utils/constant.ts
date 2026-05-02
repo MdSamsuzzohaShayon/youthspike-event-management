@@ -24,6 +24,7 @@ const EXTRA_HEIGHT: number = 120;
 // Local Storage Names
 const MUSIC_TIME_PASSED = 'MUSIC_TIME_PASSED';
 const MATCHES_LS = 'MATCHES_LS';
+const ASSIGN_CLOCK = 'ASSIGN_CLOCK';
 
 const imgW = {
   logo: 20,
@@ -44,4 +45,4 @@ const MATCH = 'match';
 const TEAM = "team";
 
 // eslint-disable-next-line import/prefer-default-export
-export { screen, netSize, EXTRA_HEIGHT, MUSIC_TIME_PASSED, MATCHES_LS, imgW, eventPeriods, EVENT_ITEM, LDO_ID, APP_NAME, ACCESS_CODE, MATCH, TEAM };
+export { screen, netSize, EXTRA_HEIGHT, MUSIC_TIME_PASSED, MATCHES_LS, imgW, eventPeriods, EVENT_ITEM, LDO_ID, APP_NAME, ACCESS_CODE, MATCH, TEAM, ASSIGN_CLOCK };

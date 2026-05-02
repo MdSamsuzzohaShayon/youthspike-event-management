@@ -18,7 +18,7 @@ const LOGIN_USER_RAW = `
           teamId
           email
           passcode
-          event
+          events
           captainplayer
           cocaptainplayer
           player

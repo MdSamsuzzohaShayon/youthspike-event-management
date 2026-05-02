@@ -4,7 +4,6 @@ import { CheckInInput, ETeam, RoomLocal } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
 import { ValidationHelper } from '../gateway.helpers/validation.helper';
-import { UserRole } from 'src/user/user.schema';
 import { EActionProcess } from 'src/round/round.schema';
 
 export class CheckInHandler {
@@ -31,11 +30,6 @@ export class CheckInHandler {
 
       if (roundI === -1) throw new Error('Round not found with that round ID!');
 
-      // Might have some error in here
-      // if (checkIn.userRole === UserRole.captain || checkIn.userRole === UserRole.co_captain) {
-        
-      //   await this.validationHelper.validateCaptainCheckIn(checkIn.userId, prevRoom.teamA, prevRoom.teamB);
-      // }
 
       const {roundService} = this.gatewayService.getServices();
 
@@ -57,7 +51,6 @@ export class CheckInHandler {
         teamBProcess: currRoundObj.teamBProcess,
       };
 
-      // await this.gatewayService.getServices().roundService.updateOne({ _id: checkIn.round }, updateRoundData);
       const update = await roundService.updateOne({ _id: checkIn.round }, updateRoundData);
 
       roundList[roundI] = currRoundObj;

@@ -51,6 +51,7 @@ export interface IStatusChange {
   roundList: IRoundRelatives[];
   dispatch: React.Dispatch<React.SetStateAction<any>>;
   myTeamE: ETeam;
+  match: IMatchRelatives;
 }
 
 // socket, dispatch, currRoom, currRound, currMatch, currNet, server, receiver
@@ -225,13 +226,20 @@ export interface IOvertimeData {
   extendedOvertime: boolean;
 }
 
-// Run match
-export interface ICheckInResponse {
+export interface ICheckInUndoResponse {
   data: IRoom;
   dispatch: React.Dispatch<React.SetStateAction<any>>;
   roundList: IRoundRelatives[];
   currentRound: IRoundRelatives | null;
 }
+
+// Run match
+export interface ICheckInResponse extends ICheckInUndoResponse{
+  match: IMatchRelatives;
+  myTeamE: ETeam;
+}
+
+
 
 export interface ILineUpResponse {
   data: IRoomNets;

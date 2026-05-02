@@ -1,5 +1,5 @@
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { ADMIN_FRONTEND_URL } from "@/utils/keys";
 import { EMessage, ITeam } from "@/types";
 import { useLdoId } from "@/lib/LdoProvider";
@@ -16,156 +16,195 @@ import LocalStorageService from "@/utils/LocalStorageService";
 import TextImg from "../elements/TextImg";
 import { CldImage } from "next-cloudinary";
 import { setMessage } from "@/redux/slices/elementSlice";
+import autoAssignClock from "@/utils/assignStrategies/autoAssignClock";
+import { useRoundNavigation } from "@/hooks/useRoundNavigation";
 
-interface ITeamScoreBoard {
-  team: ITeam | null;
-  teamPoints: number;
+interface CompletedBoxProps {
+  completeDialogRef: React.RefObject<HTMLDialogElement | null>;
 }
 
-interface ICompletedBoxProps {
-  completeDialogEl: React.RefObject<HTMLDialogElement | null>;
+interface ScoreResult {
+  teamATotal: number;
+  teamBTotal: number;
 }
 
-function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
+function CompletedBox({ completeDialogRef }: CompletedBoxProps) {
   const dispatch = useAppDispatch();
   const { ldoIdUrl } = useLdoId();
 
-  // ===== Redux State =====
-  const [teamAPoints, setTeamAPoints] = useState<number>(0);
-  const [teamBPoints, setTeamBPoints] = useState<number>(0);
-  const [winningTeam, setWinningTeam] = useState<string | null>(null);
 
-  // ===== Redux State =====
-  const { match, myTeamE } = useAppSelector((state) => state.matches);
-  const { currentRoundNets: currRoundNets, nets: allNets } = useAppSelector(
-    (state) => state.nets
-  );
-  const { teamA, teamB } = useAppSelector((state) => state.teams);
-  const { current: currentRound, roundList } = useAppSelector(
-    (state) => state.rounds
-  );
+  const [teamATotalPoints, setTeamATotalPoints] = useState(0);
+  const [teamBTotalPoints, setTeamBTotalPoints] = useState(0);
+  const [winningTeamId, setWinningTeamId] = useState<string | null>(null);
 
-  // Duplicate
-  const changeTheRound = (targetRoundIndex: number) => {
-    // ===== Current round, current round nets and round list properly =====
-    const newRoundObj = { ...roundList[targetRoundIndex] };
-    const filteredNets = allNets.filter((net) => net.round === newRoundObj._id);
-    dispatch(setCurrentRoundNets(filteredNets));
+  const { match, myTeamE } = useAppSelector((s) => s.matches);
+  const { currentRoundNets, nets } = useAppSelector((s) => s.nets);
+  const { teamA, teamB } = useAppSelector((s) => s.teams);
+  const { current: currentRound, roundList } = useAppSelector((s) => s.rounds);
+
+  const { handleRoundChange } = useRoundNavigation({
+    roundList,
+    allNets: nets,
+    myTeamE,
+    currentRound,
+    match,
+  });
+
+  // =========================
+  // Helpers
+  // =========================
+
+  const calculateScores = useCallback((): ScoreResult => {
+    if (!currentRound) return { teamATotal: 0, teamBTotal: 0 };
+
+    const playedRounds = roundList.filter(
+      (r) => r.num <= currentRound.num
+    );
+
+    let teamATotal = 0;
+    let teamBTotal = 0;
+
+    for (const round of playedRounds) {
+      const netsInRound = nets.filter((n) => n.round === round._id);
+
+      for (const net of netsInRound) {
+        const aScore = net.teamAScore ?? 0;
+        const bScore = net.teamBScore ?? 0;
+
+        if (aScore > bScore) {
+          teamATotal += net.points;
+        } else {
+          teamBTotal += net.points;
+        }
+      }
+    }
+
+    return { teamATotal, teamBTotal };
+  }, [currentRound, roundList, nets]);
+
+  const getWinningTeamId = (
+    teamATotal: number,
+    teamBTotal: number
+  ): string | null => {
+    if (teamATotal > teamBTotal) return teamA?._id ?? null;
+    if (teamBTotal > teamATotal) return teamB?._id ?? null;
+    return null;
+  };
+
+  const getNextRoundIndex = (): number => {
+    if (!currentRound) return -1;
+    return roundList.findIndex(
+      (r) => r.num === currentRound.num + 1
+    );
+  };
+
+  const switchToRound = (roundIndex: number) => {
+    const targetRound = roundList[roundIndex];
+    if (!targetRound) return;
+
+    const updatedRound = { ...targetRound };
+
+    const netsForRound = nets.filter(
+      (n) => n.round === updatedRound._id
+    );
+
+    dispatch(setCurrentRoundNets(netsForRound));
 
     if (myTeamE === ETeam.teamA) {
-      newRoundObj.teamAProcess =
-        newRoundObj.teamAProcess &&
-        newRoundObj.teamAProcess === EActionProcess.INITIATE
-          ? EActionProcess.CHECKIN
-          : newRoundObj.teamAProcess;
+      if (updatedRound.teamAProcess === EActionProcess.INITIATE) {
+        updatedRound.teamAProcess = EActionProcess.CHECKIN;
+      }
     } else {
-      newRoundObj.teamBProcess =
-        newRoundObj.teamBProcess &&
-        newRoundObj.teamBProcess === EActionProcess.INITIATE
-          ? EActionProcess.CHECKIN
-          : newRoundObj.teamBProcess;
+      if (updatedRound.teamBProcess === EActionProcess.INITIATE) {
+        updatedRound.teamBProcess = EActionProcess.CHECKIN;
+      }
     }
-    LocalStorageService.setMatch(newRoundObj.match, newRoundObj._id);
-    dispatch(setCurrentRound(newRoundObj));
-    const newRoundList = roundList.filter((r) => r._id !== newRoundObj._id);
-    newRoundList.push(newRoundObj);
-    dispatch(setRoundList(newRoundList));
+
+    LocalStorageService.setMatch(updatedRound.match, updatedRound._id);
+
+    dispatch(setCurrentRound(updatedRound));
+
+    const updatedRoundList = roundList
+      .filter((r) => r._id !== updatedRound._id)
+      .concat(updatedRound);
+
+    dispatch(setRoundList(updatedRoundList));
+
+   
   };
+
+  // =========================
+  // Handlers
+  // =========================
 
   const handleNextRound = (e: React.SyntheticEvent) => {
     e.preventDefault();
 
-    if (!currentRound?.num) return;
-    const targetRoundIndex = roundList.findIndex(
-      (r) => r.num === (currentRound?.num || 0) + 1
-    );
+    const nextIndex = getNextRoundIndex();
+    if (nextIndex === -1 || !currentRound) return;
 
-    if (match.completed && !roundList[targetRoundIndex]?.completed) {
+    const nextRound = roundList[nextIndex];
+    const prevRound = roundList[nextIndex - 1];
+
+    if (match.completed && !nextRound?.completed) {
       dispatch(
         setMessage({
           type: EMessage.ERROR,
-          message: "This match is completed, you can not go to the next round.",
+          message: "Match already completed.",
         })
       );
       return;
     }
 
-    if (targetRoundIndex !== -1 && currentRound) {
-      if (roundList[targetRoundIndex].num > currentRound?.num) {
-        const prevRound = roundList[targetRoundIndex - 1];
-        if (!prevRound || !prevRound.completed) {
-          dispatch(
-            setMessage({
-              type: EMessage.ERROR,
-              message:
-                "Make sure you have completed this round by putting players on all of the nets and points.",
-            })
-          );
-          return;
-        }
-        dispatch(setMessage(null));
-      }
-
-      changeTheRound(targetRoundIndex);
-      dispatch(setDisabledPlayerIds([]));
-      dispatch(setPrevPartner(null));
+    if (nextRound.num > currentRound.num && !prevRound?.completed) {
+      dispatch(
+        setMessage({
+          type: EMessage.ERROR,
+          message: "Complete current round first.",
+        })
+      );
+      return;
     }
+
+    handleRoundChange(nextRound._id, (errorMessage) => {
+      dispatch(
+        setMessage({
+          type: EMessage.ERROR,
+          message: errorMessage,
+        })
+      );
+    });
+
+    dispatch(setMessage(null));
+
+    // switchToRound(nextIndex);
+    // dispatch(setDisabledPlayerIds([]));
+    // dispatch(setPrevPartner(null));
   };
 
+  // =========================
+  // Effects
+  // =========================
+
   useEffect(() => {
-    let tap = 0;
-    let tbp = 0;
-    // All rounds, current rounds
+    const { teamATotal, teamBTotal } = calculateScores();
 
-    const roundPlayedTill = roundList.filter(
-      (rp) => rp.num <= (currentRound?.num || 1)
-    );
-    for (let rI = 0; rI < roundPlayedTill.length; rI += 1) {
-      const netsPlayedInThisRound = allNets.filter(
-        (an) => an.round === roundPlayedTill[rI]._id
-      );
+    setTeamATotalPoints(teamATotal);
+    setTeamBTotalPoints(teamBTotal);
+    setWinningTeamId(getWinningTeamId(teamATotal, teamBTotal));
+  }, [calculateScores, currentRoundNets]);
 
-      for (let i = 0; i < netsPlayedInThisRound.length; i += 1) {
-        if (
-          (netsPlayedInThisRound[i].teamAScore || 0) >
-          (netsPlayedInThisRound[i].teamBScore || 0)
-        ) {
-          tap += netsPlayedInThisRound[i].points;
-        } else {
-          tbp += netsPlayedInThisRound[i].points;
-        }
-      }
-    }
+  // =========================
+  // UI Helpers
+  // =========================
 
-    if (tap > tbp) {
-      setWinningTeam(teamA?._id || "");
-    } else if (tap < tbp) {
-      setWinningTeam(teamB?._id || "");
-    } else {
-      setWinningTeam(null);
-    }
-    setTeamAPoints(tap);
-    setTeamBPoints(tbp);
-  }, [currRoundNets]);
-
-  const teamScoreBoard = ({ team, teamPoints }: ITeamScoreBoard) => {
-    let bgColor = "bg-white";
-    let textColor = "text-black";
-
-    if (winningTeam) {
-      if (winningTeam === team?._id) {
-        bgColor = "bg-green-500";
-        textColor = "text-white";
-      } else {
-        bgColor = "bg-white";
-        textColor = "text-black";
-      }
-    }
+  const renderTeamScore = (team: ITeam | null, points: number) => {
+    const isWinner = winningTeamId === team?._id;
 
     return (
-      <div className="w-full flex justify-center items-center flex-col gap-y-2">
+      <div className="flex flex-col items-center gap-2 w-full">
         {team?.logo ? (
-          <div className="advanced-img w-20">
+          <div className="w-20">
             <CldImage
               alt={team.name}
               width="200"
@@ -178,57 +217,64 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
         ) : (
           <TextImg fullText={team?.name} className="w-20 h-20 rounded-lg" />
         )}
-        <h2 className="break-words uppercase font-bold text-sm">
-          {team?.name}
-        </h2>
+
+        <h2 className="text-sm font-bold uppercase">{team?.name}</h2>
+
         <div
-          className={`h-20 w-20 ${bgColor} ${textColor} rounded-lg flex justify-center items-center`}
+          className={`w-20 h-20 rounded-lg flex items-center justify-center ${isWinner ? "bg-green-500 text-white" : "bg-white text-black"
+            }`}
         >
-          <h2 className="text-4xl">{teamPoints}</h2>
+          <h2 className="text-4xl">{points}</h2>
         </div>
       </div>
     );
   };
 
+  // =========================
+  // Render
+  // =========================
 
   return (
-    <div className={`py-2 w-full bg-black text-white`}>
-      <div className="container px-4 mx-auto flex py-2 w-full justify-between items-end gap-1">
-        {/* Left side */}
+    <div className="w-full bg-black text-white py-2">
+      <div className="container mx-auto px-4 flex justify-between items-end gap-1">
+        {/* Team A */}
         <div className="w-2/6 md:w-1/6">
-          {teamScoreBoard({ team: teamA ?? null, teamPoints: teamAPoints + (match?.teamAP || 0) })}
+          {renderTeamScore(teamA || null, teamATotalPoints + (match?.teamAP ?? 0))}
         </div>
 
-        {/* Middle side  */}
-        <div className="w-2/6 flex justify-center items-center flex-col gap-y-2">
+        {/* Middle */}
+        <div className="w-2/6 flex flex-col items-center gap-2">
           {roundList.length === currentRound?.num ? (
-            <div className="flex justify-between items-center flex-col gap-y-2">
-              {winningTeam && (
+            <>
+              {winningTeamId && (
                 <>
-                  <h2 className="break-words uppercase font-bold text-sm">
-                    {winningTeam === teamA?._id ? teamA.name : teamB?.name}
+                  <h2 className="text-sm font-bold uppercase">
+                    {winningTeamId === teamA?._id
+                      ? teamA?.name
+                      : teamB?.name}
                   </h2>
-                  <h2 className="break-words uppercase font-bold text-sm">
+                  <h2 className="text-sm font-bold uppercase">
                     Wins the match
                   </h2>
                 </>
               )}
-              <div className="flex items-center gap-x-2">
+
+              <div className="flex gap-2">
                 <a
                   href={`${ADMIN_FRONTEND_URL}/${match.event}/matches/${ldoIdUrl}`}
                   className="btn-success"
                 >
                   Next Match
                 </a>
+
                 <button
                   className="btn-light"
-                  type="button"
-                  onClick={() => completeDialogEl.current?.showModal()}
+                  onClick={() => completeDialogRef.current?.showModal()}
                 >
                   {match.completed ? "Unfinish Match" : "Finish Match"}
                 </button>
               </div>
-            </div>
+            </>
           ) : (
             <>
               <h2 className="text-center">
@@ -236,27 +282,23 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
                   ? "Match Completed"
                   : `Round ${currentRound?.num} - Finished`}
               </h2>
+
               <Image
                 src="/imgs/spikeball-players.png"
-                alt="spikeball-players"
-                className="w-full h-full object-cover object-top"
-                height={100}
+                alt="players"
                 width={100}
+                height={100}
+                className="object-cover object-top"
               />
-              <div className="w-full flex flex-col md:flex-row justify-center items-center gap-2">
-                {roundList.length !== currentRound?.num && (
-                  <button
-                    className="btn-light"
-                    type="button"
-                    onClick={handleNextRound}
-                  >
-                    Next Round
-                  </button>
-                )}
+
+              <div className="flex flex-col md:flex-row gap-2">
+                <button className="btn-light" onClick={handleNextRound}>
+                  Next Round
+                </button>
+
                 <button
                   className="btn-light"
-                  type="button"
-                  onClick={() => completeDialogEl.current?.showModal()}
+                  onClick={() => completeDialogRef.current?.showModal()}
                 >
                   {match.completed ? "Unfinish Match" : "Finish Match"}
                 </button>
@@ -265,9 +307,9 @@ function CompletedBox({ completeDialogEl }: ICompletedBoxProps) {
           )}
         </div>
 
-        {/* Right side */}
+        {/* Team B */}
         <div className="w-2/6 md:w-1/6">
-          {teamScoreBoard({ team: teamB ?? null, teamPoints: teamBPoints + (match?.teamBP || 0) })}
+          {renderTeamScore(teamB || null, teamBTotalPoints + (match?.teamBP ?? 0))}
         </div>
       </div>
     </div>

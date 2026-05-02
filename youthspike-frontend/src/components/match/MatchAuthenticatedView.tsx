@@ -16,6 +16,7 @@ import LineupStrategy from "./LineupStrategy";
 import { useSocket } from "@/lib/SocketProvider";
 import VerifyLineup from "../ActionBoxes/VerifyLineup";
 import {
+  EActionProcess,
   EPlayerStatus,
   ETeam,
   IMatchRelatives,
@@ -29,6 +30,12 @@ import { CldImage } from "next-cloudinary";
 import { useUser } from "@/lib/UserProvider";
 import { APP_NAME } from "@/utils/keys";
 import SelectTeamDialog from "./SelectTeamDialog";
+import randomAssign from "@/utils/assignStrategies/randomAssign";
+import EmitEvents from "@/utils/socket/EmitEvents";
+import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
+import { setDisabledPlayerIds } from "@/redux/slices/matchesSlice";
+import autoAssignClock from "@/utils/assignStrategies/autoAssignClock";
+import { formatClock } from "@/utils/datetime";
 
 interface IMatchAuthenticatedViewProps {
   currMatch: IMatchRelatives;
@@ -42,6 +49,9 @@ interface IMatchAuthenticatedViewProps {
   opPlayers: IPlayer[];
   audioPlayEl: React.RefObject<HTMLButtonElement | null>;
 }
+
+
+
 
 function MatchAuthenticatedView({
   currMatch,
@@ -63,6 +73,7 @@ function MatchAuthenticatedView({
   // Redux
   const { screenWidth } = useAppSelector((state) => state.elements);
   const { matchScore } = useAppSelector((state) => state.matches);
+  const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
   const {
     currentRoundNets: currRoundNets,
     nets: allNets,
@@ -76,6 +87,12 @@ function MatchAuthenticatedView({
 
   // Local State
   const [selectTeam, setSelectTeam] = useState<boolean>(false);
+
+  // References
+  const clockRef = useRef<HTMLDivElement | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const endTimeRef = useRef<number>(0);
+  const lastTextRef = useRef("");
 
   const mainEl = useResizeObserver(
     useCallback((target: HTMLDivElement, entry: ResizeObserverEntry) => {
@@ -123,9 +140,11 @@ function MatchAuthenticatedView({
     }
     return false;
   }, [user, teamA, teamB]);
+
+
   const myActivePlayers = useMemo(
     () => myPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE),
-    [myPlayers, myTeamE, teamB, teamA]
+    [myPlayers]
   );
 
   const opActivePlayers = useMemo(
@@ -133,14 +152,156 @@ function MatchAuthenticatedView({
     [opPlayers]
   );
 
+  const handleTimeout = useCallback(() => {
+    const matchUp = currRound?.firstPlacing !== myTeamE;
+
+    const movedPlayersMap = new Map(
+      [...(teamA?.moved ?? []), ...(teamB?.moved ?? [])].map((p) => [p._id, p])
+    );
+
+    if (!myPlayers || myPlayers.length === 0) return;
+
+    const filteredOpPlayers = opPlayers.filter((p) => !movedPlayersMap.has(p._id));
+    const filteredMyPlayers = myPlayers.filter((p) => !movedPlayersMap.has(p._id));
+
+    const {
+      updatedAllNets,
+      updatedCurrRoundNets,
+      selectedPlayerIds,
+    } = randomAssign({
+      currMatch,
+      matchUp,
+      allNets,
+      currRoundNets,
+      myPlayers: filteredMyPlayers,
+      opPlayers: filteredOpPlayers,
+      roundList,
+      currRound,
+      myTeam: myTeamE,
+      teamAPlayerRanking,
+      teamBPlayerRanking,
+    });
+
+    dispatch(setCurrentRoundNets(updatedCurrRoundNets));
+    dispatch(setNets(updatedAllNets));
+    dispatch(setDisabledPlayerIds(selectedPlayerIds));
+
+    const emitEvents = new EmitEvents(socket, dispatch);
+
+    const myPlayerIds = myPlayers
+      .filter((p) => p.status === EPlayerStatus.ACTIVE)
+      .map((p) => p._id);
+
+    emitEvents.submitLineup({
+      eventId: currMatch.event || "",
+      currRoom,
+      currRound,
+      currRoundNets: updatedCurrRoundNets,
+      dispatch,
+      myPlayerIds,
+      myTeamE,
+      roundList,
+      socket,
+      user,
+      teamA,
+      teamB,
+      match: currMatch,
+    });
+
+    // Delete assignClock
+    LocalStorageService.removeAssignClock(currRound?._id || '');
+
+    console.log("Automatically submitted random assignment");
+  }, [
+    currMatch,
+    currRound,
+    myTeamE,
+    teamA,
+    teamB,
+    socket,
+    dispatch,
+    teamAPlayerRanking,
+    teamBPlayerRanking,
+    myPlayers]);
+
+    console.log({myPlayers});
+    
+
+
+  // For now we are setting this manually
+  // When we go to next round we need to set the clock 
+  useEffect(() => {
+    if (!currRound) return;
+
+    // Check this is my team or not
+    const timer = LocalStorageService.getAssignedClock(currRound._id, myTeam?._id || "");
+    if (timer && timer.team !== myTeam?._id) {
+      console.warn("There is already a timer, we do not need to set again!");;
+      return;
+    }
+
+    autoAssignClock(currRound, currMatch, myTeamE);
+  }, [currRound, myTeam, myTeamE]);
+
+  useEffect(() => {
+    if (!currRound || !myTeam) return;
+
+    if (currRound.teamAProcess === EActionProcess.LINEUP && myTeamE === ETeam.teamA) {
+      return;
+    } else if (currRound.teamBProcess === EActionProcess.LINEUP && myTeamE === ETeam.teamB) {
+      return;
+    }
+
+    const timer = LocalStorageService.getAssignedClock(currRound._id, myTeam?._id || "");
+
+    if (!timer || timer.team !== myTeam._id) return;
+
+    const startMs = new Date(timer.start).getTime();
+    const timeoutMs = Number(currMatch.timeout) * 60 * 1000;
+
+    if (isNaN(startMs) || isNaN(timeoutMs)) return;
+
+    endTimeRef.current = startMs + timeoutMs;
+
+    const updateClock = () => {
+      const remaining = endTimeRef.current - Date.now();
+
+      if (!clockRef.current) return;
+
+      if (remaining <= 0) {
+        clearInterval(intervalRef.current!);
+        clockRef.current.textContent = "00:00";
+        clockRef.current.classList.add("hidden");
+        setTimeout(handleTimeout, 0);
+        return;
+      }
+
+      const text = formatClock(remaining);
+
+      clockRef.current.classList.remove("hidden");
+
+      if (text !== lastTextRef.current) {
+        clockRef.current.textContent = text;
+        lastTextRef.current = text;
+      }
+    };
+
+    updateClock();
+    intervalRef.current = setInterval(updateClock, 1000);
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [currRound?._id, myTeam?._id, myTeamE, myPlayers, opPlayers]);
+
   // User interaction at the beginning
   useEffect(() => {
     mainEl.current?.click();
   }, [mainEl]);
 
 
-  const myS = myTeamE === ETeam.teamA  ? matchScore.teamAMScore : matchScore.teamBMScore;
-  const opS = myTeamE === ETeam.teamB  ? matchScore.teamAMScore : matchScore.teamBMScore;
+  const myS = myTeamE === ETeam.teamA ? matchScore.teamAMScore : matchScore.teamBMScore;
+  const opS = myTeamE === ETeam.teamB ? matchScore.teamAMScore : matchScore.teamBMScore;
 
   return (
     <div className="relative bg-white text-black-logo" ref={mainEl}>
@@ -155,11 +316,10 @@ function MatchAuthenticatedView({
 
       <div className="op-rosters-wrapper w-full bg-black-logo text-white">
         <div
-          className={`w-full bg-black-logo ${
-            myS < opS && currMatch.completed
-              ? "bg-green-500 text-white"
-              : "text-gray-100"
-          }`}
+          className={`w-full bg-black-logo ${myS < opS && currMatch.completed
+            ? "bg-green-500 text-white"
+            : "text-gray-100"
+            }`}
         >
           <h1 className="op-team-name text-2xl font-bold uppercase container px-4 mx-auto">
             {opTeam?.name}
@@ -189,7 +349,7 @@ function MatchAuthenticatedView({
         ) : (
           <div className="verify-strategy-main-points">
             {verifyLineup ? (
-              <VerifyLineup />
+              <VerifyLineup currentRound={currRound} currentRoundNets={currRoundNets} match={currMatch} myPlayers={myPlayers} myTeamE={myTeamE} roundList={roundList} teamA={teamA} teamB={teamA} />
             ) : (
               <>
                 {currRound && (
@@ -197,6 +357,11 @@ function MatchAuthenticatedView({
                     <NetScoreOfRound currRoundId={currRound._id} />
                   </div>
                 )}
+
+                <div
+                  ref={clockRef}
+                  className="hidden px-2 py-1 bg-yellow-logo text-black font-mono w-full text-center"
+                />
 
                 {user?.info && (
                   <div className="line-up-strategy w-full">
@@ -264,22 +429,22 @@ function MatchAuthenticatedView({
             <div className="container px-4 mx-auto flex justify-between">
               {(user.info?.role === UserRole.director ||
                 user.info?.role === UserRole.admin) && (
-                <button
-                  className="w-full flex justify-between items-center"
-                  aria-label="select-team"
-                  type="button"
-                  onClick={() => setSelectTeam(true)}
-                >
-                  <span className="uppercase">{myTeam?.name}</span>
-                  <Image
-                    width={24}
-                    height={24}
-                    src="/icons/dropdown.svg"
-                    className="w-6 svg-white"
-                    alt="dropdown-icon"
-                  />
-                </button>
-              )}
+                  <button
+                    className="w-full flex justify-between items-center"
+                    aria-label="select-team"
+                    type="button"
+                    onClick={() => setSelectTeam(true)}
+                  >
+                    <span className="uppercase">{myTeam?.name}</span>
+                    <Image
+                      width={24}
+                      height={24}
+                      src="/icons/dropdown.svg"
+                      className="w-6 svg-white"
+                      alt="dropdown-icon"
+                    />
+                  </button>
+                )}
             </div>
           </div>
         </div>

@@ -6,6 +6,7 @@ import React, { useMemo, useRef, useState, useCallback } from 'react';
 import Image from 'next/image';
 import { useLdoId } from '@/lib/LdoProvider';
 import { monthNamesShort } from '@/utils/datetime';
+import { useRouter } from 'next/navigation';
 
 interface IEventCardProps {
   event: IEvent;
@@ -91,6 +92,7 @@ const EventCard: React.FC<IEventCardProps> = ({
   onSetDefault
 }) => {
   const { ldoIdUrl } = useLdoId();
+  const router = useRouter();
 
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
   const [isMenuHovered, setIsMenuHovered] = useState<boolean>(false);
@@ -169,6 +171,12 @@ const EventCard: React.FC<IEventCardProps> = ({
     [event._id, onSendCredentials]
   );
 
+  const handleEditEvent=useCallback((e: React.SyntheticEvent)=>{
+    e.preventDefault();
+    // `/${event._id}/settings/${ldoIdUrl}`
+    router.push(`/${event._id}/settings/${ldoIdUrl}`)
+  }, [event, ldoIdUrl])
+
   /* ---------------- Render ---------------- */
 
   return (
@@ -232,7 +240,7 @@ const EventCard: React.FC<IEventCardProps> = ({
                   <ActionMenuItem
                     icon="/icons/edit.svg"
                     label="Edit"
-                    onClick={(e) => e.preventDefault()}
+                    onClick={handleEditEvent}
                   />
                 </span>
               </Link>

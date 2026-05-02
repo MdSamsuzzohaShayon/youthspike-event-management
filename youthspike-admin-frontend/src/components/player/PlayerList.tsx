@@ -234,7 +234,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, refetchFunc, teamL
             {/* Player Card */}
             <PlayerCard
               isChecked={checkedPlayers.get(player._id) ?? false}
-              handleSelectPlayer={handleSelectPlayer}
+              onSelect={handleSelectPlayer}
               player={player}
               setIsLoading={setIsLoading}
               showRank={showRank}
