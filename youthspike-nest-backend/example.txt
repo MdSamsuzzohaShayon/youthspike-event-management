@@ -526,3 +526,60 @@ Ian Austin
 Jensen Elsemore
 Will Melhorn
 
+
+
+
+
+
+
+
+
+
+
+====================================================================================
+====================================================================================
+
+1st play ->>> ace
+server - zs
+serving partner - ck 
+receiver - pc 
+receiving partner - gm 
+server position: PAIR_A_LEFT
+
+
+2nd play ->>> ace 
+server - zs
+serving partner - ck 
+receiver - gm
+receiving partner - pc 
+server position: PAIR_A_TOP
+
+
+3nd play ->>> ace 
+server - gm
+serving partner - pc
+receiver - zs
+receiving partner - ck
+server position: PAIR_B_BOTTOM
+
+
+4th play ->>> ace 
+server - gm
+serving partner - pc
+receiver - ck
+receiving partner - zs
+server position: PAIR_B_RIGHT
+
+
+4th play ->>> ace 
+server - zs
+serving partner - ck
+receiver - pc
+receiving partner - gm
+server position: PAIR_A_TOP
+
+
+
+
+
+

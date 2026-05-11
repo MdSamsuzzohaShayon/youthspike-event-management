@@ -68,3 +68,7 @@ export interface IUserContext {
 export interface ILoginResponse extends IResponse{
   data: IUserContext;
 }
+
+export interface IUserResponse extends IResponse{
+  data: IUser;
+}

@@ -17,7 +17,7 @@ import { GroupService } from 'src/group/group.service';
 import { FileUpload } from 'graphql-upload/processRequest.mjs';
 import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
 import { QueryFilter } from 'mongoose';
-import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
+import { CustomTeam } from 'src/team/resolvers/team.response';
 const GraphQLUpload = GraphQLUploadModule.default;
 
 @Injectable()

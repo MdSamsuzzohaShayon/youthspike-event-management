@@ -12,12 +12,20 @@ import {
 import { Player } from 'src/player/player.schema';
 import { ChangeServerReceiverInput } from '../gateway.types';
 
+type Rotation = {
+  server: string;
+  servingPartner: string;
+  receiver: string;
+  receivingPartner: string;
+  serverPositionPair: EServerPositionPair;
+};
+
 @Injectable()
 export class ScoreKeeperHelper {
   constructor(
     private readonly redis: GatewayRedisService,
     private readonly gateway: GatewayService,
-  ) {}
+  ) { }
 
   /* ───────────────────────────── helpers for “net” ─────────────────────────── */
 
@@ -103,7 +111,7 @@ export class ScoreKeeperHelper {
    */
   async savePlayerStats(statsMap: Record<string, PlayerStats>, eventId: string) {
     await Promise.all(
-      Object.entries(statsMap).map(([id, data]) => this.redis.setAction(playerKey(id, data.net.toString()), {...data, event: eventId})),
+      Object.entries(statsMap).map(([id, data]) => this.redis.setAction(playerKey(id, data.net.toString()), { ...data, event: eventId })),
     ); // Redis key: <player:id:net>
   }
 
@@ -182,6 +190,112 @@ export class ScoreKeeperHelper {
     net.receivingPartnerId = String(net.receivingPartner);
   }
 
+  // A helper function that updates the positions and players for server & receiver
+  private serverReceiverSwap(
+    net: ServerReceiverOnNet,
+    newPos: EServerPositionPair,
+    newServer: string | Player,
+    newPartner: string | Player,
+    newReceiver: string | Player,
+    newReceiverPartner: string | Player,
+  ) {
+    net.serverPositionPair = newPos;
+    net.server = newServer;
+    net.servingPartner = newPartner;
+    net.receiver = newReceiver;
+    net.receivingPartner = newReceiverPartner;
+  };
+
+
+
+  rotateReceiverEqualScoring(net: ServerReceiverOnNet) {
+
+    const nextPositionMap: Record<EServerPositionPair, EServerPositionPair> = {
+      [EServerPositionPair.PAIR_A_TOP]: EServerPositionPair.PAIR_A_LEFT,
+      [EServerPositionPair.PAIR_A_LEFT]: EServerPositionPair.PAIR_A_TOP,
+      [EServerPositionPair.PAIR_B_RIGHT]: EServerPositionPair.PAIR_B_BOTTOM,
+      [EServerPositionPair.PAIR_B_BOTTOM]: EServerPositionPair.PAIR_B_RIGHT,
+    };
+
+
+    net.serverPositionPair = nextPositionMap[net.serverPositionPair];
+    // change receiver with reveicing partner
+    [net.receiver, net.receivingPartner] = [net.receivingPartner, net.receiver];
+
+    net.serverId = String(net.server);
+    net.receiverId = String(net.receiver);
+    net.servingPartnerId = String(net.servingPartner);
+    net.receivingPartnerId = String(net.receivingPartner);
+  }
+
+
+
+  rotateServerReceiverEqualScoring(net: ServerReceiverOnNet) {
+    const prev: Omit<Rotation, 'serverPositionPair'> = {
+      server: String(net.server),
+      servingPartner: String(net.servingPartner),
+      receiver: String(net.receiver),
+      receivingPartner: String(net.receivingPartner)
+    };
+
+    /**
+     * Instead of multiple if/else blocks,
+     * define transformation rules per position.
+     */
+    const transformMap: Record<
+      EServerPositionPair,
+      Rotation
+    > = {
+      [EServerPositionPair.PAIR_A_TOP]: {
+        server: prev.receiver,
+        servingPartner: prev.receivingPartner,
+        receiver: prev.server,
+        receivingPartner: prev.servingPartner,
+        serverPositionPair: EServerPositionPair.PAIR_B_BOTTOM
+      },
+      [EServerPositionPair.PAIR_A_LEFT]: {
+        server: prev.receivingPartner,
+        servingPartner: prev.receiver,
+        receiver: prev.servingPartner,
+        receivingPartner: prev.server,
+        serverPositionPair: EServerPositionPair.PAIR_B_BOTTOM
+      },
+      [EServerPositionPair.PAIR_B_BOTTOM]: {
+        server: prev.receiver,
+        servingPartner: prev.receivingPartner,
+        receiver: prev.server,
+        receivingPartner: prev.servingPartner,
+        serverPositionPair: EServerPositionPair.PAIR_A_TOP
+      },
+      [EServerPositionPair.PAIR_B_RIGHT]: {
+        server: prev.receivingPartner,
+        servingPartner: prev.receiver,
+        receiver: prev.servingPartner,
+        receivingPartner: prev.server,
+        serverPositionPair: EServerPositionPair.PAIR_A_TOP
+      },
+    };
+
+    const next = transformMap[net.serverPositionPair];
+
+    net.server = next.server;
+    net.servingPartner = next.servingPartner;
+    net.receiver = next.receiver;
+    net.receivingPartner = next.receivingPartner;
+    net.serverPositionPair = next.serverPositionPair;
+
+
+
+
+    // batch update IDs (still O(1), but cleaner grouping)
+    const { server, receiver, servingPartner, receivingPartner } = net;
+
+    net.serverId = String(server);
+    net.receiverId = String(receiver);
+    net.servingPartnerId = String(servingPartner);
+    net.receivingPartnerId = String(receivingPartner);
+  }
+
   rotateReceiver(net: ServerReceiverOnNet) {
     const nextPositionMap: Record<EServerPositionPair, EServerPositionPair> = {
       [EServerPositionPair.PAIR_A_TOP]: EServerPositionPair.PAIR_A_LEFT,
@@ -203,51 +317,36 @@ export class ScoreKeeperHelper {
     const prevServer = net.server;
     const prevPartner = net.servingPartner;
 
-    // A helper function that updates the positions and players for server & receiver
-    const swapTo = (
-      newPos: EServerPositionPair,
-      newServer: string | Player,
-      newPartner: string | Player,
-      newReceiver: string | Player,
-      newReceiverPartner: string | Player,
-    ) => {
-      net.serverPositionPair = newPos;
-      net.server = newServer;
-      net.servingPartner = newPartner;
-      net.receiver = newReceiver;
-      net.receivingPartner = newReceiverPartner;
-    };
-
-     // When the receiving team's score is EVEN, the server and receiver rotation follows this map
+    // When the receiving team's score is EVEN, the server and receiver rotation follows this map
     const evenMap: Record<EServerPositionPair, () => void> = {
       [EServerPositionPair.PAIR_B_BOTTOM]: () =>
-        swapTo(EServerPositionPair.PAIR_A_LEFT, net.receivingPartner, net.receiver, prevPartner, prevServer),
+        this.serverReceiverSwap(net, EServerPositionPair.PAIR_A_LEFT, net.receivingPartner, net.receiver, prevPartner, prevServer),
       [EServerPositionPair.PAIR_A_TOP]: () =>
-        swapTo(EServerPositionPair.PAIR_B_RIGHT, net.receivingPartner, net.receiver, prevPartner, prevServer),
+        this.serverReceiverSwap(net, EServerPositionPair.PAIR_B_RIGHT, net.receivingPartner, net.receiver, prevPartner, prevServer),
       [EServerPositionPair.PAIR_B_RIGHT]: () =>
-        swapTo(EServerPositionPair.PAIR_A_LEFT, net.receiver, net.receivingPartner, prevServer, prevPartner),
+        this.serverReceiverSwap(net, EServerPositionPair.PAIR_A_LEFT, net.receiver, net.receivingPartner, prevServer, prevPartner),
       [EServerPositionPair.PAIR_A_LEFT]: () =>
-        swapTo(EServerPositionPair.PAIR_B_RIGHT, net.receiver, net.receivingPartner, prevServer, prevPartner),
+        this.serverReceiverSwap(net, EServerPositionPair.PAIR_B_RIGHT, net.receiver, net.receivingPartner, prevServer, prevPartner),
     };
 
-     // When the receiving team's score is ODD, rotation happens differently
+    // When the receiving team's score is ODD, rotation happens differently
     const oddMap: Record<EServerPositionPair, () => void> = {
       [EServerPositionPair.PAIR_A_TOP]: () =>
-        swapTo(EServerPositionPair.PAIR_B_BOTTOM, net.receiver, net.receivingPartner, prevServer, prevPartner),
+        this.serverReceiverSwap(net, EServerPositionPair.PAIR_B_BOTTOM, net.receiver, net.receivingPartner, prevServer, prevPartner),
       [EServerPositionPair.PAIR_A_LEFT]: () =>
-        swapTo(EServerPositionPair.PAIR_B_BOTTOM, net.receivingPartner, net.receiver, prevPartner, prevServer),
+        this.serverReceiverSwap(net, EServerPositionPair.PAIR_B_BOTTOM, net.receivingPartner, net.receiver, prevPartner, prevServer),
       [EServerPositionPair.PAIR_B_BOTTOM]: () =>
-        swapTo(EServerPositionPair.PAIR_A_TOP, net.receiver, net.receivingPartner, prevServer, prevPartner),
+        this.serverReceiverSwap(net, EServerPositionPair.PAIR_A_TOP, net.receiver, net.receivingPartner, prevServer, prevPartner),
       [EServerPositionPair.PAIR_B_RIGHT]: () =>
-        swapTo(EServerPositionPair.PAIR_A_TOP, net.receivingPartner, net.receiver, prevPartner, prevServer),
+        this.serverReceiverSwap(net, EServerPositionPair.PAIR_A_TOP, net.receivingPartner, net.receiver, prevPartner, prevServer),
     };
 
-   
-     // 
-     /**
-      * Decide which rotation map to use based on whether the receiving team's score is even or odd
-      * (Receiving team scores), if the score is even setter will serve first, if the score is odd then receiver will be the server
-      */
+
+    // 
+    /**
+     * Decide which rotation map to use based on whether the receiving team's score is even or odd
+     * (Receiving team scores), if the score is even setter will serve first, if the score is odd then receiver will be the server
+     */
     if (receivingTeamScore % 2 === 0) {
       evenMap[net.serverPositionPair]?.();
     } else {

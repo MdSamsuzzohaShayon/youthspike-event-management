@@ -32,7 +32,7 @@ export const useRoundNavigation = ({
 
   const netsByRound = useMemo(() => {
     const map: Record<string, INetRelatives[]> = {};
-    allNets.forEach((net) => {
+    (allNets || []).forEach((net) => {
       if (!map[net.round]) map[net.round] = [];
       map[net.round].push(net);
     });

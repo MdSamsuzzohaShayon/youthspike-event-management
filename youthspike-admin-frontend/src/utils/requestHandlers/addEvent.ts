@@ -56,7 +56,18 @@ export async function addEventWithFiles({
   const mapObj = createFileMap(sponsorFileList, !!eventLogo);
   formData.set('map', JSON.stringify(mapObj));
 
-  addFilesToFormData(formData, sponsorFileList, eventLogo);
+  let i = 0;
+  for (const sponsorFile of sponsorFileList) {
+    if (sponsorFile.logo instanceof File && sponsorFile.company) {
+      formData.set(`${i}`, sponsorFile.logo);
+    }
+    i += 1;
+  }
+
+
+  if (eventLogo) {
+    formData.set(`${sponsorFileList.length}`, eventLogo);
+  }
 
   const token = getCookie('token');
   const response = await fetch(BACKEND_URL, {
@@ -111,14 +122,3 @@ function createFileMap(sponsorFileList: IEventSponsorAdd[], hasEventLogo: boolea
   return mapObj;
 }
 
-function addFilesToFormData(formData: FormData, sponsorFileList: IEventSponsorAdd[], eventLogo: Blob | null) {
-  sponsorFileList.forEach((sponsor, index) => {
-    if (sponsor.logo instanceof File && sponsor.company) {
-      formData.set(`${index}`, sponsor.logo);
-    }
-  });
-
-  if (eventLogo) {
-    formData.set(`${sponsorFileList.length}`, eventLogo);
-  }
-}

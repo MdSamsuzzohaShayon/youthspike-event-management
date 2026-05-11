@@ -5,13 +5,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { } from 'lucide-react';
 import { CldImage } from 'next-cloudinary';
-import { IEvent, ITeam } from '@/types';
+import { IEvent, IEventRelatives, ITeam } from '@/types';
 import TextImg from '../elements/TextImg';
 import { Trophy, Users, Calendar, ExternalLink, BarChart3, CalendarDays } from 'lucide-react';
 
 interface ITeamNavigationProps {
   team: ITeam;
-  events: IEvent[];
+  events: IEventRelatives[];
   ldoIdUrl: string;
   totalPlayers: number;
 }

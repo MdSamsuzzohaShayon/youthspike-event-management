@@ -20,18 +20,10 @@ function RoundInputBox({currMatch, roundList, currRound, allNets, myTeamE, dispa
   );
   const totalRounds = roundList.length;
 
-  const netsByRound = useMemo(() => {
-    const map: Record<string, INetRelatives[]> = {};
-    allNets.forEach((net) => {
-      if (!map[net.round]) map[net.round] = [];
-      map[net.round].push(net);
-    });
-    return map;
-  }, [allNets]);
 
   const { handleRoundChange } = useRoundNavigation({
     roundList,
-    netsByRound,
+    allNets,
     myTeamE,
     currentRound: currRound,
     match: currMatch

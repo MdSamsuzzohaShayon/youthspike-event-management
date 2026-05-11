@@ -45,7 +45,7 @@ export class MatchService {
   }
 
   async findById(id: string) {
-    return this.matchModel.findById(id);
+    return this.matchModel.findById(id).lean();
   }
 
   async create(matchObj: Match): Promise<Match> {

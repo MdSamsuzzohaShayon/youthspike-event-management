@@ -21,6 +21,7 @@ import { EServerPositionPair, IServerReceiverOnNetMixed } from "./serverReceiver
 import { IPlayerStats } from "./playerStats";
 import { ApolloClient } from "@apollo/client";
 import { AppDispatch } from "@/redux/store";
+import { EPlayStrategy } from "./elements";
 
 export interface IListenSocketProps {
   socket: Socket | null;
@@ -69,6 +70,7 @@ export interface ISetServerReceiverChange {
 
 
 interface ICommonAction {
+  playStrategy: EPlayStrategy;
   match: string;
   net: string;
   room: string;
@@ -95,7 +97,7 @@ export interface IChangeServerReceiverAction extends  ICommonAction{
 }
 
 
-export interface IUpdateCachePointsInput extends ICommonAction {
+export interface IUpdateCachePointsInput extends Omit<ICommonAction, 'playStrategy'> {
   dispatch: AppDispatch;
   accessCode: string | null;
   currRoundNets: INetRelatives[];
@@ -267,7 +269,7 @@ export interface IUpdateExtendOvertimeResponse {
   match: IMatchRelatives;
 }
 
-export interface IUpdateNetResponse {
+export interface IUpdateDataNetResponse {
   data: ITeiBreakerAction;
   dispatch: React.Dispatch<React.SetStateAction<any>>;
   currRoundNets: INetRelatives[];
@@ -299,10 +301,6 @@ export interface IRoundUpdateData extends IRoundMatchCommon {
 export interface INetUpdateData extends IRoundMatchCommon {
   nets: INetScoreUpdate[];
   matchCompleted: boolean;
-}
-
-export interface ITeamCaptain extends ITeam {
-  captain: IPlayer;
 }
 
 

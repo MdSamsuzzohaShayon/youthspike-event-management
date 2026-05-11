@@ -25,6 +25,18 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
   const { showMessage } = useMessage();
 
 
+  const eventMap: Map<string, IEvent> = useMemo(() => {
+    const map = new Map<string, IEvent>();
+    for (const event of events) {
+      map.set(event._id, event);
+    }
+    return map;
+  }, [events]);
+
+  console.log({ events, team });
+
+
+
   // Event handlers
   const handleAddPlayersToTeam = useCallback(
     async (e: React.SyntheticEvent) => {
@@ -37,6 +49,7 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
             eventId: "event._id", // temp
           },
         });
+        // Need to add cache later
         window.location.reload();
       } catch (error) {
         showMessage({ type: 'error', message: (error as Error)?.message || 'An error occurred' });
@@ -103,7 +116,7 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
   const divisionList: IOption[] = useMemo(() => {
     const divisions = divisionsOfEvents(events);
     return divisionsToOptionList(divisions);
-  }, [events]) 
+  }, [events])
 
 
   if (addPlayer) {
@@ -123,9 +136,9 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
         />
 
         <form onSubmit={handleAddPlayersToTeam} className="space-y-3">
-          <PlayerSelectInput availablePlayers={unassignedPlayers as IPlayer[]}
-            eventId={"event._id"} // temp
-            handleCheckboxChange={handleCheckboxChange} name="add-player-to-team" />
+          <PlayerSelectInput players={unassignedPlayers as IPlayer[]}
+            events={events}
+            onCheckboxChange={handleCheckboxChange} name="add-player-to-team" />
           <button type="submit" className="w-full bg-yellow-400 text-gray-900 py-3 rounded-lg font-bold text-sm hover:bg-yellow-300 transition-colors shadow-lg">
             ADD SELECTED PLAYERS
           </button>
@@ -157,7 +170,7 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
           teamId={team?._id}
           showRank
           playerRanking={playerRanking}
-          events={events} 
+          events={events}
         />
       </div>
 
@@ -169,7 +182,7 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
           </div>
           <PlayerList
             playerList={inactivePlayers}
-            events={events} 
+            events={events}
             setIsLoading={setIsLoading}
             refetchFunc={refetchFunc}
             teamList={teamList}

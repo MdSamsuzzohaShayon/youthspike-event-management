@@ -13,7 +13,7 @@ type IAddPlayer =  useMutation.MutationFunction<{
 }, ApolloCache>;
 
 interface ICreatePlayer {
-  showMessage: (message: Omit<IMessage, "id">) => void;
+  setMessage: (message: Omit<IMessage, "id">) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   playerState: IPlayerAdd;
   uploadedProfile: React.RefObject<File | null>;
@@ -23,7 +23,7 @@ interface ICreatePlayer {
 }
 
 async function createPlayer({
-  showMessage,
+  setMessage,
   setIsLoading,
   playerState,
   division,
@@ -35,7 +35,7 @@ async function createPlayer({
     setIsLoading(true);
 
     if (!division) {
-      showMessage({ type: 'error', message: 'You must select a division!' });
+      setMessage({ type: 'error', message: 'You must select a division!' });
       return;
     }
 
@@ -52,7 +52,7 @@ async function createPlayer({
     }
 
     const responseData = playerRes?.data?.createPlayer;
-    const success = await handleResponseCheck(responseData, showMessage);
+    const success = await handleResponseCheck(responseData, setMessage);
     return success;
   } catch (err) {
     console.error(err);

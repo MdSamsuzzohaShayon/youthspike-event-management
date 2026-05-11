@@ -1,4 +1,4 @@
-import { IEvent, IPlayer } from '@/types';
+import { IEvent, IEventRelatives, IPlayer } from '@/types';
 import React from 'react';
 import Link from 'next/link';
 import { CldImage } from 'next-cloudinary';
@@ -10,7 +10,7 @@ interface PlayerWithRank extends IPlayer {
 
 interface PlayerListProps {
   players: PlayerWithRank[];
-  events: IEvent[];
+  events: IEventRelatives[];
 }
 
 function PlayerList({ players, events }: PlayerListProps) {

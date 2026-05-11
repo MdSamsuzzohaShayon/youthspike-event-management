@@ -336,6 +336,7 @@ export class EventMutations implements IEventMutations {
         }
       }
 
+      // ===== Update Default Event =====
       if (eventData.defaulted) {
         // Make all events  defaulted false except this one
         await this.eventService.updateMany({ ldo: ldo._id, _id: { $ne: eventId } }, { defaulted: false });

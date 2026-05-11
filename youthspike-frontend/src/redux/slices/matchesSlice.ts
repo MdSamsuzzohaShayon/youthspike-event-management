@@ -31,7 +31,7 @@ interface MatchesState  {
   selectedNet: INetRelatives | null;
   prevPartner: null | string;
   outOfRange: string[];
-  verifyLineup: boolean; // Temporary
+  verifyLineup: boolean; // Temp
   closePSCAvailable: boolean; // PSC = Player Score Card
 
   matchScore: IMatchScore;

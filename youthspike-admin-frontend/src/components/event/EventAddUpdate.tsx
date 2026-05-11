@@ -7,7 +7,7 @@ import { UserRole } from '@/types/user';
 import { useLdoId } from '@/lib/LdoProvider';
 
 import { useEventForm } from '@/hooks/useEventForm';
-import { IEventAddProps } from '@/types';
+import { ICreateEventResponse, IEventAddProps, IEventExpRel } from '@/types';
 
 import Loader from '../elements/Loader';
 import EventFormSections from './EventFormSections';
@@ -17,6 +17,9 @@ import { addEventWithFiles } from '@/utils/requestHandlers/addEvent';
 import ShowSponsors from './ShowSponsors';
 import Image from 'next/image';
 import { useMessage } from '@/lib/MessageProvider';
+import { useMutation } from '@apollo/client/react';
+import { ADD_EVENT } from '@/graphql/event';
+import { createEvent } from '@/utils/requestHandlers/createEvent';
 
 const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEventAddProps) => {
   // Hooks
@@ -25,13 +28,16 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
   const searchParams = useSearchParams();
   const pName = usePathname();
   const { ldoIdUrl } = useLdoId();
-  const { showMessage } = useMessage();
+  const { setMessage } = useMessage();
 
   // States
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSponsorDialogOpen, setIsSponsorDialogOpen] = useState<boolean>(false);
   const [eventId, setEventId] = useState<string | null>(null);
   const [directorId, setDirectorId] = useState<string | null>(null);
+
+  const [addEvent] = useMutation<{ createEvent: ICreateEventResponse }>(ADD_EVENT);
+  // const [mutateEvent] = useMutation<{ createEvent: ICreateEventResponse }>(ADD_EVENT);
   
 
   const {
@@ -63,12 +69,11 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
   } = useEventForm(update, prevEvent, prevMultiplayer, prevWight);
 
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      let event = eventId;
       if (update && eventId) {
         await updateEventWithFiles({
           eventId,
@@ -78,26 +83,26 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
           updateMultiplayer,
           updateStats,
           updateWeight,
-          showMessage,
+          setMessage,
         });
       } else {
-        event = await addEventWithFiles({
+        await createEvent({
           eventState,
           sponsorImgList,
           eventLogo: eventLogo.current,
           directorId,
           multiplayer,
           weight,
-
-          showMessage,
+          addEvent,
+          setMessage,
         });
       }
 
       // Reset form and navigate
       setEventState(initialEvent);
-      router.push(`/${event}/${ldoIdUrl}`);
+      // router.push(`/${eventId}/${ldoIdUrl}`);
     } catch (error) {
-      showMessage({
+      setMessage({
         message: error instanceof Error ? error.message : String(error),
         type: "error"
       });

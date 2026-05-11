@@ -235,7 +235,7 @@ const ActionButtons: React.FC<{
     
     <button
       onClick={onOpenPlays}
-      className="group relative px-6 py-2.5 md:px-8 md:py-3 rounded-xl bg-gradient-to-r from-yellow-500 to-yellow-600 text-black font-bold overflow-hidden transition-all duration-300 hover:shadow-lg hover:shadow-yellow-500/30 hover:scale-105"
+      className="group block md:hidden relative btn-info overflow-hidden"
     >
       <span className="relative z-10 flex items-center gap-2">
         <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

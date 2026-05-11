@@ -46,7 +46,7 @@ function PlayerAdd({ update, prevPlayer, teamList, division, eventId }: IProps) 
   const user = useUser();
   const searchParams = useSearchParams();
   const { ldoIdUrl } = useLdoId();
-  const { showMessage } = useMessage();
+  const { setMessage } = useMessage();
 
   const [playerState, setPlayerState] = useState<IPlayerAdd>(initialPlayerAdd);
   const [playerUpdate, setPlayerUpdate] = useState<Partial<IPlayerAdd>>({});
@@ -94,9 +94,9 @@ function PlayerAdd({ update, prevPlayer, teamList, division, eventId }: IProps) 
   const handleAddPlayer = async (e: React.SyntheticEvent) => {
       e.preventDefault();
       if (update) {
-        updatePlayerFn({ showMessage, setIsLoading, playerUpdate, prevPlayer: prevPlayer || null, uploadedProfile, updatePlayer});
+        updatePlayerFn({ setMessage, setIsLoading, playerUpdate, prevPlayer: prevPlayer || null, uploadedProfile, updatePlayer});
       } else {
-        createPlayer({ showMessage, setIsLoading, playerState, division, eventId, uploadedProfile, addPlayer });
+        createPlayer({ setMessage, setIsLoading, playerState, division, eventId, uploadedProfile, addPlayer });
       }
 
       if(teamId){
@@ -154,7 +154,7 @@ function PlayerAdd({ update, prevPlayer, teamList, division, eventId }: IProps) 
 
   return (
     <form onSubmit={handleAddPlayer} className="w-full">
-      <ImageInput handleFileChange={handleFileChange} name="profile" defaultValue={prevPlayer?.profile || null} className="mt-6" />
+      <ImageInput onFileChange={handleFileChange} name="profile" defaultValue={prevPlayer?.profile || null} className="mt-6 w-full md:w-2/6" />
       <div className="part-1 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <InputField type="text" name="firstName" label="First Name" defaultValue={playerState.firstName} handleInputChange={handleInputChange} required={!update} />
         <InputField type="text" name="lastName" label="Last Name" defaultValue={playerState.lastName} handleInputChange={handleInputChange} required={!update} />

@@ -12,17 +12,17 @@ import LocalStorageService from "@/utils/LocalStorageService";
 import { useRouter } from "next/navigation";
 import { containerVariants, itemVariants } from "@/utils/animation";
 
-interface IScoreKeepingMainProps {
+interface IScoreKeepingContainerProps {
   queryRef: QueryRef<{ getMatch: { data: IMatchExpRel } }>;
   accessCodeList: IAccessCode[];
   accessCode: IAccessCode | null;
 }
 
-function ScoreKeepingMain({
+function ScoreKeepingContainer({
   queryRef,
   accessCode,
   accessCodeList,
-}: IScoreKeepingMainProps) {
+}: IScoreKeepingContainerProps) {
   const { data, error } = useReadQuery(queryRef);
   const user = useUser();
   const router = useRouter();
@@ -114,34 +114,25 @@ function ScoreKeepingMain({
   }
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key="scorekeeping-main"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.2 }}
+    <div
+      key="scorekeeping-main"
+    >
+      {renderHeadings()}
+      <div
+        className="server-receiver-wrapper"
       >
-        {renderHeadings()}
-        <motion.div
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.1, duration: 0.3 }}
-          className="server-receiver-wrapper"
-        >
-          {matchData && (
-            <ServerReceiver
-              matchId={matchData._id}
-              matchData={matchData}
-              accessCode={accessCode}
-              token={token || null}
-              userInfo={info}
-            />
-          )}
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
+        {matchData && (
+          <ServerReceiver
+            matchId={matchData._id}
+            matchData={matchData}
+            accessCode={accessCode}
+            token={token || null}
+            userInfo={info}
+          />
+        )}
+      </div>
+    </div>
   );
 }
 
-export default ScoreKeepingMain;
+export default ScoreKeepingContainer;

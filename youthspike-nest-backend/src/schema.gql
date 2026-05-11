@@ -464,6 +464,29 @@ type UserResponse {
   data: User
 }
 
+type CustomTeam {
+  _id: String
+  createdAt: String
+  updatedAt: String
+  name: String!
+  logo: String
+  active: Boolean!
+  division: String!
+  sendCredentials: Boolean
+  num: Float
+  captain: String
+  cocaptain: String
+  matches: [String!]
+  events: [String!]
+  players: [String!]
+  moved: [Player!]
+  playerRankings: [PlayerRanking!]
+  groups: [String!]
+  playerRanking: PlayerRanking
+  rankings: [PlayerRankingItem!]!
+  player: PlayerRankingItem!
+}
+
 type CreateOrUpdateTeamResponse {
   code: Int!
   success: Boolean!
@@ -722,11 +745,11 @@ type GetPlayerStatsResponse {
 }
 
 type TeamRoster {
-  team: Team
+  team: CustomTeam
   players: [CustomPlayer!]
   playerRanking: CustomPlayerRanking
   rankings: [CustomPlayerRankingItem!]
-  events: [Event!]
+  events: [CustomEvent!]
 }
 
 type TeamMatches {
@@ -739,11 +762,11 @@ type TeamMatches {
 }
 
 type TeamDetails {
-  team: Team
+  team: CustomTeam
   players: [CustomPlayer!]
   playerRanking: CustomPlayerRanking
   rankings: [CustomPlayerRankingItem!]
-  events: [Event!]
+  events: [CustomEvent!]
   groups: [CustomGroup!]
   captain: CaptainPlayer
   cocaptain: CoCaptainPlayer
@@ -822,29 +845,6 @@ type GetAccessCodeResponse {
   success: Boolean!
   message: String
   data: AccessCode
-}
-
-type CustomTeam {
-  _id: String
-  createdAt: String
-  updatedAt: String
-  name: String!
-  logo: String
-  active: Boolean!
-  division: String!
-  sendCredentials: Boolean
-  num: Float
-  captain: String
-  cocaptain: String
-  matches: [String!]
-  events: [Event!]
-  players: [String!]
-  moved: [Player!]
-  playerRankings: [PlayerRanking!]
-  groups: [String!]
-  playerRanking: PlayerRanking
-  rankings: [PlayerRankingItem!]!
-  player: PlayerRankingItem!
 }
 
 type CustomGroup {

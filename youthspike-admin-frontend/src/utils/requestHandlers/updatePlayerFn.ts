@@ -6,10 +6,13 @@ import { IMessage, IResponse } from '@/types';
 import { useMutation } from '@apollo/client/react';
 import { ApolloCache } from '@apollo/client';
 import { handleApiResult } from '../handleError';
+import { getCookie } from '../clientCookie';
+import { BACKEND_URL } from '../keys';
 
-interface IUpdatePlayerData extends IResponse{
+interface IUpdatePlayerData extends IResponse {
   data?: IPlayerExpRel;
 }
+
 
 type TMutationFunction = useMutation.MutationFunction<
   {
@@ -22,7 +25,7 @@ type TMutationFunction = useMutation.MutationFunction<
 >;
 
 interface IUpdatePlayer {
-  showMessage: (message: Omit<IMessage, "id">) => void;
+  setMessage: (message: Omit<IMessage, "id">) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   playerUpdate: Partial<IPlayerAdd>;
   prevPlayer: IPlayer | null;
@@ -31,35 +34,123 @@ interface IUpdatePlayer {
 
 }
 
-async function updatePlayerFn({ showMessage, setIsLoading, playerUpdate, prevPlayer, uploadedProfile, updatePlayer }: IUpdatePlayer) {
+async function updatePlayerFn({
+  setMessage,
+  setIsLoading,
+  playerUpdate,
+  prevPlayer,
+  uploadedProfile,
+  updatePlayer,
+}: IUpdatePlayer) {
+  setIsLoading(true);
+
   try {
-    setIsLoading(true);
+    let responseData: IUpdatePlayerData | undefined;
 
-    let playerRes;
+    // 🟡 CASE 1: File upload (fetch)
     if (uploadedProfile?.current) {
-      playerRes = await sendGraphQLFormData(UPDATE_PLAYER_RAW, { input: playerUpdate, profile: null, playerId: prevPlayer?._id }, uploadedProfile.current);
-    } else {
-      playerRes = await updatePlayer({
-        variables: { input: playerUpdate, playerId: prevPlayer?._id },
+      const formData = new FormData();
+      formData.set(
+        'operations',
+        JSON.stringify({
+          query: UPDATE_PLAYER_RAW,
+          variables: {
+            input: playerUpdate,
+            profile: null,
+            playerId: prevPlayer?._id,
+          },
+        }),
+      );
+      formData.set('map', JSON.stringify({ '0': ['variables.profile'] }));
+      formData.set('0', uploadedProfile.current);
+
+      const token = getCookie('token');
+
+      const res = await fetch(BACKEND_URL, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'apollo-require-preflight': 'true',
+        },
       });
+
+      // 🔴 Handle HTTP errors
+      if (!res.ok) {
+        throw new Error(`HTTP Error: ${res.status} ${res.statusText}`);
+      }
+
+      const json = await res.json();
+
+      // 🔴 Handle GraphQL errors
+      if (json.errors?.length) {
+        throw new Error(json.errors[0].message || 'GraphQL Error');
+      }
+
+      responseData = json.data?.updatePlayer;
     }
 
-    
-    if(playerRes?.errors){
-      const result = handleApiResult({ error: playerRes?.errors });
-      return result;
-    }
-    const responseData = playerRes?.data?.updatePlayer;
+    // 🟢 CASE 2: Apollo mutation
+    else {
+      const result = await updatePlayer({
+        variables: {
+          input: playerUpdate,
+          playerId: prevPlayer?._id,
+        },
+      });
 
+      // 🔴 GraphQL errors (Apollo)
+      if (result.error) {
+        console.error(result.error);
+
+        throw new Error(result.error?.message);
+      }
+
+      responseData = result.data?.updatePlayer;
+    }
+
+    // 🔴 No response safety
+    if (!responseData) {
+      throw new Error('No response received from server');
+    }
+
+    // ✅ Success handling
     const result = handleApiResult({ response: responseData });
+
+    if (result?.code > 299) {
+      throw new Error(result.message);
+    }
+
+    setMessage({
+      type: 'success',
+      message: result?.message || 'Player updated successfully',
+    });
+
     return result;
 
-  } catch (err) {
-    console.error(err);
+  } catch (error: unknown) {
+    console.error(error);
+
+    // 🧠 Smart error extraction
+    let message = 'Something went wrong';
+
+    if (error instanceof Error) {
+      message = error.message;
+    }
+
+    setMessage({
+      type: 'error',
+      message,
+    });
+
+    await fetch('/api/logout', { method: 'GET' });
+
+
+    throw new Error(message);
   } finally {
     setIsLoading(false);
   }
-  return false;
 }
+
 
 export default updatePlayerFn;

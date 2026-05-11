@@ -9,6 +9,13 @@ export enum ETeam {
   teamB = 'teamB',
 }
 
+
+export enum EPlayStrategy{
+  RALLY_SCORING = "RALLY_SCORING", // previous strategy
+  EQUAL_SERVING = "EQUAL_SERVING",
+}
+
+
 export const ROOM_PREFIX = 'room:';
 export const SOCKET_PREFIX = 'socket:';
 export const CLIENT_TTL = 60 * 60 * 2; // 2 hours TTL for client data
@@ -169,33 +176,41 @@ class CommonActionInput {
   @Field({ nullable: false })
   event: string;
 }
-@InputType()
-export class ServiceFaultInput extends CommonActionInput {}
-
-@InputType()
-export class ReceiverDoNotKnowInput extends CommonActionInput {}
-
-@InputType()
-export class ServerDoNotKnowInput extends CommonActionInput {}
-
-@InputType()
-export class AceNoTouchInput extends CommonActionInput {}
-
-@InputType()
-export class AceNoThirdTouchInput extends CommonActionInput {}
-
-@InputType()
-export class ReceivingHittingErrorInput extends CommonActionInput {}
-
-@InputType()
-export class OneTwoThreePutAwayInput extends CommonActionInput {}
-
-@InputType()
-export class RallyConversionInput extends CommonActionInput {}
 
 
 @InputType()
-export class DefensiveConversionInput extends CommonActionInput {}
+class CommonServerReceiverActionInput extends CommonActionInput {
+  @Field({ nullable: false })
+  playStrategy: EPlayStrategy;
+}
+
+@InputType()
+export class ServiceFaultInput extends CommonServerReceiverActionInput {}
+
+@InputType()
+export class ReceiverDoNotKnowInput extends CommonServerReceiverActionInput {}
+
+@InputType()
+export class ServerDoNotKnowInput extends CommonServerReceiverActionInput {}
+
+@InputType()
+export class AceNoTouchInput extends CommonServerReceiverActionInput {}
+
+@InputType()
+export class AceNoThirdTouchInput extends CommonServerReceiverActionInput {}
+
+@InputType()
+export class ReceivingHittingErrorInput extends CommonServerReceiverActionInput {}
+
+@InputType()
+export class OneTwoThreePutAwayInput extends CommonServerReceiverActionInput {}
+
+@InputType()
+export class RallyConversionInput extends CommonServerReceiverActionInput {}
+
+
+@InputType()
+export class DefensiveConversionInput extends CommonServerReceiverActionInput {}
 
 @InputType()
 export class UpdateCachePointsInput extends CommonActionInput {

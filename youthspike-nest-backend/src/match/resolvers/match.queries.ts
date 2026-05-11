@@ -16,7 +16,7 @@ import { UserService } from 'src/user/user.service';
 import { ETieBreakingStrategy } from 'src/event/event.schema';
 import { QueryFilter } from 'mongoose';
 import { EMatchStatus, Match } from '../match.schema';
-import { CustomGroup, CustomTeam, GetEventWithMatchesResponse, GetMatchesResponse } from './match.response';
+import { CustomGroup, GetEventWithMatchesResponse, GetMatchesResponse } from './match.response';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { PlayerService } from 'src/player/player.service';
 import { EPlayerStatus } from 'src/player/player.schema';
@@ -25,7 +25,7 @@ import { Team } from 'src/team/team.schema';
 import { LDO } from 'src/ldo/ldo.schema';
 import { Group } from 'src/group/group.schema';
 import { User } from 'src/user/user.schema';
-import { CustomMatch, CustomNet, CustomRound } from 'src/team/resolvers/team.response';
+import { CustomMatch, CustomNet, CustomRound, CustomTeam } from 'src/team/resolvers/team.response';
 
 // IMatchQueries
 
@@ -43,7 +43,7 @@ export class MatchQueries {
     private groupService: GroupService,
     private playerRankingService: PlayerRankingService,
     private playerService: PlayerService,
-  ) {}
+  ) { }
 
   // Helper functions
   async updateTeamRanking(teamId: string, matchId: string) {
@@ -90,7 +90,7 @@ export class MatchQueries {
     try {
       const limit = filter?.limit ?? 30;
       const offset = filter?.offset ?? 0;
-  
+
       /**
        * ---------------------------------------------------------
        * 1. Fetch Event (if provided)
@@ -99,14 +99,14 @@ export class MatchQueries {
       const event = eventId
         ? await this.eventService.findOne({ _id: eventId })
         : null;
-  
+
       /**
        * ---------------------------------------------------------
        * 2. Extract Logged-in User from Token
        * ---------------------------------------------------------
        */
       let loggedUser: User | null = null;
-  
+
       try {
         const jwtSecret = this.configService.get<string>('JWT_SECRET');
         const userPayload = tokenToUser(context, jwtSecret);
@@ -114,7 +114,7 @@ export class MatchQueries {
       } catch (error) {
         console.error(`User authentication error: ${error}`);
       }
-  
+
       /**
        * ---------------------------------------------------------
        * 3. Fetch LDO and Groups (if event exists)
@@ -122,25 +122,25 @@ export class MatchQueries {
        */
       let ldo: LDO | null = null;
       let groups: Group[] = [];
-  
+
       if (eventId && event) {
         [ldo, groups] = await Promise.all([
           this.ldoService.findByDirectorId(String(event.ldo)),
           this.groupService.find({ event: eventId }),
         ]);
       }
-  
+
       /**
        * ---------------------------------------------------------
        * 4. Build Match Filter
        * ---------------------------------------------------------
        */
       const matchFilter: QueryFilter<Match> = {};
-  
+
       if (eventId) {
         matchFilter.event = eventId;
       }
-  
+
       /**
        * ---------------------------------------------------------
        * 5. Captain / Co-captain filter
@@ -150,41 +150,41 @@ export class MatchQueries {
         const team = loggedUser.captainplayer
           ? await this.teamService.findOne({ captain: loggedUser.captainplayer })
           : await this.teamService.findOne({ cocaptain: loggedUser.cocaptainplayer });
-  
+
         if (!team) {
           return AppResponse.notFound('Team');
         }
-  
+
         matchFilter.$or = [
           { teamA: String(team._id) },
           { teamB: String(team._id) },
         ];
       }
-  
+
       /**
        * ---------------------------------------------------------
        * 6. Team Search Filter
        * ---------------------------------------------------------
        */
       let teamSearchMatched = false;
-  
+
       if (filter?.search) {
         const teams = await this.teamService.find({
           name: { $regex: new RegExp(filter.search, 'i') },
         });
-  
+
         if (teams.length > 0) {
           teamSearchMatched = true;
-  
+
           const teamIds = teams.map((team) => team._id);
-  
+
           matchFilter.$or = [
             { teamA: { $in: teamIds } },
             { teamB: { $in: teamIds } },
           ];
         }
       }
-  
+
       /**
        * ---------------------------------------------------------
        * 7. Description / Location Search
@@ -196,7 +196,7 @@ export class MatchQueries {
           { location: { $regex: filter.search, $options: 'i' } },
         ];
       }
-  
+
       /**
        * ---------------------------------------------------------
        * 8. Division / Group Filters
@@ -207,11 +207,11 @@ export class MatchQueries {
           $regex: new RegExp(filter.division.trim(), 'i'),
         };
       }
-  
+
       if (filter?.group) {
         matchFilter.group = filter.group;
       }
-  
+
       /**
        * ---------------------------------------------------------
        * 9. Completed Filter
@@ -222,7 +222,7 @@ export class MatchQueries {
       } else if (filter?.status) {
         filter.limit = 5000;
       }
-  
+
       /**
        * ---------------------------------------------------------
        * 10. Fetch Matches
@@ -233,38 +233,38 @@ export class MatchQueries {
         limit,
         offset,
       );
-  
+
       /**
        * ---------------------------------------------------------
        * 11. Collect Match IDs
        * ---------------------------------------------------------
        */
       const matchIds = matches.map((match) => match._id);
-  
+
       /**
        * ---------------------------------------------------------
        * 12. Fetch Related Data in Parallel
        * ---------------------------------------------------------
        */
-      const teamFilter: QueryFilter<Team> = eventId ? { events: {$in: [eventId]}, matches: {$in: matchIds} } : {};
-  
+      const teamFilter: QueryFilter<Team> = eventId ? { events: { $in: [eventId] }, matches: { $in: matchIds } } : {};
+
       const [nets, rounds, teams] = await Promise.all([
         this.netService.find({ match: { $in: matchIds } }),
         this.roundService.find({ match: { $in: matchIds } }),
         this.teamService.find(teamFilter),
       ]);
-  
+
       /**
        * ---------------------------------------------------------
        * 13. Build Round Map (O(1) lookup)
        * ---------------------------------------------------------
        */
       const roundMap = new Map<string, Round>();
-  
+
       for (const round of rounds) {
         roundMap.set(String(round.match), round);
       }
-  
+
       /**
        * ---------------------------------------------------------
        * 14. Status-based Filtering
@@ -272,34 +272,34 @@ export class MatchQueries {
        */
       if (filter?.status) {
         const now = new Date();
-  
+
         matches = matches.filter((match) => {
           const firstRound = roundMap.get(String(match._id));
-  
+
           if (!firstRound) return false;
-  
+
           switch (filter.status) {
             case EMatchStatus.IN_PROGRESS:
               return !match.completed &&
                 firstRound.teamAProcess !== EActionProcess.INITIATE;
-  
+
             case EMatchStatus.NOT_STARTED:
               return !match.completed &&
                 firstRound.teamAProcess === EActionProcess.INITIATE;
-  
+
             case EMatchStatus.CURRENT:
               return !match.completed &&
                 firstRound.teamAProcess === EActionProcess.CHECKIN;
-  
+
             case EMatchStatus.PAST:
               return new Date(match.date) < now;
-  
+
             default:
               return true;
           }
         });
       }
-  
+
       /**
        * ---------------------------------------------------------
        * 15. Return Response
@@ -316,10 +316,10 @@ export class MatchQueries {
           matches: matches as CustomMatch[],
           nets: nets as unknown as CustomNet[],
           rounds: rounds as CustomRound[],
-          teams: teams as CustomTeam[],
+          teams: this.teamService.normalizeTeams(teams as CustomTeam[]) as CustomTeam[],
         },
       };
-  
+
     } catch (error) {
       return AppResponse.handleError(error);
     }
