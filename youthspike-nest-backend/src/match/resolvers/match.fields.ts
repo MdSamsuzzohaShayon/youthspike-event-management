@@ -317,7 +317,8 @@ export class MatchFields {
 
   async event(match: Match) {
     try {
-      return this.eventService.findById(match.event.toString());
+      const eventExist = await this.eventService.findById(match.event.toString());
+      return eventExist;
     } catch {
       return null;
     }

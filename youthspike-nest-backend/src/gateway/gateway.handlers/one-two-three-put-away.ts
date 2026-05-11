@@ -1,6 +1,6 @@
 import { ConnectedSocket, MessageBody } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { OneTwoThreePutAwayInput } from '../gateway.types';
+import { EPlayStrategy, OneTwoThreePutAwayInput } from '../gateway.types';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { EServerReceiverAction } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
@@ -10,7 +10,7 @@ export class OneTwoThreePutAwayHandler {
   constructor(
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
     private readonly pointsUpdateHelper: PointsUpdateHelper,
-  ) {}
+  ) { }
 
   async handle(@ConnectedSocket() client: Socket, @MessageBody() body: OneTwoThreePutAwayInput, server: Server) {
     try {
@@ -42,17 +42,17 @@ export class OneTwoThreePutAwayHandler {
       /* 4️⃣ save the four player docs in parallel */
       await this.scoreKeeperHelper.savePlayerStats(stats, body.event);
 
-     
+
 
       /* 5️⃣ scoring + rotation */
       const scoringTeam = teamA.has(net.receiver as string) ? 'A' : 'B';
       this.scoreKeeperHelper.updateScore(net, scoringTeam);
 
-       // Single net object
-       const currNetObj = structuredClone(net); // Without increment of mutate and play
-       const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY };
-       delete singlePlayNet.mutate;
-       const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
+      // Single net object
+      const currNetObj = structuredClone(net); // Without increment of mutate and play
+      const singlePlayNet = { ...currNetObj, action: EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY };
+      delete singlePlayNet.mutate;
+      const currSinglePlayObj = this.scoreKeeperHelper.normalizeSinglePlay(singlePlayNet);
 
       // After rotation it will be changed for next play
       const serverBefore = String(net.server);
@@ -62,7 +62,39 @@ export class OneTwoThreePutAwayHandler {
 
       // After updating point check is the number odd or even
       const receivingTeamScore: number = teamA.has(net.receiver as string) ? net.teamAScore : net.teamBScore;
-      this.scoreKeeperHelper.rotateServerReceiver(net, receivingTeamScore);
+      // this.scoreKeeperHelper.rotateServerReceiver(net, receivingTeamScore);
+      // Rotation strategy will depend on selected item from frontend
+      if (body.playStrategy === EPlayStrategy.EQUAL_SERVING) {
+        /**
+         * Check previous play
+         * If the server was also server in the previous play then change him otherwise keep him
+         * If the server stays then the position will be changes
+         */
+        // const serverReceiverOnNetExist = await serverReceiverOnNetService.findOne({ net: body.net });
+        if (net.mutate > 1) {
+          const allSinglePlays = await this.scoreKeeperHelper.loadAllSinglePlayAction(body.net, body.room, net.mutate);
+          const previousPlay = allSinglePlays.find((play) => play.play === net.mutate - 1);
+          if (!previousPlay) {
+            throw new Error("Previous play did not match for this strategy, try reverting or reseting all plays!")
+          }
+          // Same person has served twice, so server receiver both will be changed
+          if (previousPlay.server === net.server) {
+            const receivingTeamScore: number = teamA.has(net.receiver as string) ? net.teamAScore : net.teamBScore;
+            this.scoreKeeperHelper.rotateServerReceiverEqualScoring(net);
+          } else {
+            // This person is new server, so only receiver will be changed
+            this.scoreKeeperHelper.rotateReceiverEqualScoring(net);
+          }
+          // Check previous net, if he was in the previous net then change to new net
+        } else {
+          // no previous net exist 
+          // Same person will be setver but receiver will be changed
+          this.scoreKeeperHelper.rotateReceiverEqualScoring(net);
+        }
+      } else {
+        // Previous strategy - Strategy A
+        this.scoreKeeperHelper.rotateServerReceiver(net, receivingTeamScore);
+      }
       net.mutate += 1;
       net.play += 1;
 

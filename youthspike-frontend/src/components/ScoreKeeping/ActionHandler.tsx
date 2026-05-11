@@ -1,4 +1,5 @@
 import {
+  EPlayStrategy,
   EServerReceiverAction,
   ETeam,
   IServerReceiverOnNetMixed,
@@ -14,6 +15,7 @@ import { AppDispatch } from "@/redux/store";
 interface IActionHandlerProps {
   teamA: ITeam | null;
   teamB: ITeam | null;
+  playStrategy: EPlayStrategy;
   serverTeamE: null | ETeam;
   awardTo: ETeam | null;
   socket: Socket | null;
@@ -29,6 +31,7 @@ interface IActionHandlerProps {
 const ActionHandler: React.FC<IActionHandlerProps> = ({
   teamA,
   teamB,
+  playStrategy,
   serverTeamE,
   awardTo,
   socket,
@@ -53,55 +56,55 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
       switch (action) {
         case EServerReceiverAction.SERVER_ACE_NO_TOUCH:
           if (currServerReceiver.receiver && net && room) {
-            emit.aceNoTouch({ match, net, room, event: eventId });
+            emit.aceNoTouch({ playStrategy, match, net, room, event: eventId });
           }
           break;
 
         case EServerReceiverAction.SERVER_ACE_NO_THIRD_TOUCH:
           if (currServerReceiver.receiver && net && room) {
-            emit.aceNoThirdTouch({ match, net, room, event: eventId });
+            emit.aceNoThirdTouch({ playStrategy, match, net, room, event: eventId });
           }
           break;
 
         case EServerReceiverAction.SERVER_DEFENSIVE_CONVERSION:
           if (currServerReceiver.receiver && net && room) {
-            emit.serverDefensiveConversion({ match, net, room, event: eventId });
+            emit.serverDefensiveConversion({ playStrategy, match, net, room, event: eventId });
           }
           break;
 
         case EServerReceiverAction.SERVER_RECEIVING_HITTING_ERROR:
           if (currServerReceiver.receiver && net && room) {
-            emit.receivingHittingError({ match, net, room, event: eventId });
+            emit.receivingHittingError({ playStrategy, match, net, room, event: eventId });
           }
           break;
 
         case EServerReceiverAction.SERVER_DO_NOT_KNOW:
           if (currServerReceiver.receiver && net && room) {
-            emit.serverDoNotKnow({ match, net, room, event: eventId });
+            emit.serverDoNotKnow({ playStrategy, match, net, room, event: eventId });
           }
           break;
 
         case EServerReceiverAction.RECEIVER_SERVICE_FAULT:
           if (currServerReceiver.receiver && net && room) {
-            emit.serviceFault({ match, net, room, event: eventId });
+            emit.serviceFault({ playStrategy, match, net, room, event: eventId });
           }
           break;
 
         case EServerReceiverAction.RECEIVER_ONE_TWO_THREE_PUT_AWAY:
           if (currServerReceiver.receiver && net && room) {
-            emit.oneTwoThreePutAway({ match, net, room, event: eventId });
+            emit.oneTwoThreePutAway({ playStrategy, match, net, room, event: eventId });
           }
           break;
 
         case EServerReceiverAction.RECEIVER_RALLEY_CONVERSION:
           if (currServerReceiver.receiver && net && room) {
-            emit.receiverDefensiveConversion({ match, net, room, event: eventId });
+            emit.receiverDefensiveConversion({ playStrategy, match, net, room, event: eventId });
           }
           break;
 
         case EServerReceiverAction.RECEIVER_DO_NOT_KNOW:
           if (currServerReceiver.receiver && net && room) {
-            emit.receiverDoNotKnow({ match, net, room, event: eventId });
+            emit.receiverDoNotKnow({ playStrategy, match, net, room, event: eventId });
           }
           break;
 
@@ -114,6 +117,7 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
     };
 
   // Color-coded action configurations with meaningful colors
+  // Stays the serving within server with strategy a
   const serverActions = [
     {
       label: "ACE",
@@ -146,6 +150,8 @@ const ActionHandler: React.FC<IActionHandlerProps> = ({
     },
   ];
 
+
+  // Receiver get the serving with strategy a
   const receiverActions = [
     {
       label: "DOUBLE FAULT",

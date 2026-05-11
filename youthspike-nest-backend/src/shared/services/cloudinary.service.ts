@@ -1,7 +1,7 @@
 // https://chat.openai.com/c/ff62b374-21b1-4012-9d70-800e4dfd199b
 
 import { Injectable } from '@nestjs/common';
-import { createWriteStream } from 'fs';
+import { createReadStream as fsCreateReadStream } from 'fs';
 import { v2 as cloudinary } from 'cloudinary';
 import { unlink } from 'fs/promises';
 import { ConfigService } from '@nestjs/config';
@@ -26,32 +26,34 @@ export class CloudinaryService {
   }
 
   async uploadFiles(files: Promise<FileUpload>, w = 300, h = 300): Promise<string> {
-    const { createReadStream, filename,  encoding } = await files;
+    const { createReadStream, filename } = await files;
+
     try {
-      const localPath = `./uploads/${filename}`;
       const stream = createReadStream();
-      const uploadFilesToServer = new Promise((resolve, reject) =>
-        stream
-          .pipe(createWriteStream(localPath))
-          .on('finish', () => resolve(true))
-          .on('error', () => reject(false)),
-      );
 
-      await uploadFilesToServer;
+      // ✅ Upload using stream (correct way)
+      const result = await new Promise<any>((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: this.configService.get('CLOUDINARY_API_FOLDER'),
+            transformation: [
+              { width: w, height: h, crop: 'limit' },
+              { quality: 'auto:good' },
+              { fetch_format: 'auto' },
+            ],
+          },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          },
+        );
 
-      // Upload the file to Cloudinary
-      const cloudinaryResponse = await cloudinary.uploader.upload(localPath, {
-        folder: this.configService.get('CLOUDINARY_API_FOLDER'),
-        transformation: {
-          width: w,
-          height: h,
-          crop: 'limit',
-        },
+        stream.pipe(uploadStream); // 👈 direct pipe (BEST)
       });
 
-      await unlink(localPath);
-      return cloudinaryResponse.public_id;
+      return result.public_id; // ✅ now works
     } catch (error) {
+      console.error(error);
       return null;
     }
   }
@@ -59,29 +61,30 @@ export class CloudinaryService {
   async uploadSponsors(files: Promise<FileUpload>, company: string, w = 300, h = 300): Promise<SponsorType | null> {
     const { createReadStream, filename, mimetype } = await files;
     try {
-      const localPath = `./uploads/${filename}`;
       const stream = createReadStream();
-      const uploadFilesToServer = new Promise((resolve, reject) =>
-        stream
-          .pipe(createWriteStream(localPath))
-          .on('finish', () => resolve(true))
-          .on('error', () => reject(false)),
-      );
 
-      await uploadFilesToServer;
 
       // Upload the file to Cloudinary
-      const cloudinaryResponse = await cloudinary.uploader.upload(localPath, {
-        folder: this.configService.get('CLOUDINARY_API_FOLDER'),
-        transformation: {
-          width: w,
-          height: h,
-          crop: 'limit',
-        },
+      const result = await new Promise<any>((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: this.configService.get('CLOUDINARY_API_FOLDER'),
+            transformation: [
+              { width: w, height: h, crop: 'limit' },
+              { quality: 'auto:good' },
+              { fetch_format: 'auto' },
+            ],
+          },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          },
+        );
+
+        stream.pipe(uploadStream); // 👈 direct pipe (BEST)
       });
 
-      await unlink(localPath);
-      return { company, logo: cloudinaryResponse.public_id };
+      return { company, logo: result.public_id };
     } catch (error) {
       return null;
     }

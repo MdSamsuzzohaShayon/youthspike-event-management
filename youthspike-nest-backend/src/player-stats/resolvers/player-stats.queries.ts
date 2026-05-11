@@ -24,8 +24,8 @@ import { Group } from 'src/group/group.schema';
 import getStatsOfPlayers from 'src/utils/getStatsOfPlayers';
 import { PlayerStatsSearchFilter } from './player-stats.input';
 import { CustomPlayer } from 'src/player/resolvers/player.response';
-import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
-import { CustomMatch, CustomNet, CustomRound } from 'src/team/resolvers/team.response';
+import { CustomGroup } from 'src/match/resolvers/match.response';
+import { CustomMatch, CustomNet, CustomRound, CustomTeam } from 'src/team/resolvers/team.response';
 import {CustomEvent} from 'src/event/resolvers/event.response';
 
 
@@ -245,6 +245,22 @@ export class PlayerStatsQueries {
         oponents = await this.teamService.find({ _id: { $in: [...oponentIds] } });
       }
 
+
+      const normalizeEvents = [];
+      for (const event of events) {
+        const eventObj = {...event};
+        if(event?.teams){
+          const teamIds = new Set<string>();
+          for (const t of event.teams) {
+            if(t) teamIds.add(String(t));
+          }
+          eventObj.teams = [...teamIds];
+        }else{
+          eventObj.teams = [];
+        }
+        normalizeEvents.push(eventObj);
+      }
+
       // ✅ Final structured response
       return {
         code: HttpStatus.OK,
@@ -261,7 +277,7 @@ export class PlayerStatsQueries {
           oponents: oponents as CustomTeam[],
           players: players as CustomPlayer[],
           groups: groups as CustomGroup[],
-          events: events as CustomEvent[],
+          events: normalizeEvents as CustomEvent[],
           stats: [] // ProStats
         },
       };
@@ -341,6 +357,9 @@ export class PlayerStatsQueries {
         this.teamService.find(teamQuery),
         this.matchesService.find(matchQuery),
       ]);
+
+
+      if(!event) return AppResponse.notFound('Event');
 
       // const matchIds = new Set(matches.map((m) => String(m._id)));
       const matchIds = new Set();

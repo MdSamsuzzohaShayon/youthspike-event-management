@@ -11,6 +11,7 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import {
   EActionProcess,
   EMessage,
+  EPlayStrategy,
   ESRRole,
   ETeam,
   ETieBreaker,
@@ -45,6 +46,8 @@ import { setCurrentServerReceiver } from "@/redux/slices/serverReceiverOnNetSlic
 import { toOrdinal } from "@/utils/helper";
 import Link from "next/link";
 import ServerReceiverDialog from "../elements/Dialog/ServerReceiverDialog";
+import SessionStorageService from "@/utils/SessionStorageService";
+import { PLAY_STRATEGY } from "@/utils/constant";
 
 /* ───────────────────────────────────────────── */
 interface IServerReceiverProps {
@@ -64,7 +67,7 @@ export default function ServerReceiver({
 }: IServerReceiverProps) {
   const dispatch = useAppDispatch();
   const socket = useSocket();
-  
+
 
   /* Redux slices */
   const {
@@ -119,6 +122,7 @@ export default function ServerReceiver({
     useState<boolean>(false);
   const [toBeSelectedPlay, setToBeSelectedPlay] = useState<number | null>(null); // Selected playId before confirmation
   const [awardTo, setAwardTo] = useState<ETeam | null>(null);
+  const [playStrategy, setPlayStrategy] = useState<EPlayStrategy>(EPlayStrategy.RALLY_SCORING);
 
   const confirmBoxEl = useRef<HTMLDialogElement | null>(null);
   const changePlayEl = useRef<HTMLDialogElement | null>(null);
@@ -140,7 +144,7 @@ export default function ServerReceiver({
     [serverReceiversOnNet]
   );
 
-  const eventId = useMemo(()=>{
+  const eventId = useMemo(() => {
     return matchData?.event?._id || currMatch?.event
   }, [matchData, currMatch]);
 
@@ -303,6 +307,14 @@ export default function ServerReceiver({
     setReceiverPlaceholder(false);
   };
 
+
+  const handlePlayStrategyChange = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const inputEl = e.target as HTMLSelectElement;
+    setPlayStrategy(inputEl.value as EPlayStrategy);
+    SessionStorageService.setItem(PLAY_STRATEGY, inputEl.value);
+  }
+
   const handlePlayChange = () => {
     // select net
     const net = netByNum.get(currNetNum);
@@ -434,6 +446,17 @@ export default function ServerReceiver({
   /* ───── Hydrate redux ONCE ───── */
 
   useEffect(() => {
+    // SessionStorageService.setItem(PLAY_STRATEGY, inputEl.value);
+    const strategyExists = SessionStorageService.getItem(PLAY_STRATEGY);
+    if (strategyExists) {
+      setPlayStrategy(strategyExists === EPlayStrategy.EQUAL_SERVING ? EPlayStrategy.EQUAL_SERVING : EPlayStrategy.RALLY_SCORING)
+    } else {
+      setPlayStrategy(EPlayStrategy.RALLY_SCORING);
+      SessionStorageService.setItem(PLAY_STRATEGY, EPlayStrategy.RALLY_SCORING);
+    }
+  }, []);
+
+  useEffect(() => {
     organizeFetchedData({ matchData, token, userInfo, matchId, dispatch });
   }, []); // ← run exactly once
   /* ───── UI ───── */
@@ -519,6 +542,7 @@ export default function ServerReceiver({
               Score of both teams are same, the match is tied! Either you play
               overtime round or you finish the match!
             </p>
+
             {token &&
               (userInfo?.role === UserRole.admin ||
                 userInfo?.role === UserRole.captain ||
@@ -582,6 +606,8 @@ export default function ServerReceiver({
             {/* Left side start  */}
             <div className={`w-full w-3/6`}>
               <ServerReceiverDisplay
+                onStrategyChange={handlePlayStrategyChange}
+                playStrategy={playStrategy}
                 teamA={teamA || null}
                 teamB={teamB || null}
                 playerMap={playerMap}
@@ -663,6 +689,7 @@ export default function ServerReceiver({
             <ActionHandler
               teamA={teamA || null}
               teamB={teamB || null}
+              playStrategy={playStrategy}
               serverTeamE={serverTeamE}
               awardTo={awardTo}
               dispatch={dispatch}
@@ -676,28 +703,26 @@ export default function ServerReceiver({
             />
           </div>
 
-          {actionPreview && (
-            <div className="mt-4 flex flex-wrap justify-center items-center gap-2">
-              <button
-                onClick={handleUpdateScore}
-                type="button"
-                className="btn-info"
-              >
-                Update score, only at the end of game
-              </button>
-              <button onClick={openResetConfirm} className="btn-info">
-                Reset
-              </button>
-              <button
-                onClick={() => {
-                  srChangerEl.current?.showModal();
-                }}
-                className="btn-info"
-              >
-                Change Server/Receiver
-              </button>
-            </div>
-          )}
+          <div className="mt-4 flex flex-wrap justify-center items-center gap-2">
+            <button
+              onClick={handleUpdateScore}
+              type="button"
+              className="btn-info"
+            >
+              Update score, only at the end of game
+            </button>
+            <button onClick={openResetConfirm} className="btn-info">
+              Reset
+            </button>
+            <button
+              onClick={() => {
+                srChangerEl.current?.showModal();
+              }}
+              className="btn-info"
+            >
+              Change Server/Receiver
+            </button>
+          </div>
         </div>
       ) : (
         <div className="select-server-receiver">
@@ -724,6 +749,8 @@ export default function ServerReceiver({
             <div className="w-full flex flex-col items-center">
               <div className="w-full md:w-3/6">
                 <ServerReceiverDisplay
+                  playStrategy={playStrategy}
+                  onStrategyChange={handlePlayStrategyChange}
                   handleAddServer={() => setServerPlaceholder(true)}
                   handleAddReceiver={() => setReceiverPlaceholder(true)}
                   playerMap={playerMap}
@@ -775,17 +802,20 @@ export default function ServerReceiver({
         </div>
       )}
 
-      <div className="w-full mt-4 flex justify-center items-center">
-        <button
-          className="btn-info flex flex-col flex-wrap items-center justify-center"
-          onClick={() => window.location.reload()}
-        >
-          <span>If score doesn’t update, REFRESH before advancing.</span>
-          <span className="font-normal text-xs capitalize">
-            If you leave the screen you will need to refresh FIRST.
-          </span>
-        </button>
-      </div>
+
+      {serverReceiversOnNet.length > 8 && serverReceiversOnNet.find((sr) => sr.net === selectedNet?._id) && (
+        <div className="w-full mt-4 flex justify-center items-center">
+          <button
+            className="btn-info flex flex-col flex-wrap items-center justify-center"
+            onClick={() => window.location.reload()}
+          >
+            <span>If score doesn’t update, REFRESH before advancing.</span>
+            <span className="font-normal text-xs capitalize">
+              If you leave the screen you will need to refresh FIRST.
+            </span>
+          </button>
+        </div>
+      )}
 
       <ChangePlayDialog
         changePlayEl={changePlayEl}

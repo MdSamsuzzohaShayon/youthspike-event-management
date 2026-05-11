@@ -76,7 +76,7 @@ export async function updateEventWithFiles({
   updateMultiplayer,
   updateStats,
   updateWeight,
-  showMessage,
+  setMessage,
 }: {
   eventId: string;
   updateEvent: Partial<IEventAdd>;
@@ -85,7 +85,7 @@ export async function updateEventWithFiles({
   updateMultiplayer: Partial<IProStatsAdd>;
   updateWeight: Partial<IProStatsAdd>;
   updateStats: Partial<IProStatsAdd>;
-  showMessage?: (message: Omit<IMessage, "id">) => void
+  setMessage?: (message: Omit<IMessage, "id">) => void
 }) {
   const inputData = { ...updateEvent };
   if (inputData.startDate) inputData.startDate = new Date(inputData.startDate).toISOString();
@@ -135,5 +135,5 @@ export async function updateEventWithFiles({
 
   const responseData = await response.json();
   const eventRes = responseData?.data?.updateEvent;
-  return handleResponseCheck(eventRes, showMessage );
+  return handleResponseCheck(eventRes, setMessage );
 }

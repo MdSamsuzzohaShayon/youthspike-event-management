@@ -20,7 +20,7 @@ import {
 import { IEventQueries } from '../resolvers/event.types';
 import { Net } from 'src/net/net.schema';
 import { CustomPlayerStats } from 'src/player-stats/resolvers/player-stats.response';
-import { CustomTeam } from 'src/match/resolvers/match.response';
+import { CustomTeam } from 'src/team/resolvers/team.response';
 
 @Injectable()
 export class EventQueries implements IEventQueries {

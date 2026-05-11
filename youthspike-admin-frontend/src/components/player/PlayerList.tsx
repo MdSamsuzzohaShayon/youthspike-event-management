@@ -177,7 +177,6 @@ function PlayerList({ playerList, setIsLoading, rankControls, refetchFunc, teamL
             if (timePassed && !passcode) return false;
           }
             */
-          // playerRanking
         }
       }
 

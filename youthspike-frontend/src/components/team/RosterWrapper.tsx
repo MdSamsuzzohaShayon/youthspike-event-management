@@ -1,6 +1,6 @@
 import {
   EPlayerStatus,
-  IEvent,
+  IEventRelatives,
   IPlayer,
   IPlayerRankingExpRel,
   ITeam,
@@ -18,7 +18,7 @@ interface PlayerWithRank extends IPlayer {
 }
 
 interface RosterWrapperProps {
-  events: IEvent[];
+  events: IEventRelatives[];
   team: ITeam;
   players: IPlayer[];
   playerRanking: IPlayerRankingExpRel | null;

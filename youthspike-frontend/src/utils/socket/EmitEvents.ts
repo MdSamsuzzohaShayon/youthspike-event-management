@@ -668,6 +668,8 @@ class EmitEvents {
     this.socket?.emit("set-players-from-client", actionData);
   }
 
+
+  // Server actions
   serviceFault(actionData: IServiceFaultInput) {
     this.socket?.emit("service-fault-from-client", actionData);
   }
@@ -688,6 +690,7 @@ class EmitEvents {
     this.socket?.emit("server-do-not-know-from-client", actionData);
   }
 
+  // Receiver actions
   receiverDoNotKnow(actionData: IReceiverDoNotKnowInput) {
     this.socket?.emit("receiver-do-not-know-from-client", actionData);
   }
@@ -704,6 +707,7 @@ class EmitEvents {
     this.socket?.emit("receiver-defensive-conversion-from-client", actionData);
   }
 
+  // Manual change
   changeServerReceiverManually(actionData: IChangeServerReceiverAction) {
     this.socket?.emit("server-receiver-change-manually-from-client", actionData);
   }

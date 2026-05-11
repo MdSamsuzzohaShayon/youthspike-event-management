@@ -59,14 +59,6 @@ export interface ITextareaInputProps extends ITextCommon {
   handleInputChange?: (e: React.SyntheticEvent) => void;
 }
 
-export interface IPlayerSelectProps {
-  name: string;
-  extraCls?: string;
-  defaultValue?: string[];
-  handleCheckboxChange: (pId: string, isChecked: boolean) => void;
-  availablePlayers: IPlayer[];
-  eventId: string;
-}
 
 export interface ITeamSelectProps {
   name: string;
@@ -196,6 +188,7 @@ export interface IMessage {
 
 
 export interface IResponse {
+  __typename: string;
   success: boolean;
   code: number;
   message: string;

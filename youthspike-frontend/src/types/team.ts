@@ -1,6 +1,6 @@
 /* eslint-disable import/no-cycle */
 import { IPlayer } from './player';
-import { IAllStats, IEvent, IEventWMatch } from './event';
+import { IAllStats, IEvent, IEventRelatives } from './event';
 import { IPlayerRanking, IPlayerRankingItem, IPlayerRankingItemExpRel, IPlayerRankingExpRel } from './playerRanking';
 import { IGroup, IGroupRelatives } from './group';
 import { IMatch, IMatchExpRel, IMatchRelatives } from './match';
@@ -67,7 +67,7 @@ export interface ISearchTeamResponse{
 
 
 interface ITeamStats {
-  events: IEventWMatch[];
+  events: IEvent[];
   matches: IMatchRelatives[];
   players: IPlayer[];
   team: ITeam;
@@ -82,7 +82,7 @@ export interface IGetPlayerStatsResponse extends IResponse{
 }
 
 interface ITeamRoster {
-  events: IEvent[];
+  events: IEventRelatives[];
   players: IPlayer[];
   groups: IGroupRelatives[];
   team: ITeam;
@@ -96,7 +96,7 @@ export interface IGetTeamRosterResponse  extends IResponse{
 }
 
 interface ITeamMatches {
-  events: IEvent[];
+  events: IEventRelatives[];
   team: ITeam;
   oponents: ITeam[];
   matches: IMatch[];

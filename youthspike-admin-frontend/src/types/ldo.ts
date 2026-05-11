@@ -53,3 +53,4 @@ export interface IGetEventDirectorsQuery{
 export interface IGetLdoResponse extends IResponse{
   data: ILDO;
 }
+

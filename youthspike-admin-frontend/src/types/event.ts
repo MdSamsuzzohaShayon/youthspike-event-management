@@ -130,3 +130,8 @@ export interface IEventWithMatchesResponse {
     };
   };
 }
+
+
+export interface ICreateEventResponse extends IResponse{
+  data: IEventExpRel;
+}

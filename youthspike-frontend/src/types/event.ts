@@ -23,7 +23,7 @@ export interface IEventSponsor {
   logo: string;
 }
 
-export interface IEvent {
+interface IEventCommon{
   _id: string;
   name: string;
   divisions: string;
@@ -32,9 +32,6 @@ export interface IEvent {
   playerLimit: number;
   active: boolean;
   logo?: string;
-  sponsors: IEventSponsor[];
-  ldo?: ILDO;
-  groups: IGroup[];
   nets: number;
   rounds: number;
   netVariance: number;
@@ -49,9 +46,25 @@ export interface IEvent {
   defaulted?: boolean;
 }
 
-export interface IEventWMatch extends IEvent {
-  matches: IMatchRelatives[] | string[];
+export interface IEvent extends IEventCommon{
+  sponsors: IEventSponsor[];
+  ldo?: ILDO;
+  groups: IGroup[];
+  teams: ITeam[];
+  matches: IMatchRelatives[]
 }
+
+export interface IEventRelatives extends IEventCommon{
+  sponsors: string[];
+  ldo?: string;
+  groups: string[];
+  teams: string[];
+  matches: string[];
+}
+
+// export interface IEventWMatch extends IEvent {
+//   matches: IMatchRelatives[] | string[];
+// }
 
 export interface IEventAdd extends IDefaultEventMatch {
   name: string;
@@ -90,7 +103,7 @@ export interface IEventDetailData {
 
 
 export interface IGetEventsResponse extends IResponse{
-  data: IEventWMatch[];
+  data: IEvent[];
 }
 
 export interface EventFilterState {

@@ -18,11 +18,11 @@ import {
   PlayerResponse,
   CustomPlayer,
 } from './player.response';
-import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
 import { PlayerSearchFilter } from './player.input';
 import { Team } from 'src/team/team.schema';
 import { Event } from 'src/event/event.schema';
 import { LdoService } from 'src/ldo/ldo.service';
+import { CustomTeam } from 'src/team/resolvers/team.response';
 
 @Injectable()
 export class PlayerQueries implements IPlayerQueries {

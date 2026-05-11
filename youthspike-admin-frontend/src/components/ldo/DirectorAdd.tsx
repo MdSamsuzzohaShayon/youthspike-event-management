@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ADD_DIRECTOR } from '@/graphql/director';
-import { IAddDirector, IAddLDO, ILDO, ILdoUpdate } from '@/types';
+import { IAddDirector, IAddLDO, IGetLdoResponse, ILDO, ILdoUpdate, IUserResponse } from '@/types';
 import { UPDATE_DIRECTOR } from '@/graphql/director';
 import { useUser } from '@/lib/UserProvider';
 import { UPDATE_CAPTAIN } from '@/graphql/captain';
@@ -10,15 +10,15 @@ import { useMessage } from '@/lib/MessageProvider';
 import ImageInput from '../elements/forms/ImageInput';
 import { createLdoDirector } from '@/utils/requestHandlers/createLdoDirector';
 import { updateLdoDirector } from '@/utils/requestHandlers/updateLdoDirector';
-import { useMutation } from '@apollo/client/react';
+import { useApolloClient, useMutation } from '@apollo/client/react';
+import { useRouter } from 'next/navigation';
 
 interface DirectorAddProps {
   update: boolean;
   setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
   prevLdo?: null | ILDO | undefined;
-  ldoId?: string;
+  ldoId?: string | null;
   setAddNewDirector?: React.Dispatch<React.SetStateAction<boolean>>;
-  refetchFunc?: () => Promise<void>;
 }
 
 const initialLdo: IAddLDO = {
@@ -39,10 +39,12 @@ const initialDirector: IAddDirector = {
 /**
  * React component that allows users to add a director or update a director
  */
-function DirectorAdd({ update, prevLdo, setIsLoading, setAddNewDirector, ldoId, refetchFunc }: DirectorAddProps) {
+function DirectorAdd({ update, prevLdo, setIsLoading, setAddNewDirector, ldoId }: DirectorAddProps) {
   // Hooks
   const user = useUser();
-  const { showMessage } = useMessage();
+  const router = useRouter();
+  const { setMessage } = useMessage();
+  const apolloClient = useApolloClient();
 
   // Local State
   const [directorState, setDirectorState] = useState<IAddDirector>(prevLdo && prevLdo.director ? { ...initialDirector, ...prevLdo.director } : initialDirector);
@@ -52,9 +54,9 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setAddNewDirector, ldoId, 
   const uploadedLogo = useRef<null | MediaSource | Blob>(null);
 
   // Graphql
-  const [registerDirector, { loading, error }] = useMutation(ADD_DIRECTOR);
-  const [updateDirector, { loading: updateLoading, error: updateError }] = useMutation(UPDATE_DIRECTOR);
-  const [mutateUser, { loading: capLoading, error: capErr }] = useMutation(UPDATE_CAPTAIN);
+  const [registerDirector, { loading, error }] = useMutation<{ createDirector: IGetLdoResponse }>(ADD_DIRECTOR);
+  const [updateDirector, { loading: updateLoading, error: updateError }] = useMutation<{ updateDirector: IGetLdoResponse }>(UPDATE_DIRECTOR);
+  const [mutateUser, { loading: capLoading, error: capErr }] = useMutation<{ updateUser: IUserResponse }>(UPDATE_CAPTAIN);
 
   /**
    * Change input on cange event
@@ -92,21 +94,22 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setAddNewDirector, ldoId, 
     if (update) {
       updateLdoDirector({
         directorUpdate,
-        showMessage,
+        setMessage,
         ldoUpdate,
         uploadedLogo,
         setIsLoading,
         user,
         mutateUser,
         updateDirector,
+        apolloClient,
         ldoId,
-        refetchFunc,
       });
     } else {
       createLdoDirector({
         directorState,
         ldoState,
-        showMessage,
+        apolloClient,
+        setMessage,
         uploadedLogo,
         setIsLoading,
         registerDirector,
@@ -114,11 +117,13 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setAddNewDirector, ldoId, 
         setDirectorState,
         initialLdo,
         setLdoState,
-        setAddNewDirector,
-        e,
-        refetchFunc,
+        setAddNewDirector
       });
     }
+
+
+    // redirect
+    router.push(`/admin/directors`);
   };
 
   useEffect(() => {
@@ -128,9 +133,9 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setAddNewDirector, ldoId, 
 
   useEffect(() => {
     if (error) {
-      showMessage({ type: "error", message: error.message });
+      setMessage({ type: "error", message: error.message });
     } else if (updateError) {
-      showMessage({ type: "error", message: updateError.message });
+      setMessage({ type: "error", message: updateError.message });
     }
   }, [error, updateError]);
 
@@ -179,7 +184,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setAddNewDirector, ldoId, 
             />
           </div>
           <div >
-            <ImageInput handleFileChange={handleLogoChange} name="logo" defaultValue={ldoState?.logo || null} />
+            <ImageInput onFileChange={handleLogoChange} name="logo" defaultValue={ldoState?.logo || null} />
           </div>
         </div>
 

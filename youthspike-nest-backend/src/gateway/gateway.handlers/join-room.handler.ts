@@ -5,7 +5,6 @@ import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
 import { RoomHelper } from '../gateway.helpers/room.helper';
 import { ClientHelper } from '../gateway.helpers/client.helper';
-import { NetService } from 'src/net/net.service';
 
 export class JoinRoomHandler {
   constructor(

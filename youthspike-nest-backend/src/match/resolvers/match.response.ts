@@ -5,7 +5,7 @@ import { Team } from 'src/team/team.schema';
 import { LDO } from 'src/ldo/ldo.schema';
 import { Group } from 'src/group/group.schema';
 import { Match } from '../match.schema';
-import { CustomMatch, CustomNet, CustomRound } from 'src/team/resolvers/team.response';
+import { CustomMatch, CustomNet, CustomRound, CustomTeam } from 'src/team/resolvers/team.response';
 
 
 @ObjectType()
@@ -38,23 +38,7 @@ export class GetAccessCodeResponse extends AppResponse<AccessCode> {
 
 
 
-@ObjectType()
-export class CustomTeam extends Team {
-  @Field((_type) => [String], { nullable: true })
-  matches: string[];
 
-  @Field((_type) => [String], { nullable: true })
-  players: string[];
-
-  @Field((_type) => String, { nullable: true })
-  captain: string;
-
-  @Field((_type) => String, { nullable: true })
-  cocaptain: string;
-
-  @Field((_type) => [String], { nullable: true })
-  groups: string[];
-}
 
 @ObjectType()
 export class CustomGroup extends Group {

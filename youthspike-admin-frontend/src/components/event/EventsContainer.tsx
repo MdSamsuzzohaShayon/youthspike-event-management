@@ -99,7 +99,7 @@ const EventsContainer: React.FC<EventsContainerProps> = ({
   const user = useUser();
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
-  const { showMessage, setMessage, clearMessage } = useMessage();
+  const { setMessage, clearMessage } = useMessage();
 
   /* ---------------- State ---------------- */
 
@@ -238,11 +238,12 @@ const EventsContainer: React.FC<EventsContainerProps> = ({
       if (!event) return;
       const res = await setDefault({ variables: { sponsorsInput: [], updateInput: { defaulted }, eventId } });
       if (!res.data?.updateEvent.success) {
-        showMessage({ message: res.data?.updateEvent?.message, type: "error" });
+        setMessage({ message: res.data?.updateEvent?.message, type: "error" });
         return;
       }
 
       // Update cache
+      
     },
     [eventMap]
   );
@@ -257,7 +258,7 @@ const EventsContainer: React.FC<EventsContainerProps> = ({
         });
 
         if (!res.data?.deleteEvent.success) {
-          showMessage({ message: res.data?.deleteEvent?.message, type: "error" });
+          setMessage({ message: res.data?.deleteEvent?.message, type: "error" });
           return;
         }
 
@@ -266,7 +267,7 @@ const EventsContainer: React.FC<EventsContainerProps> = ({
         setIsLoading(false);
       }
     },
-    [deleteEventMutation, showMessage]
+    [deleteEventMutation, setMessage]
   );
 
   const handleSendCredentials = useCallback(

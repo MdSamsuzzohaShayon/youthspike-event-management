@@ -29,6 +29,7 @@ function AdminMenu({ user }: IAdminMenuProps) {
     e.preventDefault();
     removeCookie("token");
     removeCookie("user");
+    removeCookie("NEXT_PUBLIC_CURRENT_EVENT_ID");
     return window.location.reload();
   };
 

@@ -1,27 +1,39 @@
 import React, { useCallback, useMemo } from "react";
 import Image from "next/image";
 import {
+  EPlayStrategy,
   EServerPositionPair,
   ESRRole,
+  IOption,
   IPlayer,
   IServerReceiverOnNetMixed,
   ITeam,
 } from "@/types";
 import SRPlayerCard from "./SRPlayerCard";
+import SelectInput from "../elements/SelectInput";
 
 interface IPlayerRole {
   player: IPlayer | null;
   role: ESRRole;
 }
 
-interface IServerReceiverDisplayProps{
-    currServerReceiver: IServerReceiverOnNetMixed | null;
-    teamA: ITeam | null;
-    teamB: ITeam | null;
-    playerMap: Map<string, IPlayer>;
-    handleAddReceiver?: (e: React.SyntheticEvent) => void;
-    handleAddServer?: (e: React.SyntheticEvent) => void;
-    matchId: string,
+
+
+const playStrategies: IOption[] = [
+  { id: 1, value: EPlayStrategy.RALLY_SCORING },
+  { id: 2, value: EPlayStrategy.EQUAL_SERVING },
+];
+
+interface IServerReceiverDisplayProps {
+  currServerReceiver: IServerReceiverOnNetMixed | null;
+  teamA: ITeam | null;
+  teamB: ITeam | null;
+  playerMap: Map<string, IPlayer>;
+  playStrategy: EPlayStrategy;
+  onStrategyChange: (e: React.SyntheticEvent)=> void;
+  handleAddReceiver?: (e: React.SyntheticEvent) => void;
+  handleAddServer?: (e: React.SyntheticEvent) => void;
+  matchId: string,
 }
 
 const ServerReceiverDisplay: React.FC<IServerReceiverDisplayProps> = ({
@@ -29,12 +41,16 @@ const ServerReceiverDisplay: React.FC<IServerReceiverDisplayProps> = ({
   teamA,
   teamB,
   playerMap,
+  playStrategy,
+  onStrategyChange,
   handleAddReceiver,
   handleAddServer,
   matchId
 }) => {
 
-  
+
+
+  // Memoization
   const positions = useMemo(() => {
     const posMap = new Map<EServerPositionPair, IPlayerRole>();
     // Initially set server to pair A top
@@ -215,6 +231,9 @@ const ServerReceiverDisplay: React.FC<IServerReceiverDisplayProps> = ({
       <h3 className="text-xl font-semibold uppercase text-center mb-6 text-yellow-400 mt-6">
         Selected Server/Receiver
       </h3>
+      <div className="w-full mb-6">
+        <SelectInput handleSelect={onStrategyChange} name="playStrategy" defaultValue={playStrategy} optionList={playStrategies} className="" label="Play Strategy" />
+      </div>
       <div className="w-full flex justify-center items-center gap-x-2 md:gap-x-6">
         {renderPlayerCard(EServerPositionPair.PAIR_A_LEFT)}
 

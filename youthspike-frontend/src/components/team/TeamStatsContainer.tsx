@@ -10,6 +10,7 @@ import {
   IGetPlayerStatsResponse,
   IPlayerStats,
   INetRelatives,
+  IEventRelatives,
 } from "@/types";
 import TeamNavigation from "./TeamNavigation";
 import { useLdoId } from "@/lib/LdoProvider";
@@ -106,7 +107,7 @@ function TeamStatsContainer({ queryRef, teamId }: TeamStatsContainerProps) {
       <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-yellow-600/5 rounded-full blur-3xl animate-pulse delay-1000" />
     </div>
 
-    <TeamNavigation events={events} ldoIdUrl={ldoIdUrl} team={team} totalPlayers={players.length} />
+    <TeamNavigation events={events as unknown as IEventRelatives[]} ldoIdUrl={ldoIdUrl} team={team} totalPlayers={players.length} />
 
     <div className="relative z-10">
 

@@ -2,7 +2,7 @@ import React, { Suspense } from "react";
 import {IAccessCode, IMatchExpRel, IUser, TParams } from "@/types";
 import Loader from "@/components/elements/Loader";
 import { PreloadQuery } from "@/lib/client";
-import ScoreKeepingMain from "@/components/ScoreKeeping/ScoreKeepingMain";
+import ScoreKeepingContainer from "@/components/ScoreKeeping/ScoreKeepingContainer";
 import { GET_MATCH_DETAIL } from "@/graphql/matches";
 import { QueryRef } from "@apollo/client/react";
 import { cookies } from "next/headers";
@@ -35,7 +35,7 @@ async function ScoreKeepingPage({ params }: IScoreKeepingPageProps) {
         >
           {(queryRef) => (
             <Suspense fallback={<Loader />}>
-              <ScoreKeepingMain
+              <ScoreKeepingContainer
                 queryRef={
                   queryRef as QueryRef<{ getMatch: { data: IMatchExpRel } }>
                 }

@@ -290,8 +290,8 @@ function PlayerScoreCard({
   /**
    * Calculate image container height based on screen width
    */
-  const imageContainerHeight = useMemo(() => {
-    return screenWidth > screen.xs ? "h-20" : "h-24";
+  const imageContainerSIze = useMemo(() => {
+    return screenWidth > screen.xs ? "h-20 w-20" : "h-24 w-24";
   }, [screenWidth]);
 
   // ============================================================================
@@ -332,7 +332,7 @@ function PlayerScoreCard({
       <div
         className={`wrapper w-full border border-yellow overflow-hidden flex ${
           onTop ? "flex-col rounded-t-lg" : "flex-col-reverse rounded-b-lg"
-        }`}
+        } items-center bg-yellow-logo`}
       >
         {/* Player name section */}
         <div className="p-rank bg-yellow-logo w-full flex flex-wrap items-center justify-center">
@@ -349,7 +349,7 @@ function PlayerScoreCard({
 
         {/* Player image section */}
         <div
-          className={`p-img-wrap cursor-pointer relative w-full ${imageContainerHeight}`}
+          className={`p-img-wrap cursor-pointer relative ${imageContainerSIze} object-center object-cover`}
         >
           {shouldShowEvacuateButton && !onTop && (
             <RemovePlayerButton

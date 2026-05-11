@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from 'react';
 import { useReadQuery, QueryRef } from '@apollo/client/react';
-import { IPlayer, IGetTeamRosterResponse, IPlayerRankingExpRel } from '@/types';
+import { IPlayer, IGetTeamRosterResponse, IPlayerRankingExpRel, IEvent } from '@/types';
 import { notFound } from 'next/navigation';
 import { useLdoId } from '@/lib/LdoProvider';
 import TeamNavigation from './TeamNavigation';
@@ -10,12 +10,12 @@ import SessionStorageService from '@/utils/SessionStorageService';
 import { TEAM } from '@/utils/constant';
 import RosterWrapper from './RosterWrapper';
 
-interface TeamRosterContainerProps {
+interface ITeamRosterContainerProps {
   queryRef: QueryRef<{ getTeamRoster: IGetTeamRosterResponse }>;
   teamId: string;
 }
 
-function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
+function TeamRosterContainer({ queryRef, teamId }: ITeamRosterContainerProps) {
   const { ldoIdUrl } = useLdoId();
   const { data } = useReadQuery(queryRef);
 
@@ -97,7 +97,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
       <div className="relative z-10">
         <div className="animate-fadeInUp">
           <RosterWrapper
-            events={events}
+            events={events.filter((event)=> event.teams.includes(team._id))}
             players={playerList} // ✅ USE FILTERED LIST
             team={team}
             playerRanking={playerRankingData}

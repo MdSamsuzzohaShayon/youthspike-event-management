@@ -4,10 +4,10 @@ import { AppResponse } from 'src/shared/response';
 import { Sponsor } from 'src/sponsor/sponsor.schema';
 import { Event } from '../event.schema';
 import { LDO } from 'src/ldo/ldo.schema';
-import { PlayerStats, ProStats } from 'src/player-stats/player-stats.schema';
-import { Match } from 'src/match/match.schema';
+import { ProStats } from 'src/player-stats/player-stats.schema';
 import { CustomPlayerStats } from 'src/player-stats/resolvers/player-stats.response';
-import { CustomGroup, CustomTeam, EventMatches } from 'src/match/resolvers/match.response';
+import { CustomGroup, EventMatches } from 'src/match/resolvers/match.response';
+import { CustomTeam } from 'src/team/resolvers/team.response';
 
 @ObjectType()
 export class CreateOrUpdateEventResponse extends AppResponse<Event> {

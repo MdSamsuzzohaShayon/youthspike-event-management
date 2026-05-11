@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { QueryFilter, Model, UpdateQuery } from 'mongoose';
 import { Team } from 'src/team/team.schema';
+import { CustomTeam } from './resolvers/team.response';
 
 @Injectable()
 export class TeamService {
-  constructor(@InjectModel(Team.name) private teamModel: Model<Team>) {}
+  constructor(@InjectModel(Team.name) private teamModel: Model<Team>) { }
 
   async query(filter: QueryFilter<Team>) {
     return this.teamModel.find(filter).sort({ name: 1 });
@@ -94,5 +95,23 @@ export class TeamService {
 
   async countDocuments(filter: QueryFilter<Team>) {
     return this.teamModel.countDocuments();
+  }
+
+  normalizeTeams(teams: CustomTeam[]): CustomTeam[] {
+    const list: CustomTeam[] = [];
+    for (const team of teams) {
+      const teamObj = { ...team };
+      if (team.groups) {
+        const groupIds = new Set<string>();
+        for (const g of team.groups) {
+          if (g) groupIds.add(String(g));
+        }
+        teamObj.groups = [...groupIds]
+      } else {
+        teamObj.groups = [];
+      }
+      list.push(teamObj);
+    }
+    return list;
   }
 }

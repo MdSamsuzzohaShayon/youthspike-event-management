@@ -22,7 +22,7 @@ import {
   IServerReceiverSinglePlay,
   ITeam,
 } from "@/types";
-import { IUpdateNetResponse } from "@/types";
+import { IUpdateDataNetResponse } from "@/types";
 
 // Constants
 const LONG_PRESS_DURATION_MS = 1000;
@@ -197,7 +197,7 @@ const NetInRound: React.FC<NetInRoundProps> = ({
   const [isLongPress, setIsLongPress] = useState<boolean>(false);
 
   // GraphQL Mutation
-  const [updateNet, { loading: isUpdatingNet }] = useMutation<IUpdateNetResponse>(UPDATE_NET);
+  const [updateNet, { loading: isUpdatingNet }] = useMutation<IUpdateDataNetResponse>(UPDATE_NET);
 
   // Redux State
   const { teamAPlayers, teamBPlayers } = useAppSelector((state) => ({

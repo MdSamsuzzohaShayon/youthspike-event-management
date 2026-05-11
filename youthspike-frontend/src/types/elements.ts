@@ -27,6 +27,12 @@ export enum EMenuTitle {
   FIND_MATCHES = "FIND MATCHES",
 }
 
+export enum EPlayStrategy{
+  RALLY_SCORING = "RALLY_SCORING",
+  EQUAL_SERVING = "EQUAL_SERVING",
+}
+
+
 export enum EDirection {
   LEFT = "LEFT",
   RIGHT = "RIGHT",

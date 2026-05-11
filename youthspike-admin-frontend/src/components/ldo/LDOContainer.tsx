@@ -13,9 +13,14 @@ function LDOContainer({ queryRef }: ILDOContainerProps) {
 
     const { data } = useReadQuery(queryRef);
 
+
+    const prevLdo = (data?.getEventDirector?.data as ILDO) || null;
+    const ldoId = data?.getEventDirector?.data?._id || null;
+    
+
     return (
         <div>
-            <DirectorAdd update prevLdo={(data?.getEventDirector?.data as ILDO) || null} ldoId={data?.getEventDirector?.data?._id} />
+            <DirectorAdd update prevLdo={prevLdo} ldoId={ldoId} />
         </div>
     )
 }

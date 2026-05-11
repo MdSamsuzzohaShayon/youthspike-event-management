@@ -15,14 +15,10 @@ import {
 } from "@/redux/slices/serverReceiverOnNetSlice";
 import {
   EMessage,
-  ETeam,
-  IAssignClock,
   IChangeServerReceiverResponse,
   ICheckInResponse,
   ICheckInUndoResponse,
   ILineUpResponse,
-  IMatch,
-  IMatchRelatives,
   IPlayerStats,
   IPlayerStatsResponse,
   IResetServerReceiverResponse,
@@ -35,7 +31,6 @@ import {
   ISRConfirmResponse,
   IUpdateExtendOvertimeResponse,
   IUpdateNet,
-  IUpdateNetResponse,
   IUpdatePointsResponse,
   IUpdateRound,
 } from "@/types";

@@ -3,7 +3,8 @@ import { AppResponse } from 'src/shared/response';
 import { Player } from '../player.schema';
 import { Event } from 'src/event/event.schema';
 import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
-import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
+import { CustomGroup } from 'src/match/resolvers/match.response';
+import { CustomTeam } from 'src/team/resolvers/team.response';
 
 @ObjectType()
 export class PlayerResponse extends AppResponse<Player> {

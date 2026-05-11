@@ -20,9 +20,9 @@ import { QueryFilter } from 'mongoose';
 import { Team } from '../team.schema';
 import { MatchService } from 'src/match/match.service';
 import { Match } from 'src/match/match.schema';
-import { CustomMatch, CustomNet, CustomRound, GetTeamSearchResponse, GetTeamRosterResponse, GetTeamMatchesResponse, GetPlayerStatsResponse } from './team.response';
+import { CustomMatch, CustomNet, CustomRound, GetTeamSearchResponse, GetTeamRosterResponse, GetTeamMatchesResponse, GetPlayerStatsResponse, CustomTeam } from './team.response';
 import { CustomEvent } from 'src/event/resolvers/event.response';
-import { CustomGroup, CustomTeam } from 'src/match/resolvers/match.response';
+import { CustomGroup } from 'src/match/resolvers/match.response';
 import { CustomPlayer, CustomPlayerRanking, CustomPlayerRankingItem } from 'src/player/resolvers/player.response';
 
 // ITeamQueries
@@ -279,7 +279,7 @@ export class TeamQueries {
         success: true,
         data: {
           events: events as CustomEvent[],
-          team,
+          team: team as CustomTeam,
           players: playerList as CustomPlayer[],
           playerRanking: playerRanking as CustomPlayerRanking,
           rankings: rankings as CustomPlayerRankingItem[],
@@ -414,12 +414,16 @@ export class TeamQueries {
           : this.groupService.find({ event: { $in: [...eventIdTeamsSet] } }),
       ]);
 
+
+      // Make sure groups is not null and there are no null values in groups array
+      
+
       return {
         code: HttpStatus.OK,
         success: true,
         data: {
           events: events as CustomEvent[],
-          teams: teams as CustomTeam[],
+          teams: this.teamService.normalizeTeams(teams as CustomTeam[]) as CustomTeam[],
           groups: groups as CustomGroup[],
           nets: nets as CustomNet[],
           rounds: rounds as CustomRound[],

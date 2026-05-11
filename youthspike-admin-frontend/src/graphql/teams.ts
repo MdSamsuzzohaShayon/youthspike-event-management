@@ -197,6 +197,7 @@ query GetTeamRoster($teamId: String!) {
         rosterLock
         timeout
         startDate
+        teams
       }
       players {
         _id
@@ -218,6 +219,7 @@ query GetTeamRoster($teamId: String!) {
         name
         logo
         sendCredentials
+        events
       }
       playerRanking {
         _id
