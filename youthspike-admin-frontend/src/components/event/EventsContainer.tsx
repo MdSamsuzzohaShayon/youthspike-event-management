@@ -34,6 +34,7 @@ import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
 import { QueryRef, useMutation, useReadQuery } from '@apollo/client/react';
 import CloneEventDialog from './CloneEventDialog';
+import routerService from '@/lib/router-service';
 
 /* ========================================================= */
 /* ===================== Static Data ======================= */
@@ -115,6 +116,7 @@ const EventsContainer: React.FC<EventsContainerProps> = ({
   const { data } = useReadQuery(queryRef);
 
   if (data?.getEventDirector?.code === 401) {
+    // routerService.push('/login');
     redirect('/api/logout');
   }
 

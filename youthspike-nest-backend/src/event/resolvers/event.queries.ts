@@ -15,12 +15,16 @@ import { tokenToUser } from 'src/utils/helper';
 import { Event } from '../event.schema';
 import {
   GetEventResponse,
-  GetEventsResponse, GetPlayerEventSettingResponse
+  GetEventsResponse, GetEventWithGroupsAndUnassignedPlayersResponse, GetPlayerEventSettingResponse
 } from './event.response';
 import { IEventQueries } from '../resolvers/event.types';
 import { Net } from 'src/net/net.schema';
 import { CustomPlayerStats } from 'src/player-stats/resolvers/player-stats.response';
 import { CustomTeam } from 'src/team/resolvers/team.response';
+import { Group } from 'src/group/group.schema';
+import { Player } from 'src/player/player.schema';
+import { CustomGroup } from 'src/match/resolvers/match.response';
+import { CustomPlayer } from 'src/player/resolvers/player.response';
 
 @Injectable()
 export class EventQueries implements IEventQueries {
@@ -90,27 +94,107 @@ export class EventQueries implements IEventQueries {
 
 
 
-  async getEventWithGroupsAndUnassignedPlayers(eventId: string) {
+  async getEventWithGroupsAndUnassignedPlayers(
+    context: any,
+    ldoId?: string,
+  ): Promise<GetEventWithGroupsAndUnassignedPlayersResponse> {
     try {
-      // eventId, groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision, divisions
-      const event = await this.eventService.findOne({ _id: eventId });
-      if (!event) return AppResponse.notFound('Event');
+      const secret = this.configService.get<string>('JWT_SECRET');
+  
+      // Decode token
+      const userPayload = tokenToUser(context, secret);
+  
+      if (!userPayload?._id) {
+        return AppResponse.unauthorized();
+      }
+  
+      // Only fetch fields we actually need
+      const loggedUser = await this.userService.findOne(
+        { _id: userPayload._id }
+      );
+  
+      if (!loggedUser) {
+        return AppResponse.unauthorized();
+      }
+  
+      let events = [];
+  
 
+  
+      /**
+       * CASE 1:
+       * Admin requesting events from specific LDO
+       */
+      if (ldoId && loggedUser.role === UserRole.admin) {
+        const ldo = await this.ldoService.findByDirectorId(ldoId);
+  
+        if (ldo?.events?.length) {
+          events = await this.eventService.find({
+            _id: { $in: ldo.events as string[] },
+          });
+        }
+      }
+  
+      /**
+       * CASE 2:
+       * Director requesting own events
+       */
+      else if (loggedUser.role === UserRole.director) {
+        const ldo = await this.ldoService.findOne({
+          director: loggedUser._id,
+        });
+  
+        if (ldo?.events?.length) {
+          events = await this.eventService.find({
+            _id: { $in: ldo.events as string[] },
+          });
+        }
+      }
+  
+      const resolvedEventIds = events.map((event) => event._id);
+  
+      /**
+       * Build queries
+       */
+      const groupQuery: QueryFilter<Group> = {};
+  
+      const playerQuery: QueryFilter<Player> = {
+        $or: [
+          { teams: { $size: 0 } },
+          { teams: { $exists: false } },
+          { teams: null },
+        ],
+      };
+  
+      // Only add event filters when events exist
+      if (resolvedEventIds.length > 0) {
+        groupQuery.event = {
+          $in: resolvedEventIds,
+        };
+  
+        playerQuery.events = {
+          $in: resolvedEventIds,
+        };
+      }
+  
+      /**
+       * Parallel DB queries
+       */
       const [groups, players] = await Promise.all([
-        this.groupService.find({ event: eventId }),
-        this.playerService.find({ $or: [{ teams: { $size: 0 } }, { teams: { $exists: false } }, { teams: null }] }),
+        this.groupService.find(groupQuery),
+        this.playerService.find(playerQuery),
       ]);
-
+  
       return {
         code: HttpStatus.OK,
         success: true,
-        message: 'event, matches, teams, players, ldo, groups, rounds, nets, sponsors',
+        message: 'events, players, groups',
         data: {
-          event,
-          groups,
-          players
-        }
-      }
+          events,
+          groups: groups as CustomGroup[],
+          players: players as CustomPlayer[],
+        },
+      };
     } catch (err) {
       return AppResponse.handleError(err);
     }

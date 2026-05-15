@@ -6,6 +6,7 @@ import { handleResponseCheck } from './playerHelpers';
 import { useMutation } from '@apollo/client/react';
 import { ApolloCache } from '@apollo/client';
 import { handleApiResult } from '../handleError';
+import routerService from '@/lib/router-service';
 
 type TMutationFunction = useMutation.MutationFunction<
     {
@@ -155,6 +156,7 @@ export async function createEvent({
         });
 
         await fetch('/api/logout', { method: 'GET' });
+        routerService.push('/login');
 
 
         throw new Error(message);

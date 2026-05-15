@@ -2,79 +2,176 @@
 // 🆕 Create Team
 // ------------------------------
 
-import { IBaseTeamAction, ITeamAdd } from '@/types';
-import uploadTeamData from './uploadTeamData';
-import { handleError } from '../handleError';
-import { handleResponseCheck } from './playerHelpers';
+import { IGetTeamResponse, IMessage, ITeamAdd, TCreateTeamMutationFunction } from '@/types';
+import { handleApiResult } from '../handleError';
+import { ADD_TEAM_RAW, TEAM_FRAGMENT } from '@/graphql/teams';
+import { getCookie } from '../clientCookie';
+import { BACKEND_URL } from '../keys';
+import { ApolloClient } from '@apollo/client';
+import routerService from '@/lib/router-service';
 
-interface ICreateTeam extends IBaseTeamAction {
-  eventId: string | null;
+interface ICreateTeamProps {
+  events: string[];
   teamState: ITeamAdd;
-  currDivision: string | null;
+  apolloClient: ApolloClient;
+  setMessage: (message: Omit<IMessage, "id">) => void;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  uploadedLogo: React.RefObject<null | Blob | MediaSource>;
+  playerIdList: string[];
+  addTeam: TCreateTeamMutationFunction;
 }
 
 export async function createTeam({
-  showMessage,
-  eventId,
+  events,
   teamState,
+  apolloClient,
+  setMessage,
   setIsLoading,
   uploadedLogo,
   playerIdList,
   addTeam,
-  mutateTeam,
-  setAvailablePlayers,
-  setPlayerIdList,
-  currDivision,
-  teamAddCB,
-}: ICreateTeam): Promise<boolean> {
-  let success = true;
+}: ICreateTeamProps){
   try {
     setIsLoading(true);
 
-    // ✅ Validation
-    if (!currDivision) {
-      showMessage({ type: 'error', message: 'You must select a division' });
-      return false;
-    }
-
     // Build input
-    const input = {
+    const input: Partial<ITeamAdd> = {
       ...teamState,
-      division: currDivision,
       players: playerIdList,
-      event: eventId,
     };
+    if(events){
+      input.events= events;
+    }
 
     if (!input.captain) delete input.captain;
     delete input.logo;
 
     const teamObj = { input, logo: null };
-    let response: any = null;
+    let responseData: IGetTeamResponse | undefined;
 
     // 🧠 Upload with logo (if any)
-    response = await uploadTeamData(false, teamObj, uploadedLogo);
+    // response = await uploadTeamData(false, teamObj, uploadedLogo);
+    if (uploadedLogo.current instanceof Blob) {
+      const formData = new FormData();
+      formData.set(
+        'operations',
+        JSON.stringify({
+          query: ADD_TEAM_RAW,
+          variables: teamObj,
+        }),
+      );
+      formData.set('map', JSON.stringify({ '0': ['variables.logo'] }));
+      formData.set('0', uploadedLogo.current);
 
-    // 🧠 If no logo → use GraphQL mutation
-    if (!response) {
-      const teamRes = await addTeam({ variables: teamObj });
-      response = teamRes?.data?.createTeam;
+      const token = getCookie('token');
+      const response = await fetch(BACKEND_URL, {
+        method: 'POST',
+        body: formData,
+        headers: { Authorization: `Bearer ${token}`, 'apollo-require-preflight': 'true' },
+      });
+
+      // 🔴 Handle HTTP errors
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+      }
+
+      const json = await response.json();
+
+      // 🔴 Handle GraphQL errors
+      if (json.errors?.length) {
+        throw new Error(json.errors[0].message || 'GraphQL Error');
+      }
+
+      responseData = json.data?.createTeam;
+    } else {
+      const result = await addTeam({ variables: teamObj });
+      // 🔴 GraphQL errors (Apollo)
+      if (result.error) {
+        console.error(result.error);
+
+        throw new Error(result.error?.message);
+      }
+
+      responseData = result.data?.createTeam;
     }
 
-    // 🧩 Handle response
-    const isSuccess = await handleResponseCheck(response, showMessage );
-    if (isSuccess) {
-      setAvailablePlayers((prev) => prev.filter((p) => !playerIdList.includes(p._id)));
-      setPlayerIdList([]);
-      if (teamAddCB && response?.data) teamAddCB(response.data);
+    // 🔴 No response safety
+    if (!responseData) {
+      throw new Error('No response received from server');
     }
-  } catch (error: any) {
+
+    // ✅ Success handling
+    const result = handleApiResult({ response: responseData });
+
+    if (result?.code > 299) {
+      throw new Error(result.message);
+    }
+
+    setMessage({
+      type: 'success',
+      message: result?.message || 'Player updated successfully',
+    });
+
+
+    // Cache data
+    if (responseData?.data) {
+
+      const newTeam = responseData.data;
+
+      apolloClient.cache.modify({
+        fields: {
+          getTeams(existing, { readField }) {
+            if (!existing) return existing;
+
+            const existingData = readField<{ __ref: string }[]>("data", existing) ?? [];
+
+            // Prevent duplicates
+            const alreadyExists = existingData.some(
+              (ref) => readField("_id", ref) === newTeam._id,
+            );
+
+            if (alreadyExists) return existing;
+
+            const newRef = apolloClient.cache.writeFragment({
+              fragment: TEAM_FRAGMENT,
+              data: {
+                __typename: "Team",
+                ...newTeam,
+              },
+            });
+
+            return {
+              ...existing,
+              data: [newRef, ...existingData],
+            };
+          },
+        },
+      });
+    }
+
+  } catch (error: unknown) {
     console.error(error);
-    success = false;
-    handleError({ error, showMessage });
+
+    // 🧠 Smart error extraction
+    let message = 'Something went wrong';
+
+    if (error instanceof Error) {
+      message = error.message;
+    }
+
+    setMessage({
+      type: 'error',
+      message,
+    });
+
+    await fetch('/api/logout', { method: 'GET' });
+    routerService.push('/login');
+
+
+    throw new Error(message);
   } finally {
     setIsLoading(false);
   }
-  return success;
 }
 
 export default createTeam;

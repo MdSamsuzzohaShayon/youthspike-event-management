@@ -152,25 +152,25 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setAddNewDirector, ldoId }
         {/* Input Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div >
-            <InputField key="dau-1" name="name" type="text" label="Name" defaultValue={ldoState.name} handleInputChange={handleLdoChange} required={!update} />
+            <InputField key="dau-1" name="name" type="text" label="Name" defaultValue={ldoState.name} onChange={handleLdoChange} required={!update} />
           </div>
           <div >
-            <InputField key="dau-2" name="firstName" type="text" label="First Name" defaultValue={directorState.firstName} handleInputChange={handleDirectorChange} required={!update} />
+            <InputField key="dau-2" name="firstName" type="text" label="First Name" defaultValue={directorState.firstName} onChange={handleDirectorChange} required={!update} />
           </div>
           <div >
-            <InputField key="dau-3" name="lastName" type="text" label="Last Name" defaultValue={directorState.lastName} handleInputChange={handleDirectorChange} required={!update} />
+            <InputField key="dau-3" name="lastName" type="text" label="Last Name" defaultValue={directorState.lastName} onChange={handleDirectorChange} required={!update} />
           </div>
           <div >
-            <InputField key="dau-4" name="phone" type="number" label="Phone" defaultValue={ldoState.phone} handleInputChange={handleLdoChange} required={!update} />
+            <InputField key="dau-4" name="phone" type="number" label="Phone" defaultValue={ldoState.phone} onChange={handleLdoChange} required={!update} />
           </div>
           <div >
-            <InputField key="dau-5" name="email" type="email" label="Email" defaultValue={directorState.email} handleInputChange={handleDirectorChange} required={!update} />
+            <InputField key="dau-5" name="email" type="email" label="Email" defaultValue={directorState.email} onChange={handleDirectorChange} required={!update} />
           </div>
           <div >
-            <InputField key="dau-6" name="passcode" type="password" label="Passcode" defaultValue={directorState.passcode} handleInputChange={handleDirectorChange} required={!update} />
+            <InputField key="dau-6" name="passcode" type="password" label="Passcode" defaultValue={directorState.passcode} onChange={handleDirectorChange} required={!update} />
           </div>
           <div >
-            <InputField key="dau-7" name="password" type="password" label="Password" defaultValue={directorState.password} handleInputChange={handleDirectorChange} required={!update} />
+            <InputField key="dau-7" name="password" type="password" label="Password" defaultValue={directorState.password} onChange={handleDirectorChange} required={!update} />
           </div>
           <div >
             <InputField
@@ -179,7 +179,7 @@ function DirectorAdd({ update, prevLdo, setIsLoading, setAddNewDirector, ldoId }
               type="password"
               label="Confirm Password"
               defaultValue={directorState.confirmPassword}
-              handleInputChange={handleDirectorChange}
+              onChange={handleDirectorChange}
               required={!update}
             />
           </div>

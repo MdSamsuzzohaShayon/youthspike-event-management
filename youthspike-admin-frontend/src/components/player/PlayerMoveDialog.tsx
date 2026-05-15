@@ -13,13 +13,12 @@ interface IPlayerMoveDialogProps {
   teamList: ITeam[];
   teamId: string | null;
   mutatePlayer: any;
-  refetchFunc?: () => void;
   setActionOpen: React.Dispatch<React.SetStateAction<boolean>>;
   showMessage: (message: Omit<IMessage, "id">) => void;
   setMovePlayer: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function PlayerMoveDialog({ dialogMoveEl, player, divisionList, teamList, teamId, mutatePlayer, refetchFunc, setActionOpen, showMessage, setMovePlayer }: IPlayerMoveDialogProps) {
+function PlayerMoveDialog({ dialogMoveEl, player, divisionList, teamList, teamId, mutatePlayer, setActionOpen, showMessage, setMovePlayer }: IPlayerMoveDialogProps) {
   const [teamOptions, setTeamOptions] = useState<IOption[]>(
     (teamList || []).map((t, i) => ({
       id: i + 1,
@@ -84,7 +83,7 @@ function PlayerMoveDialog({ dialogMoveEl, player, divisionList, teamList, teamId
       const success = await handleResponseCheck(response.data.updatePlayer, showMessage);
       if (!success) return;
 
-      if (refetchFunc) await refetchFunc();
+      // Add cache
       setActionOpen(false);
       setMovePlayer(false);
       dialogMoveEl.current?.close();

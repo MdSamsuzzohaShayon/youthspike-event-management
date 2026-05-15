@@ -286,7 +286,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
         {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
           <SelectInput name="group" label="group" optionList={groupOptions} value={filters.group || ''} handleSelect={(e) => handleFilterChange(e, 'group')} />
         )}
-        <InputField type="text" name="description" required={false} value={filters.description || ''} handleInputChange={(e) => handleFilterChange(e, 'description')} />
+        <InputField type="text" name="description" required={false} value={filters.description || ''} onChange={(e) => handleFilterChange(e, 'description')} />
       </div>
 
       {/* Bulk Actions */}

@@ -156,11 +156,11 @@ function PlayerAdd({ update, prevPlayer, teamList, division, eventId }: IProps) 
     <form onSubmit={handleAddPlayer} className="w-full">
       <ImageInput onFileChange={handleFileChange} name="profile" defaultValue={prevPlayer?.profile || null} className="mt-6 w-full md:w-2/6" />
       <div className="part-1 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-        <InputField type="text" name="firstName" label="First Name" defaultValue={playerState.firstName} handleInputChange={handleInputChange} required={!update} />
-        <InputField type="text" name="lastName" label="Last Name" defaultValue={playerState.lastName} handleInputChange={handleInputChange} required={!update} />
-        {update && <InputField type="text" name="username" defaultValue={playerState.username} handleInputChange={handleInputChange} required={false} />}
-        <InputField type="email" name="email" defaultValue={playerState.email} handleInputChange={handleInputChange} required={false} />
-        <InputField type="number" name="phone" defaultValue={playerState.phone} handleInputChange={handleInputChange} />
+        <InputField type="text" name="firstName" label="First Name" defaultValue={playerState.firstName} onChange={handleInputChange} required={!update} />
+        <InputField type="text" name="lastName" label="Last Name" defaultValue={playerState.lastName} onChange={handleInputChange} required={!update} />
+        {update && <InputField type="text" name="username" defaultValue={playerState.username} onChange={handleInputChange} required={false} />}
+        <InputField type="email" name="email" defaultValue={playerState.email} onChange={handleInputChange} required={false} />
+        <InputField type="number" name="phone" defaultValue={playerState.phone} onChange={handleInputChange} />
       </div>
 
       {!update && <SelectInput name="team" className="mt-6" value={playerState.team} optionList={teamOptions} handleSelect={handleTeamChange} />}

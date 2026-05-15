@@ -51,12 +51,12 @@ const EventFormSections: React.FC<EventFormSectionsProps> = ({
 }) => {
   return (
     <>
-      <InputField name="name" type="text" label="Name" handleInputChange={onInputChange} defaultValue={eventState.name} required={!update} />
+      <InputField name="name" type="text" label="Name" onChange={onInputChange} defaultValue={eventState.name} required={!update} />
 
       <div className="img-wrapper">
         <div className="hidden md:block w-3/6" />
         <div className="w-full md:w-3/6">
-          <ImageInput handleFileChange={onLogoChange} name="logo" defaultValue={eventState.logo || null} />
+          <ImageInput onFileChange={onLogoChange} name="logo" defaultValue={eventState.logo || null} />
         </div>
       </div>
 
@@ -64,17 +64,17 @@ const EventFormSections: React.FC<EventFormSectionsProps> = ({
 
       <DateInput label="End Date" name="endDate" handleDateChange={onDateChange} defaultValue={eventState.endDate} required={!update} />
 
-      <InputField required={!update} name="nets" type="number" handleInputChange={onNumberChange} label="Number of nets" defaultValue={String(eventState.nets)} />
+      <InputField required={!update} name="nets" type="number" onChange={onNumberChange} label="Number of nets" defaultValue={String(eventState.nets)} />
 
-      <InputField required={!update} name="rounds" type="number" handleInputChange={onNumberChange} label="Number of rounds" defaultValue={String(eventState.rounds)} />
+      <InputField required={!update} name="rounds" type="number" onChange={onNumberChange} label="Number of rounds" defaultValue={String(eventState.rounds)} />
 
-      <InputField required={!update} name="netVariance" type="number" handleInputChange={onNumberChange} label="Net Variance" defaultValue={String(eventState.netVariance)} />
+      <InputField required={!update} name="netVariance" type="number" onChange={onNumberChange} label="Net Variance" defaultValue={String(eventState.netVariance)} />
 
-      <InputField name="fwango" type="text" label="Fwango Link" handleInputChange={onInputChange} defaultValue={eventState.fwango || ''} />
+      <InputField name="fwango" type="text" label="Fwango Link" onChange={onInputChange} defaultValue={eventState.fwango || ''} />
 
       <div className="w-full flex flex-col justify-center items-start">
         {!update ? (
-          <InputField type="text" required value={eventState.divisions} handleInputChange={onInputChange} label="Divisions" name="divisions" className='w-full' />
+          <InputField type="text" required value={eventState.divisions} onChange={onInputChange} label="Divisions" name="divisions" className='w-full' />
         ) : (
           <h4 className="capitalize text-lg font-semibold mb-1">Divisions</h4>
         )}
@@ -96,17 +96,17 @@ const EventFormSections: React.FC<EventFormSectionsProps> = ({
         <DateTimeInput name="rosterLockDate" label="Set a time for locking roster ranking!" required={!update} handleDateChange={onDateChange} />
       )}
 
-      <InputField name="timeout" type="number" handleInputChange={onNumberChange} label="Sub Clock (in minutes)" defaultValue={String(eventState.timeout)} />
+      <InputField name="timeout" type="number" onChange={onNumberChange} label="Sub Clock (in minutes)" defaultValue={String(eventState.timeout)} />
 
-      <InputField name="coachPassword" type="password" label="Coach Password" required={!update} handleInputChange={onInputChange} defaultValue={eventState.coachPassword} />
+      <InputField name="coachPassword" type="password" label="Coach Password" required={!update} onChange={onInputChange} defaultValue={eventState.coachPassword} />
       <TextareaInput name="description" label="Description" required={!update} handleInputChange={onInputChange} defaultValue={eventState.description} />
-      <InputField type="text" name="location" label="Location" required={!update} handleInputChange={onInputChange} defaultValue={eventState.location} />
+      <InputField type="text" name="location" label="Location" required={!update} onChange={onInputChange} defaultValue={eventState.location} />
 
       <InputField
         type="text"
         name="accessCode"
         label="Access Code"
-        handleInputChange={onInputChange}
+        onChange={onInputChange}
         value={eventState.accessCode}
       />
 

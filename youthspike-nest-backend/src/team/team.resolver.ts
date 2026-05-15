@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Context, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { UserRole } from 'src/user/user.schema';
 import { Team } from './team.schema';
@@ -133,9 +133,17 @@ export class TeamResolver {
   }
 
 
-  @Query((_returns) => GetTeamWithGroupsAndUnAssignedPlayersResponse)
-  async getTeamWithGroupsAndUnassignedPlayers(@Args('eventIds', { type: () => [String], nullable: true }) eventIds: string[], @Args('teamId') teamId: string) {
-    return this.teamQueris.getTeamWithGroupsAndUnassignedPlayers(eventIds, teamId);
+  @Query(() => GetTeamWithGroupsAndUnAssignedPlayersResponse)
+  async getTeamWithGroupsAndUnassignedPlayers(
+    @Context() context: any,
+    @Args('teamId', { type: () => String }) teamId: string,
+    @Args('ldoId', { type: () => String, nullable: true }) ldoId?: string,
+  ) {
+    return this.teamQueris.getTeamWithGroupsAndUnassignedPlayers(
+      context,
+      teamId,
+      ldoId
+    );
   }
 
   /**

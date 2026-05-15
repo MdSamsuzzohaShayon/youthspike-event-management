@@ -18,18 +18,19 @@ import { FileUpload } from 'graphql-upload/processRequest.mjs';
 import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
 import { QueryFilter } from 'mongoose';
 import { CustomTeam } from 'src/team/resolvers/team.response';
+import { ConfigService } from '@nestjs/config';
 const GraphQLUpload = GraphQLUploadModule.default;
 
 @Injectable()
 export class TeamMutations {
   constructor(
+    private configService: ConfigService,
     private eventService: EventService,
     private teamService: TeamService,
     private cloudinaryService: CloudinaryService,
     private userService: UserService,
     private matchService: TeamService,
     private groupService: GroupService,
-    private netService: NetService,
     private playerService: PlayerService,
     private playerRankingService: PlayerRankingService,
   ) { }
@@ -42,7 +43,6 @@ export class TeamMutations {
     logo?: Promise<FileUpload>,
   ): Promise<Team> {
     const teamId = team._id.toString();
-    const eventIds = events.map(e => e._id as string);
     const updatePromises: Promise<any>[] = [];
     const updatedTeamData: QueryFilter<Team> = { ...input };
 
@@ -123,9 +123,10 @@ export class TeamMutations {
     }
 
     // ===== Update event =====
-    if (input.event && !(team.events as string[]).includes(input.event)) {
-      updatePromises.push(this.eventService.updateMany({ _id: { $in: eventIds } }, { $pull: { teams: teamId } }));
-      updatePromises.push(this.eventService.updateMany({ _id: input.event }, { $addToSet: { teams: teamId } }));
+    if (input.events && input.events.length > 0) {
+      // List of events that does not present in the team
+      // Update events
+      updatePromises.push(this.eventService.updateMany({ _id: {$in: team.events as string[]} }, { $addToSet: { teams: teamId } }));
     }
 
     // ===== Update players =====
@@ -195,7 +196,7 @@ export class TeamMutations {
       let logoUrl: string | null = null;
       if (logo) logoUrl = await this.cloudinaryService.uploadFiles(logo);
 
-      const teamExist = await this.teamService.findOne({ name: input.name, events: input.event });
+      const teamExist = await this.teamService.findOne({ name: input.name, events: { $in: input.events } });
       if (teamExist) {
         return AppResponse.handleError({
           code: 404,
@@ -209,21 +210,18 @@ export class TeamMutations {
         logo: logoUrl,
         sendCredentials: false,
         captain: input.captain,
-        events: [input.event],
+        events: input.events,
         division: input.division.trim().toLowerCase(),
         active: true,
         players,
         playerRankings: [],
         groups: input.group ? [input.group] : []
       };
-      const [newTeam, findEvent] = await Promise.all([
-        this.teamService.create(teamObj),
-        this.eventService.findById(input.event.toString()),
-      ]);
+      const newTeam = await this.teamService.create(teamObj);
 
       // ===== Captain - User - Player - Team Relationship update =====
       const promiseOperations = [];
-      promiseOperations.push(this.eventService.updateOne({ _id: input.event }, { $addToSet: { teams: newTeam._id } }));
+      promiseOperations.push(this.eventService.updateMany({ _id: { $in: input.events } }, { $addToSet: { teams: newTeam._id } }));
 
       // Create player ranking when creating match
       const playerRankings = [];
@@ -247,7 +245,7 @@ export class TeamMutations {
         // const username = findPlayer.firstName.toLowerCase() + newTeam.num.toString();
         const username = findPlayer?.username ?? this.playerService.playerUsername(findPlayer.username);
         promiseOperations.push(this.playerService.updateOne({ _id: input.captain.toString() }, { $set: { username } }));
-        const rawPassword = findEvent.coachPassword;
+        const rawPassword = this.configService.get('DEFAULT_CAPTAIN_PASSWORD')
         const captainUser = await this.userService.create({
           firstName: findPlayer.firstName,
           lastName: findPlayer.lastName,
@@ -319,7 +317,7 @@ export class TeamMutations {
         code: HttpStatus.ACCEPTED,
         success: true,
         message: 'A team has been updated successfully',
-        data:  updatedTeam as CustomTeam,
+        data: updatedTeam as CustomTeam,
       };
     } catch (err) {
       return AppResponse.handleError(err);

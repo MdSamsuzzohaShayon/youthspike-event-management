@@ -240,7 +240,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
             <span className="text-yellow-logo">No team in the group, try selecting another group!</span>
           ))}
         <TextareaInput key="field-description" handleInputChange={handleInputChange} name="description" required={!update} defaultValue={addMatch.description} />
-        <InputField key="field-location" type="text" handleInputChange={handleInputChange} label="Location / Start time" name="location" defaultValue={addMatch.location || ''} />
+        <InputField key="field-location" type="text" onChange={handleInputChange} label="Location / Start time" name="location" defaultValue={addMatch.location || ''} />
       </div>
 
       <button type="button" className="flex justify-start items-center md:flex-wrap mt-6" onClick={() => setExpanded((prev) => !prev)}>
@@ -259,7 +259,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
             label="Number of nets"
             name="numberOfNets"
             value={String(addMatch.numberOfNets)}
-            handleInputChange={handleNumInputChange}
+            onChange={handleNumInputChange}
           />
           <InputField
             key="field-numberOfRounds"
@@ -268,9 +268,9 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
             label="Number of rounds"
             name="numberOfRounds"
             value={String(addMatch.numberOfRounds)}
-            handleInputChange={handleNumInputChange}
+            onChange={handleNumInputChange}
           />
-          <InputField key="field-netVariance" type="number" required={!update} label="Net Variance" name="netVariance" value={String(addMatch.netVariance)} handleInputChange={handleNumInputChange} />
+          <InputField key="field-netVariance" type="number" required={!update} label="Net Variance" name="netVariance" value={String(addMatch.netVariance)} onChange={handleNumInputChange} />
           <SelectInput key="select-homeTeam" name="homeTeam" defaultValue={addMatch.homeTeam} optionList={homeTeamStrategy} label="How is home team decided?" handleSelect={handleInputChange} />
           <SelectInput key="select-tieBreaking" name="tieBreaking" value={addMatch.tieBreaking} optionList={tieBreakingRules} label="Tie breaking strategy" handleSelect={handleInputChange} />
           <ToggleInput onChange={handleToggleInput} name="autoAssign" label="Auto assign when clock runs out" defaultValue={addMatch.autoAssign} />
@@ -296,10 +296,10 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
           {addMatch.rosterLock && addMatch.rosterLock !== '' && addMatch.rosterLock !== ERosterLock.FIRST_ROSTER_SUBMIT.toString() && (
             <DateInput key="date-rosterLock" name="rosterLockDate" label="Pick A date when ranking is going to lock" handleDateChange={handleRosterLockDate} defaultValue={addMatch.rosterLock} />
           )}
-          <InputField key="field-timeout" type="number" required={!update} label="Sub Clock" name="timeout" value={String(addMatch.timeout)} handleInputChange={handleNumInputChange} />
-          <InputField key="field-fwango" type="text" handleInputChange={handleInputChange} label="Fwango Link" name="fwango" defaultValue={addMatch.fwango || ''} />
-          <InputField key="field-streamUrl" type="text" handleInputChange={handleInputChange} label="Streaming Link" name="streamUrl" defaultValue={addMatch.streamUrl || ''} />
-          <InputField key="field-accessCode" type="text" handleInputChange={handleInputChange} label="Access Code" name="accessCode" defaultValue={addMatch.accessCode || ''} />
+          <InputField key="field-timeout" type="number" required={!update} label="Sub Clock" name="timeout" value={String(addMatch.timeout)} onChange={handleNumInputChange} />
+          <InputField key="field-fwango" type="text" onChange={handleInputChange} label="Fwango Link" name="fwango" defaultValue={addMatch.fwango || ''} />
+          <InputField key="field-streamUrl" type="text" onChange={handleInputChange} label="Streaming Link" name="streamUrl" defaultValue={addMatch.streamUrl || ''} />
+          <InputField key="field-accessCode" type="text" onChange={handleInputChange} label="Access Code" name="accessCode" defaultValue={addMatch.accessCode || ''} />
         </div>
       )}
 

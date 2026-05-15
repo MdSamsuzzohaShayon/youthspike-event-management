@@ -16,6 +16,7 @@ import React, {
 import ReactCrop, { type Crop, type PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import ImagePreview from './ImagePreview';
+import compressImageIfNeeded from '@/utils/compressImageIfNeeded';
 
 // ─────────────────────────────────────────────
 // Types
@@ -44,7 +45,7 @@ const ASPECT_RATIO_MAP: Record<AspectRatio, number> = {
   '1:1.5': 1 / 1.5,
 };
 
-const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
+
 
 const VALID_IMAGE_TYPES = new Set([
   'image/jpeg',
@@ -62,9 +63,9 @@ function validateFile(file: File): string | null {
   if (!VALID_IMAGE_TYPES.has(file.type)) {
     return 'Please upload a valid image file (JPEG, PNG, GIF, WEBP, or SVG).';
   }
-  if (file.size > MAX_FILE_SIZE_BYTES) {
-    return 'Image size must be less than 5 MB.';
-  }
+  // if (file.size > MAX_FILE_SIZE_BYTES) {
+  //   return 'Image size must be less than 5 MB.';
+  // }
   return null;
 }
 
@@ -214,7 +215,9 @@ function ImageInput({
         if (prev) URL.revokeObjectURL(prev); // avoid memory leaks
         return url;
       });
-      onFileChange?.(blob);
+      const finalBlob = await compressImageIfNeeded(blob);
+
+      onFileChange?.(finalBlob);
       return true;
     },
     [onFileChange],

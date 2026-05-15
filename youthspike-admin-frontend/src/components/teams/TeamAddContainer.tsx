@@ -9,24 +9,22 @@ import {
   IPlayer,
 } from '@/types';
 
-import EventNavigation from '../layout/EventNavigation';
 import SelectInput from '../elements/forms/SelectInput';
 import TeamAdd from './TeamAdd';
 
 import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
-import { divisionsToOptionList, filterByDivision } from '@/utils/helper';
+import { divisionsOfEvents, divisionsToOptionList, filterByDivision } from '@/utils/helper';
 import Loader from '../elements/Loader';
 
 interface TeamAddContainerProps {
   queryRef: QueryRef<{
     getEventWithGroupsAndUnassignedPlayers: IGetEventWithGroupsAndUnassignedPlayersResponse;
   }>;
-  eventId: string;
 }
 
 
-function TeamAddContainer({ queryRef, eventId }: TeamAddContainerProps) {
+function TeamAddContainer({ queryRef }: TeamAddContainerProps) {
   const { data } = useReadQuery(queryRef);
 
   if (!data?.getEventWithGroupsAndUnassignedPlayers?.data) {
@@ -38,12 +36,6 @@ function TeamAddContainer({ queryRef, eventId }: TeamAddContainerProps) {
   // -------------------- State --------------------
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [selectedDivision, setSelectedDivision] = useState<string>('');
-
-  // -------------------- Memoized Values --------------------
-  const divisionOptions = useMemo(
-    () => divisionsToOptionList(eventData.event?.divisions || ''),
-    [eventData.event?.divisions]
-  );
 
   const filteredPlayers = useMemo<IPlayer[]>(() => {
     if (!selectedDivision) return eventData.players;
@@ -67,26 +59,12 @@ function TeamAddContainer({ queryRef, eventId }: TeamAddContainerProps) {
   }, []);
 
   // -------------------- Handlers --------------------
-  const handleDivisionChange = (
-    e: React.SyntheticEvent
-  ) => {
-    const inputEl = e.target as HTMLSelectElement;
-    const division = inputEl.value.trim();
-
-    setSelectedDivision(division);
-
-    if (!division) {
-      SessionStorageService.removeItem(DIVISION);
-    } else {
-      SessionStorageService.setItem(DIVISION, division);
-    }
-  };
 
   const handleClose = (e: React.SyntheticEvent) => {
     e.preventDefault();
   };
-  
-  
+
+
 
   // -------------------- Render --------------------
 
@@ -95,18 +73,8 @@ function TeamAddContainer({ queryRef, eventId }: TeamAddContainerProps) {
     <div>
       <h1>Add New Team</h1>
 
-      <div className="mt-2 division-selection w-full">
-        <SelectInput
-          key="division-selector-add"
-          name="division"
-          value={selectedDivision}
-          optionList={divisionOptions}
-          handleSelect={handleDivisionChange}
-        />
-      </div>
-
       <TeamAdd
-        eventId={eventId}
+        events={eventData?.events || []}
         currDivision={selectedDivision}
         players={filteredPlayers}
         groupList={filteredGroups}

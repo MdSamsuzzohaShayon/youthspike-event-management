@@ -1180,7 +1180,7 @@ type PlayerEventSetting {
 }
 
 type GroupsAndUnassignedPlayers {
-  event: Event
+  events: [CustomEvent!]
   players: [CustomPlayer!]
   groups: [CustomGroup!]
 }
@@ -1417,7 +1417,7 @@ type Query {
   searchTemplates(eventId: String!, filter: TemplateSearchFilter): GetTemplateSearchResponse!
   getUser(userId: String!): UserResponse!
   getEvents(directorId: String): GetEventsResponse!
-  getEventWithGroupsAndUnassignedPlayers(eventId: String!): GetEventWithGroupsAndUnassignedPlayersResponse!
+  getEventWithGroupsAndUnassignedPlayers(ldoId: String): GetEventWithGroupsAndUnassignedPlayersResponse!
   getPlayerEventSetting(eventId: String): GetPlayerEventSettingResponse!
   getEvent(eventId: String!): GetEventResponse!
   getTeams(eventIds: [String!], limit: Float = 30, offset: Float = 0): GetTeamsResponse!
@@ -1427,7 +1427,7 @@ type Query {
   getTeamRoster(teamId: String!): GetTeamRosterResponse!
   getTeamMatches(teamId: String!): GetTeamMatchesResponse!
   searchTeams(eventIds: [String!], filter: TeamSearchFilter): GetTeamSearchResponse!
-  getTeamWithGroupsAndUnassignedPlayers(eventIds: [String!], teamId: String!): GetTeamWithGroupsAndUnAssignedPlayersResponse!
+  getTeamWithGroupsAndUnassignedPlayers(teamId: String!, ldoId: String): GetTeamWithGroupsAndUnAssignedPlayersResponse!
   getMatches(filter: FilterQueryInput): GetMatchesResponse!
   searchMatches(filter: SearchFilterInput, eventId: String): GetEventWithMatchesResponse!
   getEventWithMatches(eventId: String!): GetEventWithMatchesResponse!
@@ -1591,7 +1591,7 @@ input CreateTeamInput {
   division: String!
   group: String
   captain: String
-  event: String!
+  events: [ID!] = []
   players: [ID!]
 }
 
@@ -1601,7 +1601,7 @@ input UpdateTeamInput {
   division: String
   group: String
   captain: String
-  event: String
+  events: [ID!] = []
   players: [ID!]
   cocaptain: String
   email: String
@@ -1613,7 +1613,7 @@ input UpdateTeamsInput {
   division: String
   group: String
   captain: String
-  event: String
+  events: [ID!] = []
   teamIds: [String!]
   cocaptain: String
   email: String

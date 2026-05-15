@@ -10,7 +10,7 @@ type BaseProps = {
   className?: string;
   required?: boolean;
   compact?: boolean;
-  handleInputChange?: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
+  onChange?: React.ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
 };
 
 /**
@@ -38,7 +38,7 @@ type TextareaProps = BaseProps & {
 type InputFieldProps = InputProps | TextareaProps;
 
 function InputField(props: InputFieldProps) {
-  const { name, label, className = '', required = false, compact = false, handleInputChange } = props;
+  const { name, label, className = '', required = false, compact = false, onChange } = props;
 
   const isTextarea = props.type === 'textarea';
 
@@ -60,7 +60,7 @@ function InputField(props: InputFieldProps) {
           rows={'rows' in props ? props.rows ?? 4 : 4}
           {...('defaultValue' in props && { defaultValue: props.defaultValue })}
           {...('value' in props && { value: props.value })}
-          {...(handleInputChange && { onChange: handleInputChange })}
+          {...(onChange && { onChange: onChange })}
           required={required}
           className={`${inputBaseClass} p-3 resize-y min-h-[100px]`}
         />
@@ -71,7 +71,7 @@ function InputField(props: InputFieldProps) {
           type={props.type ?? 'text'}
           {...('defaultValue' in props && { defaultValue: props.defaultValue })}
           {...('value' in props && { value: props.value })}
-          {...(handleInputChange && { onChange: handleInputChange })}
+          {...(onChange && { onChange: onChange })}
           required={required}
           className={`${inputBaseClass} p-2`}
         />

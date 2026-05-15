@@ -109,7 +109,7 @@ export interface IGetEventWithTeamsAndGroupsResponse extends IResponse {
 
 export interface IGetEventWithGroupsAndUnassignedPlayersResponse extends IResponse {
   data: {
-    event: IEvent,
+    events: IEvent[],
     groups: IGroup[];
     players: IPlayer[];
   }

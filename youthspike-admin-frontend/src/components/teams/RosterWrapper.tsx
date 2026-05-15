@@ -25,15 +25,6 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
   const { showMessage } = useMessage();
 
 
-  const eventMap: Map<string, IEvent> = useMemo(() => {
-    const map = new Map<string, IEvent>();
-    for (const event of events) {
-      map.set(event._id, event);
-    }
-    return map;
-  }, [events]);
-
-  console.log({ events, team });
 
 
 
@@ -57,7 +48,8 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
     },
     [playerIdsToAdd, team, events, mutateTeam, showMessage],
   );
-  const refetchFunc = useCallback(() => window.location.reload(), []);
+
+
   const handleCheckboxChange = useCallback((pId: string, isChecked: boolean) => {
     setPlayerIdsToAdd((prev) => {
       const newSet = new Set(prev);
@@ -137,7 +129,7 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
 
         <form onSubmit={handleAddPlayersToTeam} className="space-y-3">
           <PlayerSelectInput players={unassignedPlayers as IPlayer[]}
-            events={events}
+            events={events.map(e => e._id)}
             onCheckboxChange={handleCheckboxChange} name="add-player-to-team" />
           <button type="submit" className="w-full bg-yellow-400 text-gray-900 py-3 rounded-lg font-bold text-sm hover:bg-yellow-300 transition-colors shadow-lg">
             ADD SELECTED PLAYERS
@@ -164,7 +156,6 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
           playerList={activePlayers}
           setIsLoading={setIsLoading}
           rankControls
-          refetchFunc={refetchFunc}
           teamList={teamList}
           divisionList={divisionList}
           teamId={team?._id}
@@ -184,7 +175,6 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
             playerList={inactivePlayers}
             events={events}
             setIsLoading={setIsLoading}
-            refetchFunc={refetchFunc}
             teamList={teamList}
             divisionList={divisionList}
             teamId={team._id}

@@ -150,4 +150,24 @@ mutation DeleteEventDirector($dId: String!) {
 }
 `;
 
-export { GET_LDO, GET_LDO_RAW, GET_LDOS, GET_LDOS_RAW, GET_SYSTEM_DETAILS_RAW, UPDATE_DIRECTOR, UPDATE_DIRECTOR_RAW, ADD_DIRECTOR, ADD_DIRECTOR_RAW, DELETE_DIRECTOR };
+
+const NEW_LDO_FRAGMENT = gql`
+fragment NewLDO on LDO {
+  _id
+  name
+  phone
+  logo
+  director {
+    _id
+    active
+    firstName
+    lastName
+    role
+    email
+    passcode
+  }
+  events
+}
+`;
+
+export { GET_LDO, GET_LDO_RAW, GET_LDOS, GET_LDOS_RAW, GET_SYSTEM_DETAILS_RAW, UPDATE_DIRECTOR, UPDATE_DIRECTOR_RAW, ADD_DIRECTOR, ADD_DIRECTOR_RAW, DELETE_DIRECTOR, NEW_LDO_FRAGMENT };

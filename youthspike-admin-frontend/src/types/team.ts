@@ -33,7 +33,7 @@ export interface ITeam {
   division: string;
   sendCredentials: false;
   num: number;
-  event: IEvent;
+  events: IEvent[];
   matches: IMatch[];
   players: IPlayerExpRel[];
   captain: IPlayerExpRel | null;
@@ -47,7 +47,7 @@ export interface ITeamAdd {
   active: boolean;
   name: string;
   logo?: string | null;
-  event: string;
+  events?: string[];
   division: string;
   players: string[];
   captain?: string | null;
@@ -112,7 +112,7 @@ export interface IGetEventWithTeamsQuery {
 }
 
 export interface IBaseTeamAction {
-  showMessage: (message: Omit<IMessage, "id">) => void;
+  setMessage: (message: Omit<IMessage, "id">) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   uploadedLogo: React.RefObject<null | Blob | MediaSource>;
   playerIdList: string[];
@@ -158,7 +158,7 @@ export interface ISearchTeamResponse extends IResponse {
   data: ISearchTeamData;
 }
 
-export interface IUpdateTeamRes extends IResponse {
+export interface IGetTeamResponse extends IResponse {
   data?: ITeam;
 }
 
@@ -178,11 +178,9 @@ export interface IGetEventWithTeamsResponse extends IResponse{
 
 
 
-export interface ITeamRes extends IUpdateTeamRes {}
-
 export type TUpdateTeamFunction = useMutation.MutationFunction<
   {
-    updateTeam: IUpdateTeamRes;
+    updateTeam: IGetTeamResponse;
   },
   {
     [x: string]: any;
@@ -192,7 +190,7 @@ export type TUpdateTeamFunction = useMutation.MutationFunction<
 
 export type TCreateTeamMutationFunction = useMutation.MutationFunction<
   {
-    createTeam: ITeamRes;
+    createTeam: IGetTeamResponse;
   },
   {
     [x: string]: any;

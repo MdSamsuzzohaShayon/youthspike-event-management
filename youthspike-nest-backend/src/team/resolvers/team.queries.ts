@@ -7,7 +7,7 @@ import { GroupService } from 'src/group/group.service';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { AppResponse } from 'src/shared/response';
 import { EventService } from 'src/event/event.service';
-import { playerKey } from 'src/utils/helper';
+import { playerKey, tokenToUser } from 'src/utils/helper';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { PlayerService } from 'src/player/player.service';
 import { CustomPlayerStats } from 'src/player-stats/resolvers/player-stats.response';
@@ -24,6 +24,10 @@ import { CustomMatch, CustomNet, CustomRound, GetTeamSearchResponse, GetTeamRost
 import { CustomEvent } from 'src/event/resolvers/event.response';
 import { CustomGroup } from 'src/match/resolvers/match.response';
 import { CustomPlayer, CustomPlayerRanking, CustomPlayerRankingItem } from 'src/player/resolvers/player.response';
+import { LdoService } from 'src/ldo/ldo.service';
+import { ConfigService } from '@nestjs/config';
+import { UserService } from 'src/user/user.service';
+import { UserRole } from 'src/user/user.schema';
 
 // ITeamQueries
 
@@ -40,6 +44,9 @@ export class TeamQueries {
     private groupService: GroupService,
     private playerRankingService: PlayerRankingService,
     private playerService: PlayerService,
+    private ldoService: LdoService, 
+    private userService: UserService,
+    private configService: ConfigService,
   ) { }
 
 
@@ -327,17 +334,81 @@ export class TeamQueries {
     }
   }
 
-  async getTeamWithGroupsAndUnassignedPlayers(eventIds: string[], teamId: string) {
+  async getTeamWithGroupsAndUnassignedPlayers(
+    context: any,
+    teamId: string,
+    ldoId: string
+  ) {
     try {
-      const events = await this.eventService.find({ _id: { $in: eventIds } });
-      if (!events) return AppResponse.notFound("Event");
+
+      const team = await this.teamService.findOne({_id: teamId});
+      if(!team) return AppResponse.notFound("Team");
 
 
-      const [groups, players, team] = await Promise.all([
-        this.groupService.find({ event: { $in: eventIds } }),
-        this.playerService.find({ events: { $in: eventIds }, $or: [{ teams: { $size: 0 } }, { teams: { $exists: false } }, { teams: null }] }),
-        this.teamService.findOne({ _id: teamId })
+      const secret = this.configService.get<string>('JWT_SECRET');
+  
+      // Decode token
+      const userPayload = tokenToUser(context, secret);
+  
+      if (!userPayload?._id) {
+        return AppResponse.unauthorized();
+      }
+  
+      // Only fetch fields we actually need
+      const loggedUser = await this.userService.findOne(
+        { _id: userPayload._id }
+      );
+  
+      if (!loggedUser) {
+        return AppResponse.unauthorized();
+      }
+
+
+
+      let events = [];
+  
+  
+      /**
+       * CASE 1:
+       * Explicit eventIds provided
+       */
+      if (ldoId && loggedUser.role === UserRole.admin) {
+        const ldo = await this.ldoService.findByDirectorId(ldoId);
+  
+        if (ldo?.events?.length) {
+          events = await this.eventService.find({
+            _id: { $in: ldo.events as string[] },
+          });
+        }
+      }
+  
+      /**
+       * CASE 2:
+       * Director requesting own events
+       */
+      else if (loggedUser.role === UserRole.director) {
+        const ldo = await this.ldoService.findOne({
+          director: loggedUser._id,
+        });
+  
+        if (ldo?.events?.length) {
+          events = await this.eventService.find({
+            _id: { $in: ldo.events as string[] },
+          });
+        }
+      }
+  
+      const resolvedEventIds = events.map((event) => event._id);
+
+
+
+      const [groups, players] = await Promise.all([
+        this.groupService.find({ event: { $in: resolvedEventIds } }),
+        this.playerService.find({ events: { $in: resolvedEventIds }, $or: [{ teams: { $size: 0 } }, { teams: { $exists: false } }, { teams: null }] }),
       ]);
+
+
+      // Get all events of events
       return {
         code: HttpStatus.OK,
         success: true,

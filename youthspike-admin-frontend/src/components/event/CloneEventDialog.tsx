@@ -63,9 +63,9 @@ function CloneEventDialog({ copyEventRef, event }: IProps) {
       <div className="p-4 flex flex-col gap-y-2">
         <h3>Selected Event: {event?.name}</h3>
         <form onSubmit={handleCopyEvent} className='flex flex-col gap-y-6'>
-          <InputField name="name" type="text" defaultValue={event?.name || ''} handleInputChange={handleInputChange} />
-          <InputField name="description" type="textarea"  defaultValue={event?.description || ''} />
-          <InputField name="location" type="text"  defaultValue={event?.location || ''} />
+          <InputField name="name" type="text" defaultValue={event?.name || ''} onChange={handleInputChange} />
+          <InputField name="description" type="textarea"  defaultValue={event?.description || ''} onChange={handleInputChange} />
+          <InputField name="location" type="text"  defaultValue={event?.location || ''} onChange={handleInputChange} />
           <DateInput label="Start Date" name="startDate" handleDateChange={handleDateChange} defaultValue={event?.startDate} required={true} />
           <DateInput label="End Date" name="endDate" handleDateChange={handleDateChange} defaultValue={event?.endDate} required={true} />
           <div className="btn-group flex flex gap-x-2">
