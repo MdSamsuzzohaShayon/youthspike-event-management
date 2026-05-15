@@ -344,9 +344,10 @@ query GetTeams ($eventIds: [String!], $limit: Float, $offset: Float) {
 }
 `;
 
+
 const GET_TEAM_WITH_GROUPS_AND_UNASSIGNED_PLAYERS = gql`
-query GetTeamWithGroupsAndUnassignedPlayers($eventIds: [String]!, $teamId: String!){
-  getTeamWithGroupsAndUnassignedPlayers(eventIds:$eventIds, teamId: $teamId){
+query GetTeamWithGroupsAndUnassignedPlayers($teamId: String!, $ldoId: String){
+  getTeamWithGroupsAndUnassignedPlayers(teamId: $teamId, ldoId: $ldoId){
     code
     success
     message
@@ -574,6 +575,27 @@ const ADD_A_TEAM = gql`
   ${ADD_TEAM_RAW}
 `;
 
+const TEAM_FRAGMENT = gql`
+  fragment NewTeam on Team {
+    _id
+    name
+    logo
+    division
+    groups {
+      _id
+      name
+    }
+    events {
+      _id
+      name
+      ldo {
+        _id
+        name
+      }
+    }
+  }
+`;
+
 const UPDATE_TEAM_RAW = `
   mutation UpdateTeam($input: UpdateTeamInput!, $teamId: String!, $logo: Upload) {
     updateTeam(input: $input, teamId: $teamId, logo: $logo) {
@@ -662,5 +684,6 @@ export {
   GET_EVENT_WITH_TEAMS_LIGHT,
   SEARCH_TEAMS,
   SEARCH_TEAM_LIST_LIGHT,
-  UPDATE_TEAMS
+  UPDATE_TEAMS,
+  TEAM_FRAGMENT
 };

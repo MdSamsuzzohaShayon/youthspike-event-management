@@ -8,6 +8,7 @@ import { handleApiResult, handleError } from "../handleError";
 import { getCookie } from "../clientCookie";
 import { useMutation } from "@apollo/client/react";
 import { ApolloCache, ApolloClient, gql } from "@apollo/client";
+import routerService from "@/lib/router-service";
 
 
 type TMutationDirectorFunction = useMutation.MutationFunction<
@@ -241,6 +242,7 @@ export async function updateLdoDirector({
     });
 
     await fetch('/api/logout', { method: 'GET' });
+    routerService.push('/login');
 
 
     throw new Error(message);

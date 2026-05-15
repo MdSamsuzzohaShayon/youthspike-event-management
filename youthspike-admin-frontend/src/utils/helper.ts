@@ -246,3 +246,18 @@ export const divisionsOfEvents = (events: IEvent[]): string => {
   return [...divisionSet].join(',');
 };
 
+export function debounce<T extends (...args: Parameters<T>) => void>(
+  fn: T,
+  delay: number,
+): T {
+  let timer: ReturnType<typeof setTimeout>;
+
+  return ((...args: Parameters<T>) => {
+    clearTimeout(timer);
+
+    timer = setTimeout(() => {
+      fn(...args);
+    }, delay);
+  }) as T;
+}
+

@@ -17,8 +17,8 @@ class CommonInput{
   @Field({ nullable: true })
   captain?: string;
 
-  @Field()
-  event: string;
+  @Field(() => [ID], { nullable: true, defaultValue: [] })
+  events: string[];
 }
 
 @InputType()

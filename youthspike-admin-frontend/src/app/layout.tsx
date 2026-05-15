@@ -17,6 +17,7 @@ import './globals.css';
 import '../utils/polyfills';
 import { NODE_ENV } from '@/utils/keys';
 import { EEnv } from '@/types';
+import RouterProvider from '@/lib/RouterProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -61,6 +62,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <UserProvider>
                 <LdoProvider>
                   <MessageProvider>
+                    {/* // For using router anywhere */}
+                    <RouterProvider />
                     {/* Main content start  */}
                     <AdminMenu />
                     {children}

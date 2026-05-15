@@ -113,7 +113,7 @@ function GroupAddOrUpdate({ eventId, teamList, update, prevGroup, division }: IG
 
   return (
     <form onSubmit={handleGroupAdd} className="flex flex-col gap-2">
-      <InputField type="text" key="ti-eau-1" required={!update} defaultValue={groupState.name} handleInputChange={handleInputChange} label="Name" name="name" />
+      <InputField type="text" key="ti-eau-1" required={!update} defaultValue={groupState.name} onChange={handleInputChange} label="Name" name="name" />
 
       <div className="mt-4">
         <TeamSelectInput name="teams" teamList={filteredTeams} eventId={eventId} handleCheckboxChange={handleCheckboxChange} />

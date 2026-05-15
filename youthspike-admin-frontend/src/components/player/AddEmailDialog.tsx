@@ -16,7 +16,7 @@ function AddEmailDialog({dialogEl, handleCloseModal, handleCaptainEmail, setNewE
         <div className="p-4">
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" role="presentation" className="svg-white" onClick={handleCloseModal} alt="close-icon" />
           <form onSubmit={handleCaptainEmail}>
-            <InputField name="email" type="email" required handleInputChange={(e) => setNewEmail(e.target.value)} />
+            <InputField name="email" type="email" required onChange={(e) => setNewEmail(e.target.value)} />
             <button className="btn-info mt-4" type="submit">
               Make Captain
             </button>

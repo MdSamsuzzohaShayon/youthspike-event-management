@@ -128,16 +128,16 @@ const LoginForm = ({
   return (
     <form onSubmit={onSubmit} className="space-y-6">
       <div >
-        <InputField type="text" name="email" label="Email or Username" handleInputChange={handleInputChange} className={inputClassName} />
+        <InputField type="text" name="email" label="Email or Username" onChange={handleInputChange} className={inputClassName} />
       </div>
 
       <div >
-        <InputField type="password" name="password" label="Password" handleInputChange={handleInputChange} className={inputClassName} />
+        <InputField type="password" name="password" label="Password" onChange={handleInputChange} className={inputClassName} />
       </div>
 
       {showPasscodeField && (
         <div>
-          <InputField type="password" name="passcode" label="Passcode" handleInputChange={handleInputChange} className={inputClassName} />
+          <InputField type="password" name="passcode" label="Passcode" onChange={handleInputChange} className={inputClassName} />
         </div>
       )}
 

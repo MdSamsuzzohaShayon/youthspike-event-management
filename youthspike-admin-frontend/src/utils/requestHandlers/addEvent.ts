@@ -3,6 +3,7 @@ import { IEventAdd, IEventSponsorAdd, IMessage, IProStatsAdd } from '@/types';
 import { APP_NAME, BACKEND_URL } from '../keys';
 import { getCookie } from '../clientCookie';
 import { handleResponseCheck } from './playerHelpers';
+import routerService from '@/lib/router-service';
 
 interface IAddEventVariables {
   input: Partial<IEventAdd>;
@@ -78,6 +79,7 @@ export async function addEventWithFiles({
 
   if (!response.ok) {
     await fetch('/api/logout', { method: 'GET' });
+    routerService.push('/login');
     throw new Error(`HTTP error! Status: ${response.status}`);
   }
 

@@ -180,12 +180,12 @@ export default function NewTemplatePage() {
             <InputField
               name="name"
               type="text"
-              handleInputChange={(e) => setName(e.target.value)}
+              onChange={(e) => setName(e.target.value)}
             />
             <InputField
               type="text"
               name="subject"
-              handleInputChange={(e) => setSubject(e.target.value)}
+              onChange={(e) => setSubject(e.target.value)}
             />
 
             {/* Sample user selector (only visible in preview) */}

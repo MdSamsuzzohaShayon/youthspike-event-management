@@ -8,6 +8,7 @@ import { ApolloCache } from '@apollo/client';
 import { handleApiResult } from '../handleError';
 import { getCookie } from '../clientCookie';
 import { BACKEND_URL } from '../keys';
+import routerService from '@/lib/router-service';
 
 interface IUpdatePlayerData extends IResponse {
   data?: IPlayerExpRel;
@@ -144,6 +145,7 @@ async function updatePlayerFn({
     });
 
     await fetch('/api/logout', { method: 'GET' });
+    routerService.push('/login');
 
 
     throw new Error(message);

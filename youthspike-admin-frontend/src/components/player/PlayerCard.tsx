@@ -35,11 +35,10 @@ interface IPlayerCardProps {
   showRank?: boolean;
   rankControls?: boolean;
   divisionList?: IOption[];
-  refetchFunc?: () => void;
   rank?: number | null;
 }
 
-export default function PlayerCard({ player, isChecked, onSelect, team, teamList, setIsLoading, rank, divisionList, refetchFunc, rankControls }: IPlayerCardProps) {
+export default function PlayerCard({ player, isChecked, onSelect, team, teamList, setIsLoading, rank, divisionList, rankControls }: IPlayerCardProps) {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
@@ -128,14 +127,12 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
         const success = await handleResponseCheck(response.data?.updatePlayer, showMessage);
         if (!success) return;
 
-        if (refetchFunc) {
-          window.location.reload();
-        }
+        // Add cache
       } catch (error: any) {
         handleError({ error, showMessage });
       }
     },
-    [teamId, mutatePlayer, showMessage, refetchFunc],
+    [teamId, mutatePlayer, showMessage],
   );
 
   const handleDelete = useCallback(
@@ -147,18 +144,14 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
         const response = await deleteAPlayer({ variables: { playerId } });
         const success = await handleResponseCheck(response.data?.deletePlayer, showMessage);
         if (!success) return;
-        if (refetchFunc) {
-          await refetchFunc();
-        } else {
-          await client.refetchQueries({ include: [GET_A_TEAM] });
-        }
+        // Add cache
       } catch (error: any) {
         handleError({ error, showMessage });
       } finally {
         if(setIsLoading)setIsLoading(false);
       }
     },
-    [deleteAPlayer, showMessage, refetchFunc, client, setIsLoading],
+    [deleteAPlayer, showMessage, client, setIsLoading],
   );
 
   const closeModal = useCallback(() => {
@@ -405,7 +398,6 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
         divisionList={divisionList || []}
         mutatePlayer={mutatePlayer}
         player={player}
-        refetchFunc={refetchFunc}
         showMessage={showMessage}
         setActionOpen={setActionOpen}
         setMovePlayer={setMovePlayer}

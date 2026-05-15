@@ -468,6 +468,9 @@ export class EventMutations implements IEventMutations {
         this.eventService.updateOne({ _id: newEvent._id }, updateEvent)
       );
 
+      // Update ldo
+      updatePromises.push(this.ldoService.updateOne({_id: newEvent.ldo}, {$addToSet: {events: newEvent._id}}));
+
       await Promise.all(updatePromises);
 
       return {

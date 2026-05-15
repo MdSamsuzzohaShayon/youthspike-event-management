@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { IOption, IPlayer, ITeamAdd, IGroup, IUpdateTeamRes, ITeamRes, ITeam } from '@/types';
+import { IOption, IPlayer, ITeamAdd, IGroup, ITeam, IGetTeamResponse, IEvent } from '@/types';
 import { ADD_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import SelectInput from '../elements/forms/SelectInput';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
@@ -8,51 +8,56 @@ import Link from 'next/link';
 import { useMessage } from '@/lib/MessageProvider';
 import InputField from '../elements/forms/InputField';
 import ImageInput from '../elements/forms/ImageInput';
-import { divisionsToOptionList } from '@/utils/helper';
+import { divisionsOfEvents, divisionsToOptionList } from '@/utils/helper';
 import updateTeam from '@/utils/requestHandlers/updateTeam';
 import createTeam from '@/utils/requestHandlers/createTeam';
-import { useMutation } from '@apollo/client/react';
+import { useApolloClient, useMutation } from '@apollo/client/react';
 import { useRouter } from 'next/navigation';
+import GenericMultiSelect from '../elements/forms/GenericMultiSelect';
+import SessionStorageService from '@/utils/SessionStorageService';
 
 
 
 interface ITeamAddProps {
-  eventId: string;
   players: IPlayer[];
   groupList: IGroup[];
   handleClose: (e: React.SyntheticEvent) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  divisions?: string;
   currDivision?: string;
   update?: boolean;
   prevTeam?: ITeam;
+  events: IEvent[];
 }
 
-const initialTeamState = {
+const initialTeamState: ITeamAdd = {
   active: true,
   name: '',
   logo: null,
-  event: '',
+  events: [],
   division: '',
   players: [],
   captain: '',
 };
 
-function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision, divisions }: ITeamAddProps) {
+function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision, events }: ITeamAddProps) {
   const { ldoIdUrl } = useLdoId();
-  const { showMessage } = useMessage();
+  const { setMessage } = useMessage();
   const router = useRouter();
+  const apolloClient = useApolloClient();
 
   // Helper function to transform ITeam to ITeamAdd format
-  const transformTeamToTeamAdd = (team: ITeam): ITeamAdd => ({
-    active: team.active,
-    name: team.name,
-    logo: team.logo ?? null,
-    event: eventId,
-    division: team.division,
-    players: [],
-    captain: team?.captain?._id || null,
-  });
+  const transformTeamToTeamAdd = (team: ITeam): ITeamAdd => {
+    const teamObj: ITeamAdd = {
+      active: team.active,
+      name: team.name,
+      logo: team.logo ?? null,
+      division: team.division,
+      players: [],
+      captain: team?.captain?._id || null,
+      events: events.map((e) => e._id)
+    }
+    return teamObj;
+  };
 
   const [teamState, setTeamState] = useState<ITeamAdd>(
     prevTeam ? transformTeamToTeamAdd(prevTeam) : initialTeamState
@@ -65,101 +70,49 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
   const uploadedLogo = useRef<null | MediaSource | Blob>(null);
 
   // GraphQL
-  const [addTeam, { data, loading, error }] = useMutation<{ createTeam: ITeamRes }>(ADD_A_TEAM);
-  const [mutateTeam, { data: mData, loading: mLoading, error: mError }] = useMutation<{ updateTeam: IUpdateTeamRes }>(UPDATE_TEAM);
+  const [addTeam, { data, loading, error }] = useMutation<{ createTeam: IGetTeamResponse }>(ADD_A_TEAM);
+  const [mutateTeam, { data: mData, loading: mLoading, error: mError }] = useMutation<{ updateTeam: IGetTeamResponse }>(UPDATE_TEAM);
 
-  const refetch = (url?: string) => {
-    // if (url) {
-    //   router.push(url);
-    // } else {
-    //   router.push(`/${eventId}/teams/${ldoIdUrl}`);
-    // }
-  };
 
   // Handle events
-  const handleTeamAdd = async (e: React.SyntheticEvent) => {
+  const handleTeamAdd = async (e: React.SyntheticEvent, createAgain: boolean) => {
     e.preventDefault();
-    let success = null;
+
     if (update) {
-      success = await updateTeam({
-        eventId,
+      await updateTeam({
         prevTeam: prevTeam ? { ...transformTeamToTeamAdd(prevTeam), _id: prevTeam._id } : null,
         updateTeamState,
-        showMessage,
+        setMessage,
         setIsLoading,
         uploadedLogo,
         playerIdList,
+        apolloClient,
         mutateTeam,
-        addTeam,
-        setAvailablePlayers,
-        setPlayerIdList,
+        events: events.map((e) => e._id),
       });
-      if (success) {
-        const formEl = e.target as HTMLFormElement;
-        formEl.reset();
-        handleClose(e);
-        // refetch();
-        // router.push(`/${eventId}/teams/${ldoIdUrl}`);
-        window.location.reload();
-      }
+      const formEl = e.target as HTMLFormElement;
+      formEl.reset();
+      handleClose(e);
     } else {
-      success = await createTeam({
-        eventId,
+      // Need to test this caching and redirecting
+      await createTeam({
         teamState,
-        currDivision: currDivision || null,
-        showMessage,
+        setMessage,
         setIsLoading,
         uploadedLogo,
         playerIdList,
         addTeam,
-        mutateTeam,
-        setAvailablePlayers,
-        setPlayerIdList,
-      });
-      if (success) {
-        router.push(`/${eventId}/teams/${ldoIdUrl}`);
-      }
-    }
-
-
-  };
-
-  const handleSaveAndCreate = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    let success = null;
-    if (update) {
-      success = await updateTeam({
-        eventId,
-        prevTeam: prevTeam ? { ...transformTeamToTeamAdd(prevTeam), _id: prevTeam._id } : null,
-        updateTeamState,
-        showMessage,
-        setIsLoading,
-        uploadedLogo,
-        playerIdList,
-        mutateTeam,
-        addTeam,
-        setAvailablePlayers,
-        setPlayerIdList,
-      });
-    } else {
-      success = await createTeam({
-        eventId,
-        teamState,
-        currDivision: currDivision || null,
-        showMessage,
-        setIsLoading,
-        uploadedLogo,
-        playerIdList,
-        addTeam,
-        mutateTeam,
-        setAvailablePlayers,
-        setPlayerIdList,
+        apolloClient,
+        events: events.map((e) => e._id)
       });
     }
 
-    window.location.reload();
-
+    if (!createAgain) {
+      router.push(`/teams/${ldoIdUrl}`);
+    }
   };
+
+
 
   const handleInputChange = (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLInputElement | HTMLSelectElement;
@@ -183,7 +136,6 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
 
   const handleCheckboxChange = (playerId: string, isChecked: boolean) => {
     if (isChecked) {
-      // @ts-ignore
       setPlayerIdList((prevState) => [...new Set([...prevState, playerId])]);
     } else {
       setPlayerIdList((prevState) => prevState.filter((p) => p !== playerId));
@@ -193,29 +145,79 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
   const handleFileChange = (uploadedFile: MediaSource | Blob) => {
     uploadedLogo.current = uploadedFile;
   };
-  // Renders
+
+  const handleEventSelectionChange = (selectedIds: string[]) => {
+    setTeamState((prevState) => ({ ...prevState, events: selectedIds }));
+    if (update) {
+      setUpdateTeamState((prevState) => ({ ...prevState, events: selectedIds }));
+    }
+  }
+
+
+  // Memoization
   const toBeCaptains = useMemo(() => {
     const playersWithEmail = availablePlayers.filter((ap) => playerIdList.includes(ap._id) && ap.email && ap.email.trim() !== '');
     const options = makeOptionList(playersWithEmail);
     return <SelectInput name="captain" optionList={options && options.length > 0 ? options : []} handleSelect={handleInputChange} />;
   }, [availablePlayers, playerIdList]);
 
-  const divisionList = useMemo(() => {
-    if (!divisions) return [];
+  const eventIds = useMemo(() => {
+    return events.map((e) => e._id)
+  }, [events]);
+
+
+  const divisionOptions = useMemo(() => {
+    const divisions = divisionsOfEvents(events);
     return divisionsToOptionList(divisions);
-  }, [divisions]);
+  }, [events]);
+
 
   useEffect(() => {
     setAvailablePlayers(players || []);
   }, [players]);
 
 
+  useEffect(() => {
+    const eventId = SessionStorageService.getItem<string>('event');
+    if (!eventId) return;
+    setTeamState((prevState) => {
+      const nextEvents = [...new Set([...(prevState.events ?? []), eventId])];
+      return { ...prevState, events: nextEvents };
+    });
+    if (update) {
+      setUpdateTeamState((prevState) => ({
+        ...prevState,
+        events: [...new Set([...(prevState.events ?? teamState.events ?? []), eventId])],
+      }));
+    }
+  }, []);
+  
+
 
   return (
-    <form onSubmit={handleTeamAdd} className="flex flex-col gap-2">
-      <InputField type="text" name="name" required={!update} defaultValue={teamState.name} className="mt-6" handleInputChange={handleInputChange} />
-      {divisionList.length > 0 && (
-        <SelectInput key="d-t-d-1" defaultValue={currDivision || teamState?.division} handleSelect={handleInputChange} name="division" className="mt-6" optionList={divisionList} />
+    <form onSubmit={(e) => handleTeamAdd(e, false)} className="flex flex-col gap-2">
+      <InputField type="text" name="name" required={!update} defaultValue={teamState.name} className="mt-6" onChange={handleInputChange} />
+      {/* // List of all events  */}
+
+      <GenericMultiSelect<IEvent & { id: string }>
+        label="Select Events"
+        items={events.map((event) => ({
+          ...event,
+          id: event._id,
+        }))}
+        defaultSelectedIds={teamState.events}
+        getItemLabel={(event) =>
+          `${event.name}`
+        }
+        searchBy={(event) => [
+          event.name,
+          event.description,
+        ]}
+        onSelectionChange={handleEventSelectionChange}
+      />
+
+      {divisionOptions.length > 0 && (
+        <SelectInput key="d-t-d-1" defaultValue={currDivision || teamState?.division} handleSelect={handleInputChange} name="division" className="mt-6" optionList={divisionOptions} />
       )}
 
       <SelectInput
@@ -224,28 +226,30 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
         handleSelect={handleInputChange}
         name="group"
         className="mt-6"
-        {...(prevTeam?.group ? { defaultValue: prevTeam?.group?._id || String(prevTeam?.group) } : {})}
+        // {...(prevTeam?.group ? { defaultValue: prevTeam?.group?._id || String(prevTeam?.group) } : {})}
         optionList={
           teamState.division && teamState.division !== ''
             ? groupList.filter((g) => g.division.trim().toUpperCase() === teamState.division.trim().toUpperCase()).map((g, gI) => ({ id: gI + 1, text: g.name, value: g._id }))
             : groupList.map((g, gI) => ({ id: gI + 1, text: g.name, value: g._id }))
         }
       />
-      <Link className="underline underline-offset-1" href={`/${eventId}/groups/new/${ldoIdUrl}`}>
-        Create new group!
-      </Link>
+      {events.map((event) => (
+        <Link key={event._id} className="underline underline-offset-1" href={`/${event._id}/groups/new/${ldoIdUrl}`}>
+          Create new group in {event.name}
+        </Link>
+      ))}
 
       <div className="w-full md:w-2/6">
-        <ImageInput name="logo" defaultValue={teamState.logo} handleFileChange={handleFileChange} />
+        <ImageInput name="logo" defaultValue={teamState.logo} onFileChange={handleFileChange} />
       </div>
 
       {!update ? (
         <div className="player-input mb-4">
-          <PlayerSelectInput availablePlayers={availablePlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name="player-select" />
+          <PlayerSelectInput players={availablePlayers} events={eventIds} onCheckboxChange={handleCheckboxChange} name="player-select" />
         </div>
       ) : (<div className="player-input mb-4">
-        <button type='button' className="btn-info" onClick={() => setAvailableAdition((prev)=> !prev)}> {availableAddition ? "Hide players": "Add Players"}</button>
-        {availableAddition && <PlayerSelectInput availablePlayers={availablePlayers} eventId={eventId} handleCheckboxChange={handleCheckboxChange} name="player-select" />}
+        <button type='button' className="btn-info" onClick={() => setAvailableAdition((prev) => !prev)}> {availableAddition ? "Hide players" : "Add Players"}</button>
+        {availableAddition && <PlayerSelectInput players={availablePlayers} events={eventIds} onCheckboxChange={handleCheckboxChange} name="player-select" />}
       </div>)}
       {playerIdList.length > 0 && !update && toBeCaptains}
 
@@ -254,7 +258,7 @@ function TeamAdd({ eventId, groupList, handleClose, setIsLoading, players, updat
           {update ? 'Update' : 'Save'}
         </button>
         {!update && (
-          <button className="btn-info" type="button" onClick={handleSaveAndCreate}>
+          <button className="btn-info" type="button" onClick={(e) => handleTeamAdd(e, true)}>
             Save & Create Another
           </button>
         )}

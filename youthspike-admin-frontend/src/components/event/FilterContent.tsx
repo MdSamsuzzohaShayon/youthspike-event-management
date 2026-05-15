@@ -6,6 +6,8 @@ import InputField from '../elements/forms/InputField';
 import { useLdoId } from '@/lib/LdoProvider';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
+import Image from 'next/image';
+import routerService from '@/lib/router-service';
 
 interface IFilterContentProps {
   // This is optional because we can search for all matches, not just matches of a specific event
@@ -79,6 +81,16 @@ function FilterContent({
     }
   };
 
+
+  const handleRedirectTeam=(e: React.SyntheticEvent)=>{
+    e.preventDefault();
+    // Set event
+    if(eventId){
+      SessionStorageService.setItem('event', eventId);
+    }
+    routerService.push(`/teams/new/${ldoIdUrl}`);
+  }
+
   const handleGroupChange = (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLSelectElement;
     updateFilter('group', inputEl.value);
@@ -114,7 +126,7 @@ function FilterContent({
 
       {/* Search Input */}
       <div className="relative mb-3">
-        <InputField name="search" type="text" defaultValue={filter.search || ''} handleInputChange={handleSearchChange} />
+        <InputField name="search" type="text" defaultValue={filter.search || ''} onChange={handleSearchChange} />
       </div>
 
       {/* Status Filter */}
@@ -157,11 +169,16 @@ function FilterContent({
           )}
         </button>
 
-        {eventId &&
+        {filterPage === EFilterPage.MATCHES ? (
           <Link href={`/${eventId}/${pageLinks[filterPage]}/${ldoIdUrl}`} className="btn-info">
-            New {filterPage === EFilterPage.MATCHES ? 'Match' : filterPage.slice(0, -1)}
+            New Match
           </Link>
-        }
+        ) : (
+          <button className='btn-info flex justify-center items-center gap-x-2' onClick={handleRedirectTeam}>
+            <Image src={`/icons/plus.svg`} height={20} width={20} alt='new-team' className='w-6 h-6' />
+            New Team
+          </button>
+        )}
 
         {hasActiveFilters && (
           <button onClick={onClearFilters} disabled={loading} className="px-4 py-2 bg-gray-700 text-white font-semibold rounded-md hover:bg-gray-600 disabled:opacity-50 transition-colors">

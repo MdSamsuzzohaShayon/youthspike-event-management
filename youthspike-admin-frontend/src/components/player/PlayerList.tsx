@@ -29,7 +29,6 @@ interface IPlayerListProps {
   teamList?: ITeam[];
   rankControls?: boolean;
   teamId?: string | null;
-  refetchFunc?: () => void;
   playerRanking?: IPlayerRankingExpRel | null;
   inactive?: boolean;
 }
@@ -39,7 +38,7 @@ interface IUpdateRank {
   rank: number;
 }
 
-function PlayerList({ playerList, setIsLoading, rankControls, refetchFunc, teamList, showRank, divisionList, teamId, playerRanking, events, inactive }: IPlayerListProps) {
+function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank, divisionList, teamId, playerRanking, events, inactive }: IPlayerListProps) {
   const listRef = useRef<HTMLUListElement>(null);
   const isMounted = useRef<boolean>(false);
   const screenWidth = useScreenWidth();
@@ -246,7 +245,6 @@ function PlayerList({ playerList, setIsLoading, rankControls, refetchFunc, teamL
               }
               teamList={teamList || []}
               divisionList={divisionList}
-              refetchFunc={refetchFunc}
               rankControls={rankControls}
               rank={player.rank}
             />

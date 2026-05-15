@@ -1,4 +1,4 @@
-import { ADD_DIRECTOR_RAW, GET_LDOS } from "@/graphql/director";
+import { ADD_DIRECTOR_RAW, GET_LDOS, NEW_LDO_FRAGMENT } from "@/graphql/director";
 import { BACKEND_URL } from "../keys";
 import {
   validatePassword,
@@ -10,6 +10,7 @@ import { IAddDirector, IAddLDO, IGetLdoResponse, ILDO, IMessage, IResponse } fro
 import { getCookie } from "../clientCookie";
 import { useMutation } from "@apollo/client/react";
 import { ApolloCache, ApolloClient, gql } from "@apollo/client";
+import routerService from "@/lib/router-service";
 
 
 type TMutationFunction = useMutation.MutationFunction<
@@ -158,24 +159,7 @@ export async function createLdoDirector({
 
             // Write the complete object in one go
             const newRef = apolloClient.cache.writeFragment({
-              fragment: gql`
-            fragment NewLDO on LDO {
-              _id
-              name
-              phone
-              logo
-              director {
-                _id
-                active
-                firstName
-                lastName
-                role
-                email
-                passcode
-              }
-              events
-            }
-          `,
+              fragment: NEW_LDO_FRAGMENT,
               data: {
                 __typename: "LDO",
                 ...newDirector,
@@ -213,6 +197,7 @@ export async function createLdoDirector({
     });
 
     await fetch('/api/logout', { method: 'GET' });
+    routerService.push('/login');
 
 
     throw new Error(message);

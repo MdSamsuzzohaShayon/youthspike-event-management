@@ -50,10 +50,9 @@ export default function SponsorDialog({ isOpen, onClose, onSave }: SponsorDialog
         <div className="space-y-6 px-8 py-10">
           <InputField 
             type="text" 
-            handleInputChange={handleFileNameChange} 
+            onChange={handleFileNameChange} 
             name="company" 
             required 
-            placeholder="e. g. Microsoft" 
           />
 
           <FileInput 

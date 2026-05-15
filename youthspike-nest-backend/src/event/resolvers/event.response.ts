@@ -104,8 +104,8 @@ export class GetEventDetailsResponse extends AppResponse<EventDetails> {
 
 @ObjectType()
 export class GroupsAndUnassignedPlayers{
-  @Field((_type) => Event, { nullable: true })
-  event: Event;
+  @Field((_type) => [CustomEvent], { nullable: true })
+  events: CustomEvent[];
 
   @Field((_type) => [CustomPlayer], { nullable: true })
   players?: CustomPlayer[];

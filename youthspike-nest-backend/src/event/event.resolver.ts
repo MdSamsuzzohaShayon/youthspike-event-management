@@ -115,11 +115,14 @@ export class EventResolver {
   }
 
   
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
   @Query((__returns) => GetEventWithGroupsAndUnassignedPlayersResponse)
   async getEventWithGroupsAndUnassignedPlayers(
-    @Args('eventId', { nullable: false }) eventId: string,
+    @Context() context: any,
+    @Args('ldoId', { nullable: true}) ldoId?: string,
   ) {
-    return this.eventQueries.getEventWithGroupsAndUnassignedPlayers(eventId);
+    return this.eventQueries.getEventWithGroupsAndUnassignedPlayers(context, ldoId);
   }
 
   @Query((__returns) => GetPlayerEventSettingResponse)

@@ -263,13 +263,13 @@ const GET_AN_EVENT_WITH_TEAMS_AND_GROUPS = gql`
 `;
 
 const GET_EVENT_WITH_GROUPS_AND_UNASSIGNED_PLAYERS = gql`
-  query GetEventWithGroupsAndUnassignedPlayers($eventId: String!) {
-    getEventWithGroupsAndUnassignedPlayers(eventId: $eventId) {
+  query GetEventWithGroupsAndUnassignedPlayers($ldoId: String) {
+    getEventWithGroupsAndUnassignedPlayers(ldoId: $ldoId) {
       code
       success
       message
       data {
-        event {
+        events {
           _id
           name
           divisions

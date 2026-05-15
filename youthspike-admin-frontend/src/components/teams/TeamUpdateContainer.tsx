@@ -9,7 +9,7 @@ import { divisionsOfEvents } from '@/utils/helper';
 
 interface TeamUpdateContainerProps {
   queryRef: QueryRef<{ getTeamWithGroupsAndUnassignedPlayers: IGetTeamWithGroupsAndUnassignedPlayersResponse }>;
-  eventId: string;
+  eventId?: string;
 }
 
 function TeamUpdateContainer({ eventId, queryRef }: TeamUpdateContainerProps) {
@@ -20,11 +20,12 @@ function TeamUpdateContainer({ eventId, queryRef }: TeamUpdateContainerProps) {
   if (!teamResponse) return <p>Team not found</p>;
 
   const { events, team, groups, players } = teamResponse;
+  
 
   // --------------------------
   // Memoized unique divisions
   // --------------------------
-  const divisions = useMemo(() => divisionsOfEvents(events), [events]);
+  
 
   // --------------------------
   // Loading state
@@ -39,12 +40,11 @@ function TeamUpdateContainer({ eventId, queryRef }: TeamUpdateContainerProps) {
       <TeamAdd
         groupList={groups}
         prevTeam={team}
-        eventId={eventId}
         setIsLoading={setIsLoading}
         update
         players={players}
         handleClose={() => {}}
-        divisions={divisions}
+        events={events}
       />
     </div>
   );
