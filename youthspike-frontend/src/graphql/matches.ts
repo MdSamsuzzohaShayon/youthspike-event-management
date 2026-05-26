@@ -182,7 +182,11 @@ query SearchMatches($eventId: String!, $filter: SearchFilterInput) {
       event {
         _id
         name
+        logo
         divisions
+        endDate
+        startDate
+        description
       }
       groups {
         _id

@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { IEventAdd, IEventSponsorAdd, IProStatsAdd, ETieBreakingStrategy, IEvent, IProStats } from '@/types';
+import { IEventAdd, IProStatsAdd, ETieBreakingStrategy, IEvent, IProStats, IEventSponsor } from '@/types';
 import { getLocalDateTimeISO } from '@/utils/datetime';
 import { assignStrategies, tieBreakingRules, lockTimes, homeTeamStrategy } from '@/utils/staticData';
 
@@ -37,29 +37,23 @@ const initialEvent: IEventAdd = {
   active: true,
 };
 
-export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, prevMultiplayer?: IProStats, prevWight?: IProStats) {
+export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, prevMultiplayer?: IProStats, prevWight?: IProStats, previousSponsorList?: IEventSponsor[]) {
   const eventLogo = useRef<Blob | null>(null);
   const [eventState, setEventState] = useState<IEventAdd>(
     prevEvent ? { ...prevEvent, coachPassword: initialEvent.coachPassword } : initialEvent
   );
 
-  
-  
+
+
   const [multiplayer, setMultiplayer] = useState<IProStatsAdd>(prevMultiplayer || initialProStats);
   const [weight, setWeight] = useState<IProStatsAdd>(prevWight || initialProStats);
-  
+
   // Update
   const [updateEvent, setUpdateEvent] = useState<Partial<IEventAdd>>({});
   const [updateMultiplayer, setUpdateMultiplayer] = useState<Partial<IProStatsAdd>>({});
   const [updateWeight, setUpdateWeight] = useState<Partial<IProStatsAdd>>({});
   const [updateStats, setUpdateStats] = useState<Partial<IProStatsAdd>>({});
-
-  
- 
-  const [sponsorImgList, setSponsorImgList] = useState<IEventSponsorAdd[]>(
-    prevEvent && 'sponsors' in prevEvent && Array.isArray(prevEvent.sponsors) ? 
-      prevEvent.sponsors.map(s => ({ company: s, logo: null })) : []
-  );
+  const [sponsors, setSponsors] = useState<Omit<IEventSponsor, '_id' | 'event'>[]>(previousSponsorList && previousSponsorList.length > 0 ? previousSponsorList : []);
 
   const handleInputChange = (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLInputElement;
@@ -92,7 +86,7 @@ export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, pr
     updateFormState(name, value);
   };
 
-  
+
 
   const updateFormState = (name: string, value: any) => {
     if (update) {
@@ -107,17 +101,17 @@ export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, pr
       multiplayer: update ? setUpdateMultiplayer : setMultiplayer,
       weight: update ? setUpdateWeight : setWeight
     };
-    
+
     // setters[prefix](prev => ({ ...prev, [field]: value }));
     setters[prefix]((prev: IProStatsAdd) => ({ ...prev, [field]: value }));
   };
 
-  const handleSponsorImgList = (sponsor: IEventSponsorAdd) => {
-    setSponsorImgList(prev => [...prev.filter(ps => ps.company !== sponsor.company), sponsor]);
-  };
+  // const handleSponsors = (sponsor: Omit<IEventSponsor, '_id' | 'event'>) => {
+  //   setSponsors(prev => [...prev.filter(ps => ps.company !== sponsor.company), sponsor]);
+  // };
 
   const handleSponsorRemove = (companyName: string | null) => {
-    setSponsorImgList(prev => prev.filter(imgFile => 
+    setSponsors(prev => prev.filter(imgFile =>
       typeof imgFile === 'string' ? imgFile !== companyName : imgFile.company !== companyName
     ));
   };
@@ -134,20 +128,20 @@ export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, pr
     eventState,
     multiplayer,
     weight,
-    
+
     updateEvent,
     updateMultiplayer,
-    updateWeight, 
+    updateWeight,
     updateStats,
 
-    sponsorImgList,
+    sponsors,
     eventLogo,
     handleInputChange,
     handleToggleChange,
     handleNumberInputChange,
     handleDateChange,
     handleProStatsChange,
-    handleSponsorImgList,
+    setSponsors,
     handleSponsorRemove,
     handleDefaultSponsorToggle,
     handleLogoChange,

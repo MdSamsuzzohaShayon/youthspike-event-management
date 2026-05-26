@@ -10,7 +10,7 @@ import { EGroupRule, ICreateGroup } from '@/types/group';
 import { useMessage } from '@/lib/MessageProvider';
 import InputField from '../elements/forms/InputField';
 import { useMutation } from '@apollo/client/react';
-import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
+import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
 import { useLdoId } from '@/lib/LdoProvider';
 
 interface IGroupAddOrUpdateProps {

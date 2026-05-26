@@ -40,6 +40,29 @@ teams {
 }
 `;
 
+
+// Fragment 
+const EVENT_FRAGMENT = gql`
+  fragment NewEvent on Event {
+    _id
+    name
+    logo
+    startDate
+    endDate
+
+    ldo {
+      _id
+      name
+    }
+
+    sponsors {
+      _id
+      company
+      logo
+    }
+  }
+`;
+
 /**
  * Query
  * =========================================================================================================================================
@@ -420,4 +443,5 @@ export {
   SEND_CREDENTIALS,
   GET_AN_EVENT_WITH_TEAMS_AND_GROUPS,
   GET_EVENT_WITH_GROUPS_AND_UNASSIGNED_PLAYERS,
+  EVENT_FRAGMENT,
 };

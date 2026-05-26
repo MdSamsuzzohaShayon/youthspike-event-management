@@ -7,7 +7,7 @@ import { PreloadQuery } from "@/lib/client";
 import Loader from "@/components/elements/Loader";
 import { QueryRef } from "@apollo/client/react";
 import { SEARCH_MATCHES } from "@/graphql/matches";
-import MatchesMain from "@/components/match/MatchesMain";
+import MatchesContainer from "@/components/match/MatchesContainer";
 import { ISearchFilter, ISearchLimitFilter, ISearchMatchResponse } from "@/types";
 
 
@@ -45,7 +45,7 @@ export default async function MatchesPage({
     >
       {(queryRef) => (
         <Suspense fallback={<Loader />}>
-          <MatchesMain
+          <MatchesContainer
             queryRef={
               queryRef as QueryRef<{ searchMatches: ISearchMatchResponse }>
             }

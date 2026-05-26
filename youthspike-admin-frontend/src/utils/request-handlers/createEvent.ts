@@ -1,12 +1,14 @@
-import { ADD_EVENT_RAW } from '@/graphql/event';
-import { ICreateEventResponse, IEventAdd, IEventSponsorAdd, IMessage, IProStatsAdd } from '@/types';
+import { ADD_EVENT_RAW, EVENT_FRAGMENT } from '@/graphql/event';
+import { ICreateEventResponse, IEventAdd, IEventSponsor, IMessage, IProStatsAdd } from '@/types';
 import { APP_NAME, BACKEND_URL } from '../keys';
 import { getCookie } from '../clientCookie';
-import { handleResponseCheck } from './playerHelpers';
 import { useMutation } from '@apollo/client/react';
-import { ApolloCache } from '@apollo/client';
+import { ApolloCache, ApolloClient } from '@apollo/client';
 import { handleApiResult } from '../handleError';
 import routerService from '@/lib/router-service';
+import SessionStorageService from '../SessionStorageService';
+import { DIVISION } from '../constant';
+import { removeTeamFromStore } from '../localStorage';
 
 type TMutationFunction = useMutation.MutationFunction<
     {
@@ -19,8 +21,9 @@ type TMutationFunction = useMutation.MutationFunction<
 >;
 
 interface ICreateEventProps {
+    apolloClient: ApolloClient;
     eventState: IEventAdd;
-    sponsorImgList: IEventSponsorAdd[];
+    sponsors: Omit<IEventSponsor, '_id' | 'event'>[];
     eventLogo: Blob | null;
     directorId: string | null;
     multiplayer: IProStatsAdd;
@@ -31,15 +34,16 @@ interface ICreateEventProps {
 
 interface IAddEventVariables {
     input: Partial<IEventAdd>;
-    sponsorsInput: IEventSponsorAdd[];
+    sponsorsInput: Omit<IEventSponsor, '_id' | 'event'>[];
     logo: string | null;
     multiplayerInput: IProStatsAdd;
     weightInput: IProStatsAdd;
 }
 
 export async function createEvent({
+    apolloClient,
     eventState,
-    sponsorImgList,
+    sponsors,
     eventLogo,
     directorId,
     multiplayer,
@@ -54,7 +58,7 @@ export async function createEvent({
         inputData.startDate = new Date(inputData.startDate).toISOString();
         inputData.endDate = new Date(inputData.endDate).toISOString();
 
-        const { sponsorsInput, sponsorFileList } = processSponsors(sponsorImgList);
+        const { sponsorsInput, sponsorFileList } = processSponsors(sponsors);
 
         const variables: IAddEventVariables = {
             input: inputData,
@@ -63,7 +67,7 @@ export async function createEvent({
             multiplayerInput: multiplayer,
             weightInput: weight,
         };
-        if (sponsorImgList.length > 0 || eventLogo) {
+        if (sponsors.length > 0 || eventLogo) {
             const formData = new FormData();
 
             formData.set(
@@ -140,6 +144,46 @@ export async function createEvent({
             type: 'success',
             message: result?.message || 'Player updated successfully',
         });
+
+
+        // Cache update
+        if (responseData?.data) {
+
+            const newEvent = responseData.data;
+
+            apolloClient.cache.modify({
+                fields: {
+                    getEvents(existing, { readField }) {
+
+                        if (!existing) return existing;
+
+                        const existingData =
+                            readField<{ __ref: string }[]>("data", existing) ?? [];
+
+                        // Prevent duplicates
+                        const alreadyExists = existingData.some(
+                            (ref) => readField("_id", ref) === newEvent._id,
+                        );
+
+                        if (alreadyExists) return existing;
+
+                        const newRef = apolloClient.cache.writeFragment({
+                            fragment: EVENT_FRAGMENT,
+                            data: {
+                                __typename: "Event",
+                                ...newEvent,
+                            },
+                        });
+
+                        return {
+                            ...existing,
+                            data: [newRef, ...existingData],
+                        };
+                    },
+                },
+            });
+
+        }
     } catch (error: unknown) {
         console.error(error);
 
@@ -155,6 +199,9 @@ export async function createEvent({
             message,
         });
 
+
+        SessionStorageService.removeItem(DIVISION);
+        removeTeamFromStore();
         await fetch('/api/logout', { method: 'GET' });
         routerService.push('/login');
 
@@ -167,27 +214,34 @@ export async function createEvent({
 
 }
 
-function processSponsors(sponsorImgList: IEventSponsorAdd[]) {
-    const sponsorFileList: IEventSponsorAdd[] = [];
-    const sponsorsInput: IEventSponsorAdd[] = [];
 
-    sponsorImgList.forEach((sponsor) => {
+interface IProcessedSponsors{
+    sponsorFileList: Omit<IEventSponsor, '_id' | 'event'>[];
+    sponsorsInput: Omit<IEventSponsor, '_id' | 'event'>[];
+}
+
+function processSponsors(sponsorImgList: Omit<IEventSponsor, '_id' | 'event'>[]): IProcessedSponsors {
+    const sponsorFileList: Omit<IEventSponsor, '_id' | 'event'>[] = [];
+    const sponsorsInput: Omit<IEventSponsor, '_id' | 'event'>[] = [];
+
+    for (const sponsor of sponsorImgList) {
         if (typeof sponsor.logo === 'string') {
             // Skip string logos (already uploaded)
-            return;
+            continue;
         }
         if (sponsor.company === APP_NAME) {
             // Skip default sponsor
-            return;
+            continue;
         }
         sponsorFileList.push(sponsor);
+        // @ts-ignore
         sponsorsInput.push({ company: sponsor.company, logo: null });
-    });
+    }
 
     return { sponsorsInput, sponsorFileList };
 }
 
-function createFileMap(sponsorFileList: IEventSponsorAdd[], hasEventLogo: boolean) {
+function createFileMap(sponsorFileList: Omit<IEventSponsor, '_id' | 'event'>[], hasEventLogo: boolean) {
     const mapObj: Record<string, string[]> = {};
 
     sponsorFileList.forEach((_, index) => {

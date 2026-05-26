@@ -20,8 +20,8 @@ interface IPlayerRole {
 
 
 const playStrategies: IOption[] = [
-  { id: 1, value: EPlayStrategy.RALLY_SCORING },
-  { id: 2, value: EPlayStrategy.EQUAL_SERVING },
+  { id: 1, value: EPlayStrategy.RALLY_SCORING, text: 'Rally Scoring' },
+  { id: 2, value: EPlayStrategy.EQUAL_SERVING, text: 'Equal Serving' },
 ];
 
 interface IServerReceiverDisplayProps {

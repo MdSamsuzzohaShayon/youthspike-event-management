@@ -1,5 +1,5 @@
 import { UPDATE_EVENT_RAW } from '@/graphql/event';
-import { IEventAdd, IEventSponsorAdd, IMessage, IProStats, IProStatsAdd } from '@/types';
+import { IEventAdd, IEventSponsor, IMessage, IProStats, IProStatsAdd } from '@/types';
 import { APP_NAME, BACKEND_URL } from '../keys';
 import { getCookie } from '../clientCookie';
 import { handleResponseCheck } from './playerHelpers';
@@ -7,20 +7,20 @@ import { handleResponseCheck } from './playerHelpers';
 interface IUpdateEventVariables {
   eventId: string;
   updateInput: Partial<IEventAdd>;
-  sponsorsInput: IEventSponsorAdd[];
-  sponsorsStringInput: IEventSponsorAdd[];
+  sponsorsInput: Omit<IEventSponsor, '_id' | 'event'>[];
+  sponsorsStringInput: Omit<IEventSponsor, '_id' | 'event'>[];
   logo: string | null;
   multiplayerInput: Partial<IProStatsAdd>;
   weightInput: Partial<IProStatsAdd>;
   statsInput: Partial<IProStatsAdd>;
 }
 
-function createFileMap(sponsorFileList: IEventSponsorAdd[], hasEventLogo: boolean) {
+function createFileMap(sponsorFileList: Omit<IEventSponsor, '_id' | 'event'>[], hasEventLogo: boolean) {
   const mapObj: Record<string, string[]> = {};
 
-  sponsorFileList.forEach((_, index) => {
-    mapObj[index.toString()] = [`variables.sponsorsInput.${index}.logo`];
-  });
+  for (let i = 0; i < sponsorFileList.length; i++) {
+    mapObj[String(i)] = [`variables.sponsorsInput.${i}.logo`];
+  }
 
   if (hasEventLogo) {
     mapObj[sponsorFileList.length] = ['variables.logo'];
@@ -29,26 +29,33 @@ function createFileMap(sponsorFileList: IEventSponsorAdd[], hasEventLogo: boolea
   return mapObj;
 }
 
-function addFilesToFormData(formData: FormData, sponsorFileList: IEventSponsorAdd[], eventLogo: Blob | null) {
-  sponsorFileList.forEach((sponsor, index) => {
-    if (sponsor.logo instanceof File && sponsor.company) {
-      formData.set(`${index}`, sponsor.logo);
-    }
-  });
+function addFilesToFormData(formData: FormData, sponsorFileList: Omit<IEventSponsor, '_id' | 'event'>[], eventLogo: Blob | null) {
 
+  for (let i = 0; i < sponsorFileList.length; i++) {
+    const sponsor = sponsorFileList[i];
+    if (sponsor.logo instanceof File && sponsor.company) {
+      formData.set(`${i}`, sponsor.logo);
+    }
+  }
   if (eventLogo) {
     formData.set(`${sponsorFileList.length}`, eventLogo);
   }
 }
 
-// Update your processSponsorsForUpdate function to ensure it returns the correct structure
-function processSponsorsForUpdate(sponsorImgList: IEventSponsorAdd[]) {
-  const sponsorFileList: IEventSponsorAdd[] = [];
-  const sponsorsInput: IEventSponsorAdd[] = [];
-  const sponsorsStringInput: IEventSponsorAdd[] = [];
+interface IProcessedSponsors {
+  sponsorFileList: Omit<IEventSponsor, '_id' | 'event'>[];
+  sponsorsInput: Omit<IEventSponsor, '_id' | 'event'>[];
+  sponsorsStringInput: Omit<IEventSponsor, '_id' | 'event'>[];
+}
 
-  
-  sponsorImgList.forEach((sponsor) => {
+// Update your processSponsorsForUpdate function to ensure it returns the correct structure
+function processSponsorsForUpdate(sponsorImgList: Omit<IEventSponsor, '_id' | 'event'>[]): IProcessedSponsors {
+  const sponsorFileList: Omit<IEventSponsor, '_id' | 'event'>[] = [];
+  const sponsorsInput: Omit<IEventSponsor, '_id' | 'event'>[] = [];
+  const sponsorsStringInput: Omit<IEventSponsor, '_id' | 'event'>[] = [];
+
+
+  for (const sponsor of sponsorImgList) {
     // Ensure company is always just a string
     const cleanSponsor = {
       // @ts-ignore
@@ -60,9 +67,11 @@ function processSponsorsForUpdate(sponsorImgList: IEventSponsorAdd[]) {
       sponsorsStringInput.push(cleanSponsor);
     } else if (cleanSponsor.company !== APP_NAME) {
       sponsorFileList.push(cleanSponsor);
+      // @ts-ignore
       sponsorsInput.push({ company: cleanSponsor.company, logo: null });
     }
-  });
+  }
+
 
   return { sponsorsInput, sponsorFileList, sponsorsStringInput };
 }
@@ -71,7 +80,7 @@ function processSponsorsForUpdate(sponsorImgList: IEventSponsorAdd[]) {
 export async function updateEventWithFiles({
   eventId,
   updateEvent,
-  sponsorImgList,
+  sponsors,
   eventLogo,
   updateMultiplayer,
   updateStats,
@@ -80,7 +89,7 @@ export async function updateEventWithFiles({
 }: {
   eventId: string;
   updateEvent: Partial<IEventAdd>;
-  sponsorImgList: IEventSponsorAdd[];
+  sponsors: Omit<IEventSponsor, '_id' | 'event'>[];
   eventLogo: Blob | null;
   updateMultiplayer: Partial<IProStatsAdd>;
   updateWeight: Partial<IProStatsAdd>;
@@ -91,7 +100,7 @@ export async function updateEventWithFiles({
   if (inputData.startDate) inputData.startDate = new Date(inputData.startDate).toISOString();
   if (inputData.endDate) inputData.endDate = new Date(inputData.endDate).toISOString();
 
-  const { sponsorsInput, sponsorFileList, sponsorsStringInput } = processSponsorsForUpdate(sponsorImgList);
+  const { sponsorsInput, sponsorFileList, sponsorsStringInput } = processSponsorsForUpdate(sponsors);
 
   const formData = new FormData();
   const variables: IUpdateEventVariables = {
@@ -127,7 +136,7 @@ export async function updateEventWithFiles({
       'apollo-require-preflight': 'true',
     },
   });
-  
+
 
   if (!response.ok) {
     throw new Error(`HTTP error! Status: ${response.status}`);
@@ -135,5 +144,5 @@ export async function updateEventWithFiles({
 
   const responseData = await response.json();
   const eventRes = responseData?.data?.updateEvent;
-  return handleResponseCheck(eventRes, setMessage );
+  return handleResponseCheck(eventRes, setMessage);
 }

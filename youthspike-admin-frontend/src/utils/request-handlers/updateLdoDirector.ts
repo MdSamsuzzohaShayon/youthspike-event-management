@@ -9,6 +9,9 @@ import { getCookie } from "../clientCookie";
 import { useMutation } from "@apollo/client/react";
 import { ApolloCache, ApolloClient, gql } from "@apollo/client";
 import routerService from "@/lib/router-service";
+import SessionStorageService from "../SessionStorageService";
+import { DIVISION } from "../constant";
+import { removeTeamFromStore } from "../localStorage";
 
 
 type TMutationDirectorFunction = useMutation.MutationFunction<
@@ -241,6 +244,9 @@ export async function updateLdoDirector({
       message,
     });
 
+
+    SessionStorageService.removeItem(DIVISION);
+    removeTeamFromStore();
     await fetch('/api/logout', { method: 'GET' });
     routerService.push('/login');
 

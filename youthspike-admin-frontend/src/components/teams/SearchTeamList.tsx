@@ -12,7 +12,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
 import { useMessage } from '@/lib/MessageProvider';
 import { useMutation } from '@apollo/client/react';
-import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
+import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
 import { divisionsToOptionList } from '@/utils/helper';
 import Loader from '../elements/Loader';
 

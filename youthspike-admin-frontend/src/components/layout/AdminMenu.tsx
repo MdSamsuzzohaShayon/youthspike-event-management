@@ -20,7 +20,7 @@ const AdminMenu = () => {
   const router = useRouter();
   const params = useParams();
   const pathname = usePathname();
-  const { ldoIdUrl } = useLdoId();
+  const { ldoIdUrl, ldoId } = useLdoId();
 
   // ===== Local State =====
   const [eventId, setEventId] = useState<string | null>(null);
@@ -81,136 +81,137 @@ const AdminMenu = () => {
       </button>
 
       {/* Backdrop */}
-        {isMenuOpen && <div className="fixed inset-0 bg-black bg-opacity-60 z-40" onClick={handleCloseMenu} />}
+      {isMenuOpen && <div className="fixed inset-0 bg-black bg-opacity-60 z-40" onClick={handleCloseMenu} />}
 
 
       {/* Menu Content */}
-        {isMenuOpen && (
-          <div
-            ref={menuRef}
-            className="menu-content bg-gray-900 w-4/5 md:w-2/5 absolute min-h-full max-h-screen top-0 left-0 z-50 p-6 flex flex-col shadow-2xl overflow-y-auto"
-          >
-            {/* Close Button */}
-            <div className="flex justify-end mb-4">
-              <button onClick={handleCloseMenu} className="close-button focus:outline-none">
-                <img src="/icons/close.svg" alt="Close Menu" className="w-8 svg-white" />
-              </button>
-            </div>
+      {isMenuOpen && (
+        <div
+          ref={menuRef}
+          className="menu-content bg-gray-900 w-4/5 md:w-2/5 absolute min-h-full max-h-screen top-0 left-0 z-50 p-6 flex flex-col shadow-2xl overflow-y-auto"
+        >
+          {/* Close Button */}
+          <div className="flex justify-end mb-4">
+            <button onClick={handleCloseMenu} className="close-button focus:outline-none">
+              <img src="/icons/close.svg" alt="Close Menu" className="w-8 svg-white" />
+            </button>
+          </div>
 
-            {/* User Info */}
-            <div className="user-info text-center mb-8">
-              <Link onClick={() => setIsMenuOpen(false)} href="/">
-                <Image height={100} width={100} src="/free-logo.png" alt="User Avatar" className="w-16 h-16 mx-auto rounded-full border-2 border-yellow" />
-              </Link>
+          {/* User Info */}
+          <div className="user-info text-center mb-8">
+            <Link onClick={() => setIsMenuOpen(false)} href="/">
+              <Image height={100} width={100} src="/free-logo.png" alt="User Avatar" className="w-16 h-16 mx-auto rounded-full border-2 border-yellow" />
+            </Link>
 
-              <h1 className="text-2xl text-yellow mt-4 capitalize">{`${user.info?.firstName} ${user.info?.lastName}`}</h1>
-              {user.info?.team && <h3 className="text-sm text-yellow-500 text-gray-400">{user.info.team}</h3>}
-              <p className="uppercase text-yellow text-sm mt-2">{user?.info?.role}</p>
-            </div>
+            <h1 className="text-2xl text-yellow mt-4 capitalize">{`${user.info?.firstName} ${user.info?.lastName}`}</h1>
+            {user.info?.team && <h3 className="text-sm text-yellow-500 text-gray-400">{user.info.team}</h3>}
+            <p className="uppercase text-yellow text-sm mt-2">{user?.info?.role}</p>
+          </div>
 
-            {/* Menu Links */}
-            <ul className="menu-list space-y-6 ">
-              {user.info?.role === UserRole.admin ||
-                (user.info?.role === UserRole.director && (
-                  <li className="text-lg capitalize">
-                    <Link onClick={() => setIsMenuOpen(false)} href="/" className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                      <img src="/icons/home.svg" alt="Home" className="w-6 mr-4 svg-white" />
-                      Home
-                    </Link>
-                  </li>
-                ))}
-              {eventId && (
-                <>
-                  <li className="text-lg capitalize">
-                    <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/settings/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                      <img src="/icons/setting.svg" alt="Settings" className="w-6 mr-4 svg-white" />
-                      Settings
-                    </Link>
-                  </li>
-                  {user.info?.role !== UserRole.player && (
-                    <li  className="text-lg capitalize">
-                      <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/teamstandings/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                        <img src="/icons/teams.svg" alt="Settings" className="w-6 mr-4 svg-white" />
-                        Team Standings
-                      </Link>
-                    </li>
-                  )}
-                  {(user.info?.role === UserRole.admin ||
-                    user.info?.role === UserRole.director) && (
-                      <React.Fragment>
-                        <li  className="text-lg capitalize">
-                          <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/teams/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                            <Image height={20} width={20} src="/icons/teams.svg" alt="Teams" className="w-6 mr-4 svg-white" />
-                            Teams
-                          </Link>
-                        </li>
-                        <li  className="text-lg capitalize">
-                          <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/groups/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                            <Image height={20} width={20} src="/icons/group.svg" alt="Groups" className="w-6 mr-4 svg-white" />
-                            Groups
-                          </Link>
-                        </li>
-                        <li  className="text-lg capitalize">
-                          <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/templates/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                            <Image height={20} width={20} src="/icons/group.svg" alt="Groups" className="w-6 mr-4 svg-white" />
-                            Email Template
-                          </Link>
-                        </li>
-                      </React.Fragment>
-                    )}
-                  <li  className="text-lg capitalize">
-                    <Link onClick={() => setIsMenuOpen(false)} href={(user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain) && user.info.teamId ? `/teams/${user.info.teamId}/roster/${ldoIdUrl}` : `/${eventId}/players/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                      <Image height={20} width={20} src="/icons/players.svg" alt="Roster" className="w-6 mr-4 svg-white" />
-                      Roster
-                    </Link>
-                  </li>
-                  <li  className="text-lg capitalize">
-                    <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/matches/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                      <Image height={20} width={20} src="/icons/trophy.svg" alt="Matches" className="w-6 mr-4 svg-white" />
-                      Matches
-                    </Link>
-                  </li>
-                </>
-              )}
-
-              {user?.info?.role === UserRole.director && (
-                <li  className="text-lg capitalize">
-                  <Link onClick={() => setIsMenuOpen(false)} href="/account" className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                    <Image height={20} width={20} src="/icons/account.svg" alt="Account" className="w-6 mr-4 svg-white" />
-                    Account
+          {/* Menu Links */}
+          <ul className="menu-list space-y-6 ">
+            {user.info?.role === UserRole.admin ||
+              (user.info?.role === UserRole.director && (
+                <li className="text-lg capitalize">
+                  <Link onClick={() => setIsMenuOpen(false)} href="/" className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                    <img src="/icons/home.svg" alt="Home" className="w-6 mr-4 svg-white" />
+                    Home
                   </Link>
                 </li>
-              )}
-
-              {user?.info?.role === UserRole.admin && (
-                <>
-                  <li  className="text-lg capitalize">
-                    <Link onClick={() => setIsMenuOpen(false)} href="/admin/directors" className="flex items-center text-yellow hover:text-yellow-500 transition-all">
-                      <Image height={20} width={20} src="/icons/account.svg" alt="Admin" className="w-6 mr-4 svg-white" />
-                      LDOs
+              ))}
+            {eventId && (
+              <>
+                <li className="text-lg capitalize">
+                  <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/settings/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                    <img src="/icons/setting.svg" alt="Settings" className="w-6 mr-4 svg-white" />
+                    Settings
+                  </Link>
+                </li>
+                {user.info?.role !== UserRole.player && (
+                  <li className="text-lg capitalize">
+                    <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/teamstandings/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                      <img src="/icons/teams.svg" alt="Settings" className="w-6 mr-4 svg-white" />
+                      Team Standings
                     </Link>
                   </li>
-                  {/* <li  className="text-lg capitalize">
-                                    <Link onClick={()=> setIsMenuOpen(false)}
-                                        href="/events/tournament"
-                                        className="flex items-center text-yellow hover:text-yellow-500 transition-all"
-                                    >
-                                        <img src="/icons/event.svg" alt="Tournament" className="w-6 mr-4 svg-white" />
-                                        Tournament
-                                    </Link>
-                                </li> */}
-                </>
-              )}
-            </ul>
+                )}
+                {(user.info?.role === UserRole.admin ||
+                  user.info?.role === UserRole.director) && (
+                    <React.Fragment>
+                      <li className="text-lg capitalize">
+                        <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/teams/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                          <Image height={20} width={20} src="/icons/teams.svg" alt="Teams" className="w-6 mr-4 svg-white" />
+                          Teams
+                        </Link>
+                      </li>
+                      <li className="text-lg capitalize">
+                        <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/groups/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                          <Image height={20} width={20} src="/icons/group.svg" alt="Groups" className="w-6 mr-4 svg-white" />
+                          Groups
+                        </Link>
+                      </li>
+                      <li className="text-lg capitalize">
+                        <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/templates/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                          <Image height={20} width={20} src="/icons/group.svg" alt="Groups" className="w-6 mr-4 svg-white" />
+                          Email Template
+                        </Link>
+                      </li>
+                    </React.Fragment>
+                  )}
+                <li className="text-lg capitalize">
+                  <Link onClick={() => setIsMenuOpen(false)} href={(user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain) && user.info.teamId ? `/teams/${user.info.teamId}/roster/${ldoIdUrl}` : `/${eventId}/players/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                    <Image height={20} width={20} src="/icons/players.svg" alt="Roster" className="w-6 mr-4 svg-white" />
+                    Roster
+                  </Link>
+                </li>
+                <li className="text-lg capitalize">
+                  <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/matches/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                    <Image height={20} width={20} src="/icons/trophy.svg" alt="Matches" className="w-6 mr-4 svg-white" />
+                    Matches
+                  </Link>
+                </li>
+              </>
+            )}
 
-            {/* Logout Button */}
-            <div className="mt-auto pt-4">
-              <button onClick={handleLogout} className="btn-danger mt-10 py-3 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-md text-center w-full transition-all">
-                Logout
-              </button>
-            </div>
+            {user?.info?.role === UserRole.director && (
+              <li className="text-lg capitalize">
+                <Link onClick={() => setIsMenuOpen(false)} href="/account" className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                  <Image height={20} width={20} src="/icons/account.svg" alt="Account" className="w-6 mr-4 svg-white" />
+                  Account
+                </Link>
+              </li>
+            )}
+
+            {user?.info?.role === UserRole.admin && (
+              <>
+                <li className="text-lg capitalize">
+                  <Link onClick={() => setIsMenuOpen(false)} href="/admin/directors" className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                    <Image height={20} width={20} src="/icons/account.svg" alt="Admin" className="w-6 mr-4 svg-white" />
+                    LDOs
+                  </Link>
+                </li>
+                {ldoId && (<li className="text-lg capitalize">
+                  <Link onClick={() => setIsMenuOpen(false)}
+                    href={`/${ldoIdUrl}`}
+                    className="flex items-center text-yellow hover:text-yellow-500 transition-all"
+                  >
+                    <Image height={20} width={20} src="/icons/event.svg" alt="Tournament" className="w-6 mr-4 svg-white" />
+                    Tournament
+                  </Link>
+                </li>)}
+
+              </>
+            )}
+          </ul>
+
+          {/* Logout Button */}
+          <div className="mt-auto pt-4">
+            <button onClick={handleLogout} className="btn-danger mt-10 py-3 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-md text-center w-full transition-all">
+              Logout
+            </button>
           </div>
-        )}
+        </div>
+      )}
     </div>
   );
 };

@@ -7,21 +7,27 @@ import { UserRole } from '@/types/user';
 import { useLdoId } from '@/lib/LdoProvider';
 
 import { useEventForm } from '@/hooks/useEventForm';
-import { ICreateEventResponse, IEventAddProps, IEventExpRel } from '@/types';
+import { ICreateEventResponse, IEvent, IEventExpRel, IEventSponsor, IProStats } from '@/types';
 
 import Loader from '../elements/Loader';
 import EventFormSections from './EventFormSections';
-import SponsorDialog from './SponsorDialog';
-import { updateEventWithFiles } from '@/utils/requestHandlers/updateEvent';
-import { addEventWithFiles } from '@/utils/requestHandlers/addEvent';
-import ShowSponsors from './ShowSponsors';
-import Image from 'next/image';
+import { updateEventWithFiles } from '@/utils/request-handlers/updateEvent';
 import { useMessage } from '@/lib/MessageProvider';
-import { useMutation } from '@apollo/client/react';
+import { useApolloClient, useMutation } from '@apollo/client/react';
 import { ADD_EVENT } from '@/graphql/event';
-import { createEvent } from '@/utils/requestHandlers/createEvent';
+import { createEvent } from '@/utils/request-handlers/createEvent';
+import SponsorManager from './SponsorManager';
 
-const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEventAddProps) => {
+export interface IEventAddProps {
+  update: boolean;
+  previousEvent?: IEvent;
+  previousWight?: IProStats;
+  previousMultiplayer?: IProStats;
+  previousSponsorList?: IEventSponsor[];
+}
+
+
+const EventAddUpdate = ({ update, previousEvent, previousMultiplayer, previousWight, previousSponsorList }: IEventAddProps) => {
   // Hooks
   const router = useRouter();
   const user = useUser();
@@ -32,13 +38,10 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
 
   // States
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [isSponsorDialogOpen, setIsSponsorDialogOpen] = useState<boolean>(false);
   const [eventId, setEventId] = useState<string | null>(null);
   const [directorId, setDirectorId] = useState<string | null>(null);
 
   const [addEvent] = useMutation<{ createEvent: ICreateEventResponse }>(ADD_EVENT);
-  // const [mutateEvent] = useMutation<{ createEvent: ICreateEventResponse }>(ADD_EVENT);
-  
 
   const {
     eventState,
@@ -50,15 +53,14 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
     updateStats,
     updateWeight,
 
-    sponsorImgList,
+    sponsors,
     eventLogo,
     handleInputChange,
     handleToggleChange,
     handleNumberInputChange,
     handleDateChange,
     handleProStatsChange,
-    handleSponsorImgList,
-    handleSponsorRemove,
+    setSponsors,
     handleDefaultSponsorToggle,
     handleLogoChange,
     handleSelectChange,
@@ -66,7 +68,10 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
     setUpdateEvent,
     initialEvent,
     initialProStats,
-  } = useEventForm(update, prevEvent, prevMultiplayer, prevWight);
+  } = useEventForm(update, previousEvent, previousMultiplayer, previousWight, previousSponsorList);
+  const apolloClient = useApolloClient();
+
+
 
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
@@ -78,7 +83,7 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
         await updateEventWithFiles({
           eventId,
           updateEvent,
-          sponsorImgList,
+          sponsors,
           eventLogo: eventLogo.current,
           updateMultiplayer,
           updateStats,
@@ -87,8 +92,9 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
         });
       } else {
         await createEvent({
+          apolloClient,
           eventState,
-          sponsorImgList,
+          sponsors,
           eventLogo: eventLogo.current,
           directorId,
           multiplayer,
@@ -100,7 +106,7 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
 
       // Reset form and navigate
       setEventState(initialEvent);
-      // router.push(`/${eventId}/${ldoIdUrl}`);
+      router.push(`/${ldoIdUrl}`);
     } catch (error) {
       setMessage({
         message: error instanceof Error ? error.message : String(error),
@@ -133,42 +139,31 @@ const EventAddUpdate = ({ update, prevEvent, prevMultiplayer, prevWight }: IEven
   if (isLoading) return <Loader />;
 
   return (
-    <form className="w-full grid grid-col-1 md:grid-cols-2 gap-x-2 gap-y-1" onSubmit={handleSubmit}>
-      <EventFormSections
-        update={update}
-        eventState={eventState}
-        updateEvent={updateEvent}
-        onInputChange={handleInputChange}
-        onToggleChange={handleToggleChange}
-        onNumberChange={handleNumberInputChange}
-        onDateChange={handleDateChange}
-        onProStatsChange={handleProStatsChange}
-        multiplayer={multiplayer}
-        weight={weight}
-        onLogoChange={handleLogoChange}
-        eventId={eventId || null}
-        setEventState={setEventState}
-        setUpdateEvent={setUpdateEvent}
-        onSelectChange={handleSelectChange}
-      />
-
-      <div className="w-full flex flex-col">
-        <SponsorDialog isOpen={isSponsorDialogOpen} onClose={() => setIsSponsorDialogOpen(false)} onSave={handleSponsorImgList} />
-
-        <div className="sponsors-heading flex justify-between w-full mt-4 items-center">
-          <h3 className="text-2xl capitalize">Sponsors</h3>
-          <button className="btn-info" role="presentation" onClick={() => setIsSponsorDialogOpen(true)}>
-            <Image height={50} width={50} className="w-4 h-4 svg-black ml-2" src="/icons/plus.svg" alt="Add" />
-          </button>
-        </div>
-        <ShowSponsors
-          defaultSponsor={eventState.defaultSponsor}
-          fileList={sponsorImgList}
-          handleImgRemove={(e, company) => handleSponsorRemove(company)}
-          handleDefaultSponsor={(e) => handleDefaultSponsorToggle(false)}
+    <form onSubmit={handleSubmit}>
+      <div className="w-full grid grid-col-1 md:grid-cols-2 gap-x-2 gap-y-1">
+        <EventFormSections
+          update={update}
+          eventState={eventState}
+          updateEvent={updateEvent}
+          onInputChange={handleInputChange}
+          onToggleChange={handleToggleChange}
+          onNumberChange={handleNumberInputChange}
+          onDateChange={handleDateChange}
+          onProStatsChange={handleProStatsChange}
+          multiplayer={multiplayer}
+          weight={weight}
+          onLogoChange={handleLogoChange}
+          eventId={eventId || null}
+          setEventState={setEventState}
+          setUpdateEvent={setUpdateEvent}
+          onSelectChange={handleSelectChange}
         />
       </div>
-      <div />
+      <div>
+        <SponsorManager defaultSponsor={eventState.defaultSponsor} sponsors={sponsors} onDefaultSponsorToggle={handleDefaultSponsorToggle} onSetSponsors={setSponsors} />
+      </div>
+
+
 
       <div className="mt-6">
         <button type="submit" className="w-full btn-info">

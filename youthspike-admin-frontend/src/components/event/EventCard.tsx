@@ -160,7 +160,7 @@ const EventCard: React.FC<IEventCardProps> = ({
     (e: React.SyntheticEvent) => {
       e.preventDefault();
       onSetDefault(event._id, true);
-
+      setIsMenuOpen(false);
     }, [event._id, onSetDefault])
 
   const handleSend = useCallback(

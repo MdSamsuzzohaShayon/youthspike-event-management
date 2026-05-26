@@ -21,7 +21,7 @@ import { useDebounce } from 'use-debounce';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
 import { useMutation } from '@apollo/client/react';
-import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
+import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
 import { handleError } from '@/utils/handleError';
 
 const { initial: cInitial, animate: cAnimate, exit: cExit } = cardAnimate;
