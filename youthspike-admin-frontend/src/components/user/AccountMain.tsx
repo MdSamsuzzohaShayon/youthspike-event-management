@@ -9,7 +9,7 @@ import { GET_LDO } from '@/graphql/director';
 import { useMessage } from '@/lib/MessageProvider';
 import { IGetEventDirectorQuery, ILDO } from '@/types';
 import { useLazyQuery } from '@apollo/client/react';
-import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
+import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
 
 export default function AccountMain() {
   const { showMessage } = useMessage();

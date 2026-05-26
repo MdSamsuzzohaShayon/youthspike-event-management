@@ -32,9 +32,13 @@ import { useLdoId } from '@/lib/LdoProvider';
 import { useMessage } from '@/lib/MessageProvider';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
-import { QueryRef, useMutation, useReadQuery } from '@apollo/client/react';
+import { QueryRef, useApolloClient, useMutation, useReadQuery } from '@apollo/client/react';
 import CloneEventDialog from './CloneEventDialog';
 import routerService from '@/lib/router-service';
+import { handleApiResult } from '@/utils/handleError';
+import deleteEvent from '@/utils/request-handlers/deleteEvent';
+import { removeTeamFromStore } from '@/utils/localStorage';
+
 
 /* ========================================================= */
 /* ===================== Static Data ======================= */
@@ -114,9 +118,12 @@ const EventsContainer: React.FC<EventsContainerProps> = ({
   /* ---------------- Data ---------------- */
 
   const { data } = useReadQuery(queryRef);
+  const apolloClient = useApolloClient();
 
   if (data?.getEventDirector?.code === 401) {
     // routerService.push('/login');
+    SessionStorageService.removeItem(DIVISION);
+    removeTeamFromStore();
     redirect('/api/logout');
   }
 
@@ -236,41 +243,64 @@ const EventsContainer: React.FC<EventsContainerProps> = ({
 
   const handleSetDefault = useCallback(
     async (eventId: string, defaulted: boolean = false) => {
-      const event = eventMap.get(eventId);
-      if (!event) return;
-      const res = await setDefault({ variables: { sponsorsInput: [], updateInput: { defaulted }, eventId } });
-      if (!res.data?.updateEvent.success) {
-        setMessage({ message: res.data?.updateEvent?.message, type: "error" });
-        return;
+
+      try {
+        const event = eventMap.get(eventId);
+        if (!event) return;
+        const response = await setDefault({ variables: { sponsorsInput: [], updateInput: { defaulted }, eventId } });
+        if (response.error) {
+          console.error(response.error);
+
+          throw new Error(response.error?.message);
+        }
+
+        const responseData = response.data?.updateEvent;
+
+        // 🔴 No response safety
+        if (!responseData) {
+          throw new Error('No response received from server');
+        }
+
+        // ✅ Success handling
+        const result = handleApiResult({ response: responseData });
+
+        if (result?.code > 299) {
+          throw new Error(result.message);
+        }
+
+        // Update cache
+      } catch (err: unknown) {
+        console.error(err);
+
+        // 🧠 Smart error extraction
+        let message = 'Something went wrong';
+
+        if (err instanceof Error) {
+          message = err.message;
+        }
+
+        setMessage({
+          type: 'error',
+          message,
+        });
+
+        SessionStorageService.removeItem(DIVISION);
+        removeTeamFromStore();
+        await fetch('/api/logout', { method: 'GET' });
+        routerService.push('/login');
+
+
+        throw new Error(message);
       }
 
-      // Update cache
-      
+
     },
     [eventMap]
   );
 
-  const handleDeleteEvent = useCallback(
-    async (eventId: string) => {
-      try {
-        setIsLoading(true);
-
-        const res = await deleteEventMutation({
-          variables: { eventId },
-        });
-
-        if (!res.data?.deleteEvent.success) {
-          setMessage({ message: res.data?.deleteEvent?.message, type: "error" });
-          return;
-        }
-
-        window.location.reload();
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [deleteEventMutation, setMessage]
-  );
+  const handleDeleteEvent = async (eventId: string) => {
+    await deleteEvent({ apolloClient, eventId, setIsLoading, deleteEventMutation, setMessage });
+  }
 
   const handleSendCredentials = useCallback(
     async (eventId: string) => {

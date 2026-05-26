@@ -23,7 +23,7 @@ import AddEmailDialog from './AddEmailDialog';
 import { FRONTEND_URL } from '@/utils/keys';
 import DeletePlayerDialog from './DeletePlayerDialog';
 import { useMutation } from '@apollo/client/react';
-import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
+import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
 
 interface IPlayerCardProps {
   player: IPlayerRank;

@@ -250,6 +250,8 @@ query SearchTeams($eventIds: [String!], $filter: TeamSearchFilter) {
         divisions
         description
         groups
+        startDate
+        endDate
       }
       groups {
         _id

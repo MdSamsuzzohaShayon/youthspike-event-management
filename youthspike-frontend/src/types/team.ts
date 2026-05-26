@@ -17,7 +17,7 @@ export interface ITeam {
   logo?: string | null;
   division: string;
   group: IGroup;
-  event: IEvent;
+  events: IEvent[];
   matches: IMatchExpRel[];
   players: IPlayer[];
   moved?: IPlayer[];
@@ -49,7 +49,7 @@ export interface ITeamFilter {
 
 
 interface ISearchTeamData {
-  event: IEvent;
+  events: IEvent[];
   groups: IGroup[];
   matches: IMatch[];
   nets: INetRelatives[];
@@ -58,10 +58,7 @@ interface ISearchTeamData {
 }
 
 
-export interface ISearchTeamResponse{
-  code: number;
-  success: boolean;
-  message: string;
+export interface ISearchTeamResponse extends IResponse{
   data: ISearchTeamData;
 }
 

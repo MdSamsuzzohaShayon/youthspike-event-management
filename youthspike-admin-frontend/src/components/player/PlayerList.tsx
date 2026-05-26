@@ -17,7 +17,7 @@ import { useMessage } from '@/lib/MessageProvider';
 import { isISODateString } from '@/utils/datetime';
 import { setPlayerRankings } from '@/utils/localStorage';
 import { useMutation } from '@apollo/client/react';
-import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
+import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
 
 interface IPlayerListProps {
   playerList: IPlayerExpRel[];

@@ -4,7 +4,7 @@ import React, { useMemo, useState } from 'react';
 import SelectInput from '../elements/forms/SelectInput';
 import { IMessage, IOption, IPlayer, IPlayerRank, ITeam } from '@/types';
 import { handleError } from '@/utils/handleError';
-import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
+import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
 
 interface IPlayerMoveDialogProps {
   dialogMoveEl: React.RefObject<HTMLDialogElement | null>;

@@ -15,8 +15,8 @@ import { useLdoId } from '@/lib/LdoProvider';
 import { useMessage } from '@/lib/MessageProvider';
 import InputField from '../elements/forms/InputField';
 import Loader from '../elements/Loader';
-import updatePlayerFn from '@/utils/requestHandlers/updatePlayerFn';
-import createPlayer from '@/utils/requestHandlers/createPlayer';
+import updatePlayerFn from '@/utils/request-handlers/updatePlayerFn';
+import createPlayer from '@/utils/request-handlers/createPlayer';
 import { DIVISION, TEAM } from '@/utils/constant';
 import { useMutation } from '@apollo/client/react';
 

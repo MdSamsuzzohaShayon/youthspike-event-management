@@ -9,6 +9,9 @@ import { handleApiResult } from '../handleError';
 import { getCookie } from '../clientCookie';
 import { BACKEND_URL } from '../keys';
 import routerService from '@/lib/router-service';
+import SessionStorageService from '../SessionStorageService';
+import { DIVISION } from '../constant';
+import { removeTeamFromStore } from '../localStorage';
 
 interface IUpdatePlayerData extends IResponse {
   data?: IPlayerExpRel;
@@ -144,6 +147,9 @@ async function updatePlayerFn({
       message,
     });
 
+
+    SessionStorageService.removeItem(DIVISION);
+    removeTeamFromStore();
     await fetch('/api/logout', { method: 'GET' });
     routerService.push('/login');
 

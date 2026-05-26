@@ -15,7 +15,7 @@ import { IOption } from '@/types';
 import { BACKEND_URL } from '@/utils/keys';
 import { getCookie } from '@/utils/clientCookie';
 import { handleError } from '@/utils/handleError';
-import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
+import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
 

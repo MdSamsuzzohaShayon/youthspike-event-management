@@ -8,8 +8,8 @@ import Loader from "@/components/elements/Loader";
 import { QueryRef } from "@apollo/client/react";
 
 import { EGroupType, ISearchFilter, ISearchPlayerStatsResponse } from "@/types";
-import PlayersMain from "@/components/player/PlayersMain";
 import { SEARCH_PLAYER_STATS } from "@/graphql/player";
+import PlayersStatsContainer from "@/components/player/PlayersStatsContainer";
 
 interface IPlayersPageProps {
   params: Promise<{ eventId: string }>;
@@ -39,7 +39,7 @@ export default async function PlayersPage({
     >
       {(queryRef) => (
         <Suspense fallback={<Loader />}>
-          <PlayersMain
+          <PlayersStatsContainer
             queryRef={queryRef as QueryRef<{ searchPlayerStats: ISearchPlayerStatsResponse }>} // Replace with proper type
             initialSearchParams={{ search, division, group }}
           />

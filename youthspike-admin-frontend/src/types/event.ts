@@ -9,6 +9,8 @@ import { IGroup, IGroupExpRel } from './group';
 import { IPlayerStats, IProStats } from './playerStats';
 import { INetRelatives } from './net';
 import { IRoundRelatives } from './round';
+import { useMutation } from '@apollo/client/react';
+import { ApolloCache } from '@apollo/client';
 
 export enum EEventPeriod {
   UPCOMING = 'UPCOMING',
@@ -30,14 +32,10 @@ export enum ETieBreakingStrategy {
 export interface IEventSponsor {
   _id: string;
   company: string;
-  logo: string;
+  logo: string | Blob;
   event: string;
 }
 
-export interface IEventSponsorAdd {
-  company: string | null;
-  logo: File | string | null;
-}
 
 export interface IDefaultEventMatch extends ICommonMatchEvent {
   nets: number;
@@ -104,12 +102,6 @@ export interface IGetPlayerEventSettingsQuery extends IResponse {
   };
 }
 
-export interface IEventAddProps {
-  update: boolean;
-  prevEvent?: IEvent;
-  prevWight?: IProStats;
-  prevMultiplayer?: IProStats;
-}
 
 
 export interface IEventWithMatchesResponse {
@@ -132,6 +124,19 @@ export interface IEventWithMatchesResponse {
 }
 
 
+
+
 export interface ICreateEventResponse extends IResponse{
   data: IEventExpRel;
 }
+
+
+export type TDeleteEventMutationFunction = useMutation.MutationFunction<
+  {
+    deleteEvent: IResponse;
+  },
+  {
+    [x: string]: any;
+  },
+  ApolloCache
+>;

@@ -33,6 +33,8 @@ function LdoProvider({ children }: React.PropsWithChildren) {
             if (ldoIdFromUrl) {
                 setLdoId(ldoIdFromUrl.toString());
                 setLdoIdUrl(`?${LDO_ID}=${ldoIdFromUrl}`);
+            }else{
+                setLdoId(null);
             }
         }
     }, [user, searchParams]);

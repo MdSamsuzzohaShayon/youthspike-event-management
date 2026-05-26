@@ -8,8 +8,8 @@ import Loader from '../elements/Loader';
 import InputField from '../elements/forms/InputField';
 import { useMessage } from '@/lib/MessageProvider';
 import ImageInput from '../elements/forms/ImageInput';
-import { createLdoDirector } from '@/utils/requestHandlers/createLdoDirector';
-import { updateLdoDirector } from '@/utils/requestHandlers/updateLdoDirector';
+import { createLdoDirector } from '@/utils/request-handlers/createLdoDirector';
+import { updateLdoDirector } from '@/utils/request-handlers/updateLdoDirector';
 import { useApolloClient, useMutation } from '@apollo/client/react';
 import { useRouter } from 'next/navigation';
 

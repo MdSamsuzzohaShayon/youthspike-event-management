@@ -13,7 +13,7 @@ import { menuVariants } from '@/utils/animation';
 import { useError } from '@/lib/MessageProvider';
 import Pagination from '../elements/Pagination';
 import { useMutation } from '@apollo/client/react';
-import { handleResponseCheck } from '@/utils/requestHandlers/playerHelpers';
+import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
 
 interface TeamListProps {
   eventId: string;

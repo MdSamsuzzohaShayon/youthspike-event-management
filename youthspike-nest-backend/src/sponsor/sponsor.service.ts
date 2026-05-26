@@ -21,7 +21,7 @@ export class SponsorService {
   }
 
   async find(filter: QueryFilter<Sponsor>) {
-    const sponsors = await this.sponsorModel.find(filter);
+    const sponsors = await this.sponsorModel.find(filter).lean();
     return sponsors;
   }
 

@@ -20,6 +20,8 @@ const SettingsMainContainer = ({ queryRef, eventId }: ISettingsMainContainerProp
   // Read query data from Apollo (Suspense friendly)
   const { data, error } = useReadQuery(queryRef);
 
+  
+  
   const { event, ldo, sponsors, teams, multiplayer, weight, player } = data?.getPlayerEventSetting?.data ?? {};
   
 
@@ -40,7 +42,7 @@ const SettingsMainContainer = ({ queryRef, eventId }: ISettingsMainContainerProp
       {!player && !eventObj && <p>No data found</p>}
       {user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain || user.info?.role === UserRole.player
         ? player && <PlayerAdd eventId={eventId} update prevPlayer={player} teamList={teams || []} />
-        : eventObj && <EventAddUpdate update prevEvent={eventObj} prevMultiplayer={multiplayer} prevWight={weight} />}
+        : eventObj && <EventAddUpdate update previousEvent={eventObj} previousMultiplayer={multiplayer} previousWight={weight} previousSponsorList={sponsors} />}
     </div>
   );
 };

@@ -12,7 +12,7 @@ async function SettingsPage({ params }: ISettingsPageProps) {
   const pathParams = await params;
 
   return (
-    <div className="container mx-auto px-4 py-8 min-h-screen">
+    <div >
       <PreloadQuery
         query={GET_PLAYER_EVENT_SETTINGS}
         variables={{

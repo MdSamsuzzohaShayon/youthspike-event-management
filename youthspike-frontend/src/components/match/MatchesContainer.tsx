@@ -14,11 +14,15 @@ import {
   ITeamCaptain,
   IGroup,
   INetRelatives,
+  IEvent,
 } from "@/types";
 import FilterContent from "../event/FilterContent";
 import ActiveFiltersBar from "../event/ActiveFiltersBar";
+import Link from "next/link";
+import { readDate } from "@/utils/datetime";
+import TabsNav from "../event/TabsNav";
 
-interface MatchesMainProps {
+interface MatchesContainerProps {
   queryRef: QueryRef<{ searchMatches: ISearchMatchResponse }>;
   eventId: string;
   initialSearchParams: Partial<ISearchFilter>;
@@ -40,11 +44,11 @@ const DEFAULT_FILTER_STATE: FilterState = {
 
 const PAGE_SIZE = 30;
 
-export default function MatchesMain({
+export default function MatchesContainer({
   queryRef,
   eventId,
   initialSearchParams,
-}: MatchesMainProps) {
+}: MatchesContainerProps) {
   const router = useRouter();
   const { data: initialData } = useReadQuery(queryRef);
   const apolloClient = useApolloClient();
@@ -63,7 +67,7 @@ export default function MatchesMain({
   const [nets, setNets] = useState<INetRelatives[]>([]);
   const [rounds, setRounds] = useState<IRoundRelatives[]>([]);
   const [groups, setGroups] = useState<IGroup[]>([]);
-  const [event, setEvent] = useState<{ divisions: string } | null>(null);
+  const [event, setEvent] = useState<IEvent | null>(null);
 
   // Loading states
   const [hasMore, setHasMore] = useState(true);
@@ -236,7 +240,7 @@ export default function MatchesMain({
     for (let i = 0; i < matches.length; i += 1) {
       const match = matches[i];
 
-      if(localFilter?.group && localFilter?.group !== String(match.group)){
+      if (localFilter?.group && localFilter?.group !== String(match.group)) {
         continue;
       }
 
@@ -288,77 +292,110 @@ export default function MatchesMain({
 
   return (
     <div className="animate-fade-in">
-      <FilterContent
-        groups={groups}
-        divisions={event?.divisions ?? ""}
-        loading={isApplyingFilters}
-        filter={localFilter}
-        updateFilter={updateLocalFilter}
-        onApplyFilters={handleApplyFilters}
-        onClearFilters={handleClearFilters}
-        hasUnsavedChanges={hasUnsavedChanges}
-        hasActiveFilters={hasActiveFilters}
-        showStatus
-      />
 
-      {/* Active filters indicator */}
-      {hasActiveFilters && (
-        <ActiveFiltersBar appliedFilter={appliedFilter} groups={groups} isApplyingFilters={isApplyingFilters} onClearFilters={handleClearFilters} />
-      )}
+      {/* Event Wrapper Start  */}
+      <div className="text-center w-full flex flex-col items-center mb-6 animate-fade-in">
+        <Link href="/">
+          <img
+            alt="youthspike-logo"
+            width="100"
+            height="100"
+            className="w-48"
+            src="/free-logo.png"
+          />
+        </Link>
+        <h1 className="text-xl md:text-2xl font-bold mt-2 text-white">{event?.name || "2025 PRO LEAGUE"}</h1>
+        <p>{readDate(event?.startDate as string)} - {readDate(event?.endDate as string)}</p>
+        <p>{event?.description}</p>
+      </div>
 
-      {/* Loading state */}
-      {showInitialLoading && (
-        <div className="flex justify-center items-center py-8">
-          <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
-          <span className="ml-2 text-gray-300">Loading matches...</span>
-        </div>
-      )}
+      {/* Tabs Navigation (Client Component) */}
+      <TabsNav eventId={event?._id || ""} />
 
-      {/* Content */}
-      {!showInitialLoading && (
-        <div className="match-list w-full flex flex-col gap-y-4">
-          <div className="grid gap-4">
-            {enrichedMatches.length > 0 ? (
-              <SearchMatchList
-                nets={nets}
-                rounds={rounds}
-                matchList={enrichedMatches as unknown as IMatch[]}
-              />
-            ) : (
-              <div className="text-center py-8 text-gray-400">
-                No matches found matching your criteria.
-              </div>
-            )}
-          </div>
+      {/* Page Content */}
+      <div className="flex flex-col gap-4 md:gap-6 md:mt-6">
 
-          {/* Load more button */}
-          {hasMore && matches.length > 0 && (
-            <div className="w-full mt-6 flex justify-center">
-              <button
-                onClick={handleLoadMore}
-                disabled={isLoading}
-                className="flex items-center px-6 py-3 rounded-full bg-yellow-logo text-black font-semibold hover:bg-yellow-500 disabled:opacity-50 transition-colors"
-              >
-                {isLoadingMore ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2" />
-                    Loading...
-                  </>
+        <div className="content w-full rounded-md bg-gray-800 p-3 md:p-4 animate-fade-in-up">
+
+
+          <FilterContent
+            groups={groups}
+            divisions={event?.divisions ?? ""}
+            loading={isApplyingFilters}
+            filter={localFilter}
+            updateFilter={updateLocalFilter}
+            onApplyFilters={handleApplyFilters}
+            onClearFilters={handleClearFilters}
+            hasUnsavedChanges={hasUnsavedChanges}
+            hasActiveFilters={hasActiveFilters}
+            showStatus
+          />
+
+          {/* Active filters indicator */}
+          {hasActiveFilters && (
+            <ActiveFiltersBar appliedFilter={appliedFilter} groups={groups} isApplyingFilters={isApplyingFilters} onClearFilters={handleClearFilters} />
+          )}
+
+          {/* Loading state */}
+          {showInitialLoading && (
+            <div className="flex justify-center items-center py-8">
+              <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+              <span className="ml-2 text-gray-300">Loading matches...</span>
+            </div>
+          )}
+
+          {/* Content */}
+          {!showInitialLoading && (
+            <div className="match-list w-full flex flex-col gap-y-4">
+              <div className="grid gap-4">
+                {enrichedMatches.length > 0 ? (
+                  <SearchMatchList
+                    nets={nets}
+                    rounds={rounds}
+                    matchList={enrichedMatches as unknown as IMatch[]}
+                  />
                 ) : (
-                  "Load More Matches"
+                  <div className="text-center py-8 text-gray-400">
+                    No matches found matching your criteria.
+                  </div>
                 )}
-              </button>
-            </div>
-          )}
+              </div>
 
-          {/* No more matches indicator */}
-          {!hasMore && matches.length > 0 && (
-            <div className="text-center py-4 text-gray-400 text-sm">
-              No more matches to load
+              {/* Load more button */}
+              {hasMore && matches.length > 0 && (
+                <div className="w-full mt-6 flex justify-center">
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={isLoading}
+                    className="flex items-center px-6 py-3 rounded-full bg-yellow-logo text-black font-semibold hover:bg-yellow-500 disabled:opacity-50 transition-colors"
+                  >
+                    {isLoadingMore ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2" />
+                        Loading...
+                      </>
+                    ) : (
+                      "Load More Matches"
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {/* No more matches indicator */}
+              {!hasMore && matches.length > 0 && (
+                <div className="text-center py-4 text-gray-400 text-sm">
+                  No more matches to load
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
+
+      </div>
+
+      {/* Event Wrapper End  */}
+
+
     </div>
   );
 }

@@ -115,8 +115,7 @@ export class EventMutations implements IEventMutations {
       // Upload sponsors file to cloudinary
       const uploadPromises = [];
       for (let i = 0; i < sponsorsInput.length; i++) {
-        // Temp
-        // uploadPromises.push(this.cloudinaryService.uploadSponsors(sponsorsInput[i].logo, sponsorsInput[i].company));
+        uploadPromises.push(this.cloudinaryService.uploadSponsors(sponsorsInput[i].logo, sponsorsInput[i].company));
       }
       const sponsorsFileList = await Promise.all(uploadPromises);
 
@@ -431,8 +430,8 @@ export class EventMutations implements IEventMutations {
       // -------------------------
       // Update teams
       // -------------------------
-      const updatedTeams = await this.teamService.updateMany({ _id: {$in: (newEventData?.teams || []) as string[]} }, {
-        $addToSet: {events: newEvent._id}
+      const updatedTeams = await this.teamService.updateMany({ _id: { $in: (newEventData?.teams || []) as string[] } }, {
+        $addToSet: { events: newEvent._id }
       });
 
       // -------------------------
@@ -469,7 +468,7 @@ export class EventMutations implements IEventMutations {
       );
 
       // Update ldo
-      updatePromises.push(this.ldoService.updateOne({_id: newEvent.ldo}, {$addToSet: {events: newEvent._id}}));
+      updatePromises.push(this.ldoService.updateOne({ _id: newEvent.ldo }, { $addToSet: { events: newEvent._id } }));
 
       await Promise.all(updatePromises);
 
@@ -514,8 +513,8 @@ export class EventMutations implements IEventMutations {
 
 
       if (teams.length > 0) {
-        promisesToArchive.push(this.archiveTeamService.createMany(teams))
-        promisesToDelete.push(this.teamService.deleteMany({ event: eventId }));
+        promisesToArchive.push(this.archiveTeamService.createMany(teams));
+        promisesToDelete.push(this.teamService.deleteMany({ events: eventId }));
       }
 
 
@@ -567,9 +566,7 @@ export class EventMutations implements IEventMutations {
 
         const playerRankingItems = await this.playerRankingService.findItems({ playerRanking: { $in: rankingIds }, });
         if (playerRankingItems.length > 0) {
-          promisesToArchive.push(
-            this.archivePlayerRankingItemService.createMany(playerRankingItems)
-          );
+          promisesToArchive.push(this.archivePlayerRankingItemService.createMany(playerRankingItems));
 
           promisesToDelete.push(
             this.playerRankingService.deleteManyItem({
@@ -611,7 +608,10 @@ export class EventMutations implements IEventMutations {
 
 
 
-      promisesToArchive.push(this.archiveEventService.create({ ...eventExist }));
+
+      const eventObj = { ...eventExist };
+      delete eventObj._id;
+      promisesToArchive.push(this.archiveEventService.create(eventObj));
       promisesToDelete.push(this.eventService.delete({ _id: eventId }));
 
 

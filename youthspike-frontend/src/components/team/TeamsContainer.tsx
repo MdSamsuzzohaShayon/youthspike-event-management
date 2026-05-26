@@ -19,11 +19,16 @@ import {
   ISearchTeamResponse,
   ITeamFilter,
   IMatch,
+  IEvent,
 } from "@/types";
 import FilterContent from "../event/FilterContent";
 import { SEARCH_TEAMS } from "@/graphql/team";
 import SearchTeamList from "./SearchTeamList";
 import ActiveFiltersBar from "../event/ActiveFiltersBar";
+import TabsNav from "../event/TabsNav";
+import { readDate } from "@/utils/datetime";
+import Link from "next/link";
+import EventWrapper from "../event/EventWrapper";
 
 interface ITeamsContainerProps {
   queryRef: QueryRef<{ searchTeams: ISearchTeamResponse }>;
@@ -63,7 +68,7 @@ export default function TeamsContainer({
   const [matches, setMatches] = useState<IMatch[]>([]);
   const [rounds, setRounds] = useState<IRoundRelatives[]>([]);
   const [groups, setGroups] = useState<IGroup[]>([]);
-  const [event, setEvent] = useState<{ divisions: string } | null>(null);
+  const [event, setEvent] = useState<IEvent | null>(null);
 
   // Loading states
   const [hasMore, setHasMore] = useState(true);
@@ -96,7 +101,9 @@ export default function TeamsContainer({
       setMatches(searchData.matches || []);
       setRounds(searchData.rounds || []);
       setGroups(searchData.groups || []);
-      setEvent(searchData.event || null);
+      // searchData.event || null
+      const eventExist = searchData.events.find((e) => e._id === eventId);
+      setEvent(eventExist || null);
       setHasMore((searchData.teams || []).length === PAGE_SIZE);
     },
     []
@@ -210,72 +217,87 @@ export default function TeamsContainer({
 
   return (
     <div className="animate-fade-in">
-      <FilterContent
-        groups={groups}
-        divisions={event?.divisions ?? ""}
-        loading={isApplyingFilters}
-        filter={localFilter}
-        updateFilter={updateLocalFilter}
-        onApplyFilters={handleApplyFilters}
-        onClearFilters={handleClearFilters}
-        hasUnsavedChanges={hasUnsavedChanges}
-        hasActiveFilters={hasActiveFilters}
-      />
 
-      {/* Active filters indicator */}
-      {hasActiveFilters && (
-        <ActiveFiltersBar appliedFilter={appliedFilter} groups={groups} isApplyingFilters={isApplyingFilters} onClearFilters={handleClearFilters} />
-      )}
+      <EventWrapper event={event} />
 
-      {/* Loading state */}
-      {showInitialLoading && (
-        <div className="flex justify-center items-center py-8">
-          <div className="w-8 h-8 border-2 border-yellow-logo border-t-transparent rounded-full animate-spin" />
-          <span className="ml-2 text-gray-300">Loading teams...</span>
-        </div>
-      )}
+      {/* Tabs Navigation (Client Component) */}
+      <TabsNav eventId={event?._id || ""} />
 
-      {/* Content */}
-      {!showInitialLoading && (
-        <div className="team-list w-full flex flex-col gap-y-4">
-          <div className="grid gap-4">
-            {teams.length > 0 ? (
-              <SearchTeamList matchList={matches} selectedGroup={appliedFilter?.group} teamList={teams as unknown as ITeam[]} nets={nets} rounds={rounds} />
-            ) : (
-              <div className="text-center py-8 text-gray-400">
-                No teams found teaming your criteria.
-              </div>
-            )}
-          </div>
+      {/* Page Content */}
+      <div className="flex flex-col lg:flex-row gap-4 md:gap-6 md:mt-6">
+        <div className="content w-full rounded-md bg-gray-800 p-3 md:p-4 animate-fade-in-up">
 
-          {/* Load more button */}
-          {hasMore && teams.length > 0 && (
-            <div className="w-full mt-6 flex justify-center">
-              <button
-                onClick={handleLoadMore}
-                disabled={isLoading}
-                className="flex items-center px-6 py-3 rounded-full bg-yellow-logo text-black font-semibold hover:bg-yellow-500 disabled:opacity-50 transition-colors"
-              >
-                {isLoadingMore ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2" />
-                    Loading...
-                  </>
+          <FilterContent
+            groups={groups}
+            divisions={event?.divisions ?? ""}
+            loading={isApplyingFilters}
+            filter={localFilter}
+            updateFilter={updateLocalFilter}
+            onApplyFilters={handleApplyFilters}
+            onClearFilters={handleClearFilters}
+            hasUnsavedChanges={hasUnsavedChanges}
+            hasActiveFilters={hasActiveFilters}
+          />
+
+          {/* Active filters indicator */}
+          {hasActiveFilters && (
+            <ActiveFiltersBar appliedFilter={appliedFilter} groups={groups} isApplyingFilters={isApplyingFilters} onClearFilters={handleClearFilters} />
+          )}
+
+          {/* Loading state */}
+          {showInitialLoading && (
+            <div className="flex justify-center items-center py-8">
+              <div className="w-8 h-8 border-2 border-yellow-logo border-t-transparent rounded-full animate-spin" />
+              <span className="ml-2 text-gray-300">Loading teams...</span>
+            </div>
+          )}
+
+          {/* Content */}
+          {!showInitialLoading && (
+            <div className="team-list w-full flex flex-col gap-y-4">
+              <div className="grid gap-4">
+                {teams.length > 0 ? (
+                  <SearchTeamList matchList={matches} selectedGroup={appliedFilter?.group} teamList={teams as unknown as ITeam[]} nets={nets} rounds={rounds} />
                 ) : (
-                  "Load More Teams"
+                  <div className="text-center py-8 text-gray-400">
+                    No teams found teaming your criteria.
+                  </div>
                 )}
-              </button>
-            </div>
-          )}
+              </div>
 
-          {/* No more teams indicator */}
-          {!hasMore && teams.length > 0 && (
-            <div className="text-center py-4 text-gray-400 text-sm">
-              No more teams to load
+              {/* Load more button */}
+              {hasMore && teams.length > 0 && (
+                <div className="w-full mt-6 flex justify-center">
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={isLoading}
+                    className="flex items-center px-6 py-3 rounded-full bg-yellow-logo text-black font-semibold hover:bg-yellow-500 disabled:opacity-50 transition-colors"
+                  >
+                    {isLoadingMore ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2" />
+                        Loading...
+                      </>
+                    ) : (
+                      "Load More Teams"
+                    )}
+                  </button>
+                </div>
+              )}
+
+              {/* No more teams indicator */}
+              {!hasMore && teams.length > 0 && (
+                <div className="text-center py-4 text-gray-400 text-sm">
+                  No more teams to load
+                </div>
+              )}
             </div>
           )}
         </div>
-      )}
+      </div>
+
+
+
     </div>
   );
 }

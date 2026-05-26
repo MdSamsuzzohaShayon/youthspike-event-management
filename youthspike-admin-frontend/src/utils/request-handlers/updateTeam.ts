@@ -1,62 +1,69 @@
 // ------------------------------
-// 🆕 Create Team
+// ♻️ Update Team
 // ------------------------------
 
-import { IGetTeamResponse, IMessage, ITeamAdd, TCreateTeamMutationFunction } from '@/types';
-import { handleApiResult } from '../handleError';
-import { ADD_TEAM_RAW, TEAM_FRAGMENT } from '@/graphql/teams';
+import { IGetTeamResponse, IMessage, ITeamAdd, TUpdateTeamFunction } from '@/types';
+import uploadTeamData from './uploadTeamData';
+import routerService from '@/lib/router-service';
 import { getCookie } from '../clientCookie';
 import { BACKEND_URL } from '../keys';
+import { TEAM_FRAGMENT, UPDATE_TEAM_RAW } from '@/graphql/teams';
+import { handleApiResult } from '../handleError';
 import { ApolloClient } from '@apollo/client';
-import routerService from '@/lib/router-service';
+import SessionStorageService from '../SessionStorageService';
+import { DIVISION } from '../constant';
+import { removeTeamFromStore } from '../localStorage';
 
-interface ICreateTeamProps {
+interface IPrevTeam extends ITeamAdd {
+  _id: string;
+}
+
+interface IUpdateTeam {
   events: string[];
-  teamState: ITeamAdd;
+  prevTeam: IPrevTeam | null;
+  updateTeamState: Partial<ITeamAdd>;
   apolloClient: ApolloClient;
   setMessage: (message: Omit<IMessage, "id">) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   uploadedLogo: React.RefObject<null | Blob | MediaSource>;
   playerIdList: string[];
-  addTeam: TCreateTeamMutationFunction;
+  mutateTeam: TUpdateTeamFunction;
 }
 
-export async function createTeam({
-  events,
-  teamState,
-  apolloClient,
+export async function updateTeam({
   setMessage,
+  events,
+  prevTeam,
+  updateTeamState,
+  apolloClient,
   setIsLoading,
   uploadedLogo,
   playerIdList,
-  addTeam,
-}: ICreateTeamProps){
+  mutateTeam,
+}: IUpdateTeam) {
   try {
     setIsLoading(true);
 
-    // Build input
-    const input: Partial<ITeamAdd> = {
-      ...teamState,
-      players: playerIdList,
-    };
-    if(events){
-      input.events= events;
-    }
-
+    // Build update input
+    const input = { ...updateTeamState, players: playerIdList };
     if (!input.captain) delete input.captain;
     delete input.logo;
 
-    const teamObj = { input, logo: null };
+    // Ensure prevTeam is available before proceeding
+    if (!prevTeam) {
+      return false;
+    }
+
+    const teamObj = { input, teamId: prevTeam._id, events, logo: null };
     let responseData: IGetTeamResponse | undefined;
 
     // 🧠 Upload with logo (if any)
-    // response = await uploadTeamData(false, teamObj, uploadedLogo);
     if (uploadedLogo.current instanceof Blob) {
       const formData = new FormData();
       formData.set(
         'operations',
         JSON.stringify({
-          query: ADD_TEAM_RAW,
+          query: UPDATE_TEAM_RAW,
           variables: teamObj,
         }),
       );
@@ -70,6 +77,7 @@ export async function createTeam({
         headers: { Authorization: `Bearer ${token}`, 'apollo-require-preflight': 'true' },
       });
 
+
       // 🔴 Handle HTTP errors
       if (!response.ok) {
         throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
@@ -82,9 +90,9 @@ export async function createTeam({
         throw new Error(json.errors[0].message || 'GraphQL Error');
       }
 
-      responseData = json.data?.createTeam;
+      responseData = json.data?.updateTeam;
     } else {
-      const result = await addTeam({ variables: teamObj });
+      const result = await mutateTeam({ variables: teamObj });
       // 🔴 GraphQL errors (Apollo)
       if (result.error) {
         console.error(result.error);
@@ -92,7 +100,7 @@ export async function createTeam({
         throw new Error(result.error?.message);
       }
 
-      responseData = result.data?.createTeam;
+      responseData = result.data?.updateTeam;
     }
 
     // 🔴 No response safety
@@ -113,43 +121,34 @@ export async function createTeam({
     });
 
 
-    // Cache data
-    if (responseData?.data) {
+    // Update cache
+    if (responseData.data) {
+      const updatedTeam = responseData.data;
 
-      const newTeam = responseData.data;
+      /**
+       * Why writeFragment?
+       *
+       * - Updates normalized cache
+       * - Updates every query automatically
+       * - Prevents stale UI
+       * - Cleaner than manual array mapping
+       */
 
-      apolloClient.cache.modify({
-        fields: {
-          getTeams(existing, { readField }) {
-            if (!existing) return existing;
+      apolloClient.cache.writeFragment({
+        id: apolloClient.cache.identify({
+          __typename: 'Team',
+          _id: updatedTeam._id,
+        }),
 
-            const existingData = readField<{ __ref: string }[]>("data", existing) ?? [];
+        fragment: TEAM_FRAGMENT,
 
-            // Prevent duplicates
-            const alreadyExists = existingData.some(
-              (ref) => readField("_id", ref) === newTeam._id,
-            );
-
-            if (alreadyExists) return existing;
-
-            const newRef = apolloClient.cache.writeFragment({
-              fragment: TEAM_FRAGMENT,
-              data: {
-                __typename: "Team",
-                ...newTeam,
-              },
-            });
-
-            return {
-              ...existing,
-              data: [newRef, ...existingData],
-            };
-          },
+        data: {
+          __typename: 'Team',
+          ...updatedTeam,
         },
       });
     }
-
-  } catch (error: unknown) {
+  } catch (error: any) {
     console.error(error);
 
     // 🧠 Smart error extraction
@@ -164,6 +163,9 @@ export async function createTeam({
       message,
     });
 
+
+    SessionStorageService.removeItem(DIVISION);
+    removeTeamFromStore();
     await fetch('/api/logout', { method: 'GET' });
     routerService.push('/login');
 
@@ -174,4 +176,7 @@ export async function createTeam({
   }
 }
 
-export default createTeam;
+
+// Cache
+
+export default updateTeam;
