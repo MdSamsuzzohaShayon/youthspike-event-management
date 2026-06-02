@@ -25,7 +25,7 @@ function GroupAddOrUpdate({ eventId, teamList, update, prevGroup, division }: IG
   // Hooks
   const [eventAdd] = useMutation<{ createGroup: ICreateGroup }>(ADD_GROUP);
   const router = useRouter();
-  const { showMessage } = useMessage();
+  const { setMessage } = useMessage();
   const { ldoIdUrl } = useLdoId();
 
   // Local State
@@ -60,7 +60,8 @@ function GroupAddOrUpdate({ eventId, teamList, update, prevGroup, division }: IG
     setGroupState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
     let nTList = teamList.filter((t) => t.division && inputEl.value && t.division.toString().toUpperCase() === inputEl.value.toString().toUpperCase());
     // If A team already has a group he should not be shown
-    nTList = nTList.filter((t) => !t.group || !t.group?._id);
+    // nTList = nTList.filter((t) => !t.group || !t.group?._id);
+    nTList = nTList.filter((t) => !t.groups || t.groups.length === 0);
     setFilteredTeams(nTList);
   };
 
@@ -76,7 +77,7 @@ function GroupAddOrUpdate({ eventId, teamList, update, prevGroup, division }: IG
     e.preventDefault();
 
     if (!division || division === '') {
-      showMessage({ message: 'Must a division for the group', type:"error" });
+      setMessage({ message: 'Must a division for the group', type:"error" });
       return;
     }
 
@@ -84,13 +85,13 @@ function GroupAddOrUpdate({ eventId, teamList, update, prevGroup, division }: IG
       setIsLoading(true);
       const groupResponse = await eventAdd({ variables: { input: { ...groupState, division } } });
 
-      const success = await handleResponseCheck(groupResponse.data?.createGroup, showMessage);
+      const success = await handleResponseCheck(groupResponse.data?.createGroup, setMessage);
       if (success) {
         router.push(`/${eventId}/groups/${ldoIdUrl}`);
         router.refresh();
       }
     } catch (error: any) {
-      handleError({ error, showMessage });
+      handleError({ error, setMessage });
     } finally {
       setIsLoading(false);
     }
@@ -98,7 +99,8 @@ function GroupAddOrUpdate({ eventId, teamList, update, prevGroup, division }: IG
 
   useEffect(() => {
     if (teamList) {
-      setFilteredTeams(teamList.filter((t) => !t.group || !t.group?._id));
+      // Filter team with no group at all 
+      setFilteredTeams(teamList.filter((t) => !t.groups || t.groups?.length === 0));
     }
   }, [teamList]);
 

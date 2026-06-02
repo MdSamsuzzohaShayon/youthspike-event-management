@@ -49,7 +49,7 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
-  const { showMessage } = useMessage();
+  const { setMessage } = useMessage();
   const user = useUser();
 
   // Initial query params
@@ -252,18 +252,18 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
         if (ids.length === 0) return;
 
         const response = await deleteMatchesMutation({ variables: { matchIds: ids } });
-        const success = await handleResponseCheck(response.data?.deleteMatches, showMessage );
+        const success = await handleResponseCheck(response.data?.deleteMatches, setMessage );
         if (!success) return;
 
         setSelectedMatches(new Map());
         refetchFunc ? refetchFunc() : window.location.reload();
       } catch (error: any) {
-        handleError({ error, showMessage });
+        handleError({ error, setMessage });
       } finally {
         setIsLoading(false);
       }
     },
-    [selectedMatches, deleteMatchesMutation, setIsLoading, showMessage, refetchFunc],
+    [selectedMatches, deleteMatchesMutation, setIsLoading, setMessage, refetchFunc],
   );
 
   const handleMoveSelected = useCallback((e: React.SyntheticEvent) => {
@@ -317,13 +317,11 @@ const MatchList = ({ eventId, matchList, teamList, setIsLoading, refetchFunc, gr
         {paginatedMatches.map((match, i) => (
           <motion.div initial={cInitial} animate={cAnimate} exit={cExit} className="match-card w-full rounded-xl" key={match._id}>
             <MatchCard
-              eventId={eventId}
               match={match}
               isChecked={selectedMatches.get(match._id) ?? false}
               sl={i + 1}
-              refetchFunc={()=>{}}
               handleSelectMatch={toggleSelectMatch}
-              showMessage={showMessage}
+              setMessage={setMessage}
             />
           </motion.div>
         ))}

@@ -262,7 +262,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
   }
 
   // Hooks
-  const { showMessage } = useMessage();
+  const { setMessage } = useMessage();
 
   // References
   const changeGroupDialogRef = useRef<HTMLDialogElement | null>(null);
@@ -339,10 +339,10 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
     try {
       setIsLoading(true);
       const response = await deleteMultipleTeamsMutation({ variables: { teamIds: checkedTeamIds } });
-      const isSuccessful = await handleResponseCheck(response.data?.deleteTeams, showMessage);
+      const isSuccessful = await handleResponseCheck(response.data?.deleteTeams, setMessage);
       if (isSuccessful && refetchFunc) await refetchFunc();
     } catch (error: any) {
-      handleError({ error, showMessage });
+      handleError({ error, setMessage });
     } finally {
       setIsLoading(false);
     }
@@ -356,7 +356,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       setIsLoading(true);
       const response = await sendCredentialsMutation({ variables: { eventId: event._id, teamIds: checkedTeamIds } });
       // @ts-ignore
-      const isSuccessful = await handleResponseCheck(response?.data?.sendCredentials, showMessage);
+      const isSuccessful = await handleResponseCheck(response?.data?.sendCredentials, setMessage);
       if (isSuccessful && refetchFunc) await refetchFunc();
     } catch (error) {
       console.error(error);
@@ -370,7 +370,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
     const checkedTeamIds = getCheckedTeamIds();
 
     if (checkedTeamIds.length === 0) {
-      return showMessage({ type: 'error', message: 'You must select a few teams and do this action' });
+      return setMessage({ type: 'error', message: 'You must select a few teams and do this action' });
     }
 
     setIsBulkActionMenuVisible(false);
@@ -441,11 +441,11 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       setIsLoading(true);
       const response = await sendCredentialsMutation({ variables: { eventId: event._id, teamIds: [teamId] } });
       // @ts-ignore
-      const isSuccessful = await handleResponseCheck(response?.data?.sendCredentials, showMessage);
+      const isSuccessful = await handleResponseCheck(response?.data?.sendCredentials, setMessage);
       if (isSuccessful && refetchFunc) await refetchFunc();
     } catch (error) {
       console.error(error);
-      handleError({ error, showMessage });
+      handleError({ error, setMessage });
     } finally {
       setIsLoading(false);
     }
@@ -497,7 +497,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       const response = await moveTeamsMutation({
         variables: { input, eventId: event._id },
       });
-      const isSuccessful = await handleResponseCheck(response.data?.updateTeams, showMessage);
+      const isSuccessful = await handleResponseCheck(response.data?.updateTeams, setMessage);
       if (isSuccessful) {
         if (response.data?.updateTeams.data) {
           // const updatedList = updateItemByIdMutable(filteredTeamList, response.data?.updateTeams.data);
@@ -510,7 +510,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       }
     } catch (error) {
       console.error(error);
-      handleError({ error, showMessage });
+      handleError({ error, setMessage });
     } finally {
       setIsLoading(false);
     }
@@ -522,7 +522,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       setIsLoading(true);
       deleteDialogRef.current?.close();
       const response = await deleteTeam({ variables: { teamId } });
-      const isSuccessful = await handleResponseCheck(response.data?.deleteTeam, showMessage);
+      const isSuccessful = await handleResponseCheck(response.data?.deleteTeam, setMessage);
       if (isSuccessful) {
         if (response.data?.deleteTeam) {
           const updatedList = filteredTeamList.filter(t => t._id !== selectedTeamForDelete?._id)

@@ -195,20 +195,20 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
   }, [executeSearchQuery, transformServerData, router]);
 
   // Filter players based on applied filters (client-side for search)
-  const filteredPlayers: IPlayer[] = useMemo(() => {
-    return allPlayers.filter((player) => {
-      const fullName = `${player.firstName} ${player.lastName}`.toLowerCase();
-      const matchesSearch =
-        !appliedFilter.search ||
-        fullName.includes(appliedFilter.search.toLowerCase()) ||
-        player.email.toLowerCase().includes(appliedFilter.search.toLowerCase()) ||
-        player.username?.toLowerCase().includes(appliedFilter.search.toLowerCase());
+  // const filteredPlayers: IPlayer[] = useMemo(() => {
+  //   return allPlayers.filter((player) => {
+  //     const fullName = `${player.firstName} ${player.lastName}`.toLowerCase();
+  //     const matchesSearch =
+  //       !appliedFilter.search ||
+  //       fullName.includes(appliedFilter.search.toLowerCase()) ||
+  //       player?.email?.toLowerCase().includes(appliedFilter.search.toLowerCase()) ||
+  //       player.username?.toLowerCase().includes(appliedFilter.search.toLowerCase());
 
-      const matchesDivision = !appliedFilter.division || player.division === appliedFilter.division;
+  //     const matchesDivision = !appliedFilter.division || player.division === appliedFilter.division;
 
-      return matchesSearch && matchesDivision;
-    });
-  }, [allPlayers, appliedFilter.search, appliedFilter.division]);
+  //     return matchesSearch && matchesDivision;
+  //   });
+  // }, [allPlayers, appliedFilter.search, appliedFilter.division]);
 
   // Update local filter
   const updateLocalFilter = useCallback((key: string, value: string) => {

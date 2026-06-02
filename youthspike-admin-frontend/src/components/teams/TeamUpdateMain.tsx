@@ -2,17 +2,13 @@
 
 import Loader from '@/components/elements/Loader';
 import TeamAdd from '@/components/teams/TeamAdd';
-import { IGroup, IPlayer, ITeamAdd } from '@/types';
+import { IEvent, IGroup, IPlayer, ITeam } from '@/types';
 import React, { useState } from 'react';
 
-interface IPrevTeam extends ITeamAdd {
-  _id: string;
-  group?: IGroup;
-}
 
 interface ITeamUpdateMainProps {
   groups: IGroup[];
-  team: IPrevTeam;
+  team: ITeam;
   eventId: string;
   players: IPlayer[];
   divisions: string;
@@ -36,8 +32,7 @@ function TeamUpdateMain({ groups, team, eventId, players, divisions }: ITeamUpda
       {team && (
         <TeamAdd
           groupList={groups}
-          divisions={divisions}
-          eventId={eventId}
+          events={team?.events ? (team.events as IEvent[]) : []}
           players={players}
           handleClose={handleClose}
           setIsLoading={setIsLoading}

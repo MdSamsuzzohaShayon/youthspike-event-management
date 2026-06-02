@@ -4,7 +4,7 @@ import { handleError } from '../handleError';
 import { handleResponseCheck } from './playerHelpers';
 
 interface IUpdateMatchHandlerProps {
-  showMessage: (message: Omit<IMessage, "id">) => void;
+  setMessage: (message: Omit<IMessage, "id">) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   eventId: string;
   mutateMatch: TMatchMutationFunction;
@@ -13,7 +13,7 @@ interface IUpdateMatchHandlerProps {
   showAddMatch?: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export async function updateMatchHandler({ showMessage, setIsLoading, eventId, mutateMatch, matchId, updateMatch, showAddMatch }: IUpdateMatchHandlerProps) {
+export async function updateMatchHandler({ setMessage, setIsLoading, eventId, mutateMatch, matchId, updateMatch, showAddMatch }: IUpdateMatchHandlerProps) {
   try {
     setIsLoading(true);
 
@@ -28,7 +28,7 @@ export async function updateMatchHandler({ showMessage, setIsLoading, eventId, m
     const res = await mutateMatch({ variables: { input: updateMatchObj, matchId } });
     const matchRes = res?.data?.updateMatch;
 
-    const success = await handleResponseCheck(matchRes, showMessage);
+    const success = await handleResponseCheck(matchRes, setMessage);
 
     if (success) {
       if (showAddMatch) showAddMatch(false);
@@ -38,7 +38,7 @@ export async function updateMatchHandler({ showMessage, setIsLoading, eventId, m
     }
   } catch (error: any) {
     console.log(error);
-    handleError({ error, showMessage });
+    handleError({ error, setMessage });
   } finally {
     setIsLoading(false);
   }

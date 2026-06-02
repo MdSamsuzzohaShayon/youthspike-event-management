@@ -30,7 +30,7 @@ type DeleteTemplateMutationVars = { templateId: string };
 
 export default function TemplatesMainContainer({ queryRef, eventId }: TemplatesMainContainerProps) {
   const { ldoIdUrl } = useLdoId();
-  const { showMessage } = useMessage();
+  const { setMessage } = useMessage();
   const { data } = useReadQuery(queryRef);
   const [mutateTemplate, { loading: mutateLoading }] = useMutation<UpdateTemplateMutationData, UpdateTemplateMutationVars>(UPDATE_TEMPLATE);
   const [deleteTemplate, { loading: deleteLoading }] = useMutation<DeleteTemplateMutationData, DeleteTemplateMutationVars>(DELETE_TEMPLATE);
@@ -92,7 +92,7 @@ export default function TemplatesMainContainer({ queryRef, eventId }: TemplatesM
         },
       });
     } catch (err: any) {
-      handleError({ error: err, showMessage });
+      handleError({ error: err, setMessage });
     }
   };
 
@@ -155,7 +155,7 @@ export default function TemplatesMainContainer({ queryRef, eventId }: TemplatesM
         },
       });
     } catch (err: any) {
-      handleError({ error: err, showMessage });
+      handleError({ error: err, setMessage });
     }
   };
 

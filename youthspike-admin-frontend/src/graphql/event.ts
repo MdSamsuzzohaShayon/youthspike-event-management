@@ -296,6 +296,7 @@ const GET_EVENT_WITH_GROUPS_AND_UNASSIGNED_PLAYERS = gql`
           _id
           name
           divisions
+          description
           logo
           startDate
           endDate

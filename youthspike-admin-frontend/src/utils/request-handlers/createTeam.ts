@@ -2,7 +2,7 @@
 // 🆕 Create Team
 // ------------------------------
 
-import { IGetTeamResponse, IMessage, ITeamAdd, TCreateTeamMutationFunction } from '@/types';
+import { IGetTeamResponse, IMessage, TAddTeam, TCreateTeamMutationFunction } from '@/types';
 import { handleApiResult } from '../handleError';
 import { ADD_TEAM_RAW, TEAM_FRAGMENT } from '@/graphql/teams';
 import { getCookie } from '../clientCookie';
@@ -15,12 +15,12 @@ import { removeTeamFromStore } from '../localStorage';
 
 interface ICreateTeamProps {
   events: string[];
-  teamState: ITeamAdd;
+  teamState: TAddTeam;
   apolloClient: ApolloClient;
   setMessage: (message: Omit<IMessage, "id">) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   uploadedLogo: React.RefObject<null | Blob | MediaSource>;
-  playerIdList: string[];
+  // playerIdList: string[];
   addTeam: TCreateTeamMutationFunction;
 }
 
@@ -31,16 +31,16 @@ export async function createTeam({
   setMessage,
   setIsLoading,
   uploadedLogo,
-  playerIdList,
+  // playerIdList,
   addTeam,
 }: ICreateTeamProps) {
   try {
     setIsLoading(true);
 
     // Build input
-    const input: Partial<ITeamAdd> = {
+    const input: TAddTeam = {
       ...teamState,
-      players: playerIdList,
+      // players: playerIdList,
     };
     if (events) {
       input.events = events;
@@ -112,7 +112,7 @@ export async function createTeam({
 
     setMessage({
       type: 'success',
-      message: result?.message || 'Player updated successfully',
+      message: result?.message || 'Team created successfully',
     });
 
 

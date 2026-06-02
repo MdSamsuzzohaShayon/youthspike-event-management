@@ -67,8 +67,9 @@ export class DefensiveConversionHandler {
           }
           // Same person has served twice, so server receiver both will be changed
           if (previousPlay.server === net.server) {
-            const receivingTeamScore: number = teamA.has(net.receiver as string) ? net.teamAScore : net.teamBScore;
-            this.scoreKeeperHelper.rotateServerReceiverEqualScoring(net);
+            const twoStepBack = allSinglePlays.find((play)=> play.play === net.mutate - 2);
+            const previousServerOfOtherTeam = twoStepBack?.server ? String(twoStepBack?.server) : null;
+            this.scoreKeeperHelper.rotateServerReceiverEqualScoring(net, previousServerOfOtherTeam);
           } else {
             // This person is new server, so only receiver will be changed
             this.scoreKeeperHelper.rotateReceiverEqualScoring(net);

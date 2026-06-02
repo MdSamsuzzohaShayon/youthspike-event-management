@@ -28,7 +28,7 @@ import RoundRunner from "./RoundRunner";
 import Image from "next/image";
 import { CldImage } from "next-cloudinary";
 import { useUser } from "@/lib/UserProvider";
-import { APP_NAME } from "@/utils/keys";
+import { ADMIN_FRONTEND_URL, APP_NAME } from "@/utils/keys";
 import SelectTeamDialog from "./SelectTeamDialog";
 import randomAssign from "@/utils/assignStrategies/randomAssign";
 import EmitEvents from "@/utils/socket/EmitEvents";
@@ -36,6 +36,8 @@ import { setCurrentRoundNets, setNets } from "@/redux/slices/netSlice";
 import { setDisabledPlayerIds } from "@/redux/slices/matchesSlice";
 import autoAssignClock from "@/utils/assignStrategies/autoAssignClock";
 import { formatClock } from "@/utils/datetime";
+import Link from "next/link";
+import { useLdoId } from "@/lib/LdoProvider";
 
 interface IMatchAuthenticatedViewProps {
   currMatch: IMatchRelatives;
@@ -68,6 +70,7 @@ function MatchAuthenticatedView({
   const dispatch = useAppDispatch();
   const socket = useSocket();
   const user = useUser();
+  const { ldoIdUrl } = useLdoId();
 
 
   // Redux
@@ -224,8 +227,8 @@ function MatchAuthenticatedView({
     teamBPlayerRanking,
     myPlayers]);
 
-    console.log({myPlayers});
-    
+  console.log({ myPlayers });
+
 
 
   // For now we are setting this manually
@@ -321,9 +324,14 @@ function MatchAuthenticatedView({
             : "text-gray-100"
             }`}
         >
-          <h1 className="op-team-name text-2xl font-bold uppercase container px-4 mx-auto">
-            {opTeam?.name}
-          </h1>
+          <div className="container px-4 mx-auto flex justify-start items-center gap-x-2">
+            <h1 className="op-team-name text-2xl font-bold uppercase">
+              {opTeam?.name}
+            </h1>
+            <Link href={user.token && (user.info?.role === UserRole.admin || user.info?.role === UserRole.director) ? `${ADMIN_FRONTEND_URL}/teams/${opTeam?._id}/roster/${ldoIdUrl}` : `/teams/${opTeam?._id}/roster/${ldoIdUrl}`}>
+              <Image height="20" width="20" src='/icons/new-tab.svg' alt="expand-btn" className="w-8 h-8 svg-white" />
+            </Link>
+          </div>
         </div>
         <TeamPlayers
           teamPlayers={opActivePlayers}
@@ -411,9 +419,14 @@ function MatchAuthenticatedView({
           screenWidth={screenWidth}
           teamE={myTeamE}
         />
-        <h1 className="op-team-name text-2xl font-bold uppercase container px-4 mx-auto">
-          {myTeam?.name}
-        </h1>
+        <div className="container px-4 mx-auto flex justify-start items-center gap-x-2">
+          <h1 className="op-team-name text-2xl font-bold uppercase">
+            {myTeam?.name}
+          </h1>
+          <Link href={`/teams/${myTeam?._id}/roster/${ldoIdUrl}`}>
+            <Image height="20" width="20" src='/icons/new-tab.svg' alt="expand-btn" className="w-8 h-8 svg-white" />
+          </Link>
+        </div>
 
         <div className="team-name-selection">
           {selectTeam && teamA && teamB && (

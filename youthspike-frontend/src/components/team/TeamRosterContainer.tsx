@@ -97,7 +97,7 @@ function TeamRosterContainer({ queryRef, teamId }: ITeamRosterContainerProps) {
       <div className="relative z-10">
         <div className="animate-fadeInUp">
           <RosterWrapper
-            events={events.filter((event)=> event.teams.includes(team._id))}
+            events={events.filter((event)=> (event?.teams || []).includes(team._id))}
             players={playerList} // ✅ USE FILTERED LIST
             team={team}
             playerRanking={playerRankingData}

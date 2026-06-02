@@ -24,34 +24,42 @@ import {
 // @ts-ignore
 import { ApolloCache } from '@apollo/client';
 
-export interface ITeam {
+
+interface ITeamCommon{
   _id: string;
-  active: boolean;
   name: string;
+  active: boolean;
   logo?: string | null;
-  rankLock: boolean;
+  rankLock: boolean; // Not for add team
   division: string;
-  sendCredentials: false;
-  num: number;
+  sendCredentials: boolean;
+  num: number; // Not for add team
+}
+
+export interface ITeam extends ITeamCommon{
   events: IEvent[];
   matches: IMatch[];
   players: IPlayerExpRel[];
+  groups?: IGroupRelatives[];
   captain: IPlayerExpRel | null;
   cocaptain: IPlayerExpRel | null;
-  nets: INetRelatives[];
-  playerRanking: IPlayerRankingExpRel;
-  groups?: IGroupRelatives[];
+  playerRanking: IPlayerRankingExpRel | string;
 }
 
-export interface ITeamAdd {
-  active: boolean;
-  name: string;
-  logo?: string | null;
+export interface ITeamRelatives extends ITeamCommon{
   events?: string[];
-  division: string;
-  players: string[];
-  captain?: string | null;
+  matches?: string[]; // Make the captain field nullable
+  players?: string[]; // Update the type of players to allow null values
+  groups?: string[];
+  captain?: string | null; // Make the captain field nullable
+  cocaptain?: string | null; // Make the captain field nullable
+  moved?: string[];
+  playerRankings?: string[]; // Not for add team
 }
+
+
+
+export type TAddTeam = Omit<ITeamRelatives, '_id' | 'num' | 'rankLock' | 'playerRankings'>;
 
 export interface ITeamScore {
   rank: number;

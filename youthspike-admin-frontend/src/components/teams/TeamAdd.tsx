@@ -1,8 +1,7 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { IOption, IPlayer, ITeamAdd, IGroup, ITeam, IGetTeamResponse, IEvent } from '@/types';
+import { IOption, IPlayer, IGroup, ITeam, IGetTeamResponse, IEvent, TAddTeam } from '@/types';
 import { ADD_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import SelectInput from '../elements/forms/SelectInput';
-import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import { useLdoId } from '@/lib/LdoProvider';
 import Link from 'next/link';
 import { useMessage } from '@/lib/MessageProvider';
@@ -15,6 +14,7 @@ import { useApolloClient, useMutation } from '@apollo/client/react';
 import { useRouter } from 'next/navigation';
 import GenericMultiSelect from '../elements/forms/GenericMultiSelect';
 import SessionStorageService from '@/utils/SessionStorageService';
+import { CURRENT_EVENT } from '@/utils/constant';
 
 
 
@@ -29,14 +29,17 @@ interface ITeamAddProps {
   events: IEvent[];
 }
 
-const initialTeamState: ITeamAdd = {
+const initialTeamState: TAddTeam = {
   active: true,
   name: '',
   logo: null,
-  events: [],
   division: '',
-  players: [],
   captain: '',
+  cocaptain: null,
+  events: [],
+  players: [],
+  groups: [],
+  sendCredentials: false,
 };
 
 function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision, events }: ITeamAddProps) {
@@ -45,25 +48,8 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
   const router = useRouter();
   const apolloClient = useApolloClient();
 
-  // Helper function to transform ITeam to ITeamAdd format
-  const transformTeamToTeamAdd = (team: ITeam): ITeamAdd => {
-    const teamObj: ITeamAdd = {
-      active: team.active,
-      name: team.name,
-      logo: team.logo ?? null,
-      division: team.division,
-      players: [],
-      captain: team?.captain?._id || null,
-      events: events.map((e) => e._id)
-    }
-    return teamObj;
-  };
-
-  const [teamState, setTeamState] = useState<ITeamAdd>(
-    prevTeam ? transformTeamToTeamAdd(prevTeam) : initialTeamState
-  );
-  const [updateTeamState, setUpdateTeamState] = useState<Partial<ITeamAdd>>({});
-  const [playerIdList, setPlayerIdList] = useState<string[]>([]);
+  const [teamState, setTeamState] = useState<TAddTeam>(initialTeamState);
+  const [updateTeamState, setUpdateTeamState] = useState<Partial<TAddTeam>>({});
   const [availablePlayers, setAvailablePlayers] = useState<IPlayer[]>([]);
   const [availableAddition, setAvailableAdition] = useState(false);
 
@@ -80,12 +66,11 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
 
     if (update) {
       await updateTeam({
-        prevTeam: prevTeam ? { ...transformTeamToTeamAdd(prevTeam), _id: prevTeam._id } : null,
+        prevTeam: prevTeam ? { ...prevTeam, _id: prevTeam._id } as ITeam : null,
         updateTeamState,
         setMessage,
         setIsLoading,
         uploadedLogo,
-        playerIdList,
         apolloClient,
         mutateTeam,
         events: events.map((e) => e._id),
@@ -100,7 +85,6 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
         setMessage,
         setIsLoading,
         uploadedLogo,
-        playerIdList,
         addTeam,
         apolloClient,
         events: events.map((e) => e._id)
@@ -108,7 +92,12 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
     }
 
     if (!createAgain) {
-      router.push(`/teams/${ldoIdUrl}`);
+      const currentEvent = SessionStorageService.getItem(CURRENT_EVENT);
+      if (currentEvent) {
+        router.push(`/${currentEvent}/teams/${ldoIdUrl}`);
+      } else {
+        router.push(`/teams/${ldoIdUrl}`);
+      }
     }
   };
 
@@ -134,13 +123,6 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
     return newPlayerList;
   };
 
-  const handleCheckboxChange = (playerId: string, isChecked: boolean) => {
-    if (isChecked) {
-      setPlayerIdList((prevState) => [...new Set([...prevState, playerId])]);
-    } else {
-      setPlayerIdList((prevState) => prevState.filter((p) => p !== playerId));
-    }
-  };
 
   const handleFileChange = (uploadedFile: MediaSource | Blob) => {
     uploadedLogo.current = uploadedFile;
@@ -154,23 +136,57 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
   }
 
 
+  const handlePlayerSelectionChange = (selectedIds: string[]) => {
+    setTeamState((prevState) => ({ ...prevState, players: selectedIds }));
+    if (update) {
+      setUpdateTeamState((prevState) => ({ ...prevState, players: selectedIds }));
+    }
+  }
+
+
   // Memoization
   const toBeCaptains = useMemo(() => {
-    const playersWithEmail = availablePlayers.filter((ap) => playerIdList.includes(ap._id) && ap.email && ap.email.trim() !== '');
+    const playersWithEmail = availablePlayers.filter((ap) => teamState.players?.includes(ap._id) && ap.email && ap.email.trim() !== '');
     const options = makeOptionList(playersWithEmail);
     return <SelectInput name="captain" optionList={options && options.length > 0 ? options : []} handleSelect={handleInputChange} />;
-  }, [availablePlayers, playerIdList]);
+  }, [availablePlayers, teamState.players]);
 
-  const eventIds = useMemo(() => {
-    return events.map((e) => e._id)
-  }, [events]);
 
 
   const divisionOptions = useMemo(() => {
-    const divisions = divisionsOfEvents(events);
+    if (!teamState.events) {
+      const divisions = divisionsOfEvents(events);
+      return divisionsToOptionList(divisions);
+    }
+    // According to selected events divisions will be shown
+    const selectedEventSet = new Set<string>(teamState.events);
+    const selectedEvents = events.filter((e) => selectedEventSet.has(e._id));
+    const divisions = divisionsOfEvents(selectedEvents);
     return divisionsToOptionList(divisions);
-  }, [events]);
+  }, [events, teamState.events]);
 
+
+
+
+
+
+
+
+
+  useEffect(() => {
+    if (prevTeam) {
+      const normalizeTeam: TAddTeam = {
+        ...prevTeam,
+        events: prevTeam.events?.map((e) => typeof e === 'object' ? e._id : String(e)),
+        matches: prevTeam.matches?.map((e) => typeof e === 'object' ? e._id : String(e)),
+        players: prevTeam.players?.map((e) => typeof e === 'object' ? e._id : String(e)),
+        groups: prevTeam?.groups ? prevTeam.groups.map((e) => typeof e === 'object' ? e._id : String(e)) : [],
+        captain: prevTeam?.captain ? (typeof prevTeam.captain === 'object' ? prevTeam.captain._id : String(prevTeam.captain)) : null,
+        cocaptain: prevTeam?.cocaptain ? (typeof prevTeam.cocaptain === 'object' ? prevTeam.cocaptain._id : String(prevTeam.cocaptain)) : null,
+      };
+      setTeamState(normalizeTeam);
+    }
+  }, [prevTeam]);
 
   useEffect(() => {
     setAvailablePlayers(players || []);
@@ -178,20 +194,13 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
 
 
   useEffect(() => {
-    const eventId = SessionStorageService.getItem<string>('event');
-    if (!eventId) return;
-    setTeamState((prevState) => {
-      const nextEvents = [...new Set([...(prevState.events ?? []), eventId])];
-      return { ...prevState, events: nextEvents };
-    });
-    if (update) {
-      setUpdateTeamState((prevState) => ({
-        ...prevState,
-        events: [...new Set([...(prevState.events ?? teamState.events ?? []), eventId])],
-      }));
+    const currentEvent = SessionStorageService.getItem(CURRENT_EVENT);
+    if (currentEvent) {
+      setTeamState((prev) => ({ ...prev, events: [...new Set([...(prev?.events || []) as string[], currentEvent])] as string[] }));
     }
   }, []);
-  
+
+
 
 
   return (
@@ -226,32 +235,67 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
         handleSelect={handleInputChange}
         name="group"
         className="mt-6"
-        // {...(prevTeam?.group ? { defaultValue: prevTeam?.group?._id || String(prevTeam?.group) } : {})}
         optionList={
-          teamState.division && teamState.division !== ''
-            ? groupList.filter((g) => g.division.trim().toUpperCase() === teamState.division.trim().toUpperCase()).map((g, gI) => ({ id: gI + 1, text: g.name, value: g._id }))
+          teamState.division && teamState.division && teamState.division !== ''
+            ? groupList.filter((g) => teamState.division && g.division.trim().toUpperCase() === teamState.division.trim().toUpperCase()).map((g, gI) => ({ id: gI + 1, text: g.name, value: g._id }))
             : groupList.map((g, gI) => ({ id: gI + 1, text: g.name, value: g._id }))
         }
       />
-      {events.map((event) => (
-        <Link key={event._id} className="underline underline-offset-1" href={`/${event._id}/groups/new/${ldoIdUrl}`}>
-          Create new group in {event.name}
-        </Link>
-      ))}
+      <div className="w-full flex justify-start items-center flex-wrap gap-x-4">
+        {events.map((event) => (
+          <Link key={event._id} className="underline underline-offset-1 hover:text-yellow-400" href={`/${event._id}/groups/new/${ldoIdUrl}`}>
+            Create new group in {event.name}
+          </Link>
+        ))}
+      </div>
 
       <div className="w-full md:w-2/6">
         <ImageInput name="logo" defaultValue={teamState.logo} onFileChange={handleFileChange} />
       </div>
 
-      {!update ? (
-        <div className="player-input mb-4">
-          <PlayerSelectInput players={availablePlayers} events={eventIds} onCheckboxChange={handleCheckboxChange} name="player-select" />
-        </div>
-      ) : (<div className="player-input mb-4">
-        <button type='button' className="btn-info" onClick={() => setAvailableAdition((prev) => !prev)}> {availableAddition ? "Hide players" : "Add Players"}</button>
-        {availableAddition && <PlayerSelectInput players={availablePlayers} events={eventIds} onCheckboxChange={handleCheckboxChange} name="player-select" />}
-      </div>)}
-      {playerIdList.length > 0 && !update && toBeCaptains}
+      {availablePlayers.length > 0 && (<>
+        {!update ? (
+          <div className="player-input mb-4">
+            <GenericMultiSelect<IPlayer & { id: string }>
+              label="Select Players"
+              items={availablePlayers.map((player) => ({
+                ...player,
+                id: player._id,
+              }))}
+              defaultSelectedIds={teamState.players}
+              getItemLabel={(player) =>
+                `${player.firstName} ${player.lastName}`
+              }
+              searchBy={(player) => [
+                player.firstName,
+                player.lastName,
+              ]}
+              onSelectionChange={handlePlayerSelectionChange}
+            />
+          </div>
+        ) : (<div className="player-input mb-4">
+          <button type='button' className="btn-info" onClick={() => setAvailableAdition((prev) => !prev)}> {availableAddition ? "Hide players" : "Add Players"}</button>
+          {availableAddition && (
+            <GenericMultiSelect<IPlayer & { id: string }>
+              label="Select Players"
+              items={availablePlayers.map((player) => ({
+                ...player,
+                id: player._id,
+              }))}
+              defaultSelectedIds={teamState.players}
+              getItemLabel={(player) =>
+                `${player.firstName} ${player.lastName}`
+              }
+              searchBy={(player) => [
+                player.firstName,
+                player.lastName,
+              ]}
+              onSelectionChange={handlePlayerSelectionChange}
+            />
+          )}
+        </div>)}
+        {teamState.players && teamState.players?.length > 0 && !update && toBeCaptains}
+      </>)}
 
       <div className="input-group w-full mb-4">
         <button className="btn-info mr-2" type="submit">

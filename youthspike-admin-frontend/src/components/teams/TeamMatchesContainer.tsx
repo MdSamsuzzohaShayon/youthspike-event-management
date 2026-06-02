@@ -26,7 +26,7 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
   const { data } = useReadQuery(queryRef);
   const pathname = usePathname();
   const { ldoIdUrl } = useLdoId();
-  const { showMessage } = useMessage();
+  const { setMessage } = useMessage();
 
   // Handle Errors
   if (!data?.getTeamMatches?.data) {
@@ -137,7 +137,7 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
                 className="transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
               >
                 <MatchCard
-                  showMessage={showMessage}
+                  setMessage={setMessage}
                   handleSelectMatch={handleSelectMatch}
                   isChecked={false}
                   match={match}

@@ -1,4 +1,4 @@
-import { IAllStats, IEvent, IGroup, IMatch, IPlayerRanking, IPlayerRankingItem, IResponse, ITeam } from ".";
+import { IAllStats, IEvent, IGroup, IMatch, IPlayerRanking, IPlayerRankingItem, IResponse, ITeam, ITeamRelatives } from ".";
 import { IDocument } from "./document";
 
 /**
@@ -17,24 +17,27 @@ export interface IPlayerAdd {
   email: string;
   phone?: string;
   division: string;
-  event?: string;
-  team?: string;
+  events: string[];
+  teams?: string[];
 }
 
 export interface IPlayer extends IDocument {
   firstName: string;
   lastName: string;
   username: string;
-  profile: string | null;
+  email: string;
   phone?: string;
   division: string;
-  email: string;
-  status: EPlayerStatus,
   events?: string[];
   teams?: ITeam[] | string[];
+
+  status: EPlayerStatus,
+  profile: string | null;
   captainofteams: ITeam[] | string[] | null;
   cocaptainofteams: ITeam[] | string[] | null;
 }
+
+export type TAddPlayer = Omit<IPlayer, '_id' | 'status' | 'profile' | 'captainofteams' | 'cocaptainofteams'>
 
 export interface IPlayerExpRel extends IDocument {
   firstName: string;
@@ -75,6 +78,11 @@ export interface IGetPlayersResponse extends IResponse{
   data: IPlayer[];
 }
 
+export interface IGetPlayerResponse extends IResponse{
+  data: IPlayer;
+}
+
+
 export interface ISearchPlayerResponse extends IResponse{
   data: {
     event: IEvent;
@@ -83,6 +91,14 @@ export interface ISearchPlayerResponse extends IResponse{
     teams: ITeam[];
   };
 }
+
+export interface IGetEventsWithTeamsResponse extends IResponse{
+  data: {
+    events: IEvent[];
+    teams: ITeamRelatives[];
+  };
+}
+
 
 
 export interface IPlayerRank extends IPlayerExpRel {

@@ -26,7 +26,7 @@ import { PlayerStatsSearchFilter } from './player-stats.input';
 import { CustomPlayer } from 'src/player/resolvers/player.response';
 import { CustomGroup } from 'src/match/resolvers/match.response';
 import { CustomMatch, CustomNet, CustomRound, CustomTeam } from 'src/team/resolvers/team.response';
-import {CustomEvent} from 'src/event/resolvers/event.response';
+import { CustomEvent } from 'src/event/resolvers/event.response';
 
 
 @Injectable()
@@ -248,33 +248,57 @@ export class PlayerStatsQueries {
 
       const normalizeEvents = [];
       for (const event of events) {
-        const eventObj = {...event};
-        if(event?.teams){
+        const eventObj = { ...event };
+        if (event?.teams) {
           const teamIds = new Set<string>();
           for (const t of event.teams) {
-            if(t) teamIds.add(String(t));
+            if (t) teamIds.add(String(t));
           }
           eventObj.teams = [...teamIds];
-        }else{
+        } else {
           eventObj.teams = [];
         }
         normalizeEvents.push(eventObj);
       }
 
+
+      const normalizeOponents = [];
+      for (const oponent of oponents) {
+        const oponentObj = { ...oponent };
+        if (oponent?.groups && oponent.groups.length > 0) {
+          const groupIds = new Set<string>();
+          for (const g of oponent.groups) {
+            if (g) groupIds.add(String(g));
+          }
+          oponentObj.groups = [...groupIds];
+        }else{
+          oponentObj.groups = [];
+
+        }
+        normalizeOponents.push(oponentObj);
+      }
+
+      const normalizeTeam = {...team};
+      const groupIdSet = new Set<string>();
+      for (const group of (team?.groups || [])) {
+        if(!group)continue;
+        groupIdSet.add(group as string)
+      }
+      normalizeTeam.groups = [...groupIdSet];
       // ✅ Final structured response
       return {
         code: HttpStatus.OK,
         success: true,
         data: {
           player: player as CustomPlayer,
-          team: team as CustomTeam,
+          team: normalizeTeam as CustomTeam,
           playerstats,
           matches: matches as CustomMatch[],
           rounds: rounds as CustomRound[],
           nets: nets as CustomNet[],
           multiplayers: multiplayers,
           weights,
-          oponents: oponents as CustomTeam[],
+          oponents: normalizeOponents as CustomTeam[],
           players: players as CustomPlayer[],
           groups: groups as CustomGroup[],
           events: normalizeEvents as CustomEvent[],
@@ -359,7 +383,7 @@ export class PlayerStatsQueries {
       ]);
 
 
-      if(!event) return AppResponse.notFound('Event');
+      if (!event) return AppResponse.notFound('Event');
 
       // const matchIds = new Set(matches.map((m) => String(m._id)));
       const matchIds = new Set();

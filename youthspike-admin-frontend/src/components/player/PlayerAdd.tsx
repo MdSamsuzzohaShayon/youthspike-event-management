@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { IPlayer, IPlayerAdd, IUpdatePlayerRes } from '@/types/player';
 import SelectInput from '../elements/forms/SelectInput';
-import { IOption, IResponse, ITeam } from '@/types';
+import { IEvent, IGetPlayerResponse, IOption, IResponse, ITeam, ITeamRelatives, TAddPlayer } from '@/types';
 import { CREATE_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { setTeamToStore } from '@/utils/localStorage';
@@ -17,13 +17,14 @@ import InputField from '../elements/forms/InputField';
 import Loader from '../elements/Loader';
 import updatePlayerFn from '@/utils/request-handlers/updatePlayerFn';
 import createPlayer from '@/utils/request-handlers/createPlayer';
-import { DIVISION, TEAM } from '@/utils/constant';
-import { useMutation } from '@apollo/client/react';
+import { CURRENT_EVENT, DIVISION, TEAM } from '@/utils/constant';
+import { useApolloClient, useMutation } from '@apollo/client/react';
+import GenericMultiSelect from '../elements/forms/GenericMultiSelect';
+import { divisionsOfEvents, divisionsToOptionList } from '@/utils/helper';
 
-interface IProps {
-  teamList: ITeam[];
-  eventId?: string;
-  division?: string;
+interface IPlayerAddProps {
+  teams: ITeamRelatives[];
+  events?: IEvent[];
   prevPlayer?: IPlayer | null;
   update?: boolean;
 }
@@ -31,59 +32,48 @@ interface IProps {
 
 
 
-const initialPlayerAdd: IPlayerAdd = {
+const initialPlayerAdd: TAddPlayer = {
   firstName: '',
   lastName: '',
   username: '',
   email: '',
-  event: '',
+  events: [],
+  teams: [],
   phone: '',
   division: '',
 };
 
-function PlayerAdd({ update, prevPlayer, teamList, division, eventId }: IProps) {
+function PlayerAdd({ update, prevPlayer, teams, events }: IPlayerAddProps) {
   const router = useRouter();
-  const user = useUser();
-  const searchParams = useSearchParams();
   const { ldoIdUrl } = useLdoId();
   const { setMessage } = useMessage();
+  const apolloClient = useApolloClient();
 
-  const [playerState, setPlayerState] = useState<IPlayerAdd>(initialPlayerAdd);
-  const [playerUpdate, setPlayerUpdate] = useState<Partial<IPlayerAdd>>({});
-  const [addPlayer] = useMutation<{createPlayer: IResponse}>(CREATE_PLAYER);
-  const [updatePlayer] = useMutation<{updatePlayer: IUpdatePlayerRes}>(UPDATE_PLAYER);
+  // State
+  const [playerState, setPlayerState] = useState<TAddPlayer>(initialPlayerAdd);
+  const [playerUpdate, setPlayerUpdate] = useState<Partial<TAddPlayer>>({});
 
   const uploadedProfile = useRef<File | null>(null);
-  const [directorId, setDirectorId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [teamId, setTeamId] = useState<string | null>(null);
+
+  // Mutations
+  const [addPlayer] = useMutation<{ createPlayer: IGetPlayerResponse }>(CREATE_PLAYER);
+  const [updatePlayer] = useMutation<{ updatePlayer: IUpdatePlayerRes }>(UPDATE_PLAYER);
+
+
 
 
   // Unified field updater
-  const handleFieldChange = useCallback(
-    (name: string, value: string) => {
-      const updater = update ? setPlayerUpdate : setPlayerState;
-      updater((prev: IPlayerAdd) => ({ ...prev, [name]: value }));
-    },
-    [update],
-  );
 
-  const handleInputChange = useCallback(
-    (e: React.SyntheticEvent) => {
-      const inputEl = e.target as HTMLInputElement;
-      handleFieldChange(inputEl.name, inputEl.value);
-    },
-    [handleFieldChange],
-  );
+  const handleInputChange = (e: React.SyntheticEvent) => {
+    const inputEl = e.target as HTMLInputElement | HTMLSelectElement;
+    setPlayerState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+    if (update) {
+      setPlayerUpdate((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+    }
+  };
 
-  const handleTeamChange = useCallback(
-    (e: React.SyntheticEvent) => {
-      const inputEl = e.target as HTMLSelectElement;
-      setTeamToStore(inputEl.value);
-      handleFieldChange(inputEl.name, inputEl.value);
-    },
-    [handleFieldChange],
-  );
+
 
   const handleFileChange = useCallback((uploadedFile: Blob | MediaSource) => {
     uploadedProfile.current = uploadedFile as File;
@@ -91,70 +81,152 @@ function PlayerAdd({ update, prevPlayer, teamList, division, eventId }: IProps) 
 
 
 
+  // -------------------- Memoized Values --------------------
+  const divisionOptions = useMemo(() => {
+    if (!playerState.events) {
+      return [];
+    }
+    // According to selected events divisions will be shown
+    const selectedEventSet = new Set<string>(playerState.events);
+    const selectedEvents = (events || []).filter((e) => selectedEventSet.has(e._id));
+    const divisions = divisionsOfEvents(selectedEvents);
+    return divisionsToOptionList(divisions);
+  }, [events, playerState.events]);
+
+  const teamOptions = useMemo(() => {
+    if (playerState.events?.length === 0) return [];
+
+    const eventSet = new Set<string>(playerState.events);
+    const list = [];
+    let i = 0;
+    for (const team of teams) {
+      if (!team.events) continue;
+      let found = false;
+      for (const e of team.events) {
+        if (eventSet.has(e)) {
+          found = true;
+          continue;
+        }
+      }
+      if (found) {
+        list.push({ id: i + 1, value: team._id, text: team.name });
+        i += 1;
+      }
+    }
+
+    return list;
+  }, [teams, playerState.events]);
+
+
+
+  // -------------------- Handlers --------------------
+  const handleDivisionChange = (e: React.SyntheticEvent) => {
+    const inputEl = e.target as HTMLSelectElement;
+    const division = inputEl.value.trim();
+
+    if (!division) {
+      SessionStorageService.removeItem(DIVISION);
+      return;
+    }
+
+    SessionStorageService.setItem(DIVISION, division);
+    setPlayerState((prevState) => ({ ...prevState, division }));
+    if (update) {
+      setPlayerUpdate((prevState) => ({ ...prevState, division }));
+    }
+  };
+
+  const handleEventChange = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const inputEl = e.target as HTMLInputElement;
+    setPlayerState((prevState) => ({ ...prevState, events: [inputEl.value] }));
+    if (update) {
+      setPlayerUpdate((prevState) => ({ ...prevState, events: [inputEl.value] }));
+    }
+  }
+
+  const handleTeamChange = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    const inputEl = e.target as HTMLInputElement;
+    setPlayerState((prevState) => ({ ...prevState, teams: !inputEl.value || inputEl.value === '' ? [] :[inputEl.value] }));
+    if (update) {
+      setPlayerUpdate((prevState) => ({ ...prevState, teams: !inputEl.value || inputEl.value === '' ? [] :[inputEl.value] }));
+    }
+  }
+
+
+
+
   const handleAddPlayer = async (e: React.SyntheticEvent) => {
-      e.preventDefault();
-      if (update) {
-        updatePlayerFn({ setMessage, setIsLoading, playerUpdate, prevPlayer: prevPlayer || null, uploadedProfile, updatePlayer});
+    e.preventDefault();
+
+    if (update) {
+      updatePlayerFn({ setMessage, setIsLoading, playerUpdate, prevPlayer: prevPlayer || null, uploadedProfile, updatePlayer });
+    } else {
+      createPlayer({ setMessage, apolloClient, setIsLoading, playerState, uploadedProfile, addPlayer });
+    }
+
+
+    // Check session storage
+    if (playerState.teams && playerState.teams.length > 0) {
+      router.push(`/teams/${playerState.teams[0]}/roster/${ldoIdUrl}`);
+    } else {
+      const currentEvent = SessionStorageService.getItem(CURRENT_EVENT);
+      if (currentEvent) {
+        router.push(`/${currentEvent}/players/${ldoIdUrl}`);
       } else {
-        createPlayer({ setMessage, setIsLoading, playerState, division, eventId, uploadedProfile, addPlayer });
-      }
+        router.push(`/players/${ldoIdUrl}`);
 
-      if(teamId){
-        router.push(`/teams/${teamId}/roster/${ldoIdUrl}`);
-      }else{
-        router.push(`/${eventId}/players/${ldoIdUrl}`);
       }
-    };
+    }
+  };
 
-  // Set initial state when editing
+
+
+  // Set initial previous player object for updating
   useEffect(() => {
     if (update && prevPlayer) {
-      setPlayerState({
-        ...initialPlayerAdd,
-        firstName: prevPlayer.firstName,
-        lastName: prevPlayer.lastName,
-        username: prevPlayer.username ?? '',
-        email: prevPlayer.email,
-        phone: prevPlayer.phone ? String(prevPlayer.phone) : '',
-      });
+      setPlayerState(prevPlayer);
     }
   }, [update, prevPlayer]);
 
-  // Load from local storage once
-  useEffect(() => {
-    const team = SessionStorageService.getItem(TEAM);
-    
-    setPlayerState((prev) => ({
-      ...prev,
-      ...(team ? { team: String(team)! } : {}),
-      ...(SessionStorageService.getItem(DIVISION) ? { division: SessionStorageService.getItem(DIVISION)! } : {}),
-    }));
 
-    setTeamId(team as string || null);
-  }, []);
-
-  // Set director id
   useEffect(() => {
-    if (user.info?.role === UserRole.admin) {
-      const newDirectorId = searchParams.get('ldoId');
-      if (!newDirectorId) {
-        router.push('/admin');
-        return;
-      }
-      setDirectorId(newDirectorId);
-    } else {
-      setDirectorId(user.info?._id ?? null);
+    if (update) return;
+    const division = SessionStorageService.getItem(DIVISION);
+
+    const initialValue: Partial<TAddPlayer> = {};
+    if (division) {
+      initialValue.division = division as string;
     }
-  }, [eventId, user]);
+    const currentEvent = SessionStorageService.getItem(CURRENT_EVENT);
+    if (currentEvent) {
+      initialValue.events = [currentEvent as string];
+    }
 
-  // Memoized team options
-  const teamOptions = useMemo<IOption[]>(() => teamList.map((t, i) => ({ id: i + 1, text: t.name, value: t._id })), [teamList]);
+
+    const team = SessionStorageService.getItem(TEAM);
+    if(team){
+      initialValue.teams = [team as string];
+    }
+
+    setPlayerState((prev) => ({ ...prev, ...initialValue }));
+  }, [update, teams]);
 
   if (isLoading) return <Loader />;
 
   return (
     <form onSubmit={handleAddPlayer} className="w-full">
       <ImageInput onFileChange={handleFileChange} name="profile" defaultValue={prevPlayer?.profile || null} className="mt-6 w-full md:w-2/6" />
+
+      <SelectInput name='events' value={playerState.events && playerState.events.length > 0 ? playerState.events[0] : null}
+        optionList={(events || [])?.map((e, i) => ({ id: i + 1, value: e._id, text: e.name }))} handleSelect={handleEventChange} />
+
+
+      <div className="mt-2 division-selection w-full">
+        <SelectInput key="division-selector-add" name="division" value={playerState?.division} optionList={divisionOptions} handleSelect={handleDivisionChange} />
+      </div>
+
       <div className="part-1 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <InputField type="text" name="firstName" label="First Name" defaultValue={playerState.firstName} onChange={handleInputChange} required={!update} />
         <InputField type="text" name="lastName" label="Last Name" defaultValue={playerState.lastName} onChange={handleInputChange} required={!update} />
@@ -163,7 +235,14 @@ function PlayerAdd({ update, prevPlayer, teamList, division, eventId }: IProps) 
         <InputField type="number" name="phone" defaultValue={playerState.phone} onChange={handleInputChange} />
       </div>
 
-      {!update && <SelectInput name="team" className="mt-6" value={playerState.team} optionList={teamOptions} handleSelect={handleTeamChange} />}
+
+      {teamOptions.length > 0 && (
+        <SelectInput name='teams' value={playerState.teams && playerState.teams.length > 0 ? playerState.teams[0] as string : null}
+          optionList={teamOptions} handleSelect={handleTeamChange} />
+      )}
+
+
+
 
       <div className="input-group w-full mb-4">
         <button type="submit" className="btn-info mt-8 w-full">

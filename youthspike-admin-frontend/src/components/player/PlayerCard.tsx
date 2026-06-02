@@ -1,16 +1,14 @@
 import { DELETE_A_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
-import { GET_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
+import { UPDATE_TEAM } from '@/graphql/teams';
 import { EPlayerStatus, IUpdatePlayerRes } from '@/types/player';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
 import React, { useMemo, useRef, useState, useCallback } from 'react';
-import { IOption, IPlayerRank, IResponse, ITeam, IUpdateTeamRes } from '@/types';
+import { IGetTeamResponse, IOption, IPlayerRank, IResponse, ITeam, TAddTeam } from '@/types';
 import { UserRole } from '@/types/user';
-import { formatUSPhoneNumber } from '@/utils/datetime';
 import { useUser } from '@/lib/UserProvider';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
-import EmailInput from '../elements/forms/EmailInput';
 import { handleError } from '@/utils/handleError';
 import { useLdoId } from '@/lib/LdoProvider';
 import { AnimatePresence, motion } from 'motion/react';
@@ -18,12 +16,12 @@ import { menuVariants } from '@/utils/animation';
 import { useMessage } from '@/lib/MessageProvider';
 import PlayerMoveDialog from './PlayerMoveDialog';
 import TextImg from '../elements/TextImg';
-import InputField from '../elements/forms/InputField';
 import AddEmailDialog from './AddEmailDialog';
 import { FRONTEND_URL } from '@/utils/keys';
 import DeletePlayerDialog from './DeletePlayerDialog';
-import { useMutation } from '@apollo/client/react';
+import { useApolloClient, useMutation } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
+import updateTeam from '@/utils/request-handlers/updateTeam';
 
 interface IPlayerCardProps {
   player: IPlayerRank;
@@ -31,7 +29,7 @@ interface IPlayerCardProps {
   onSelect: (e: React.SyntheticEvent, _id: string) => void;
   team: ITeam | null;
   teamList: ITeam[];
-  setIsLoading?: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   showRank?: boolean;
   rankControls?: boolean;
   divisionList?: IOption[];
@@ -39,6 +37,8 @@ interface IPlayerCardProps {
 }
 
 export default function PlayerCard({ player, isChecked, onSelect, team, teamList, setIsLoading, rank, divisionList, rankControls }: IPlayerCardProps) {
+  
+  // State
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [actionOpen, setActionOpen] = useState<boolean>(false);
   const [movePlayer, setMovePlayer] = useState<boolean>(false);
@@ -46,15 +46,20 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
   const [newPlayerRole, setNewPlayerRole] = useState<UserRole | null>(null);
   const deleteEl = useRef<HTMLDialogElement | null>(null);
 
+  // Reference
   const dialogEl = useRef<HTMLDialogElement | null>(null);
   const dialogMoveEl = useRef<HTMLDialogElement | null>(null);
+  const uploadedLogoRef = useRef<Blob | null | MediaSource>(null);
   
 
-  const { showMessage } = useMessage();
+  // Hooks
+  const { setMessage } = useMessage();
   const user = useUser();
   const { ldoIdUrl } = useLdoId();
+  const apolloClient = useApolloClient();
 
-  const [mutateTeam] = useMutation<{ updateTeam: IUpdateTeamRes }>(UPDATE_TEAM);
+  // Mutations
+  const [mutateTeam] = useMutation<{ updateTeam: IGetTeamResponse }>(UPDATE_TEAM);
   const [mutatePlayer, { client }] = useMutation<{ updatePlayer: IUpdatePlayerRes }>(UPDATE_PLAYER);
   const [deleteAPlayer] = useMutation<{ deletePlayer: IResponse }>(DELETE_A_PLAYER);
 
@@ -70,25 +75,22 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
   const isCoCaptain = useMemo(() => teamId && cocaptainofteams.includes(teamId), [teamId, cocaptainofteams]);
 
   // Optimized callbacks
-  const makeCaptainOrCoCaptain = useCallback(
-    async (input: { captain?: string; cocaptain?: string }) => {
+  const makeCaptainOrCoCaptain = async (input: { captain?: string; cocaptain?: string }) => {
       setActionOpen((prev) => !prev);
-      try {
-        if(setIsLoading)setIsLoading(true);
-        if (teamId ) {
-          const response = await mutateTeam({ variables: { input, teamId } });
-          const success = await handleResponseCheck(response.data?.updateTeam, showMessage);
-          if (!success) return;
-          window.location.reload();
-        }
-      } catch (error: any) {
-        handleError({ error, showMessage });
-      } finally {
-        if(setIsLoading)setIsLoading(false);
-      }
-    },
-    [teamId, mutateTeam, showMessage, setIsLoading],
-  );
+      await updateTeam({
+        prevTeam: team,
+        updateTeamState: input as Partial<TAddTeam>,
+        setMessage,
+        setIsLoading,
+        uploadedLogo: uploadedLogoRef,
+        apolloClient,
+        mutateTeam,
+        events: team?.events.map((e) => e._id) ?? [],
+      });
+      window.location.reload(); // temp
+  };
+
+  
 
   const handleMakeCaptain = useCallback(
     (e: React.SyntheticEvent, playerId: string) => {
@@ -124,15 +126,15 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
             playerId,
           },
         });
-        const success = await handleResponseCheck(response.data?.updatePlayer, showMessage);
+        const success = await handleResponseCheck(response.data?.updatePlayer, setMessage);
         if (!success) return;
 
         // Add cache
       } catch (error: any) {
-        handleError({ error, showMessage });
+        handleError({ error, setMessage });
       }
     },
-    [teamId, mutatePlayer, showMessage],
+    [teamId, mutatePlayer, setMessage],
   );
 
   const handleDelete = useCallback(
@@ -142,16 +144,16 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
         setActionOpen((prev) => !prev);
         if(setIsLoading)setIsLoading(true);
         const response = await deleteAPlayer({ variables: { playerId } });
-        const success = await handleResponseCheck(response.data?.deletePlayer, showMessage);
+        const success = await handleResponseCheck(response.data?.deletePlayer, setMessage);
         if (!success) return;
         // Add cache
       } catch (error: any) {
-        handleError({ error, showMessage });
+        handleError({ error, setMessage });
       } finally {
         if(setIsLoading)setIsLoading(false);
       }
     },
-    [deleteAPlayer, showMessage, client, setIsLoading],
+    [deleteAPlayer, setMessage, client, setIsLoading],
   );
 
   const closeModal = useCallback(() => {
@@ -196,10 +198,10 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
         }
         closeModal();
       } catch (error: any) {
-        handleError({ error, showMessage });
+        handleError({ error, setMessage });
       }
     },
-    [newEmail, newPlayerRole, player._id, mutatePlayer, makeCaptainOrCoCaptain, closeModal, showMessage],
+    [newEmail, newPlayerRole, player._id, mutatePlayer, makeCaptainOrCoCaptain, closeModal, setMessage],
   );
 
   // Memoized components
@@ -398,7 +400,7 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
         divisionList={divisionList || []}
         mutatePlayer={mutatePlayer}
         player={player}
-        showMessage={showMessage}
+        setMessage={setMessage}
         setActionOpen={setActionOpen}
         setMovePlayer={setMovePlayer}
         teamId={teamId || null}

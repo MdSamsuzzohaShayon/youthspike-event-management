@@ -2,7 +2,7 @@ import { UPDATE_PLAYER_RAW } from '@/graphql/players';
 import { IPlayer, IPlayerAdd, IPlayerExpRel } from '@/types/player';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { handleRedirect, sendGraphQLFormData, handleResponseCheck } from './playerHelpers';
-import { IMessage, IResponse } from '@/types';
+import { IMessage, IResponse, TAddPlayer } from '@/types';
 import { useMutation } from '@apollo/client/react';
 import { ApolloCache } from '@apollo/client';
 import { handleApiResult } from '../handleError';
@@ -31,7 +31,7 @@ type TMutationFunction = useMutation.MutationFunction<
 interface IUpdatePlayer {
   setMessage: (message: Omit<IMessage, "id">) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  playerUpdate: Partial<IPlayerAdd>;
+  playerUpdate: Partial<TAddPlayer>;
   prevPlayer: IPlayer | null;
   uploadedProfile: React.RefObject<File | null>;
   updatePlayer: TMutationFunction;

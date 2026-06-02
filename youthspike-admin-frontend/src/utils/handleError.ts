@@ -4,7 +4,7 @@ import { removeCookie } from './clientCookie';
 
 interface IHandleApolloErrorProps {
   error: unknown;
-  showMessage?: (message: Omit<IMessage, "id">) => void;
+  setMessage?: (message: Omit<IMessage, "id">) => void;
 }
 
 interface IHandleResponseProps {
@@ -37,7 +37,7 @@ export function handleResponse({ response, showMessage }: IHandleResponseProps):
   });
 }
 
-export function handleError({ error, showMessage }: IHandleApolloErrorProps): void {
+export function handleError({ error, setMessage }: IHandleApolloErrorProps): void {
   try {
     // Check if error is a CombinedGraphQLErrors instance
     if (CombinedGraphQLErrors.is(error)) {
@@ -52,8 +52,8 @@ export function handleError({ error, showMessage }: IHandleApolloErrorProps): vo
           if (typeof window !== 'undefined') window.location.reload();
         }
 
-        if (showMessage) {
-          showMessage({
+        if (setMessage) {
+          setMessage({
             code: typeof code === 'number' ? code : 500,
             message: typeof message === 'string' ? message : JSON.stringify(message),
             type:"error"
@@ -71,8 +71,8 @@ export function handleError({ error, showMessage }: IHandleApolloErrorProps): vo
 
     // Handle generic errors
     console.error('Unexpected Error:', error);
-    if (showMessage) {
-      showMessage({
+    if (setMessage) {
+      setMessage({
         code: 500,
         message: typeof error === 'string' ? error : JSON.stringify(error),
         type:"error"
@@ -80,8 +80,8 @@ export function handleError({ error, showMessage }: IHandleApolloErrorProps): vo
     }
   } catch (err) {
     console.error('Error in handleError function:', err);
-    if (showMessage) {
-      showMessage({
+    if (setMessage) {
+      setMessage({
         code: 500,
         message: 'Error handling failed',
         type:"error"

@@ -14,7 +14,7 @@ import TeamAdd from './TeamAdd';
 
 import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
-import { divisionsOfEvents, divisionsToOptionList, filterByDivision } from '@/utils/helper';
+import { filterByDivision } from '@/utils/helper';
 import Loader from '../elements/Loader';
 
 interface TeamAddContainerProps {
@@ -32,6 +32,8 @@ function TeamAddContainer({ queryRef }: TeamAddContainerProps) {
   }
 
   const eventData = data.getEventWithGroupsAndUnassignedPlayers.data;
+  
+  
 
   // -------------------- State --------------------
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -41,8 +43,6 @@ function TeamAddContainer({ queryRef }: TeamAddContainerProps) {
     if (!selectedDivision) return eventData.players;
     return filterByDivision(eventData.players, selectedDivision);
   }, [eventData.players, selectedDivision]);
-
-  //   console.log({filteredPlayers, players: eventData.players});
 
 
   const filteredGroups = useMemo<IGroup[]>(() => {

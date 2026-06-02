@@ -5,6 +5,7 @@ import { useAppSelector } from '@/redux/hooks';
 import { sortPlayerRanking } from '@/utils/helper';
 import PlayerScoreCard from './PlayerScoreCard';
 import Link from 'next/link';
+import { useLdoId } from '@/lib/LdoProvider';
 
 interface ITeamPlayersProps {
   teamPlayers: IPlayer[];
@@ -17,6 +18,7 @@ interface ITeamPlayersProps {
 function TeamPlayers({ teamPlayers, screenWidth, roundList, onTop, teamE }: ITeamPlayersProps) {
   const { myTeamE } = useAppSelector((state) => state.matches);
   const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
+  const {ldoIdUrl} = useLdoId();
 
   /**
    * ✅ Memoized sorted players (no duplicate loop, Set used inline).
@@ -67,7 +69,7 @@ function TeamPlayers({ teamPlayers, screenWidth, roundList, onTop, teamE }: ITea
           } justify-between overflow-x-auto gap-x-1`}
         >
           {sortedPlayers.map((player) => (
-            <Link href={`/players/${player._id}`} className="player-card w-20 flex-shrink-0" key={player._id}>
+            <Link href={`/players/${player._id}/${ldoIdUrl}`} className="player-card w-20 flex-shrink-0" key={player._id}>
               <PlayerScoreCard
                 player={player}
                 onTop={onTop}

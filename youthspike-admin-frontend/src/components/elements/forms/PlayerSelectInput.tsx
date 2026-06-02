@@ -4,13 +4,16 @@ import Link from 'next/link';
 import React, { useEffect, useState } from 'react';
 import InputField from './InputField';
 import { debounce } from '@/utils/helper';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { CURRENT_EVENT } from '@/utils/constant';
+import routerService from '@/lib/router-service';
 
 
 export interface IPlayerSelectInputProps {
   name: string;
   onCheckboxChange: (playerId: string, isChecked: boolean) => void;
   players: IPlayer[];
-  events: string[];
+  events: IEvent[];
   extraClass?: string;
   defaultValue?: string[];
 }
@@ -56,6 +59,13 @@ function PlayerSelectInput({ events, players, onCheckboxChange, extraClass, defa
   }, [players]);
 
 
+  const handleEventRedirect = (e: React.SyntheticEvent, eventId: string)=>{
+    e.preventDefault();
+    SessionStorageService.setItem(CURRENT_EVENT, eventId);
+    routerService.push(`/players/new/${ldoIdUrl}`);
+  }
+
+
   useEffect(() => {
     if (players && players.length > 0) {
       setPlayerList(players);
@@ -65,16 +75,19 @@ function PlayerSelectInput({ events, players, onCheckboxChange, extraClass, defa
   return (
     <div className={`input-group w-full flex flex-col ${extraClass}`}>
       <label htmlFor="players">
-        <span>Select Players or </span>
+        <span className='text-xs'>Select Players or </span>
+        <div className="w-full flex justify-start items-center flex-wrap gap-x-4">
         {events.map((event) => (
-          <Link
-            key={event}
-            href={`/${event}/players/new/${ldoIdUrl}`}
-            className="underline underline-offset-1"
+          <div
+            key={event._id}
+            role="presentation"
+            onClick={(e)=> handleEventRedirect(e, event._id)}
+            className="underline underline-offset-1 hover:text-yellow-400 text-xs"
           >
-            Create New Player!
-          </Link>
+            Create Player in {event.name}
+          </div>
         ))}
+        </div>
       </label>
       <InputField name='search' className='w-full' label='Search player' onChange={handleInputChange} />
       <ul className="flex flex-wrap items-center gap-2">
