@@ -2,7 +2,7 @@ import { BACKEND_URL } from '../keys';
 import { getCookie } from '../clientCookie';
 import { IMessage } from '@/types';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
-import { handleError, handleResponse } from '../handleError';
+import { handleResponse } from '../handleError';
 
 export const handleRedirect = async (
   router: AppRouterInstance,

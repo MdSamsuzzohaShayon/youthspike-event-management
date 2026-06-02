@@ -13,11 +13,11 @@ import { debounce } from '@/utils/helper';
 
 type IdType = string | number;
 
-interface BaseSelectableItem {
+interface IBaseSelectableItem {
   id: IdType;
 }
 
-interface GenericMultiSelectProps<T extends BaseSelectableItem> {
+interface GenericMultiSelectProps<T extends IBaseSelectableItem> {
   // Input label
   label?: ReactNode;
   // All selectable items
@@ -32,8 +32,6 @@ interface GenericMultiSelectProps<T extends BaseSelectableItem> {
   searchBy?: (item: T) => string[];
   // Custom key extractor
   getItemKey?: (item: T) => Key;
-  // Placeholder text
-  searchPlaceholder?: string;
   // Additional wrapper class
   className?: string;
   // Empty state
@@ -42,7 +40,7 @@ interface GenericMultiSelectProps<T extends BaseSelectableItem> {
   debounceDelay?: number;
 }
 
-function GenericMultiSelect<T extends BaseSelectableItem>({
+function GenericMultiSelect<T extends IBaseSelectableItem>({
   label,
   items,
   defaultSelectedIds = [],
@@ -50,7 +48,6 @@ function GenericMultiSelect<T extends BaseSelectableItem>({
   getItemLabel,
   searchBy,
   getItemKey,
-  searchPlaceholder = 'Search...',
   className = '',
   emptyMessage = 'No items found',
   debounceDelay = 250,
@@ -76,7 +73,7 @@ function GenericMultiSelect<T extends BaseSelectableItem>({
   const handleSearchChange = useMemo(
     () =>
       debounce((event: ChangeEvent<HTMLInputElement>) => {
-        setSearchQuery(event.target.value.trim().toLowerCase());
+        if (event?.target?.value?.trim()) setSearchQuery(event.target.value.trim().toLowerCase());
       }, debounceDelay),
     [debounceDelay]
   );
@@ -89,8 +86,10 @@ function GenericMultiSelect<T extends BaseSelectableItem>({
         ? searchBy(item)
         : [getItemLabel(item)];
 
-      return searchableValues.some((value) =>
-        value.toLowerCase().includes(searchQuery)
+      return searchableValues.some(
+        (value) =>
+          typeof value === 'string' &&
+          value.toLowerCase().includes(searchQuery)
       );
     });
   }, [items, searchQuery, searchBy, getItemLabel]);
@@ -116,16 +115,17 @@ function GenericMultiSelect<T extends BaseSelectableItem>({
   );
 
   return (
-    <div className={`flex w-full flex-col gap-3 ${className}`}>
-      {label && <label>{label}</label>}
+    <div className={`flex w-full flex-col gap-x-3 ${className}`}>
+      {label && <label className='text-sm font-medium text-gray-300 mb-1 uppercase'>{label}</label>}
 
-      <InputField
-        name="search"
-        label={typeof label === 'string' ? label : 'Search'}
-        //   placeholder={searchPlaceholder}
-        className="w-full"
-        onChange={handleSearchChange}
-      />
+      {items.length > 15 && (
+        <InputField
+          name="search"
+          label={typeof label === 'string' ? label : 'Search'}
+          className="w-full"
+          onChange={handleSearchChange}
+        />
+      )}
 
       {filteredItems.length === 0 ? (
         <div>{emptyMessage}</div>

@@ -17,6 +17,7 @@ import {
   GetPlayerAndTeamsResponse,
   PlayerResponse,
   CustomPlayer,
+  GetEventsWithTeamsResponse,
 } from './player.response';
 import { PlayerSearchFilter } from './player.input';
 import { Team } from 'src/team/team.schema';
@@ -213,6 +214,98 @@ export class PlayerQueries implements IPlayerQueries {
       };
     } catch (error) {
       return AppResponse.handleError(error);
+    }
+  }
+
+  async getEventsWithTeams(
+    context: any,
+    ldoId?: string,
+  ): Promise<GetEventsWithTeamsResponse> {
+    try {
+      const secret = this.configService.get<string>('JWT_SECRET');
+
+      // Decode token
+      const userPayload = tokenToUser(context, secret);
+
+      if (!userPayload?._id) {
+        return AppResponse.unauthorized();
+      }
+
+      // Only fetch fields we actually need
+      const loggedUser = await this.userService.findOne(
+        { _id: userPayload._id }
+      );
+
+      if (!loggedUser) {
+        return AppResponse.unauthorized();
+      }
+
+      let events = [];
+
+
+
+      /**
+       * CASE 1:
+       * Admin requesting events from specific LDO
+       */
+      if (ldoId && loggedUser.role === UserRole.admin) {
+        const ldo = await this.ldoService.findByDirectorId(ldoId);
+
+        if (ldo?.events?.length) {
+          events = await this.eventService.find({
+            _id: { $in: ldo.events as string[] },
+          });
+        }
+      }
+
+      /**
+       * CASE 2:
+       * Director requesting own events
+       */
+      else if (loggedUser.role === UserRole.director) {
+        const ldo = await this.ldoService.findOne({
+          director: loggedUser._id,
+        });
+
+        if (ldo?.events?.length) {
+          events = await this.eventService.find({
+            _id: { $in: ldo.events as string[] },
+          });
+        }
+      }
+
+      const resolvedEventIds = events.map((event) => event._id);
+
+      /**
+       * Build queries
+       */
+      const teamQuery: QueryFilter<Team> = {};
+
+
+
+      // Only add event filters when events exist
+      // if (resolvedEventIds.length > 0) {
+      // }
+      teamQuery.events = {
+        $in: resolvedEventIds,
+      };
+
+
+      const teams = await this.teamService.find(teamQuery);
+
+
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'events, players, groups',
+        data: {
+          events,
+          teams: teams as CustomTeam[]
+        },
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
     }
   }
 }

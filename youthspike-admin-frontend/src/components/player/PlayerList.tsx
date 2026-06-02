@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Sortable from 'sortablejs';
 import { motion } from 'motion/react';
 
@@ -6,7 +6,7 @@ import './PlayerList.css';
 import useScreenWidth from '../../hooks/useScreenWidth';
 import PlayerCard from './PlayerCard';
 
-import { IPlayerExpRel, IPlayerRankingExpRel, IEvent, IOption, ITeam, IPlayerRank, IUpdatePlayerRankingRes } from '@/types';
+import { IPlayerExpRel, IPlayerRankingExpRel, IEvent, IOption, ITeam, IPlayerRank, IUpdatePlayerRankingRes, IPlayer } from '@/types';
 import Image from 'next/image';
 import { itemVariants } from '@/utils/animation';
 import { UPDATE_PLAYER_RANKING } from '@/graphql/player-ranking';
@@ -43,7 +43,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
   const isMounted = useRef<boolean>(false);
   const screenWidth = useScreenWidth();
   const user = useUser();
-  const { showMessage } = useMessage();
+  const { setMessage } = useMessage();
 
   const [mutatePlayerRanking] = useMutation<{updatePlayerRanking: IUpdatePlayerRankingRes}>(UPDATE_PLAYER_RANKING);
 
@@ -66,18 +66,16 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
   };
 
   const handleUpdate = async (upr: IUpdateRank[]) => {
-    // upr = update player ranking
-    // if (!rankControls) return;
     if (upr.length > 0) {
       try {
         const rankingRes = await mutatePlayerRanking({ variables: { teamId, input: upr } });
 
-        const success = handleResponseCheck(rankingRes?.data?.updatePlayerRanking, showMessage);
+        const success = handleResponseCheck(rankingRes?.data?.updatePlayerRanking, setMessage);
         // Update rank players with match id and team id
         // if (refetchFunc) await refetchFunc();
       } catch (error: any) {
         console.log(error);
-        handleError({ error, showMessage });
+        handleError({ error, setMessage });
       }
     }
   };
@@ -121,9 +119,37 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     e.preventDefault(); // Prevent the default context menu from showing
   };
 
-  const teamMap = useMemo(() => {
-    return new Map<string, ITeam>(teamList?.map((t) => [t._id, t]));
-  }, [teamList]);
+
+
+  const findTeam = useCallback(
+    (player: IPlayerRank): ITeam | null => {
+      const teamMap = new Map<string, ITeam>(
+        teamList?.map((team) => [team._id, team]) ?? [],
+      );
+  
+      // Explicitly selected team
+      if (teamId) {
+        return teamMap.get(teamId) ?? null;
+      }
+  
+      // Player's first team
+      const firstTeam = player.teams?.[0];
+  
+      if (!firstTeam) {
+        return null;
+      }
+  
+      const playerTeamId =
+        typeof firstTeam === 'object'
+          ? String(firstTeam._id)
+          : String(firstTeam);
+  
+      return teamMap.get(playerTeamId) ?? null;
+    },
+    [teamId, teamList],
+  );
+  
+  
 
   useEffect(() => {
     if (playerList.length > 0) {
@@ -207,6 +233,8 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     // If ranking is allowed then sort them or keep it as it is
     return showRank && rankControls ? [...players].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0)) : players;
   }, [players, showRank, rankControls, playerRanking]);
+  
+
 
   /** Render List **/
   return (
@@ -236,13 +264,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
               player={player}
               setIsLoading={setIsLoading}
               showRank={showRank}
-              team={
-                teamId
-                  ? teamMap.get(teamId) || null
-                  : player.teams && player.teams.length > 0
-                  ? teamMap.get(typeof player.teams[0] === 'object' ? String(player.teams[0]._id) : String(player.teams[0])) || null
-                  : null
-              }
+              team={findTeam(player)}
               teamList={teamList || []}
               divisionList={divisionList}
               rankControls={rankControls}

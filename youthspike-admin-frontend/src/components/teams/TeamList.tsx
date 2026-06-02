@@ -10,10 +10,10 @@ import SelectInput from '../elements/forms/SelectInput';
 import { UPDATE_GROUP } from '@/graphql/group';
 import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
-import { useError } from '@/lib/MessageProvider';
 import Pagination from '../elements/Pagination';
 import { useMutation } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
+import { useMessage } from '@/lib/MessageProvider';
 
 interface TeamListProps {
   eventId: string;
@@ -29,7 +29,7 @@ const ITEMS_PER_PAGE = 20;
 function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refetchFunc }: TeamListProps) {
 
   // Hook
-  const { showMessage } = useError();
+  const { setMessage } = useMessage();
 
   // References
   const cngGroupEl = useRef<HTMLDialogElement | null>(null);
@@ -96,10 +96,10 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
         .filter(([_, isChecked]) => isChecked) // Filter for checked items
         .map(([teamId]) => teamId); // Map to just the team IDs
       const response = await deleteMultipleTeams({ variables: { teamIds: checkedTeamIds } });
-      const success = await handleResponseCheck(response.data?.deleteTeams, showMessage );
+      const success = await handleResponseCheck(response.data?.deleteTeams, setMessage );
       if (success && refetchFunc) await refetchFunc();
     } catch (error: any) {
-      handleError({ error, showMessage });
+      handleError({ error, setMessage });
     } finally {
       setIsLoading(false);
     }
@@ -129,7 +129,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
       .filter(([_, isChecked]) => isChecked) // Filter for checked items
       .map(([teamId]) => teamId); // Map to just the team IDs
     if (checkedTeamIds.length === 0) {
-      return showMessage({ type: 'error', message: 'You must select a few teams and do this action' });
+      return setMessage({ type: 'error', message: 'You must select a few teams and do this action' });
     }
 
     setShowBulkAction(false);
@@ -286,7 +286,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
       </div>
       <div className="team-list-card grid grid-cols-1 lg:grid-cols-2 gap-2">
         {paginatedTeamList.map((team) => {
-          if (!filteredGroupId || team.group?._id === filteredGroupId || String(team.group) === filteredGroupId) {
+          if (!filteredGroupId || team.groups?.map((g)=> typeof g === 'object' ? g._id : String(g)).includes(filteredGroupId)) {
             return (
               <TeamCard
                 key={team._id}
@@ -294,10 +294,10 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
                 eventId={eventId}
                 groupList={groupList}
                 isChecked={checkedTeams.get(team._id) ?? false}
-                handleSendCredential={handleSendCredential}
-                handleCheckedTeam={handleCheckedTeam}
-                handleDeleteTeamOpen={handleDeleteTeamOpen}
-                handleMoveTeamOpen={handleMoveTeamOpen}
+                onSendCredential={handleSendCredential}
+                onCheckedTeam={handleCheckedTeam}
+                onDeleteTeamOpen={handleDeleteTeamOpen}
+                onMoveTeamOpen={handleMoveTeamOpen}
               />
             );
           }

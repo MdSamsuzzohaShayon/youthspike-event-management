@@ -72,7 +72,7 @@ function Footer() {
       <div className="container mx-auto px-4 py-8">
         {/* Copyright Information */}
         <div className="text-center text-sm">
-          <p>© 2024 American Spikers League. All Rights Reserved.</p>
+          <p>© 2026 American Spikers League. All Rights Reserved.</p>
           <p className="mt-2 space-x-4">
             <Link href="/privacy" className="hover:text-gray-400 transition-colors">
               Privacy Policy

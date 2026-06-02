@@ -48,6 +48,25 @@ const playerResponse = `
   }
 `;
 
+
+const PLAYER_FRAGMENT = gql`
+  fragment PlayerFragment on Player {
+    _id
+    firstName
+    lastName
+    username
+    profile
+    email
+    status
+    phone
+    division
+    teams {
+      _id
+      name
+    }
+  }
+`;
+
 /**
  * Queries
  * =======================================================================================
@@ -189,6 +208,32 @@ query SearchPlayers($eventId: String!, $filter: PlayerSearchFilter!) {
   }
 }
 `;
+
+
+const GET_EVENTS_WITH_TEAMS = gql`
+query GetEventsWithTeams($ldoId: String) {
+  getEventsWithTeams(ldoId: $ldoId) {
+    success
+    message
+    __typename
+    data {
+      events{
+        _id
+        name
+        divisions
+        teams
+      }
+      teams{
+        _id
+        name
+        division
+        events
+      }
+    }
+  }
+}
+
+`;
 /**
  * Mutations
  * =======================================================================================
@@ -283,5 +328,7 @@ export {
   GET_PLAYER_AND_TEAMS,
   GET_PLAYERS_MIN_RAW,
   SEARCH_PLAYERS,
-  GET_PLAYERS_MIN
+  GET_PLAYERS_MIN,
+  GET_EVENTS_WITH_TEAMS,
+  PLAYER_FRAGMENT
 };

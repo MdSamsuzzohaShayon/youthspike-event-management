@@ -5,7 +5,7 @@ import {
   resetFormAndState,
   IDirectorBaseProps
 } from "./ldoDirectorHelper";
-import { handleApiResult, handleError } from "../handleError";
+import { handleApiResult } from "../handleError";
 import { IAddDirector, IAddLDO, IGetLdoResponse, ILDO, IMessage, IResponse } from "@/types";
 import { getCookie } from "../clientCookie";
 import { useMutation } from "@apollo/client/react";

@@ -12,7 +12,7 @@ type TMutationFunction = useMutation.MutationFunction<{
 }, ApolloCache>
 
 interface IAddMatchHandlerProps {
-  showMessage: (message: Omit<IMessage, "id">) => void;
+  setMessage: (message: Omit<IMessage, "id">) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   eventId: string;
   createMatch: TMutationFunction;
@@ -22,7 +22,7 @@ interface IAddMatchHandlerProps {
   addMatchCB?: (matchData: IMatchExpRel) => void;
 }
 
-async function addMatchHandler({ showMessage, setIsLoading, eventId, createMatch, addMatch, currDivision, showAddMatch, addMatchCB }: IAddMatchHandlerProps) {
+async function addMatchHandler({ setMessage, setIsLoading, eventId, createMatch, addMatch, currDivision, showAddMatch, addMatchCB }: IAddMatchHandlerProps) {
   try {
     setIsLoading(true);
 
@@ -30,8 +30,8 @@ async function addMatchHandler({ showMessage, setIsLoading, eventId, createMatch
     if (currDivision && currDivision !== '') addMatchObj.division = currDivision;
 
     // Basic validations
-    if (!addMatchObj.teamA || !addMatchObj.teamB) return showMessage({ code: 400, type: "error", message: 'Teams cannot be empty!' });
-    if (addMatchObj.teamA === addMatchObj.teamB) return showMessage({ code: 400, type: "error", message: 'Both teams are the same!' });
+    if (!addMatchObj.teamA || !addMatchObj.teamB) return setMessage({ code: 400, type: "error", message: 'Teams cannot be empty!' });
+    if (addMatchObj.teamA === addMatchObj.teamB) return setMessage({ code: 400, type: "error", message: 'Both teams are the same!' });
 
     // Remove unused field
     // @ts-ignore
@@ -41,14 +41,14 @@ async function addMatchHandler({ showMessage, setIsLoading, eventId, createMatch
     const matchRes = res?.data?.createMatch;
     if (matchRes?.data && addMatchCB) addMatchCB(matchRes.data);
 
-    const success = await handleResponseCheck(matchRes, showMessage);
+    const success = await handleResponseCheck(matchRes, setMessage);
 
     if (success) {
       if (showAddMatch) showAddMatch(false);
     }
   } catch (error: any) {
     console.log(error);
-    handleError({ error, showMessage });
+    handleError({ error, setMessage });
   } finally {
     setIsLoading(false);
   }

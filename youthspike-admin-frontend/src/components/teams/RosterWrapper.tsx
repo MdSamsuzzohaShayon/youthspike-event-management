@@ -108,7 +108,9 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
   const divisionList: IOption[] = useMemo(() => {
     const divisions = divisionsOfEvents(events);
     return divisionsToOptionList(divisions);
-  }, [events])
+  }, [events]);
+
+  
 
 
   if (addPlayer) {
@@ -129,7 +131,7 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
 
         <form onSubmit={handleAddPlayersToTeam} className="space-y-3">
           <PlayerSelectInput players={unassignedPlayers as IPlayer[]}
-            events={events.map(e => e._id)}
+            events={events}
             onCheckboxChange={handleCheckboxChange} name="add-player-to-team" />
           <button type="submit" className="w-full bg-yellow-400 text-gray-900 py-3 rounded-lg font-bold text-sm hover:bg-yellow-300 transition-colors shadow-lg">
             ADD SELECTED PLAYERS
@@ -156,7 +158,7 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
           playerList={activePlayers}
           setIsLoading={setIsLoading}
           rankControls
-          teamList={teamList}
+          teamList={[...teamList, team]}
           divisionList={divisionList}
           teamId={team?._id}
           showRank
@@ -175,7 +177,7 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
             playerList={inactivePlayers}
             events={events}
             setIsLoading={setIsLoading}
-            teamList={teamList}
+            teamList={[...teamList, team]}
             divisionList={divisionList}
             teamId={team._id}
             inactive

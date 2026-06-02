@@ -230,7 +230,7 @@ export class ScoreKeeperHelper {
 
 
 
-  rotateServerReceiverEqualScoring(net: ServerReceiverOnNet) {
+  rotateServerReceiverEqualScoring(net: ServerReceiverOnNet, previousServerOfOtherTeam: string | null) {
     const prev: Omit<Rotation, 'serverPositionPair'> = {
       server: String(net.server),
       servingPartner: String(net.servingPartner),
@@ -278,8 +278,13 @@ export class ScoreKeeperHelper {
 
     const next = transformMap[net.serverPositionPair];
 
-    net.server = next.server;
-    net.servingPartner = next.servingPartner;
+    let newServer = next.server, newServingPartner = next.servingPartner;
+    if(newServer === previousServerOfOtherTeam){
+      newServer = next.servingPartner;
+      newServingPartner = next.server;
+    }
+    net.server = newServer;
+    net.servingPartner = newServingPartner;
     net.receiver = next.receiver;
     net.receivingPartner = next.receivingPartner;
     net.serverPositionPair = next.serverPositionPair;

@@ -927,6 +927,18 @@ type SearchPlayersResponse {
   data: SearchPlayers
 }
 
+type EventsWithTeams {
+  events: [CustomEvent!]!
+  teams: [CustomTeam!]!
+}
+
+type GetEventsWithTeamsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: EventsWithTeams
+}
+
 type CustomPlayer {
   _id: String
   createdAt: String
@@ -1442,6 +1454,7 @@ type Query {
   getPlayerAndTeams(playerId: String!, eventIds: [String!]): GetPlayerAndTeamsResponse!
   getPlayers(eventId: String, limit: Float = 30, offset: Float = 0): PlayersResponse!
   searchPlayers(eventId: String!, filter: PlayerSearchFilter): SearchPlayersResponse!
+  getEventsWithTeams(ldoId: String): GetEventsWithTeamsResponse!
   getGroups(eventId: String): GetGroupsResponse!
   getGroup(groupId: String!): GetGroupResponse!
   getPlayerStats(playerId: [String!]!): PlayerStatsResponse!
@@ -1587,24 +1600,32 @@ input UpdateUser {
 
 input CreateTeamInput {
   name: String!
+  logo: String
   active: Boolean!
   division: String!
-  group: String
+  sendCredentials: Boolean
   captain: String
-  events: [ID!] = []
-  players: [ID!]
+  cocaptain: String
+  matches: [String!]
+  events: [String!]
+  players: [String!]
+  moved: [String!]
+  groups: [String!]!
 }
 
 input UpdateTeamInput {
   name: String
+  logo: String
   active: Boolean
   division: String
-  group: String
+  sendCredentials: Boolean
   captain: String
-  events: [ID!] = []
-  players: [ID!]
   cocaptain: String
-  email: String
+  matches: [String!]
+  events: [String!]
+  players: [String!]
+  moved: [String!]
+  groups: [String!]
 }
 
 input UpdateTeamsInput {
@@ -1613,7 +1634,7 @@ input UpdateTeamsInput {
   division: String
   group: String
   captain: String
-  events: [ID!] = []
+  events: [ID!]
   teamIds: [String!]
   cocaptain: String
   email: String
@@ -1729,22 +1750,22 @@ input CreatePlayerInput {
   firstName: String!
   lastName: String!
   username: String
-  event: String!
   division: String!
   email: String
   phone: String
-  team: String
+  teams: [String!]
+  events: [String!]
 }
 
 input UpdatePlayerInput {
   firstName: String
   lastName: String
   username: String
-  event: String
   division: String
   email: String
   phone: String
-  team: String
+  teams: [String!]
+  events: [String!]
   status: String
   newTeamId: String
 }
@@ -1753,11 +1774,11 @@ input UpdatePlayersInput {
   firstName: String
   lastName: String
   username: String
-  event: String
   division: String
   email: String
   phone: String
-  team: String
+  teams: [String!]
+  events: [String!]
   _id: String!
   status: String
 }

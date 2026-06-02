@@ -5,7 +5,7 @@ import SelectInput from '../elements/forms/SelectInput';
 import InputField from '../elements/forms/InputField';
 import { useLdoId } from '@/lib/LdoProvider';
 import SessionStorageService from '@/utils/SessionStorageService';
-import { DIVISION } from '@/utils/constant';
+import { CURRENT_EVENT, DIVISION } from '@/utils/constant';
 import Image from 'next/image';
 import routerService from '@/lib/router-service';
 
@@ -82,13 +82,26 @@ function FilterContent({
   };
 
 
-  const handleRedirectTeam=(e: React.SyntheticEvent)=>{
+  const handleRedirectTeam = (e: React.SyntheticEvent) => {
     e.preventDefault();
     // Set event
-    if(eventId){
-      SessionStorageService.setItem('event', eventId);
+    if (eventId) {
+      SessionStorageService.setItem(CURRENT_EVENT, eventId);
     }
     routerService.push(`/teams/new/${ldoIdUrl}`);
+  }
+
+
+  const handleRedirectPlayer = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    // Set event
+    if (eventId) {
+      SessionStorageService.setItem(CURRENT_EVENT, eventId);
+      routerService.push(`/players/new/${ldoIdUrl}`);
+    }else{
+      console.error("No event id found");
+    }
+    
   }
 
   const handleGroupChange = (e: React.SyntheticEvent) => {
@@ -174,10 +187,13 @@ function FilterContent({
             New Match
           </Link>
         ) : (
-          <button className='btn-info flex justify-center items-center gap-x-2' onClick={handleRedirectTeam}>
+          filterPage === EFilterPage.PLAYERS ? (<button className='btn-info flex justify-center items-center gap-x-2' onClick={handleRedirectPlayer}>
+            <Image src={`/icons/plus.svg`} height={20} width={20} alt='new-team' className='w-6 h-6' />
+            New Player
+          </button>) : (<button className='btn-info flex justify-center items-center gap-x-2' onClick={handleRedirectTeam}>
             <Image src={`/icons/plus.svg`} height={20} width={20} alt='new-team' className='w-6 h-6' />
             New Team
-          </button>
+          </button>)
         )}
 
         {hasActiveFilters && (

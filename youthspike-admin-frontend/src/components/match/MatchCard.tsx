@@ -27,10 +27,10 @@ interface MatchCardProps {
   sl: number;
   isChecked: boolean;
   handleSelectMatch: (e: React.SyntheticEvent, _id: string) => void;
-  showMessage: (message: Omit<IMessage, "id">) => void;
+  setMessage: (message: Omit<IMessage, "id">) => void;
 }
 
-function MatchCard({ match, isChecked, handleSelectMatch, showMessage }: MatchCardProps) {
+function MatchCard({ match, isChecked, handleSelectMatch, setMessage }: MatchCardProps) {
   const user = useUser();
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
@@ -129,7 +129,7 @@ function MatchCard({ match, isChecked, handleSelectMatch, showMessage }: MatchCa
       console.log({ deletedMatch });
     } catch (err: any) {
       console.log(err);
-      handleError({ error: err, showMessage });
+      handleError({ error: err, setMessage });
     } finally {
       window.location.reload();
     }

@@ -4,7 +4,7 @@ import {
   validatePassword
 } from "./ldoDirectorHelper";
 import { IGetLdoResponse, ILdoUpdate, IMessage, IUser, IUserContext, IUserResponse, UserRole } from "@/types";
-import { handleApiResult, handleError } from "../handleError";
+import { handleApiResult } from "../handleError";
 import { getCookie } from "../clientCookie";
 import { useMutation } from "@apollo/client/react";
 import { ApolloCache, ApolloClient, gql } from "@apollo/client";

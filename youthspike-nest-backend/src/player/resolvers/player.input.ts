@@ -16,9 +16,6 @@ export class CreatePlayerInput {
   username?: string;
 
   @Field()
-  event: string;
-
-  @Field()
   division: string;
 
   @Field({ nullable: true })
@@ -28,8 +25,11 @@ export class CreatePlayerInput {
   phone: string;
 
 
-  @Field({ nullable: true })
-  team?: string;
+  @Field(() => [String], { nullable: true })
+  teams: string[];
+
+  @Field(() => [String], { nullable: true })
+  events: string[];
 }
 
 @InputType()
@@ -52,41 +52,41 @@ export class UpdatePlayersInput extends PartialType(CreatePlayerInput) {
 
 
 @InputType()
-export class CreatePlayerBody{
+export class CreatePlayerBody {
   @Field()
   input: CreatePlayerInput;
-  
-  @Field((_type)=> GraphQLUpload, {nullable: true})
+
+  @Field((_type) => GraphQLUpload, { nullable: true })
   profile?: Promise<FileUpload>;
 }
 
 @InputType()
-export class CreateMultiPlayerBody{
+export class CreateMultiPlayerBody {
   @Field()
   eventId: string;
 
   @Field()
   division: string;
-  
-  @Field((_type)=> GraphQLUpload)
+
+  @Field((_type) => GraphQLUpload)
   uploadedFile: Promise<FileUpload>;
 }
 
 
 @InputType()
-export class UpdatePlayerBody{
+export class UpdatePlayerBody {
   @Field()
   input: UpdatePlayerInput;
 
   @Field()
   playerId: string;
-  
-  @Field((_type)=> GraphQLUpload, {nullable: true})
+
+  @Field((_type) => GraphQLUpload, { nullable: true })
   profile?: Promise<FileUpload>;
 }
 
 
-export enum EGroupType{
+export enum EGroupType {
   OVERALL = "OVERALL",
   CONFERENCE = "CONFERENCE",
   NON_CONFERENCE = "NON_CONFERENCE",
@@ -100,7 +100,7 @@ export class PlayerSearchFilter {
   search?: string; // firstName, lastName, username
 
   @Field({ nullable: true })
-  division?: string; 
+  division?: string;
 
   @Field({ nullable: true })
   group?: string;

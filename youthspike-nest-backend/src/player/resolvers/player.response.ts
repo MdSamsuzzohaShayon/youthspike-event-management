@@ -5,6 +5,7 @@ import { Event } from 'src/event/event.schema';
 import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
 import { CustomGroup } from 'src/match/resolvers/match.response';
 import { CustomTeam } from 'src/team/resolvers/team.response';
+import { CustomEvent } from 'src/event/resolvers/event.response';
 
 @ObjectType()
 export class PlayerResponse extends AppResponse<Player> {
@@ -37,6 +38,22 @@ export class SearchPlayers extends Player {
 export class SearchPlayersResponse extends AppResponse<SearchPlayers> {
   @Field((_type) => SearchPlayers, { nullable: true })
   data?: SearchPlayers;
+}
+
+
+@ObjectType()
+export class EventsWithTeams {
+  @Field((_type) => [CustomEvent], { nullable: false })
+  events: CustomEvent[];
+
+  @Field((_type) => [CustomTeam], { nullable: false })
+  teams: CustomTeam[];
+}
+
+@ObjectType()
+export class GetEventsWithTeamsResponse extends AppResponse<EventsWithTeams> {
+  @Field((_type) => EventsWithTeams, { nullable: true })
+  data?: EventsWithTeams;
 }
 
 @ObjectType()

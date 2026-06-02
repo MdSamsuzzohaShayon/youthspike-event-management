@@ -6,5 +6,6 @@ const DIVISION = "division";
 const MATCHES_LS = 'MATCHES_LS';
 const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 const DEFAULT_SPONSOR = "/free-logo.png";
+const CURRENT_EVENT = 'current_event'; // Not event of the ldo, it is the event that we are into
 
-export {LDO_ID, UNAUTHORIZED, PLAYER_PAGE, TEAM, DIVISION, MATCHES_LS, MAX_FILE_SIZE_BYTES, DEFAULT_SPONSOR};
+export {LDO_ID, UNAUTHORIZED, PLAYER_PAGE, TEAM, DIVISION, MATCHES_LS, MAX_FILE_SIZE_BYTES, DEFAULT_SPONSOR, CURRENT_EVENT};

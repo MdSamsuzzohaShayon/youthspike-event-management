@@ -2,8 +2,7 @@
 // ♻️ Update Team
 // ------------------------------
 
-import { IGetTeamResponse, IMessage, ITeamAdd, TUpdateTeamFunction } from '@/types';
-import uploadTeamData from './uploadTeamData';
+import { IGetTeamResponse, IMessage, ITeam, TAddTeam, TUpdateTeamFunction } from '@/types';
 import routerService from '@/lib/router-service';
 import { getCookie } from '../clientCookie';
 import { BACKEND_URL } from '../keys';
@@ -14,19 +13,16 @@ import SessionStorageService from '../SessionStorageService';
 import { DIVISION } from '../constant';
 import { removeTeamFromStore } from '../localStorage';
 
-interface IPrevTeam extends ITeamAdd {
-  _id: string;
-}
 
 interface IUpdateTeam {
   events: string[];
-  prevTeam: IPrevTeam | null;
-  updateTeamState: Partial<ITeamAdd>;
+  prevTeam: ITeam | null;
+  updateTeamState: Partial<TAddTeam>;
   apolloClient: ApolloClient;
   setMessage: (message: Omit<IMessage, "id">) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   uploadedLogo: React.RefObject<null | Blob | MediaSource>;
-  playerIdList: string[];
+  // playerIdList: string[];
   mutateTeam: TUpdateTeamFunction;
 }
 
@@ -38,19 +34,21 @@ export async function updateTeam({
   apolloClient,
   setIsLoading,
   uploadedLogo,
-  playerIdList,
+  // playerIdList,
   mutateTeam,
 }: IUpdateTeam) {
   try {
     setIsLoading(true);
 
     // Build update input
-    const input = { ...updateTeamState, players: playerIdList };
+    const input = { ...updateTeamState };
     if (!input.captain) delete input.captain;
     delete input.logo;
 
     // Ensure prevTeam is available before proceeding
     if (!prevTeam) {
+      console.error("No previous team found!");
+      
       return false;
     }
 

@@ -192,11 +192,11 @@ export class PlayerMutations implements IPlayerMutations {
       const playerObj = {
         ...input,
         profile: profileUrl,
-        events: [input.event],
-        teams: [],
+        // events: input.events,
+        // teams: ,
         name: `${input.firstName}_${input.lastName}`,
       };
-      const playerExist = await this.playerService.findOne({ name: playerObj.name, events: input.event });
+      const playerExist = await this.playerService.findOne({ name: playerObj.name, events: {$in: input.events}});
       if (playerExist) {
         return AppResponse.handleError({
           code: 404,
@@ -206,63 +206,63 @@ export class PlayerMutations implements IPlayerMutations {
       }
       if (playerObj.email === '') delete playerObj.email;
       if (playerObj.phone === '') delete playerObj.phone;
-      if (input.team) playerObj.teams = [input.team];
+      if (input.teams) playerObj.teams = input.teams;
       if (!playerObj.username || playerObj.username === '') {
         playerObj.username = this.playerService.playerUsername(playerObj.firstName);
       }
-      if (playerObj.team) delete playerObj.team;
-      delete playerObj.event;
+      // if (playerObj.teams) delete playerObj.teams;
+      // delete playerObj.event;
 
       const newPlayer = await this.playerService.create(playerObj);
 
-      if (input.team) {
+      if (input.teams) {
         // ===== Update Player Ranking =====
-        const [playerRankings, teamExist] = await Promise.all([
-          this.playerRankingService.find({ team: input.team, rankLock: false }),
-          this.teamService.findById(input.team),
-        ]);
-        if (playerRankings && playerRankings.length > 0) {
-          // Looping all player rankings of a team
-          for (const pr of playerRankings) {
-            // If ranking is locked, then add that player only to one team player ranking (not in the ranking that has specific match)
-            if (pr.rankLock && pr.match) continue;
-
-            const rankings = await this.playerRankingService.findItems({ playerRanking: pr._id });
-            const highestRank = rankings.length === 0 ? 0 : Math.max(...rankings.map((p) => p.rank));
-
-            // Insert that ranking iteam
-            const itemsToInsert = [];
-            const playerIds = [...teamExist.players, newPlayer._id];
-            let rankIncrement = 0;
-            for (let i = 0; i < playerIds.length; i += 1) {
-              // If there is no player then add them
-              const findRank = rankings.find((r) => r.player?.toString() === playerIds[i].toString());
-              if (!findRank) {
-                itemsToInsert.push({
-                  player: playerIds[i],
-                  rank: highestRank + rankIncrement + 1,
-                  playerRanking: pr._id,
-                });
-                rankIncrement += 1;
+        const teams = await this.teamService.find({_id: {$in: input.teams}});
+        for (const team of teams) {
+          const playerRankings = await this.playerRankingService.find({ team: team._id, rankLock: false });
+          if (playerRankings && playerRankings.length > 0) {
+            // Looping all player rankings of a team
+            for (const pr of playerRankings) {
+              // If ranking is locked, then add that player only to one team player ranking (not in the ranking that has specific match)
+              if (pr.rankLock && pr.match) continue;
+  
+              const rankings = await this.playerRankingService.findItems({ playerRanking: pr._id });
+              const highestRank = rankings.length === 0 ? 0 : Math.max(...rankings.map((p) => p.rank));
+  
+              // Insert that ranking iteam
+              const itemsToInsert = [];
+              const playerIds = [...team.players, newPlayer._id];
+              let rankIncrement = 0;
+              for (let i = 0; i < playerIds.length; i += 1) {
+                // If there is no player then add them
+                const findRank = rankings.find((r) => r.player?.toString() === playerIds[i].toString());
+                if (!findRank) {
+                  itemsToInsert.push({
+                    player: playerIds[i],
+                    rank: highestRank + rankIncrement + 1,
+                    playerRanking: pr._id,
+                  });
+                  rankIncrement += 1;
+                }
               }
+              // Create new ranking item
+              const rankingItems = await this.playerRankingService.insertManyItems(itemsToInsert);
+              // Add those item to relational playerRanking
+              ensurePromises.push(
+                this.playerRankingService.updateOne(
+                  { _id: pr._id },
+                  { $addToSet: { rankings: { $each: rankingItems.map((ri) => ri._id) } } },
+                ),
+              );
             }
-            // Create new ranking item
-            const rankingItems = await this.playerRankingService.insertManyItems(itemsToInsert);
-            // Add those item to relational playerRanking
-            ensurePromises.push(
-              this.playerRankingService.updateOne(
-                { _id: pr._id },
-                { $addToSet: { rankings: { $each: rankingItems.map((ri) => ri._id) } } },
-              ),
-            );
           }
+          ensurePromises.push(this.teamService.updateOne({ _id: team }, { $addToSet: { players: newPlayer._id } }));
         }
-        ensurePromises.push(this.teamService.updateOne({ _id: input.team }, { $addToSet: { players: newPlayer._id } }));
       }
       ensurePromises.push(
         this.eventService.updateOne(
-          { _id: input.event.toString() },
-          { $addToSet: { players: newPlayer._id.toString() } },
+          { _id: {$in: input.teams} },
+          { $addToSet: { players: newPlayer._id } },
         ),
       );
       await Promise.all(ensurePromises);
@@ -547,9 +547,9 @@ export class PlayerMutations implements IPlayerMutations {
       }
 
       // If changing teams
-      const isTeamChange = input.newTeamId && input.team && input.team !== input.newTeamId;
+      const isTeamChange = input.newTeamId && input.teams && !input.teams.includes(input.newTeamId);
 
-      if (input.newTeamId && input.team && !isTeamChange) {
+      if (input.newTeamId && input.teams && !isTeamChange) {
         return AppResponse.handleError({
           name: 'Invalid team',
           message: 'New team and previous team both are same, therefore no need to change',

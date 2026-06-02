@@ -12,6 +12,9 @@ import { menuVariants } from '@/utils/animation';
 import TextImg from '../elements/TextImg';
 import { useMutation } from '@apollo/client/react';
 import { checkGroupIsWithinTheEvent } from '@/utils/helper';
+import routerService from '@/lib/router-service';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { CURRENT_EVENT } from '@/utils/constant';
 
 interface ITeamCardProps {
   team: ITeam;
@@ -104,26 +107,6 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
 
 
 
-  // Derived values
-  // const filteredGroups = useMemo(() => {
-  //   const teamDivision = team.division.trim().toUpperCase();
-
-  //   let id = 1;
-
-  //   return [...groupList].reduce<IOption[]>(
-  //     (acc, g) => { 
-  //       if ( g.division.trim().toUpperCase() === teamDivision) {
-  //         acc.push({
-  //           id: id++,
-  //           value: g._id,
-  //           text: g.name,
-  //         });
-  //       }
-  //       return acc;
-  //     },
-  //     []
-  //   );
-  // }, [groupList, team]);
 
 
   const groupOptions = useMemo(() => {
@@ -154,56 +137,64 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
       team.captain && <TextImg className="w-8 h-8 rounded-full bg-gray-600" fullText={team.captain.firstName + team.captain.lastName} />
     );
 
-  const ActionMenu = () => (
-    <AnimatePresence>
-      {actionOpen && (
-        <motion.ul
-          ref={actionEl}
-          className="absolute z-20 right-0 top-10 w-48 bg-gray-700 rounded-md shadow-lg overflow-hidden"
-          variants={menuVariants}
-          initial="hidden"
-          animate="visible"
-          exit="exit"
-          transition={{ duration: 0.2 }}
-        >
-          <li>
-            <Link href={`/${eventId}/teams/${team._id}/${ldoIdUrl}`} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer">
-              <Image src="/icons/edit.svg" alt="Edit" width={16} height={16} className="svg-white" />
-              <span className="text-sm">Edit</span>
-            </Link>
-          </li>
-
-          <li
-            onClick={(e) => handleMoveTeamOpen(e, team)}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer"
+  const ActionMenu = () => {
+    // href={`/teams/${team._id}/${ldoIdUrl}`}
+    const handleEditRedirect = (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      SessionStorageService.setItem(CURRENT_EVENT, eventId);
+      routerService.push(`/teams/${team._id}/update/${ldoIdUrl}`)
+    }
+    return (
+      <AnimatePresence>
+        {actionOpen && (
+          <motion.ul
+            ref={actionEl}
+            className="absolute z-20 right-0 top-10 w-48 bg-gray-700 rounded-md shadow-lg overflow-hidden"
+            variants={menuVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            transition={{ duration: 0.2 }}
           >
-            <Image src="/icons/move.svg" alt="Move Team" width={16} height={16} className="svg-white" />
-            <span className="text-sm">Move Team</span>
-          </li>
+            <li>
+              <button onClick={handleEditRedirect} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer">
+                <Image src="/icons/edit.svg" alt="Edit" width={16} height={16} className="svg-white" />
+                <span className="text-sm">Edit</span>
+              </button>
+            </li>
 
-          <li
-            onClick={(e) => {
-              setActionOpen(false);
-              onSendCredential(e, team._id);
-            }}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer"
-          >
-            <Image src="/icons/send-email.svg" alt={`${sendCredentialLabel} Credential`} width={16} height={16} className={team.sendCredentials ? 'svg-green' : 'svg-white'} />
-            <span className="text-sm">{sendCredentialLabel} Credential</span>
-          </li>
+            <li
+              onClick={(e) => handleMoveTeamOpen(e, team)}
+              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer"
+            >
+              <Image src="/icons/move.svg" alt="Move Team" width={16} height={16} className="svg-white" />
+              <span className="text-sm">Move Team</span>
+            </li>
 
-          <li
-            onClick={(e) => handleDeleteTeamOpen(e, team)}
-            className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer text-red-500 hover:text-red-400"
-            role="presentation"
-          >
-            <Image src="/icons/delete.svg" alt="Delete" width={16} height={16} className="svg-white" />
-            <span className="text-sm">Delete</span>
-          </li>
-        </motion.ul>
-      )}
-    </AnimatePresence>
-  );
+            <li
+              onClick={(e) => {
+                setActionOpen(false);
+                onSendCredential(e, team._id);
+              }}
+              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer"
+            >
+              <Image src="/icons/send-email.svg" alt={`${sendCredentialLabel} Credential`} width={16} height={16} className={team.sendCredentials ? 'svg-green' : 'svg-white'} />
+              <span className="text-sm">{sendCredentialLabel} Credential</span>
+            </li>
+
+            <li
+              onClick={(e) => handleDeleteTeamOpen(e, team)}
+              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer text-red-500 hover:text-red-400"
+              role="presentation"
+            >
+              <Image src="/icons/delete.svg" alt="Delete" width={16} height={16} className="svg-white" />
+              <span className="text-sm">Delete</span>
+            </li>
+          </motion.ul>
+        )}
+      </AnimatePresence>
+    );
+  }
 
   const HeaderSection = () => (
     <div className="flex items-center justify-between mb-2 min-h-[2.5rem]">

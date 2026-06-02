@@ -36,9 +36,9 @@ function PlayerSearchList({
       <ul className="relative w-full">
 
         {playerList.map((player) => <li key={player._id} className="mb-2 flex items-center bg-gray-800 rounded-xl p-2">
-          <PlayerCard key={player._id} eventId={eventId} player={player as IPlayerRank}
-            team={player?.teams && player?.teams.length > 0 ? (teamMap.get(player.teams[0]) || null) : null}
-            handleSelectPlayer={() => { }} isChecked={false}
+          <PlayerCard key={player._id} player={player as IPlayerRank}
+            team={player?.teams && player?.teams.length > 0 ? (teamMap.get(player.teams[0] as string) || null) : null}
+            onSelect={() => { }} isChecked={false}
             teamList={teamList} setIsLoading={setIsLoading} />
         </li>)}
       </ul>

@@ -10,7 +10,7 @@ import { Event } from 'src/event/event.schema';
 import { Team } from 'src/team/team.schema';
 import {
   ExportPlayersResponse,
-  GetEventWithPlayersResponse,
+  GetEventsWithTeamsResponse,
   GetPlayerAndTeamsResponse,
   PlayerResponse,
   PlayersResponse,
@@ -21,7 +21,6 @@ import { PlayerQueries } from './resolvers/player.queries';
 import { PlayerFields } from './resolvers/player.fields';
 import { FileUpload } from 'graphql-upload/processRequest.mjs';
 import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
-import { PlayerStatsSearchFilter } from 'src/player-stats/resolvers/player-stats.input';
 const GraphQLUpload = GraphQLUploadModule.default;
 
 @Resolver((_of) => Player) // Specify the object type for the resolver
@@ -126,6 +125,18 @@ export class PlayerResolver {
     return this.playerQueries.searchPlayers(context, eventId, filter);
   }
 
+
+
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Query((_returns) => GetEventsWithTeamsResponse)
+  async getEventsWithTeams(
+    @Context() context: any,
+    @Args('ldoId', { nullable: true }) ldoId?: string,
+  ): Promise<GetEventsWithTeamsResponse> {
+    return this.playerQueries.getEventsWithTeams(context, ldoId);
+  }
 
 
   /**

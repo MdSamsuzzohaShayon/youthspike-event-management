@@ -14,11 +14,11 @@ interface IPlayerMoveDialogProps {
   teamId: string | null;
   mutatePlayer: any;
   setActionOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  showMessage: (message: Omit<IMessage, "id">) => void;
+  setMessage: (message: Omit<IMessage, "id">) => void;
   setMovePlayer: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-function PlayerMoveDialog({ dialogMoveEl, player, divisionList, teamList, teamId, mutatePlayer, setActionOpen, showMessage, setMovePlayer }: IPlayerMoveDialogProps) {
+function PlayerMoveDialog({ dialogMoveEl, player, divisionList, teamList, teamId, mutatePlayer, setActionOpen, setMessage, setMovePlayer }: IPlayerMoveDialogProps) {
   const [teamOptions, setTeamOptions] = useState<IOption[]>(
     (teamList || []).map((t, i) => ({
       id: i + 1,
@@ -80,7 +80,7 @@ function PlayerMoveDialog({ dialogMoveEl, player, divisionList, teamList, teamId
         },
       });
 
-      const success = await handleResponseCheck(response.data.updatePlayer, showMessage);
+      const success = await handleResponseCheck(response.data.updatePlayer, setMessage);
       if (!success) return;
 
       // Add cache
@@ -88,7 +88,7 @@ function PlayerMoveDialog({ dialogMoveEl, player, divisionList, teamList, teamId
       setMovePlayer(false);
       dialogMoveEl.current?.close();
     } catch (error: any) {
-      handleError({ error, showMessage });
+      handleError({ error, setMessage });
     }
   };
 

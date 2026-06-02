@@ -32,8 +32,6 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
   const isInitial = useRef<boolean>(true);
   const router = useRouter();
   const { data: initialData } = useReadQuery(queryRef);
-
-  console.log(initialData);
   
 
   if(!initialData?.searchTeams?.data?.events || initialData?.searchTeams?.data?.events?.length === 0){

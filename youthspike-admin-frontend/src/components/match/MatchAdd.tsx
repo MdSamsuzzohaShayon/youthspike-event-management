@@ -46,7 +46,7 @@ const initialAddMatch: IAddMatch = {
 function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, update, matchId, eventData, showAddMatch, prevMatch, addMatchCB }: IMatchAddProps) {
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
-  const { showMessage } = useMessage();
+  const { setMessage } = useMessage();
 
 
   // Local State
@@ -157,7 +157,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
     e.preventDefault();
     if (update && matchId) {
       await updateMatchHandler({
-        showMessage,
+        setMessage,
         setIsLoading,
         eventId,
         mutateMatch,
@@ -167,7 +167,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
       });
     } else {
       await addMatchHandler({
-        showMessage,
+        setMessage,
         setIsLoading,
         eventId,
         createMatch,

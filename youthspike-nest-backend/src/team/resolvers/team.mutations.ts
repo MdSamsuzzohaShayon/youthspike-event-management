@@ -105,11 +105,23 @@ export class TeamMutations {
     }
 
     // ===== Update group =====
-    if (input.group && input.group.toString() !== team.groups?.toString()) {
+    if (input.groups ) {
+      // New groups 
+      const groupSet = new Set<string>();
+      for (const groupId of input.groups) {
+        groupSet.add(groupId);
+      }
+      const newGroupSet = new Set<string>();
+      for (const group of team.groups) {
+        const groupId: string = typeof group === 'object' ? group._id : String(group);
+        if(!groupSet.has(groupId)){
+          newGroupSet.add(groupId);
+        }
+        
+      }
       const prevGroupIds = team.groups as string[];
-      const nextGroupId = input.group.toString();
-      if (prevGroupIds) updatePromises.push(this.groupService.updateOne({ _id: { $in: prevGroupIds } }, { $pull: { teams: teamId } }));
-      updatePromises.push(this.groupService.updateOne({ _id: nextGroupId }, { $addToSet: { teams: teamId } }));
+      if (prevGroupIds) updatePromises.push(this.groupService.updateMany({ _id: { $in: prevGroupIds } }, { $pull: { teams: teamId } }));
+      updatePromises.push(this.groupService.updateMany({ _id: {$in: [...newGroupSet]} }, { $addToSet: { teams: teamId } }));
     }
 
     // ===== Update captain and co-captain =====
@@ -205,19 +217,7 @@ export class TeamMutations {
         });
       }
 
-      const teamObj: Team = {
-        name: input.name,
-        logo: logoUrl,
-        sendCredentials: false,
-        captain: input.captain,
-        events: input.events,
-        division: input.division.trim().toLowerCase(),
-        active: true,
-        players,
-        playerRankings: [],
-        groups: input.group ? [input.group] : []
-      };
-      const newTeam = await this.teamService.create(teamObj);
+      const newTeam = await this.teamService.create({...input, logo: logoUrl});
 
       // ===== Captain - User - Player - Team Relationship update =====
       const promiseOperations = [];
@@ -266,9 +266,9 @@ export class TeamMutations {
         );
       }
 
-      if (input.group) {
+      if (input.groups) {
         promiseOperations.push(
-          this.groupService.updateOne({ _id: input.group }, { $addToSet: { teams: newTeam._id } }),
+          this.groupService.updateMany({ _id: {$in: input.groups} }, { $addToSet: { teams: newTeam._id } }),
         );
       }
 
@@ -317,7 +317,7 @@ export class TeamMutations {
         code: HttpStatus.ACCEPTED,
         success: true,
         message: 'A team has been updated successfully',
-        data: updatedTeam as CustomTeam,
+        data: {...updatedTeam, groups: updatedTeam?.groups && updatedTeam.groups.length > 0 ? updatedTeam.groups.filter((g)=> g) : []} as CustomTeam,
       };
     } catch (err) {
       return AppResponse.handleError(err);
