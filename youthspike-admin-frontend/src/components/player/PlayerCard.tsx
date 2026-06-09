@@ -1,10 +1,10 @@
 import { DELETE_A_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
 import { UPDATE_TEAM } from '@/graphql/teams';
-import { EPlayerStatus, IUpdatePlayerRes } from '@/types/player';
+import { EPlayerStatus } from '@/types/player';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
 import React, { useMemo, useRef, useState, useCallback } from 'react';
-import { IGetTeamResponse, IOption, IPlayerRank, IResponse, ITeam, TAddTeam } from '@/types';
+import { IGetTeamResponse, IOption, IPlayerRank, IResponse, ITeam, IUpdatePlayerResponse, TAddTeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { useUser } from '@/lib/UserProvider';
 import Image from 'next/image';
@@ -41,6 +41,8 @@ interface IPlayerCardProps {
 }
 
 export default function PlayerCard({ player, isChecked, onSelect, teams, teamList, setIsLoading, showRank, rank, divisionList, rankControls, selectedTeam }: IPlayerCardProps) {
+  
+  
 
 
 
@@ -66,7 +68,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
 
   // Mutations
   const [mutateTeam] = useMutation<{ updateTeam: IGetTeamResponse }>(UPDATE_TEAM);
-  const [mutatePlayer, { client }] = useMutation<{ updatePlayer: IUpdatePlayerRes }>(UPDATE_PLAYER);
+  const [mutatePlayer, { client }] = useMutation<{ updatePlayer: IUpdatePlayerResponse }>(UPDATE_PLAYER);
   const [deleteAPlayer] = useMutation<{ deletePlayer: IResponse }>(DELETE_A_PLAYER);
 
   // Memoized values

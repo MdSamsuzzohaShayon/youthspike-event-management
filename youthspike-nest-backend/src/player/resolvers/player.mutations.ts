@@ -29,24 +29,24 @@ export class PlayerMutations implements IPlayerMutations {
 
   private async handleTeamUpdate(
     playerId: string,
-    currentTeams: string[],
+    prevTeamId: string,
     newTeamId: string,
     updatePromises: Promise<any>[],
     playerObj: Player,
     input: UpdateQuery<Player>,
   ) {
-    if (currentTeams.length > 0) {
+    if (prevTeamId) {
       // ✅ 1. Remove player from old team(s) (single DB call)
       updatePromises.push(
         this.teamService.updateOne(
-          { _id: { $in: currentTeams } },
+          { _id: prevTeamId },
           { $pull: { players: playerId }, $addToSet: { moved: playerId } },
         ),
       );
 
       // ✅ 2. Fetch all previous rankings & items in parallel
       const prevRankings = await this.playerRankingService.find({
-        team: { $in: currentTeams },
+        team: prevTeamId,
         rankLock: false,
       });
 
@@ -88,8 +88,8 @@ export class PlayerMutations implements IPlayerMutations {
       // ✅ 4. Update player's team list efficiently
       const existingTeams: string[] = Array.isArray(playerObj?.teams) ? playerObj.teams.map((t) => t.toString()) : [];
 
-      input.teams = existingTeams.filter((t) => !currentTeams.includes(t));
-      input.$addToSet = { prevteams: currentTeams[0] };
+      input.teams = existingTeams.filter((t) => t !== prevTeamId);
+      input.$addToSet = { prevteams: prevTeamId };
     }
 
     // Remove as captain or co-captain from current team
@@ -489,7 +489,8 @@ export class PlayerMutations implements IPlayerMutations {
           const playerObj: UpdateQuery<Player> = { ...input[i], teams: teamIds || [] };
           // Move one team to another
           if (playerObj.team) {
-            await this.handleTeamUpdate(playerId, teamIds, playerObj.team, updatePromises, playerExist, playerObj);
+            // temp playerObj.teams[0]
+            await this.handleTeamUpdate(playerId, playerObj.teams[0], playerObj.team, updatePromises, playerExist, playerObj);
             playerObj.teams = [playerObj.team];
             delete playerObj.team;
           }
@@ -547,9 +548,9 @@ export class PlayerMutations implements IPlayerMutations {
       }
 
       // If changing teams
-      const isTeamChange = input.newTeamId && input.teams && !input.teams.includes(input.newTeamId);
+      const isTeamChange = input.prevTeamId && input.newTeamId;
 
-      if (input.newTeamId && input.teams && !isTeamChange) {
+      if (input.newTeamId && input.prevTeamId && input.prevTeamId === input.newTeamId) {
         return AppResponse.handleError({
           name: 'Invalid team',
           message: 'New team and previous team both are same, therefore no need to change',
@@ -557,10 +558,9 @@ export class PlayerMutations implements IPlayerMutations {
       }
 
       if (isTeamChange) {
-        const currTeamIds = playerExist.teams.map((p) => p.toString());
         await this.handleTeamUpdate(
           playerId,
-          [...currTeamIds],
+          input.prevTeamId,
           input.newTeamId,
           updatePromises,
           playerExist,

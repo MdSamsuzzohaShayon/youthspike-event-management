@@ -38,6 +38,9 @@ export class UpdatePlayerInput extends PartialType(CreatePlayerInput) {
   status?: EPlayerStatus;
 
   @Field({ nullable: true })
+  prevTeamId: string;
+
+  @Field({ nullable: true })
   newTeamId: string;
 }
 

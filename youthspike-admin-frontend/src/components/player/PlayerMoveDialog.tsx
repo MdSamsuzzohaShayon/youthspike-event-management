@@ -1,129 +1,246 @@
-import { imgSize } from '@/utils/style';
+import React, {
+  useMemo,
+  useState,
+} from 'react';
 import Image from 'next/image';
-import React, { useMemo, useState } from 'react';
+
 import SelectInput from '../elements/forms/SelectInput';
-import { IMessage, IOption, IPlayer, IPlayerRank, ITeam } from '@/types';
+
+import { imgSize } from '@/utils/style';
 import { handleError } from '@/utils/handleError';
 import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
 
-interface IPlayerMoveDialogProps {
+import {
+  IMessage,
+  IOption,
+  IPlayerRank,
+  ITeam,
+  TPlayerMutationFunction,
+} from '@/types';
+
+
+
+interface UpdatePlayerVariables {
+  input: {
+    prevTeamId?: string | null;
+    newTeamId?: string | null;
+  };
+  playerId: string;
+}
+
+
+
+interface PlayerMoveDialogProps {
   dialogMoveEl: React.RefObject<HTMLDialogElement | null>;
   player: IPlayerRank;
   divisionList: IOption[];
   teamList: ITeam[];
   teamId: string | null;
-  mutatePlayer: any;
-  setActionOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setMessage: (message: Omit<IMessage, "id">) => void;
-  setMovePlayer: React.Dispatch<React.SetStateAction<boolean>>;
+
+  mutatePlayer: TPlayerMutationFunction;
+
+  setActionOpen: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
+
+  setMessage: (
+    message: Omit<IMessage, 'id'>,
+  ) => void;
+
+  setMovePlayer: React.Dispatch<
+    React.SetStateAction<boolean>
+  >;
 }
 
-function PlayerMoveDialog({ dialogMoveEl, player, divisionList, teamList, teamId, mutatePlayer, setActionOpen, setMessage, setMovePlayer }: IPlayerMoveDialogProps) {
-  const [teamOptions, setTeamOptions] = useState<IOption[]>(
-    (teamList || []).map((t, i) => ({
-      id: i + 1,
-      value: t._id,
-      text: t.name,
-    })),
+function PlayerMoveDialog({
+  dialogMoveEl,
+  player,
+  divisionList,
+  teamList,
+  teamId,
+  mutatePlayer,
+  setActionOpen,
+  setMessage,
+  setMovePlayer,
+}: PlayerMoveDialogProps) {
+  const [selectedDivision, setSelectedDivision] =
+    useState('');
+
+  const [selectedTeamId, setSelectedTeamId] =
+    useState('');
+
+  /**
+   * Fast O(1) lookup by team id
+   */
+  const teamMap = useMemo(
+    () =>
+      new Map(
+        teamList.map((team) => [team._id, team]),
+      ),
+    [teamList],
   );
-  const [newTeamId, setNewTeamId] = useState<null | string>(null);
 
-  const handleTeamChange = async (e: React.SyntheticEvent, playerId: string) => {
-    e.preventDefault();
-    const inputEl = e.target as HTMLSelectElement;
-    setNewTeamId(inputEl.value);
-  };
+  /**
+   * Team dropdown options
+   */
+  const availableTeams = useMemo(() => {
+    const normalizedDivision =
+      selectedDivision.trim().toLowerCase();
 
-  const handleCloseMovePlayer = (e: React.SyntheticEvent) => {
-    e.preventDefault();
+    return teamList
+      .filter((team) => {
+        if (team._id === teamId) {
+          return false;
+        }
+
+        if (!normalizedDivision) {
+          return true;
+        }
+
+        return (
+          team.division.trim().toLowerCase() ===
+          normalizedDivision
+        );
+      })
+      .map((team, index) => ({
+        id: index + 1,
+        text: team.name,
+        value: team._id,
+      }))
+      .sort((a, b) =>
+        (a.text ?? '').localeCompare(
+          b.text ?? '',
+        ),
+      );
+  }, [selectedDivision, teamId, teamList]);
+
+  const closeDialog = () => {
     setMovePlayer(false);
     dialogMoveEl.current?.close();
   };
 
-  // ====== Change events ======
-  const handleDivisionChange = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    if (!teamList) return;
-    const inputEl = e.target as HTMLSelectElement;
-    const dl: IOption[] = [];
-
-    for (let i = 0; i < teamList.length; i += 1) {
-      if (!inputEl.value || inputEl.value === '') {
-        dl.push({ id: i + 1, text: teamList[i].name, value: teamList[i]._id });
-      } else if (teamList[i]._id !== teamId && teamList[i].division.trim().toLowerCase() === inputEl.value.trim().toLowerCase()) {
-        dl.push({ id: i + 1, text: teamList[i].name, value: teamList[i]._id });
-      }
-    }
-
-    // ✅ Sort alphabetically by team name
-    dl.sort((a, b) => a.text!.localeCompare(b.text!));
-
-    setTeamOptions(dl);
+  const handleDivisionChange = (
+    event: React.SyntheticEvent,
+  ) => {
+    const inputEl = event.target as HTMLSelectElement;
+    setSelectedDivision(inputEl.value);
+    setSelectedTeamId('');
   };
 
-  const handleMovePlayer = async (e: React.SyntheticEvent, playerId: string) => {
-    e.preventDefault();
+  const handleTeamChange = (
+    event: React.SyntheticEvent,
+  ) => {
+    const inputEl = event.target as HTMLSelectElement;
+    setSelectedTeamId(inputEl.value);
+  };
+
+  const handleMovePlayer = async (
+    event: React.SyntheticEvent,
+  ) => {
+    event.preventDefault();
+
     try {
-      const prevTeamId = teamId;
-      const playerInputObj: { newTeamId?: string; team: string | null } = { team: teamId || null };
-      if (prevTeamId && player?.teams && player?.teams.length > 0) {
-        // const nti = player?.teams[0];
-        const teamExist = teamList?.find((t) => t._id === newTeamId);
-        if (teamExist) {
-          playerInputObj.newTeamId = teamExist._id;
-        }
+      const mutationInput: UpdatePlayerVariables['input'] =
+        {
+          prevTeamId: teamId,
+        };
+
+      if (
+        selectedTeamId &&
+        teamMap.has(selectedTeamId)
+      ) {
+        mutationInput.newTeamId =
+          selectedTeamId;
       }
+
       const response = await mutatePlayer({
         variables: {
-          input: playerInputObj,
-          playerId,
+          playerId: player._id,
+          input: mutationInput,
         },
       });
 
-      const success = await handleResponseCheck(response.data.updatePlayer, setMessage);
-      if (!success) return;
+      // temp
+      // const isSuccessful =
+      //   await handleResponseCheck(
+      //     response.data.updatePlayer,
+      //     setMessage,
+      //   );
 
-      // Add cache
+      // if (!isSuccessful) {
+      //   return;
+      // }
+
       setActionOpen(false);
-      setMovePlayer(false);
-      dialogMoveEl.current?.close();
-    } catch (error: any) {
-      handleError({ error, setMessage });
+      closeDialog();
+    } catch (error: unknown) {
+      handleError({
+        error,
+        setMessage,
+      });
     }
   };
 
-  const teamMap: Map<string, ITeam> = useMemo(() => {
-    // `teamList?.map(...)` returns array of [key, value] pairs
-    // Wrap it with `new Map()` to actually create a Map
-    return new Map(teamList?.map((t) => [t._id, t]) ?? []);
-  }, [teamList]);
-  {
-    /* Move player operation start  */
-  }
+  const currentTeamName =
+    player.teams?.length
+      ? teamMap.get(String(player.teams[0]))?.name
+      : 'No Team';
+
   return (
-    <dialog ref={dialogMoveEl} className="modal-dialog">
-      <div className="relative p-6 bg-white dark:bg-gray-900 rounded-xl w-full">
-        {/* Close Button */}
-        <button type="button" className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition" aria-label="close" onClick={handleCloseMovePlayer}>
-          <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" alt="Close" className="w-6 h-6 svg-white" />
+    <dialog
+      ref={dialogMoveEl}
+      className="modal-dialog"
+    >
+      <div className="relative w-full rounded-xl bg-gray-900 p-6">
+        <button
+          type="button"
+          className="absolute right-4 top-4 text-gray-500 transition hover:text-gray-200"
+          aria-label="close"
+          onClick={closeDialog}
+        >
+          <Image
+            width={imgSize.logo}
+            height={imgSize.logo}
+            src="/icons/close.svg"
+            alt="Close"
+            className="svg-white h-6 w-6"
+          />
         </button>
 
-        {/* Player Details */}
-        <div className="text-center border-b pb-4 mb-4">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+        <div className="mb-4 border-b pb-4 text-center">
+          <h2 className="text-xl font-semibold text-gray-100">
             {player.firstName} {player.lastName}
           </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{player?.username}</p>
-          {/* @ts-ignore  */}
-          <p className="text-sm text-gray-500 dark:text-gray-400">{player.teams?.length ? teamMap.get(player.teams[0])?.name : 'No Team'}</p>
+
+          <p className="text-sm text-gray-400">
+            {player.username}
+          </p>
+
+          <p className="text-sm text-gray-400">
+            {currentTeamName}
+          </p>
         </div>
 
-        {/* Move Form */}
-        <form className="space-y-4" onSubmit={(e) => handleMovePlayer(e, player._id)}>
-          <SelectInput key="division-1" handleSelect={handleDivisionChange} name="division" optionList={divisionList || []} />
-          <SelectInput key="division-2" handleSelect={(e) => handleTeamChange(e, player._id)} name="team" optionList={teamOptions} />
+        <form
+          className="space-y-4"
+          onSubmit={handleMovePlayer}
+        >
+          <SelectInput
+            name="division"
+            optionList={divisionList}
+            handleSelect={handleDivisionChange}
+          />
 
-          <button className="btn-info w-full" type="submit">
+          <SelectInput
+            name="team"
+            optionList={availableTeams}
+            handleSelect={handleTeamChange}
+          />
+
+          <button
+            type="submit"
+            className="btn-info w-full"
+          >
             Move Player
           </button>
         </form>

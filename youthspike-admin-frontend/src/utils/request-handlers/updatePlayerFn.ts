@@ -2,7 +2,7 @@ import { UPDATE_PLAYER_RAW } from '@/graphql/players';
 import { IPlayer, IPlayerAdd, IPlayerExpRel } from '@/types/player';
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 import { handleRedirect, sendGraphQLFormData, handleResponseCheck } from './playerHelpers';
-import { IMessage, IResponse, TAddPlayer } from '@/types';
+import { IMessage, IResponse, IUpdatePlayerResponse, TAddPlayer, TPlayerMutationFunction } from '@/types';
 import { useMutation } from '@apollo/client/react';
 import { ApolloCache } from '@apollo/client';
 import { handleApiResult } from '../handleError';
@@ -13,20 +13,8 @@ import SessionStorageService from '../SessionStorageService';
 import { DIVISION } from '../constant';
 import { removeTeamFromStore } from '../localStorage';
 
-interface IUpdatePlayerData extends IResponse {
-  data?: IPlayerExpRel;
-}
 
 
-type TMutationFunction = useMutation.MutationFunction<
-  {
-    updatePlayer: IUpdatePlayerData;
-  },
-  {
-    [x: string]: any;
-  },
-  ApolloCache
->;
 
 interface IUpdatePlayer {
   setMessage: (message: Omit<IMessage, "id">) => void;
@@ -34,7 +22,7 @@ interface IUpdatePlayer {
   playerUpdate: Partial<TAddPlayer>;
   prevPlayer: IPlayer | null;
   uploadedProfile: React.RefObject<File | null>;
-  updatePlayer: TMutationFunction;
+  updatePlayer: TPlayerMutationFunction;
 
 }
 
@@ -49,7 +37,7 @@ async function updatePlayerFn({
   setIsLoading(true);
 
   try {
-    let responseData: IUpdatePlayerData | undefined;
+    let responseData: IUpdatePlayerResponse | undefined;
 
     // 🟡 CASE 1: File upload (fetch)
     if (uploadedProfile?.current) {

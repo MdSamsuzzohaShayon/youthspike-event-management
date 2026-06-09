@@ -1,5 +1,14 @@
-import { ISelectInputProps } from '@/types';
+import { IOption, ITextCommon } from '@/types';
 import React from 'react';
+
+
+export interface ISelectInputProps extends ITextCommon {
+  optionList: IOption[];
+  defaultValue?: string | number | null;
+  compact?: boolean;
+  handleSelect?: (e: React.SyntheticEvent) => void;
+}
+
 
 function SelectInput({ 
   className, 

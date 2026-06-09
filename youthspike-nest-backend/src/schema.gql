@@ -1767,6 +1767,7 @@ input UpdatePlayerInput {
   teams: [String!]
   events: [String!]
   status: String
+  prevTeamId: String
   newTeamId: String
 }
 
