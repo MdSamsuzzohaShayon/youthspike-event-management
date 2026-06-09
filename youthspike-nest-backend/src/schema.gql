@@ -1557,7 +1557,7 @@ type Mutation {
   createMultiPlayers(uploadedFile: Upload!, eventId: String!, division: String!): PlayersResponse!
   deletePlayer(playerId: String!): PlayersResponse!
   sendCredentials(eventId: String!, teamIds: [String!], captain: String, co_captain: String): AppResponse!
-  updatePlayerRanking(teamId: [String!]!, input: [UpdatePlayerRankingInput!]!): PlayerRankingResponse!
+  updatePlayerRanking(teamId: String!, input: [UpdatePlayerRankingInput!]!): PlayerRankingResponse!
   updateMatchPlayerRanking(input: UpdateMatchPlayerRankingInput!): PlayerMatchRankingResponse!
   resetAllPlayerRankings: PlayerRankingResponse!
   createGroup(input: CreateGroupInput!): GetGroupResponse!

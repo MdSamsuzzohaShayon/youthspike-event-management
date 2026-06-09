@@ -61,6 +61,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
   const playerRankingData = useMemo(() => {
     return { ...playerRanking, rankings: rankings };
   }, [playerRanking, rankings]);
+  
 
   if (!team) {
     notFound();

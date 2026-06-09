@@ -261,3 +261,22 @@ export function debounce<T extends (...args: Parameters<T>) => void>(
   }) as T;
 }
 
+// For a player
+export const createTeamsMap =(teamList? : ITeam[]) => {
+  const map = new Map<string, ITeam[]>();
+  if(!teamList) return map;
+
+  for (const team of teamList) {
+    for (const playerId of (team?.players || [])) {
+      const key = String(playerId);
+
+      if (map.has(key)) {
+        map.get(key)!.push(team);
+      } else {
+        map.set(key, [team]);
+      }
+    }
+  }
+
+  return map;
+}

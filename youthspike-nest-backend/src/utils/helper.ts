@@ -1,7 +1,7 @@
 import * as jwt from 'jsonwebtoken';
 import { randomBytes } from 'crypto';
 
-interface JwtPayload {
+export interface JwtPayload {
   _id: string;
   // Add other properties if necessary
   passcode: string | null;

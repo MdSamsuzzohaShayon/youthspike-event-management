@@ -5,18 +5,20 @@ import { HttpStatus, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { Roles } from 'src/shared/auth/roles.decorator';
-import { UserRole } from 'src/user/user.schema';
+import { User, UserRole } from 'src/user/user.schema';
 import { AppResponse } from 'src/shared/response';
 import { UpdateMatchPlayerRankingInput, UpdatePlayerRankingInput } from './player-ranking.input';
 import { TeamService } from 'src/team/team.service';
 import { MatchService } from 'src/match/match.service';
 import { ConfigService } from '@nestjs/config';
-import { isISODateString, tokenToUser } from 'src/utils/helper';
+import { isISODateString, JwtPayload, tokenToUser } from 'src/utils/helper';
 import { UserService } from 'src/user/user.service';
 import { EventService } from 'src/event/event.service';
 import { PlayerService } from 'src/player/player.service';
 import { EPlayerStatus } from 'src/player/player.schema';
+import { Event } from "src/event/event.schema";
 import rebuildSinglePlayerRanking from 'src/utils/rebuildSinglePlayerRanking';
+import { Types } from 'mongoose';
 
 @ObjectType()
 class PlayerRankingResponse extends AppResponse<PlayerRanking[]> {
@@ -40,7 +42,7 @@ export class PlayerRankingResolver {
     private userService: UserService,
     private eventService: EventService,
     private playerService: PlayerService,
-  ) {}
+  ) { }
 
   private async recreatePlayerRankings(
     playerRankings: PlayerRanking[],
@@ -54,7 +56,6 @@ export class PlayerRankingResolver {
       teams: teamId,
       status: EPlayerStatus.ACTIVE,
     });
-
     const playerIds = new Set(teamPlayers.map((p) => String(p._id)));
 
     // 1️⃣ Delete all ranking items concurrently
@@ -79,7 +80,7 @@ export class PlayerRankingResolver {
     await rebuildSinglePlayerRanking(playerRanking, sortedRankingInput, playerIds, this.playerRankingService);
   }
 
-  private async checkRosterLock(eventExist: any, loggedUser: any, userPayload: any) {
+  private async checkRosterLock(eventExist: Event, loggedUser: User, userPayload: JwtPayload) {
     if (loggedUser.role === UserRole.captain || loggedUser.role === UserRole.co_captain) {
       const isIsoTime = isISODateString(eventExist.rosterLock);
       if (!isIsoTime) return;
@@ -97,7 +98,7 @@ export class PlayerRankingResolver {
   }
 
 
-  private async updateRankingForATeam(matchId: string, teamId: string, rankLock: boolean){
+  private async updateRankingForATeam(matchId: string, teamId: string, rankLock: boolean) {
     const teamRanking = await this.playerRankingService.findOne({
       team: teamId,
       $or: [{ match: { $exists: false } }, { match: null }],
@@ -112,7 +113,7 @@ export class PlayerRankingResolver {
     let rankings = await this.playerRankingService.findItems({ playerRanking: teamRanking._id });
 
     // No duplicate items
-    rankings = rankings.filter((r)=> playerIds.has(String(r.player)));
+    rankings = rankings.filter((r) => playerIds.has(String(r.player)));
 
     const sortedTeamRankings: UpdatePlayerRankingInput[] = [...rankings]
       .map((r) => ({ player: String(r.player), rank: r.rank }))
@@ -138,7 +139,7 @@ export class PlayerRankingResolver {
   @Mutation((_returns) => PlayerRankingResponse)
   async updatePlayerRanking(
     @Context() context: any,
-    @Args('teamId', { type: () => [String] }) teamId: string,
+    @Args('teamId', { type: () => String }) teamId: string,
     @Args('input', { type: () => [UpdatePlayerRankingInput] }) input: UpdatePlayerRankingInput[],
   ) {
     try {
@@ -147,31 +148,24 @@ export class PlayerRankingResolver {
       if (!userPayload?._id) return AppResponse.unauthorized();
       const loggedUser = await this.userService.findById(userPayload._id);
 
-      const allowedRoles = new Set([UserRole.director, UserRole.admin, UserRole.captain, UserRole.co_captain]);
-
-      if (!allowedRoles.has(loggedUser.role)) {
-        return AppResponse.handleError({ message: 'You do not have permission to change ranking!', code: 406 });
-      }
-
       // Validate team, event, and user
       const teamExist = await this.teamService.findById(teamId);
       if (!teamExist) return AppResponse.notFound('Team');
 
       if (!loggedUser) return AppResponse.unauthorized();
 
-      // const eventExist = await this.eventService.findById(String(teamExist.event));
-      // if (!eventExist) return AppResponse.notFound('Event');
-      const events = await this.eventService.find({_id: {$in: teamExist.events as string[]}})
+      const events = await this.eventService.find({ _id: { $in: teamExist.events as string[] } })
 
       const lockPromises = [];
       for (const event of events) {
+        // If user is captain of co captain then check their limitation
         lockPromises.push(this.checkRosterLock(event, loggedUser, userPayload));
       }
       await Promise.all(lockPromises);
 
       // Get player rankings
       const playerRankings = await this.playerRankingService.find({ team: teamId, rankLock: false });
-     
+
       if (playerRankings.length === 0) return AppResponse.notFound('Player Ranking');
 
       // Ensure team ranking exists
@@ -200,7 +194,7 @@ export class PlayerRankingResolver {
     try {
       // Only proceed if rankLock is explicitly true or false
       if (input?.rankLock === true || input?.rankLock === false) {
-        const matchExist = await this.matchService.findOne({_id: input.match});
+        const matchExist = await this.matchService.findOne({ _id: input.match });
         await Promise.all([
           this.updateRankingForATeam(input.match, String(matchExist.teamA), input.rankLock),
           this.updateRankingForATeam(input.match, String(matchExist.teamB), input.rankLock),
@@ -212,8 +206,8 @@ export class PlayerRankingResolver {
         message: 'Team player ranking has been updated successfully!',
         success: true,
         data: {
-          _id: null, 
-          rankLock: !!input?.rankLock 
+          _id: null,
+          rankLock: !!input?.rankLock
         },
       };
     } catch (error) {

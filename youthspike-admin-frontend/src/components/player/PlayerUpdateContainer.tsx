@@ -24,7 +24,7 @@ function PlayerUpdateContainer({ eventId, queryRef }: IProps) {
   return (
     <div className='min-h-screen container mx-auto px-4'>
       <h1>Update Player</h1>
-      <PlayerAdd eventId={eventId} update prevPlayer={player} teamList={teams || []} />
+      <PlayerAdd events={events} update prevPlayer={player} teams={teams || []} />
     </div>
   );
 }

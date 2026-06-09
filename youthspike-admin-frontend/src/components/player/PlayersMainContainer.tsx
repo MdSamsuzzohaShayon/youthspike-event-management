@@ -10,6 +10,7 @@ import { SEARCH_PLAYERS } from '@/graphql/players';
 import PlayerSearchList from './PlayerSearchList';
 import EventNavigation from '../layout/EventNavigation';
 import ActiveFiltersBar from '../event/ActiveFiltersBar';
+import Loader from '../elements/Loader';
 
 interface PlayersMainContainerProps {
   queryRef: QueryRef<{ searchPlayers: ISearchPlayerResponse }>;
@@ -44,8 +45,8 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
   const [teamList, setTeamList] = useState<ITeam[]>([]);
   const [groupList, setGroupList] = useState<IGroup[]>([]);
   const [event, setEvent] = useState<IEvent | null>(null);
-
   
+
 
   // Filter and pagination states
   const [localFilter, setLocalFilter] = useState<IFilterState>({
@@ -194,21 +195,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
     }
   }, [executeSearchQuery, transformServerData, router]);
 
-  // Filter players based on applied filters (client-side for search)
-  // const filteredPlayers: IPlayer[] = useMemo(() => {
-  //   return allPlayers.filter((player) => {
-  //     const fullName = `${player.firstName} ${player.lastName}`.toLowerCase();
-  //     const matchesSearch =
-  //       !appliedFilter.search ||
-  //       fullName.includes(appliedFilter.search.toLowerCase()) ||
-  //       player?.email?.toLowerCase().includes(appliedFilter.search.toLowerCase()) ||
-  //       player.username?.toLowerCase().includes(appliedFilter.search.toLowerCase());
 
-  //     const matchesDivision = !appliedFilter.division || player.division === appliedFilter.division;
-
-  //     return matchesSearch && matchesDivision;
-  //   });
-  // }, [allPlayers, appliedFilter.search, appliedFilter.division]);
 
   // Update local filter
   const updateLocalFilter = useCallback((key: string, value: string) => {
@@ -288,6 +275,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
       {!isApplyingFilters && (
         <div className="w-full player-standings">
           <PlayerSearchList playerList={displayedPlayers} teamList={teamList} eventId={event?._id || ""} />
+          
         </div>
       )}
 
@@ -297,13 +285,10 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
           <button
             onClick={handleLoadMore}
             disabled={isLoadingMore}
-            className="px-6 py-2 bg-yellow-500 text-gray-900 rounded-md hover:bg-yellow-400 disabled:bg-yellow-700 disabled:cursor-not-allowed transition-colors font-medium"
+            className="btn-info"
           >
             {isLoadingMore ? (
-              <span className="flex items-center">
-                <div className="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin mr-2" />
-                Loading...
-              </span>
+              <Loader />
             ) : (
               `Load More Players`
             )}

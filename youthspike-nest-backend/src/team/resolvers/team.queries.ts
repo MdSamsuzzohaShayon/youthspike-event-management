@@ -28,6 +28,8 @@ import { LdoService } from 'src/ldo/ldo.service';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from 'src/user/user.service';
 import { UserRole } from 'src/user/user.schema';
+import { EPlayerStatus } from 'src/player/player.schema';
+import { PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
 
 // ITeamQueries
 
@@ -44,7 +46,7 @@ export class TeamQueries {
     private groupService: GroupService,
     private playerRankingService: PlayerRankingService,
     private playerService: PlayerService,
-    private ldoService: LdoService, 
+    private ldoService: LdoService,
     private userService: UserService,
     private configService: ConfigService,
   ) { }
@@ -248,7 +250,7 @@ export class TeamQueries {
     try {
       const team = await this.teamService.findById(teamId);
       if (!team) return AppResponse.notFound("Team");
-      const [players, playerRanking, events] = await Promise.all([
+      let [players, playerRanking, events] = await Promise.all([
         this.playerService.find({ events: { $in: team.events }, teams: { $in: [team._id] } }),
         this.playerRankingService.findOne({
           team: teamId,
@@ -259,6 +261,44 @@ export class TeamQueries {
         }),
         this.eventService.find({ _id: { $in: team.events as string[] } }),
       ]);
+
+
+      if (!playerRanking || !playerRanking?.rankings || playerRanking.rankings.length === 0) {
+        // Create player ranking again, somehow it is not created
+        if (!playerRanking) {
+
+          playerRanking = await this.playerRankingService.create({ rankings: [], rankLock: false, team: teamId });
+          // Create both
+          let rank = 1;
+          const rankings = [];
+          for (const player of players) {
+            if (player.status === EPlayerStatus.INACTIVE) continue;
+            const ranking: PlayerRankingItem = { player: player._id, playerRanking: playerRanking._id, rank: rank };
+            rankings.push(ranking);
+            rank += 1;
+          }
+          const createdRankings = await this.playerRankingService.insertManyItems(rankings);
+
+          await this.playerRankingService.updateOne({ _id: playerRanking._id }, { $addToSet: { rankings: { $each: createdRankings.map((ranking) => ranking._id) } } });
+
+        } else {
+          // Creating only rankings
+          let rank = 1;
+          const rankings = [];
+          for (const player of players) {
+            if (player.status === EPlayerStatus.INACTIVE) continue;
+            const ranking: PlayerRankingItem = { player: player._id, playerRanking: playerRanking._id, rank: rank };
+            rankings.push(ranking);
+            rank += 1;
+          }
+          const createdRankings = await this.playerRankingService.insertManyItems(rankings);
+
+          await this.playerRankingService.updateOne({ _id: playerRanking._id }, { $addToSet: { rankings: { $each: createdRankings.map((ranking) => ranking._id) } } });
+          playerRanking = await this.playerRankingService.findOne({ _id: playerRanking._id });
+
+        }
+
+      }
 
       const playerList = [];
 
@@ -341,24 +381,24 @@ export class TeamQueries {
   ) {
     try {
 
-      const team = await this.teamService.findOne({_id: teamId});
-      if(!team) return AppResponse.notFound("Team");
+      const team = await this.teamService.findOne({ _id: teamId });
+      if (!team) return AppResponse.notFound("Team");
 
 
       const secret = this.configService.get<string>('JWT_SECRET');
-  
+
       // Decode token
       const userPayload = tokenToUser(context, secret);
-  
+
       if (!userPayload?._id) {
         return AppResponse.unauthorized();
       }
-  
+
       // Only fetch fields we actually need
       const loggedUser = await this.userService.findOne(
         { _id: userPayload._id }
       );
-  
+
       if (!loggedUser) {
         return AppResponse.unauthorized();
       }
@@ -366,22 +406,22 @@ export class TeamQueries {
 
 
       let events = [];
-  
-  
+
+
       /**
        * CASE 1:
        * Explicit eventIds provided
        */
       if (ldoId && loggedUser.role === UserRole.admin) {
         const ldo = await this.ldoService.findByDirectorId(ldoId);
-  
+
         if (ldo?.events?.length) {
           events = await this.eventService.find({
             _id: { $in: ldo.events as string[] },
           });
         }
       }
-  
+
       /**
        * CASE 2:
        * Director requesting own events
@@ -390,14 +430,14 @@ export class TeamQueries {
         const ldo = await this.ldoService.findOne({
           director: loggedUser._id,
         });
-  
+
         if (ldo?.events?.length) {
           events = await this.eventService.find({
             _id: { $in: ldo.events as string[] },
           });
         }
       }
-  
+
       const resolvedEventIds = events.map((event) => event._id);
 
 
@@ -487,7 +527,7 @@ export class TeamQueries {
 
 
       // Make sure groups is not null and there are no null values in groups array
-      
+
 
       return {
         code: HttpStatus.OK,

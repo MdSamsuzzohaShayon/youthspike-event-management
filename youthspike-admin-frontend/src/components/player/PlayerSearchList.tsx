@@ -6,6 +6,7 @@ import {
 } from "@/types";
 // import { useAppSelector } from "@/redux/hooks";
 import PlayerCard from "./PlayerCard";
+import { createTeamsMap } from "@/utils/helper";
 
 interface IProps {
   eventId: string;
@@ -22,13 +23,9 @@ function PlayerSearchList({
 }: IProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const teamMap = useMemo(() => {
-    const map = new Map<string, ITeam>();
-    for (const team of teamList) {
-      map.set(team._id, team);
-    }
-    return map;
-  }, [teamList]);
+
+
+  const teamsOfPlayerMap = useMemo(() => createTeamsMap(teamList), [teamList]);
 
 
   return (
@@ -37,7 +34,7 @@ function PlayerSearchList({
 
         {playerList.map((player) => <li key={player._id} className="mb-2 flex items-center bg-gray-800 rounded-xl p-2">
           <PlayerCard key={player._id} player={player as IPlayerRank}
-            team={player?.teams && player?.teams.length > 0 ? (teamMap.get(player.teams[0] as string) || null) : null}
+            teams={teamsOfPlayerMap.get(player._id) || []}
             onSelect={() => { }} isChecked={false}
             teamList={teamList} setIsLoading={setIsLoading} />
         </li>)}

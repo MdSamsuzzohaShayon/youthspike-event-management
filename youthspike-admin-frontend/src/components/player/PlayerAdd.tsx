@@ -148,9 +148,9 @@ function PlayerAdd({ update, prevPlayer, teams, events }: IPlayerAddProps) {
   const handleTeamChange = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const inputEl = e.target as HTMLInputElement;
-    setPlayerState((prevState) => ({ ...prevState, teams: !inputEl.value || inputEl.value === '' ? [] :[inputEl.value] }));
+    setPlayerState((prevState) => ({ ...prevState, teams: !inputEl.value || inputEl.value === '' ? [] : [inputEl.value] }));
     if (update) {
-      setPlayerUpdate((prevState) => ({ ...prevState, teams: !inputEl.value || inputEl.value === '' ? [] :[inputEl.value] }));
+      setPlayerUpdate((prevState) => ({ ...prevState, teams: !inputEl.value || inputEl.value === '' ? [] : [inputEl.value] }));
     }
   }
 
@@ -206,12 +206,13 @@ function PlayerAdd({ update, prevPlayer, teams, events }: IPlayerAddProps) {
 
 
     const team = SessionStorageService.getItem(TEAM);
-    if(team){
+    if (team) {
       initialValue.teams = [team as string];
     }
 
     setPlayerState((prev) => ({ ...prev, ...initialValue }));
   }, [update, teams]);
+
 
   if (isLoading) return <Loader />;
 
@@ -219,13 +220,18 @@ function PlayerAdd({ update, prevPlayer, teams, events }: IPlayerAddProps) {
     <form onSubmit={handleAddPlayer} className="w-full">
       <ImageInput onFileChange={handleFileChange} name="profile" defaultValue={prevPlayer?.profile || null} className="mt-6 w-full md:w-2/6" />
 
-      <SelectInput name='events' value={playerState.events && playerState.events.length > 0 ? playerState.events[0] : null}
-        optionList={(events || [])?.map((e, i) => ({ id: i + 1, value: e._id, text: e.name }))} handleSelect={handleEventChange} />
+
+      {!update && (
+        <>
+          <SelectInput name='events' value={playerState.events && playerState.events.length > 0 ? playerState.events[0] : null}
+            optionList={(events || [])?.map((e, i) => ({ id: i + 1, value: e._id, text: e.name }))} handleSelect={handleEventChange} />
 
 
-      <div className="mt-2 division-selection w-full">
-        <SelectInput key="division-selector-add" name="division" value={playerState?.division} optionList={divisionOptions} handleSelect={handleDivisionChange} />
-      </div>
+          <div className="mt-2 division-selection w-full">
+            <SelectInput key="division-selector-add" name="division" value={playerState?.division} optionList={divisionOptions} handleSelect={handleDivisionChange} />
+          </div>
+        </>
+      )}
 
       <div className="part-1 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <InputField type="text" name="firstName" label="First Name" defaultValue={playerState.firstName} onChange={handleInputChange} required={!update} />

@@ -22,13 +22,17 @@ import DeletePlayerDialog from './DeletePlayerDialog';
 import { useApolloClient, useMutation } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
 import updateTeam from '@/utils/request-handlers/updateTeam';
+import routerService from '@/lib/router-service';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { CURRENT_EVENT } from '@/utils/constant';
 
 interface IPlayerCardProps {
   player: IPlayerRank;
   isChecked: boolean;
   onSelect: (e: React.SyntheticEvent, _id: string) => void;
-  team: ITeam | null;
-  teamList: ITeam[];
+  teams: ITeam[]; // all team of player
+  teamList: ITeam[]; // all team list
+  selectedTeam?: ITeam | null; // if we are inside a team
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   showRank?: boolean;
   rankControls?: boolean;
@@ -36,8 +40,10 @@ interface IPlayerCardProps {
   rank?: number | null;
 }
 
-export default function PlayerCard({ player, isChecked, onSelect, team, teamList, setIsLoading, rank, divisionList, rankControls }: IPlayerCardProps) {
-  
+export default function PlayerCard({ player, isChecked, onSelect, teams, teamList, setIsLoading, showRank, rank, divisionList, rankControls, selectedTeam }: IPlayerCardProps) {
+
+
+
   // State
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [actionOpen, setActionOpen] = useState<boolean>(false);
@@ -50,7 +56,7 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
   const dialogEl = useRef<HTMLDialogElement | null>(null);
   const dialogMoveEl = useRef<HTMLDialogElement | null>(null);
   const uploadedLogoRef = useRef<Blob | null | MediaSource>(null);
-  
+
 
   // Hooks
   const { setMessage } = useMessage();
@@ -66,31 +72,79 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
   // Memoized values
   const name = useMemo(() => `${player.firstName} ${player.lastName}`, [player.firstName, player.lastName]);
 
-  const teamId = team?._id;
+  
+  const teamsOfPlayer = useMemo(() => {
+    const list = [];
+    const set = new Set();
+    for (const team of teams) {
+      if (!set.has(team._id)) {
+        list.push(team);
+        set.add(team._id);
+      }
+    }
+    return list;
+  }, [teams]);
   const captainofteams = useMemo(() => player.captainofteams?.map((t) => (typeof t === 'object' ? t?._id : t)) || [], [player]);
-
   const cocaptainofteams = useMemo(() => player.cocaptainofteams?.map((t) => (typeof t === 'object' ? t?._id : t)) || [], [player]);
 
-  const isCaptain = useMemo(() => teamId && captainofteams.includes(teamId), [teamId, captainofteams]);
-  const isCoCaptain = useMemo(() => teamId && cocaptainofteams.includes(teamId), [teamId, cocaptainofteams]);
+  const teamSet = useMemo(() => new Set(teams.map((team) => team._id)), [teams]);
+  const isCaptain = useMemo(() => {
+
+    let captain = false;
+    if (teamSet.size > 0) {
+      for (const captainOfTeam of captainofteams) {
+        if (teamSet.has(captainOfTeam)) {
+          captain = true;
+        }
+      }
+    }
+    return captain;
+  }, [teamSet, captainofteams]);
+  const isCoCaptain = useMemo(() => {
+
+    let cocaptain = false;
+    if (teamSet.size > 0) {
+      for (const cocaptainOfTeam of cocaptainofteams) {
+        if (teamSet.has(cocaptainOfTeam)) {
+          cocaptain = true;
+        }
+      }
+    }
+    return cocaptain;
+  }, [teamSet, cocaptainofteams]);
+
+
+
+
+
+
 
   // Optimized callbacks
   const makeCaptainOrCoCaptain = async (input: { captain?: string; cocaptain?: string }) => {
-      setActionOpen((prev) => !prev);
-      await updateTeam({
-        prevTeam: team,
-        updateTeamState: input as Partial<TAddTeam>,
-        setMessage,
-        setIsLoading,
-        uploadedLogo: uploadedLogoRef,
-        apolloClient,
-        mutateTeam,
-        events: team?.events.map((e) => e._id) ?? [],
-      });
-      window.location.reload(); // temp
+    setActionOpen((prev) => !prev);
+
+    if(!selectedTeam){
+      console.error("No selected team found");
+      
+      return;
+    }
+
+
+    await updateTeam({
+      prevTeam: selectedTeam,
+      updateTeamState: input as Partial<TAddTeam>,
+      setMessage,
+      setIsLoading,
+      uploadedLogo: uploadedLogoRef,
+      apolloClient,
+      mutateTeam,
+      events: selectedTeam?.events.map((e) => e._id) ?? [],
+    });
+    window.location.reload(); // temp
+
   };
 
-  
+
 
   const handleMakeCaptain = useCallback(
     (e: React.SyntheticEvent, playerId: string) => {
@@ -122,7 +176,7 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
       try {
         const response = await mutatePlayer({
           variables: {
-            input: { status: newStatus, newTeamId: teamId },
+            input: { status: newStatus, newTeamId: teamsOfPlayer[0] }, // temp
             playerId,
           },
         });
@@ -134,7 +188,7 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
         handleError({ error, setMessage });
       }
     },
-    [teamId, mutatePlayer, setMessage],
+    [teamsOfPlayer, mutatePlayer, setMessage],
   );
 
   const handleDelete = useCallback(
@@ -142,7 +196,7 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
       e.preventDefault();
       try {
         setActionOpen((prev) => !prev);
-        if(setIsLoading)setIsLoading(true);
+        if (setIsLoading) setIsLoading(true);
         const response = await deleteAPlayer({ variables: { playerId } });
         const success = await handleResponseCheck(response.data?.deletePlayer, setMessage);
         if (!success) return;
@@ -150,7 +204,7 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
       } catch (error: any) {
         handleError({ error, setMessage });
       } finally {
-        if(setIsLoading)setIsLoading(false);
+        if (setIsLoading) setIsLoading(false);
       }
     },
     [deleteAPlayer, setMessage, client, setIsLoading],
@@ -172,6 +226,15 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
       dialogEl.current.showModal();
     }
   }, []);
+
+
+  const handleEditRedirect = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    // Set first event
+    // if (player.events) SessionStorageService.setItem(CURRENT_EVENT, player.events[0])
+    routerService.push(`/players/${player._id}/${ldoIdUrl}`);
+
+  }
 
   const handleCaptainEmail = useCallback(
     async (e: React.SyntheticEvent) => {
@@ -217,15 +280,16 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
     [player.username, isCaptain, isCoCaptain],
   );
 
+
   const PlayerInfo = useMemo(
     () => (
       <div className="player-name flex flex-col w-full text-white">
         <div className="w-full md:flex-col flex flex-wrap justify-between items-center md:items-start">
           <h5 className="break-words text-xs md:text-lg font-semibold capitalize">{name}</h5>
-          {team && (
-            <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`} className="md:hidden text-yellow-400 uppercase font-bold tracking-wide underline">
+          {teamsOfPlayer && teamsOfPlayer.length > 0 && (
+            teamsOfPlayer.map((team) => (<Link key={team._id} href={`/teams/${team._id}/roster/${ldoIdUrl}`} className="md:hidden text-yellow-400 uppercase font-bold tracking-wide underline">
               {team.name.slice(0, 3)}
-            </Link>
+            </Link>))
           )}
           {rank && (
             <button
@@ -236,11 +300,13 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
             </button>
           )}
         </div>
-        {team && (
-          <div className="w-full hidden md:flex justify-between items-center">
-            <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`} className="text-yellow-400 uppercase font-bold tracking-wide">
-              {team.name}
-            </Link>
+        {teamsOfPlayer && teamsOfPlayer.length > 0 && (
+          <div className="w-full hidden md:flex justify-start gap-x-2 items-center">
+            {teamsOfPlayer.map((team) => (
+              <Link key={team._id} href={`/teams/${team._id}/roster/${ldoIdUrl}`} className="text-yellow-400 uppercase font-bold tracking-wide">
+                {team.name} {teamsOfPlayer.length > 1 && "/"}
+              </Link>
+            ))}
             {rank && (
               <button
                 className="md:hidden flex w-10 h-10 items-center justify-center bg-yellow-logo dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
@@ -253,7 +319,7 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
         )}
       </div>
     ),
-    [name, player.email, team, rank],
+    [name, player.email, teamsOfPlayer, rank],
   );
 
   const PlayerImage = useMemo(
@@ -293,7 +359,7 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
               {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
                 <>
                   <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-                    <Link href={`/players/${player._id}/${ldoIdUrl}`}>Edit</Link>
+                    <button onClick={handleEditRedirect}>Edit</button>
                   </li>
                   {rankControls && player.status === EPlayerStatus.ACTIVE && (
                     <>
@@ -403,7 +469,7 @@ export default function PlayerCard({ player, isChecked, onSelect, team, teamList
         setMessage={setMessage}
         setActionOpen={setActionOpen}
         setMovePlayer={setMovePlayer}
-        teamId={teamId || null}
+        teamId={selectedTeam?._id || null}
         teamList={teamList || []}
       />
 
