@@ -581,6 +581,7 @@ export class PlayerMutations implements IPlayerMutations {
       // Cleanup fields that shouldn't be updated
       delete playerObj.team;
       delete playerObj.newTeamId;
+      delete playerObj.prevTeamId;
 
       if (Object.keys(playerObj).length) {
         updatePromises.push(this.playerService.updateOne({ _id: playerId }, playerObj));

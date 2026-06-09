@@ -1,43 +1,77 @@
 import { useMemo, useState } from "react";
 import {
+  IEvent,
+  IOption,
   IPlayer,
   IPlayerRank,
   ITeam,
 } from "@/types";
-// import { useAppSelector } from "@/redux/hooks";
+
 import PlayerCard from "./PlayerCard";
-import { createTeamsMap } from "@/utils/helper";
+import {
+  createTeamsMap,
+  divisionsOfEvents,
+  divisionsToOptionList,
+} from "@/utils/helper";
 
 interface IProps {
-  eventId: string;
+  events: IEvent[];
   playerList: IPlayer[];
   teamList: ITeam[];
 }
 
-
-
 function PlayerSearchList({
-  eventId,
+  events,
   playerList,
-  teamList
+  teamList,
 }: IProps) {
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [, setIsLoading] = useState(false);
 
+  /**
+   * Compute divisions only when events change.
+   */
+  const divisionList: IOption[] = useMemo(() => {
+    return divisionsToOptionList(divisionsOfEvents(events));
+  }, [events]);
 
-
-  const teamsOfPlayerMap = useMemo(() => createTeamsMap(teamList), [teamList]);
-
+  /**
+   * Map<PlayerId, Team[]>
+   */
+  const teamsOfPlayerMap = useMemo(
+    () => createTeamsMap(teamList),
+    [teamList]
+  );
 
   return (
     <div className="playerList">
       <ul className="relative w-full">
+        {playerList.map((player) => {
+          // Single Map lookup instead of multiple lookups
+          const teams = teamsOfPlayerMap.get(player._id) ?? [];
 
-        {playerList.map((player) => <li key={player._id} className="mb-2 flex items-center bg-gray-800 rounded-xl p-2">
-          <PlayerCard key={player._id} player={player as IPlayerRank}
-            teams={teamsOfPlayerMap.get(player._id) || []}
-            onSelect={() => { }} isChecked={false}
-            teamList={teamList} setIsLoading={setIsLoading} />
-        </li>)}
+          // Safely get the last team
+          // temp
+          const selectedTeam =
+            teams.length > 0 ? teams[teams.length - 1] : undefined;
+
+          return (
+            <li
+              key={player._id}
+              className="mb-2 flex items-center rounded-xl bg-gray-800 p-2"
+            >
+              <PlayerCard
+                player={player as IPlayerRank}
+                teams={teams}
+                selectedTeam={selectedTeam}
+                divisionList={divisionList}
+                teamList={teamList}
+                isChecked={false}
+                onSelect={() => {}}
+                setIsLoading={setIsLoading}
+              />
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
