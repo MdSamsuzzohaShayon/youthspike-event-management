@@ -153,12 +153,7 @@ export interface IPlayerPage {
   page: number;
 }
 
-export interface ISelectInputProps extends ITextCommon {
-  optionList: IOption[];
-  defaultValue?: string | number | null;
-  compact?: boolean;
-  handleSelect?: (e: React.SyntheticEvent) => void;
-}
+
 
 export interface IButtonProps {
   handleClickEvent: (e: React.SyntheticEvent) => void;

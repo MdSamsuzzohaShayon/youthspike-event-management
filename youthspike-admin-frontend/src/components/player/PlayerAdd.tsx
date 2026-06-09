@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { IPlayer, IPlayerAdd, IUpdatePlayerRes } from '@/types/player';
+import { IPlayer, IPlayerAdd } from '@/types/player';
 import SelectInput from '../elements/forms/SelectInput';
-import { IEvent, IGetPlayerResponse, IOption, IResponse, ITeam, ITeamRelatives, TAddPlayer } from '@/types';
+import { IEvent, IGetPlayerResponse, IOption, IResponse, ITeam, ITeamRelatives, IUpdatePlayerResponse, TAddPlayer } from '@/types';
 import { CREATE_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { setTeamToStore } from '@/utils/localStorage';
@@ -58,7 +58,7 @@ function PlayerAdd({ update, prevPlayer, teams, events }: IPlayerAddProps) {
 
   // Mutations
   const [addPlayer] = useMutation<{ createPlayer: IGetPlayerResponse }>(CREATE_PLAYER);
-  const [updatePlayer] = useMutation<{ updatePlayer: IUpdatePlayerRes }>(UPDATE_PLAYER);
+  const [updatePlayer] = useMutation<{ updatePlayer: IUpdatePlayerResponse }>(UPDATE_PLAYER);
 
 
 

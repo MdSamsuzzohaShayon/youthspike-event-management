@@ -1,5 +1,7 @@
+import { useMutation } from "@apollo/client/react";
 import { IAllStats, IEvent, IGroup, IMatch, IPlayerRanking, IPlayerRankingItem, IResponse, ITeam, ITeamRelatives } from ".";
 import { IDocument } from "./document";
+import { ApolloCache } from "@apollo/client";
 
 /**
  * Player Status
@@ -105,7 +107,17 @@ export interface IPlayerRank extends IPlayerExpRel {
   rank?: number;
 }
 
-export interface IUpdatePlayerRes extends IResponse{
+export interface IUpdatePlayerResponse extends IResponse{
   data?: IPlayerExpRel;
 }
+
+export type TPlayerMutationFunction = useMutation.MutationFunction<
+  {
+    updatePlayer: IUpdatePlayerResponse;
+  },
+  {
+    [x: string]: any;
+  },
+  ApolloCache
+>;
 
