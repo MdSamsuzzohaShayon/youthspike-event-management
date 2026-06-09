@@ -153,7 +153,7 @@ export class PlayerQueries implements IPlayerQueries {
           }
 
         }
-        teams = await this.teamService.find({ _id: [...teamIds] });
+        teams = await this.teamService.find({ _id: {$in: [...teamIds]}, ...teamQuery });
       }
 
       return {
@@ -184,7 +184,7 @@ export class PlayerQueries implements IPlayerQueries {
         if (!player) return AppResponse.notFound("Player");
         const firstEvent = await this.eventService.findOne({ _id: { $in: player.events } });
         if (!firstEvent) return AppResponse.notFound("Event");
-        const ldo = await this.ldoService.findOne({ events: firstEvent._id });
+        const ldo = await this.ldoService.findOne({ events: { $in: player.events } });
         if (!ldo) return AppResponse.notFound("LDO");
         events = await this.eventService.find({ _id: { $in: ldo.events as string[] } });
         teams = await this.teamService.find({ events: { $in: ldo.events } });

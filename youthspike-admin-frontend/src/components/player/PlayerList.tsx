@@ -18,6 +18,7 @@ import { isISODateString } from '@/utils/datetime';
 import { setPlayerRankings } from '@/utils/localStorage';
 import { useMutation } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
+import { createTeamsMap } from '@/utils/helper';
 
 interface IPlayerListProps {
   playerList: IPlayerExpRel[];
@@ -44,6 +45,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
   const screenWidth = useScreenWidth();
   const user = useUser();
   const { setMessage } = useMessage();
+  
 
   const [mutatePlayerRanking] = useMutation<{updatePlayerRanking: IUpdatePlayerRankingRes}>(UPDATE_PLAYER_RANKING);
 
@@ -121,34 +123,19 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
 
 
 
-  const findTeam = useCallback(
-    (player: IPlayerRank): ITeam | null => {
-      const teamMap = new Map<string, ITeam>(
-        teamList?.map((team) => [team._id, team]) ?? [],
-      );
-  
-      // Explicitly selected team
-      if (teamId) {
-        return teamMap.get(teamId) ?? null;
-      }
-  
-      // Player's first team
-      const firstTeam = player.teams?.[0];
-  
-      if (!firstTeam) {
-        return null;
-      }
-  
-      const playerTeamId =
-        typeof firstTeam === 'object'
-          ? String(firstTeam._id)
-          : String(firstTeam);
-  
-      return teamMap.get(playerTeamId) ?? null;
-    },
-    [teamId, teamList],
-  );
-  
+  // Memoization
+  const teamMap = useMemo(()=>{
+    const map = new Map();
+    if(!teamList) return map;
+    for (const team of teamList) {
+      map.set(team._id, team);
+    }
+    return map;
+  }, [teamList]);
+  const teamsOfPlayerMap = useMemo(() => createTeamsMap(teamList), [teamList]);
+  const selectedTeam = useMemo(()=>{
+    return teamMap.get(teamId);
+  }, [teamId, teamMap]);
   
 
   useEffect(() => {
@@ -225,7 +212,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     return () => sortableList.destroy();
   }, [handleSortEnd, rankControls, screenWidth, user, events]);
 
-  /** Derived State: Sorted Players */
+  /** Derived State: Sorted Players */  
   const sortedPlayerList: IPlayerRank[] = useMemo(() => {
     // inactive players won't have rankings
     if (inactive) return players;
@@ -233,7 +220,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     // If ranking is allowed then sort them or keep it as it is
     return showRank && rankControls ? [...players].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0)) : players;
   }, [players, showRank, rankControls, playerRanking]);
-  
+
 
 
   /** Render List **/
@@ -264,12 +251,13 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
               player={player}
               setIsLoading={setIsLoading}
               showRank={showRank}
-              team={findTeam(player)}
+              teams={teamsOfPlayerMap.get(player._id) || []}
               teamList={teamList || []}
+              selectedTeam={selectedTeam}
               divisionList={divisionList}
               rankControls={rankControls}
               rank={player.rank}
-            />
+            /> 
           </motion.li>
         ))}
       </ul>

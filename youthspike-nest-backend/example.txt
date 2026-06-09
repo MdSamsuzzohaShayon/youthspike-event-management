@@ -547,8 +547,3 @@ receiving partner - bd
 server position: PAIR_A_LEFT
 
 
-
-
-
-
-

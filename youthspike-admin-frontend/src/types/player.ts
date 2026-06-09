@@ -67,7 +67,7 @@ export interface IPlayerRecord extends IPlayer{
 export interface IPlayerAndTeamsResponse extends IResponse{
   data: {
     player: IPlayer;
-    teams: ITeam[];
+    teams: ITeamRelatives[];
     events: IEvent[];
   };
 }

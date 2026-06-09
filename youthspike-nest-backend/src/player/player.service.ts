@@ -16,7 +16,7 @@ type OptionalProps<T> = {
 
 @Injectable()
 export class PlayerService {
-  constructor(@InjectModel(Player.name) private readonly playerModel: Model<Player>) {}
+  constructor(@InjectModel(Player.name) private readonly playerModel: Model<Player>) { }
 
   playerUsername(firstName: string) {
     const now = new Date();
@@ -44,21 +44,26 @@ export class PlayerService {
   async findOne(filter: QueryFilter<Player>) {
     return this.playerModel.findOne(filter).lean();
   }
+
   async find(
     filter: QueryFilter<Player>,
     limit?: number,
-    offset?: number, // added for consistency & scalability
+    offset?: number,
   ) {
-    let query = this.playerModel.find(filter); // ensures stable pagination
+    const query = this.playerModel
+      .find(filter)
+      .sort({ _id: 1 }) // deterministic order
+      .lean();
 
-    if (typeof offset === 'number') {
-      query = query.skip(offset);
+    if (Number.isInteger(offset) && offset! >= 0) {
+      query.skip(offset!);
     }
 
-    if (typeof limit === 'number') {
-      query = query.limit(limit);
+    if (Number.isInteger(limit) && limit! > 0) {
+      query.limit(limit!);
     }
-    return query.lean().exec();
+
+    return query.exec();
   }
 
   async updateOne(filter: QueryFilter<Player>, player: UpdateQuery<Player>) {
