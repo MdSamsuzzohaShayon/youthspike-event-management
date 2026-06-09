@@ -40,6 +40,8 @@ interface IPlayerCardProps {
   rank?: number | null;
 }
 
+
+
 export default function PlayerCard({ player, isChecked, onSelect, teams, teamList, setIsLoading, showRank, rank, divisionList, rankControls, selectedTeam }: IPlayerCardProps) {
   
   

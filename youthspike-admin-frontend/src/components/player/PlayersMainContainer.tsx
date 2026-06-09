@@ -45,7 +45,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
   const [teamList, setTeamList] = useState<ITeam[]>([]);
   const [groupList, setGroupList] = useState<IGroup[]>([]);
   const [event, setEvent] = useState<IEvent | null>(null);
-  
+
 
 
   // Filter and pagination states
@@ -86,14 +86,14 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
       setGroupList(searchData.groups || []);
       setEvent(searchData.event);
       setServerData(searchData);
-      
+
 
       // Check if there are more players to load
       setHasMorePlayers(searchData.players.length === (appliedFilter.limit || DEFAULT_FILTER_STATE.limit!));
     },
     [appliedFilter.limit],
   );
-  
+
 
   // Execute GraphQL query
   const executeSearchQuery = useCallback(
@@ -107,7 +107,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
 
         if (!result.data) {
           console.error(result);
-          
+
           throw new Error('No data returned from query');
         }
 
@@ -127,7 +127,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
 
     try {
       const response = await executeSearchQuery(localFilter, 0);
-      
+
       transformServerData(response.data);
       setAppliedFilter(localFilter);
 
@@ -274,8 +274,8 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
       {/* Players List */}
       {!isApplyingFilters && (
         <div className="w-full player-standings">
-          <PlayerSearchList playerList={displayedPlayers} teamList={teamList} eventId={event?._id || ""} />
-          
+          <PlayerSearchList playerList={displayedPlayers} teamList={teamList} events={event ? [event] : []} />
+
         </div>
       )}
 
