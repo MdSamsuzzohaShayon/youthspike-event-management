@@ -52,7 +52,7 @@ export async function updateTeam({
       return false;
     }
 
-    const teamObj = { input, teamId: prevTeam._id, events, logo: null };
+    const teamObj = { input, teamId: prevTeam._id, events: events.filter((event)=> event), logo: null };
     let responseData: IGetTeamResponse | undefined;
 
     // 🧠 Upload with logo (if any)

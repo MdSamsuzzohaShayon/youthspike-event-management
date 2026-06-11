@@ -42,6 +42,9 @@ export class UpdatePlayerInput extends PartialType(CreatePlayerInput) {
 
   @Field({ nullable: true })
   newTeamId: string;
+
+  @Field({ nullable: true })
+  password?: string;
 }
 
 @InputType()

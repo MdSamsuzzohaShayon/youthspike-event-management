@@ -11,27 +11,30 @@ import { handleError } from '@/utils/handleError';
 import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
 
 import {
+  IGetTeamRosterResponse,
   IMessage,
   IOption,
+  IPlayer,
   IPlayerRank,
+  IPlayerRankingItemExpRel,
+  IResponse,
   ITeam,
   TPlayerMutationFunction,
+  TUpdatePlayer,
 } from '@/types';
+import updatePlayer from '@/utils/request-handlers/updatePlayer';
+import { useApolloClient } from '@apollo/client/react';
+import { GET_TEAM_ROSTER } from '@/graphql/teams';
 
 
-
-interface UpdatePlayerVariables {
-  input: {
-    prevTeamId?: string | null;
-    newTeamId?: string | null;
-  };
-  playerId: string;
+interface IPlayerMoveData{
+  getTeamRoster: IGetTeamRosterResponse;
 }
 
 
 
 interface PlayerMoveDialogProps {
-  dialogMoveEl: React.RefObject<HTMLDialogElement | null>;
+  dialogMoveRef: React.RefObject<HTMLDialogElement | null>;
   player: IPlayerRank;
   divisionList: IOption[];
   teamList: ITeam[];
@@ -53,7 +56,7 @@ interface PlayerMoveDialogProps {
 }
 
 function PlayerMoveDialog({
-  dialogMoveEl,
+  dialogMoveRef,
   player,
   divisionList,
   teamList,
@@ -63,11 +66,13 @@ function PlayerMoveDialog({
   setMessage,
   setMovePlayer,
 }: PlayerMoveDialogProps) {
-  const [selectedDivision, setSelectedDivision] =
-    useState('');
+  // Hooks
+  const apolloClient = useApolloClient();
 
-  const [selectedTeamId, setSelectedTeamId] =
-    useState('');
+  // State
+  const [selectedDivision, setSelectedDivision] = useState<string>('');
+  const [selectedTeamId, setSelectedTeamId] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   /**
    * Fast O(1) lookup by team id
@@ -116,7 +121,7 @@ function PlayerMoveDialog({
 
   const closeDialog = () => {
     setMovePlayer(false);
-    dialogMoveEl.current?.close();
+    dialogMoveRef.current?.close();
   };
 
   const handleDivisionChange = (
@@ -135,50 +140,69 @@ function PlayerMoveDialog({
   };
 
   const handleMovePlayer = async (
-    event: React.SyntheticEvent,
+    e: React.SyntheticEvent,
   ) => {
-    event.preventDefault();
+    e.preventDefault();
+    const mutationInput: Partial<TUpdatePlayer> =
+    {
+      prevTeamId: teamId || undefined,
+    };
 
-    try {
-      const mutationInput: UpdatePlayerVariables['input'] =
-        {
-          prevTeamId: teamId,
-        };
-
-      if (
-        selectedTeamId &&
-        teamMap.has(selectedTeamId)
-      ) {
-        mutationInput.newTeamId =
-          selectedTeamId;
-      }
-
-      const response = await mutatePlayer({
-        variables: {
-          playerId: player._id,
-          input: mutationInput,
-        },
-      });
-
-      // temp
-      // const isSuccessful =
-      //   await handleResponseCheck(
-      //     response.data.updatePlayer,
-      //     setMessage,
-      //   );
-
-      // if (!isSuccessful) {
-      //   return;
-      // }
-
-      setActionOpen(false);
-      closeDialog();
-    } catch (error: unknown) {
-      handleError({
-        error,
-        setMessage,
-      });
+    if (
+      selectedTeamId &&
+      teamMap.has(selectedTeamId)
+    ) {
+      mutationInput.newTeamId =
+        selectedTeamId;
     }
+
+    updatePlayer({ setMessage, setIsLoading, playerUpdate: mutationInput, prevPlayer: player as IPlayer, uploadedProfile: null, mutatePlayer });
+
+    /*
+    // After moving player successfully
+    // Update cache like this with writeFragment
+
+    apolloClient.cache.updateQuery(
+      {
+        query: GET_TEAM_ROSTER,
+        variables: {
+          teamId,
+        },
+      },
+      (data: IPlayerMoveData | null) => {
+        if (!data) return data;
+
+        return {
+          ...data,
+          getTeamRoster: {
+            ...data.getTeamRoster,
+            data: {
+              ...data.getTeamRoster.data,
+
+              // remove player
+              players:
+                data.getTeamRoster.data.players.filter(
+                  (p: IPlayer) => p._id !== player._id,
+                ),
+
+              // remove ranking
+              rankings:
+                data.getTeamRoster.data.rankings.filter(
+                  (r: IPlayerRankingItemExpRel) =>
+                    r.player._id !== player._id,
+                ),
+            },
+          },
+        };
+      },
+    );
+
+    dialogMoveRef.current?.close();
+
+    */
+
+
+    window.location.reload();
   };
 
   const currentTeamName =
@@ -188,7 +212,7 @@ function PlayerMoveDialog({
 
   return (
     <dialog
-      ref={dialogMoveEl}
+      ref={dialogMoveRef}
       className="modal-dialog"
     >
       <div className="relative w-full rounded-xl bg-gray-900 p-6">

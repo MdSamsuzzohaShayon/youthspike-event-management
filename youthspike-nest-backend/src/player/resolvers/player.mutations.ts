@@ -1,4 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { EventService } from 'src/event/event.service';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service';
 import { TeamService } from 'src/team/team.service';
@@ -14,6 +15,7 @@ import { IPlayerMutations } from './player.types';
 import { MatchService } from 'src/match/match.service';
 import { Match } from 'src/match/match.schema';
 import { Team } from 'src/team/team.schema';
+import { User } from 'src/user/user.schema';
 
 @Injectable()
 export class PlayerMutations implements IPlayerMutations {
@@ -25,7 +27,7 @@ export class PlayerMutations implements IPlayerMutations {
     private playerService: PlayerService,
     private userService: UserService,
     private playerRankingService: PlayerRankingService,
-  ) {}
+  ) { }
 
   private async handleTeamUpdate(
     playerId: string,
@@ -196,7 +198,7 @@ export class PlayerMutations implements IPlayerMutations {
         // teams: ,
         name: `${input.firstName}_${input.lastName}`,
       };
-      const playerExist = await this.playerService.findOne({ name: playerObj.name, events: {$in: input.events}});
+      const playerExist = await this.playerService.findOne({ name: playerObj.name, events: { $in: input.events } });
       if (playerExist) {
         return AppResponse.handleError({
           code: 404,
@@ -217,7 +219,7 @@ export class PlayerMutations implements IPlayerMutations {
 
       if (input.teams) {
         // ===== Update Player Ranking =====
-        const teams = await this.teamService.find({_id: {$in: input.teams}});
+        const teams = await this.teamService.find({ _id: { $in: input.teams } });
         for (const team of teams) {
           const playerRankings = await this.playerRankingService.find({ team: team._id, rankLock: false });
           if (playerRankings && playerRankings.length > 0) {
@@ -225,10 +227,10 @@ export class PlayerMutations implements IPlayerMutations {
             for (const pr of playerRankings) {
               // If ranking is locked, then add that player only to one team player ranking (not in the ranking that has specific match)
               if (pr.rankLock && pr.match) continue;
-  
+
               const rankings = await this.playerRankingService.findItems({ playerRanking: pr._id });
               const highestRank = rankings.length === 0 ? 0 : Math.max(...rankings.map((p) => p.rank));
-  
+
               // Insert that ranking iteam
               const itemsToInsert = [];
               const playerIds = [...team.players, newPlayer._id];
@@ -261,7 +263,7 @@ export class PlayerMutations implements IPlayerMutations {
       }
       ensurePromises.push(
         this.eventService.updateOne(
-          { _id: {$in: input.teams} },
+          { _id: { $in: input.teams } },
           { $addToSet: { players: newPlayer._id } },
         ),
       );
@@ -547,6 +549,7 @@ export class PlayerMutations implements IPlayerMutations {
         );
       }
 
+
       // If changing teams
       const isTeamChange = input.prevTeamId && input.newTeamId;
 
@@ -569,14 +572,26 @@ export class PlayerMutations implements IPlayerMutations {
       }
 
       // Update firstName/lastName in user if player is captain/co-captain
-      const updateUserName: Partial<{ firstName: string; lastName: string }> = {};
-      if (input.firstName) updateUserName.firstName = input.firstName;
-      if (input.lastName) updateUserName.lastName = input.lastName;
+      // const updateUserName: Partial<{ firstName: string; lastName: string }> = {};
+      const userObj: Partial<User> = {};
+      if (input.firstName) userObj.firstName = input.firstName;
+      if (input.lastName) userObj.lastName = input.lastName;
+      if (input.password) {
+        // Update user
+        const salt = await bcrypt.genSalt(10);
+        const hashPwd = await bcrypt.hash(input.password, salt);
 
-      if ((playerExist.captainuser || playerExist.cocaptainuser) && Object.keys(updateUserName).length) {
-        const userId = playerExist.captainuser || playerExist.cocaptainuser;
-        updatePromises.push(this.userService.updateOne({ _id: userId.toString() }, updateUserName));
+        userObj.password = hashPwd;
       }
+
+
+      if ((playerExist.captainuser || playerExist.cocaptainuser) && Object.keys(userObj).length) {
+        const userId = playerExist.captainuser || playerExist.cocaptainuser;
+        updatePromises.push(this.userService.updateOne({ _id: String(userId) }, userObj));
+      }
+
+
+
 
       // Cleanup fields that shouldn't be updated
       delete playerObj.team;

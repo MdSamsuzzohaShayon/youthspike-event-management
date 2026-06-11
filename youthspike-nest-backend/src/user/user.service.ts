@@ -9,6 +9,7 @@ import { PlayerService } from 'src/player/player.service';
 import { TeamService } from 'src/team/team.service';
 import { Player } from 'src/player/player.schema';
 import { Event } from 'src/event/event.schema';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UserService {
@@ -18,7 +19,7 @@ export class UserService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<User>,
-    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
     private readonly teamService: TeamService,
     private readonly playerService: PlayerService,
   ) {}
@@ -36,13 +37,16 @@ export class UserService {
   async createCapUser(
     playerExist: Player,
     playerUserExist: User | null,
-    events: Event[],
+    selectedEvent: Event,
     playerUsername: string,
     role: UserRole,
   ): Promise<User> {
+
+    const rawPassword = this.configService.get('DEFAULT_CAPTAIN_PASSWORD')
+    const password = selectedEvent?.coachPassword || rawPassword;
     const userObj = {
       email: playerUsername.replace(/\s+/g, ''),
-      password: "eventExist.coachPassword", // temp
+      password: password,
       firstName: playerExist.firstName,
       lastName: playerExist.lastName,
       role,
@@ -54,7 +58,7 @@ export class UserService {
     if (playerUserExist) {
       userObj.captainplayer = role === UserRole.captain ? playerExist._id : playerUserExist.captainplayer;
       userObj.cocaptainplayer = role === UserRole.co_captain ? playerExist._id : playerUserExist.cocaptainplayer;
-      const hashedPassword = await bcrypt.hash("eventExist.coachPassword", 10); // temp
+      const hashedPassword = await bcrypt.hash(password, 10); // temp
       userObj.password = hashedPassword;
       newCaptainUser = await this.updateOne({ _id: playerUserExist._id }, userObj);
     } else {

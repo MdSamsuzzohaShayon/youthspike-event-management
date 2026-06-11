@@ -1,26 +1,24 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
-import { IPlayer, IPlayerAdd } from '@/types/player';
+import { IPlayer } from '@/types/player';
 import SelectInput from '../elements/forms/SelectInput';
-import { IEvent, IGetPlayerResponse, IOption, IResponse, ITeam, ITeamRelatives, IUpdatePlayerResponse, TAddPlayer } from '@/types';
+import { IEvent, IGetPlayerResponse, ITeamRelatives, IUpdatePlayerResponse, TAddPlayer, TUpdatePlayer, UserRole } from '@/types';
 import { CREATE_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { setTeamToStore } from '@/utils/localStorage';
+import { useRouter } from 'next/navigation';
 import SessionStorageService from '@/utils/SessionStorageService';
 import ImageInput from '../elements/forms/ImageInput';
-import { useUser } from '@/lib/UserProvider';
-import { UserRole } from '@/types/user';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useMessage } from '@/lib/MessageProvider';
 import InputField from '../elements/forms/InputField';
 import Loader from '../elements/Loader';
-import updatePlayerFn from '@/utils/request-handlers/updatePlayerFn';
+import updatePlayer from '@/utils/request-handlers/updatePlayer';
 import createPlayer from '@/utils/request-handlers/createPlayer';
 import { CURRENT_EVENT, DIVISION, TEAM } from '@/utils/constant';
 import { useApolloClient, useMutation } from '@apollo/client/react';
-import GenericMultiSelect from '../elements/forms/GenericMultiSelect';
 import { divisionsOfEvents, divisionsToOptionList } from '@/utils/helper';
+import validatePassword from '@/utils/validatePassword';
+import { useUser } from '@/lib/UserProvider';
 
 interface IPlayerAddProps {
   teams: ITeamRelatives[];
@@ -48,19 +46,18 @@ function PlayerAdd({ update, prevPlayer, teams, events }: IPlayerAddProps) {
   const { ldoIdUrl } = useLdoId();
   const { setMessage } = useMessage();
   const apolloClient = useApolloClient();
+  const user = useUser();
 
   // State
   const [playerState, setPlayerState] = useState<TAddPlayer>(initialPlayerAdd);
-  const [playerUpdate, setPlayerUpdate] = useState<Partial<TAddPlayer>>({});
+  const [playerUpdate, setPlayerUpdate] = useState<Partial<TUpdatePlayer>>({});
 
   const uploadedProfile = useRef<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   // Mutations
   const [addPlayer] = useMutation<{ createPlayer: IGetPlayerResponse }>(CREATE_PLAYER);
-  const [updatePlayer] = useMutation<{ updatePlayer: IUpdatePlayerResponse }>(UPDATE_PLAYER);
-
-
+  const [mutatePlayer] = useMutation<{ updatePlayer: IUpdatePlayerResponse }>(UPDATE_PLAYER);
 
 
   // Unified field updater
@@ -117,6 +114,15 @@ function PlayerAdd({ update, prevPlayer, teams, events }: IPlayerAddProps) {
     return list;
   }, [teams, playerState.events]);
 
+  const allowUpdatePassword = useMemo(() => {
+    // update && (prevPlayer?.captainofteams && prevPlayer.captainofteams.length > 0) || (prevPlayer?.cocaptainofteams && prevPlayer.cocaptainofteams.length > 0)
+    if (!update) return false;
+    if (!prevPlayer?.captainofteams && !prevPlayer?.cocaptainofteams) return false;
+    if (prevPlayer.captainofteams?.length === 0 && prevPlayer.cocaptainofteams?.length === 0) return false;
+    if(user.info?.role !== UserRole.admin && user.info?.role !== UserRole.director) return false;
+    return true;
+  }, [update, prevPlayer, user]);
+
 
 
   // -------------------- Handlers --------------------
@@ -161,7 +167,18 @@ function PlayerAdd({ update, prevPlayer, teams, events }: IPlayerAddProps) {
     e.preventDefault();
 
     if (update) {
-      updatePlayerFn({ setMessage, setIsLoading, playerUpdate, prevPlayer: prevPlayer || null, uploadedProfile, updatePlayer });
+      if (Object.entries(playerUpdate).length === 0) {
+        setMessage({ type: "warning", code: 200, message: "Nothing to update!" });
+      } else {
+        if (playerUpdate.password) {
+          const validationError = validatePassword(playerUpdate.password, playerUpdate.confirmPassword);
+          if (validationError !== '' && validationError) {
+            setMessage({ type: "error", code: 406, message: validationError })
+            return;
+          }
+        }
+        updatePlayer({ setMessage, setIsLoading, playerUpdate, prevPlayer: prevPlayer || null, uploadedProfile, mutatePlayer });
+      }
     } else {
       createPlayer({ setMessage, apolloClient, setIsLoading, playerState, uploadedProfile, addPlayer });
     }
@@ -233,10 +250,16 @@ function PlayerAdd({ update, prevPlayer, teams, events }: IPlayerAddProps) {
         </>
       )}
 
+
+
       <div className="part-1 grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
         <InputField type="text" name="firstName" label="First Name" defaultValue={playerState.firstName} onChange={handleInputChange} required={!update} />
         <InputField type="text" name="lastName" label="Last Name" defaultValue={playerState.lastName} onChange={handleInputChange} required={!update} />
         {update && <InputField type="text" name="username" defaultValue={playerState.username} onChange={handleInputChange} required={false} />}
+        {allowUpdatePassword && (<>
+          <InputField type="password" name="password" defaultValue={playerUpdate.password} onChange={handleInputChange} required={false} />
+          <InputField type="password" name="confirmPassword" label='Confirm Password' defaultValue={playerUpdate.confirmPassword} onChange={handleInputChange} required={false} />
+        </>)}
         <InputField type="email" name="email" defaultValue={playerState.email} onChange={handleInputChange} required={false} />
         <InputField type="number" name="phone" defaultValue={playerState.phone} onChange={handleInputChange} />
       </div>

@@ -1769,6 +1769,7 @@ input UpdatePlayerInput {
   status: String
   prevTeamId: String
   newTeamId: String
+  password: String
 }
 
 input UpdatePlayersInput {

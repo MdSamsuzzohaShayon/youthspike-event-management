@@ -1,17 +1,13 @@
 import { UPDATE_PLAYER_RAW } from '@/graphql/players';
-import { IPlayer, IPlayerAdd, IPlayerExpRel } from '@/types/player';
-import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
-import { handleRedirect, sendGraphQLFormData, handleResponseCheck } from './playerHelpers';
-import { IMessage, IResponse, IUpdatePlayerResponse, TAddPlayer, TPlayerMutationFunction } from '@/types';
-import { useMutation } from '@apollo/client/react';
-import { ApolloCache } from '@apollo/client';
+import { IPlayer } from '@/types/player';
+import { IMessage, IUpdatePlayerResponse, TPlayerMutationFunction, TUpdatePlayer } from '@/types';
 import { handleApiResult } from '../handleError';
 import { getCookie } from '../clientCookie';
 import { BACKEND_URL } from '../keys';
-import routerService from '@/lib/router-service';
 import SessionStorageService from '../SessionStorageService';
 import { DIVISION } from '../constant';
 import { removeTeamFromStore } from '../localStorage';
+import routerService from '@/lib/router-service';
 
 
 
@@ -19,28 +15,32 @@ import { removeTeamFromStore } from '../localStorage';
 interface IUpdatePlayer {
   setMessage: (message: Omit<IMessage, "id">) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  playerUpdate: Partial<TAddPlayer>;
+  playerUpdate: Partial<TUpdatePlayer>;
   prevPlayer: IPlayer | null;
-  uploadedProfile: React.RefObject<File | null>;
-  updatePlayer: TPlayerMutationFunction;
+  uploadedProfile: React.RefObject<File | null> | null;
+  mutatePlayer: TPlayerMutationFunction;
 
 }
 
-async function updatePlayerFn({
+async function updatePlayer({
   setMessage,
   setIsLoading,
   playerUpdate,
   prevPlayer,
   uploadedProfile,
-  updatePlayer,
+  mutatePlayer,
 }: IUpdatePlayer) {
   setIsLoading(true);
 
   try {
     let responseData: IUpdatePlayerResponse | undefined;
 
+    if (playerUpdate?.password && playerUpdate?.confirmPassword) {
+      delete playerUpdate.confirmPassword;
+    }
+
     // 🟡 CASE 1: File upload (fetch)
-    if (uploadedProfile?.current) {
+    if (uploadedProfile && uploadedProfile?.current) {
       const formData = new FormData();
       formData.set(
         'operations',
@@ -54,7 +54,7 @@ async function updatePlayerFn({
         }),
       );
       formData.set('map', JSON.stringify({ '0': ['variables.profile'] }));
-      formData.set('0', uploadedProfile.current);
+      formData.set('0', (uploadedProfile as React.RefObject<Blob>).current as Blob);
 
       const token = getCookie('token');
 
@@ -84,7 +84,7 @@ async function updatePlayerFn({
 
     // 🟢 CASE 2: Apollo mutation
     else {
-      const result = await updatePlayer({
+      const result = await mutatePlayer({
         variables: {
           input: playerUpdate,
           playerId: prevPlayer?._id,
@@ -138,6 +138,8 @@ async function updatePlayerFn({
 
     SessionStorageService.removeItem(DIVISION);
     removeTeamFromStore();
+
+    // Check status code is 401
     await fetch('/api/logout', { method: 'GET' });
     routerService.push('/login');
 
@@ -149,4 +151,4 @@ async function updatePlayerFn({
 }
 
 
-export default updatePlayerFn;
+export default updatePlayer;

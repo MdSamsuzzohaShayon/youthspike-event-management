@@ -100,6 +100,8 @@ query GetPlayerAndTeams($playerId: String!, $eventIds: [String!]) {
         email
         status
         profile
+        captainofteams
+        cocaptainofteams
         phone
         division
         teams

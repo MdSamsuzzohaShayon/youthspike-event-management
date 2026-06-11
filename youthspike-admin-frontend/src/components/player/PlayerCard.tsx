@@ -43,8 +43,8 @@ interface IPlayerCardProps {
 
 
 export default function PlayerCard({ player, isChecked, onSelect, teams, teamList, setIsLoading, showRank, rank, divisionList, rankControls, selectedTeam }: IPlayerCardProps) {
-  
-  
+
+
 
 
 
@@ -58,7 +58,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
 
   // Reference
   const dialogEl = useRef<HTMLDialogElement | null>(null);
-  const dialogMoveEl = useRef<HTMLDialogElement | null>(null);
+  const dialogMoveRef = useRef<HTMLDialogElement | null>(null);
   const uploadedLogoRef = useRef<Blob | null | MediaSource>(null);
 
 
@@ -76,7 +76,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
   // Memoized values
   const name = useMemo(() => `${player.firstName} ${player.lastName}`, [player.firstName, player.lastName]);
 
-  
+
   const teamsOfPlayer = useMemo(() => {
     const list = [];
     const set = new Set();
@@ -90,8 +90,11 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
   }, [teams]);
   const captainofteams = useMemo(() => player.captainofteams?.map((t) => (typeof t === 'object' ? t?._id : t)) || [], [player]);
   const cocaptainofteams = useMemo(() => player.cocaptainofteams?.map((t) => (typeof t === 'object' ? t?._id : t)) || [], [player]);
+  
+  
 
-  const teamSet = useMemo(() => new Set(teams.map((team) => team._id)), [teams]);
+  const teamSet = useMemo(() => new Set(teams.map((team) => typeof team === 'object' ? team._id : team)), [teams]);
+  
   const isCaptain = useMemo(() => {
 
     let captain = false;
@@ -104,6 +107,9 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
     }
     return captain;
   }, [teamSet, captainofteams]);
+
+
+  
   const isCoCaptain = useMemo(() => {
 
     let cocaptain = false;
@@ -127,9 +133,9 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
   const makeCaptainOrCoCaptain = async (input: { captain?: string; cocaptain?: string }) => {
     setActionOpen((prev) => !prev);
 
-    if(!selectedTeam){
+    if (!selectedTeam) {
       console.error("No selected team found");
-      
+
       return;
     }
 
@@ -142,7 +148,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
       uploadedLogo: uploadedLogoRef,
       apolloClient,
       mutateTeam,
-      events: selectedTeam?.events.map((e) => e._id) ?? [],
+      events: selectedTeam?.events.map((e) => typeof e === "object" ? e._id : e) ?? [],
     });
     window.location.reload(); // temp
 
@@ -170,7 +176,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
     e.preventDefault();
     setMovePlayer(true);
     setActionOpen((prev) => !prev);
-    dialogMoveEl.current?.showModal();
+    dialogMoveRef.current?.showModal();
   }, []);
 
   const handleChangeStatus = useCallback(
@@ -230,6 +236,14 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
       dialogEl.current.showModal();
     }
   }, []);
+
+  const handleEmailClose = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    if (dialogEl.current) {
+      setNewPlayerRole(null);
+      dialogEl.current.close();
+    }
+  }
 
 
   const handleEditRedirect = (e: React.MouseEvent<HTMLButtonElement>) => {
@@ -291,7 +305,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
         <div className="w-full md:flex-col flex flex-wrap justify-between items-center md:items-start">
           <h5 className="break-words text-xs md:text-lg font-semibold capitalize">{name}</h5>
           {teamsOfPlayer && teamsOfPlayer.length > 0 && (
-            teamsOfPlayer.map((team) => (<Link key={team._id} href={`/teams/${team._id}/roster/${ldoIdUrl}`} className="md:hidden text-yellow-400 uppercase font-bold tracking-wide underline">
+            teamsOfPlayer.map((team) => (<Link key={team._id} href={`/teams/${team._id}/roster/${ldoIdUrl}`} className="md:hidden text-yellow-logo uppercase font-bold tracking-wide underline">
               {team.name.slice(0, 3)}
             </Link>))
           )}
@@ -307,7 +321,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
         {teamsOfPlayer && teamsOfPlayer.length > 0 && (
           <div className="w-full hidden md:flex justify-start gap-x-2 items-center">
             {teamsOfPlayer.map((team) => (
-              <Link key={team._id} href={`/teams/${team._id}/roster/${ldoIdUrl}`} className="text-yellow-400 uppercase font-bold tracking-wide">
+              <Link key={team._id} href={`/teams/${team._id}/roster/${ldoIdUrl}`} className="text-yellow-logo uppercase font-bold tracking-wide">
                 {team.name} {teamsOfPlayer.length > 1 && "/"}
               </Link>
             ))}
@@ -460,13 +474,13 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
       </div>
 
       {/* Add email operation start  */}
-      <AddEmailDialog dialogEl={dialogEl} handleCaptainEmail={handleCaptainEmail} handleCloseModal={handleCaptainEmail} setNewEmail={setNewEmail} />
+      <AddEmailDialog player={player} dialogRef={dialogEl} onCaptainEmail={handleCaptainEmail} onClose={handleEmailClose} setNewEmail={setNewEmail} />
 
       {/* Add email operation end  */}
 
       {/* ✅ Options Modal */}
       <PlayerMoveDialog
-        dialogMoveEl={dialogMoveEl}
+        dialogMoveRef={dialogMoveRef}
         divisionList={divisionList || []}
         mutatePlayer={mutatePlayer}
         player={player}

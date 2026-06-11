@@ -133,6 +133,8 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     return map;
   }, [teamList]);
   const teamsOfPlayerMap = useMemo(() => createTeamsMap(teamList), [teamList]);
+
+
   const selectedTeam = useMemo(()=>{
     return teamMap.get(teamId);
   }, [teamId, teamMap]);
@@ -220,6 +222,9 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     // If ranking is allowed then sort them or keep it as it is
     return showRank && rankControls ? [...players].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0)) : players;
   }, [players, showRank, rankControls, playerRanking]);
+
+
+  
 
 
 
