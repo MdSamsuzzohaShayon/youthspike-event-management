@@ -220,6 +220,8 @@ query GetTeamRoster($teamId: String!) {
         logo
         sendCredentials
         events
+        captain
+        cocaptain
       }
       playerRanking {
         _id
@@ -335,6 +337,9 @@ query GetTeams ($eventIds: [String!], $limit: Float, $offset: Float) {
       _id
       name
       division
+      players{
+        _id
+      }
       groups {
         _id
         name

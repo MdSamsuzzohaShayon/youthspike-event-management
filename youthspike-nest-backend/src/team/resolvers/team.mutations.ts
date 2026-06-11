@@ -58,10 +58,12 @@ export class TeamMutations {
 
       const newUsername = newLeader.username ?? this.playerService.playerUsername(newLeader.firstName);
       const existingUser = await this.userService.findOne({ email: newLeader.username });
+      // for player, captain, co-captain we should select player of a event
+      // temp - use last event for now
       const createdUser = await this.userService.createCapUser(
         newLeader,
         existingUser,
-        events,
+        events[0],
         newUsername,
         leaderType === 'captain' ? UserRole.captain : UserRole.co_captain,
       );

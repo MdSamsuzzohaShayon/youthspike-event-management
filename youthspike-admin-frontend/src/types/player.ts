@@ -39,7 +39,13 @@ export interface IPlayer extends IDocument {
   cocaptainofteams: ITeam[] | string[] | null;
 }
 
-export type TAddPlayer = Omit<IPlayer, '_id' | 'status' | 'profile' | 'captainofteams' | 'cocaptainofteams'>
+export type TAddPlayer = Omit<IPlayer, '_id' | 'status' | 'profile' | 'captainofteams' | 'cocaptainofteams'>;
+export type TUpdatePlayer = Omit<IPlayer, '_id' | 'status' | 'profile' | 'captainofteams' | 'cocaptainofteams'> & {
+  password: string;
+  confirmPassword: string;
+  prevTeamId: string;
+  newTeamId: string;
+};;
 
 export interface IPlayerExpRel extends IDocument {
   firstName: string;
@@ -56,7 +62,7 @@ export interface IPlayerExpRel extends IDocument {
   cocaptainofteams: ITeam[] | null;
 }
 
-export interface IPlayerRecord extends IPlayer{
+export interface IPlayerRecord extends IPlayer {
   numOfGame: number;
   running: number;
   wins: number; // Number of games wins
@@ -66,7 +72,7 @@ export interface IPlayerRecord extends IPlayer{
 }
 
 
-export interface IPlayerAndTeamsResponse extends IResponse{
+export interface IPlayerAndTeamsResponse extends IResponse {
   data: {
     player: IPlayer;
     teams: ITeamRelatives[];
@@ -76,16 +82,16 @@ export interface IPlayerAndTeamsResponse extends IResponse{
 
 
 
-export interface IGetPlayersResponse extends IResponse{
+export interface IGetPlayersResponse extends IResponse {
   data: IPlayer[];
 }
 
-export interface IGetPlayerResponse extends IResponse{
+export interface IGetPlayerResponse extends IResponse {
   data: IPlayer;
 }
 
 
-export interface ISearchPlayerResponse extends IResponse{
+export interface ISearchPlayerResponse extends IResponse {
   data: {
     event: IEvent;
     groups: IGroup[];
@@ -94,7 +100,7 @@ export interface ISearchPlayerResponse extends IResponse{
   };
 }
 
-export interface IGetEventsWithTeamsResponse extends IResponse{
+export interface IGetEventsWithTeamsResponse extends IResponse {
   data: {
     events: IEvent[];
     teams: ITeamRelatives[];
@@ -107,7 +113,7 @@ export interface IPlayerRank extends IPlayerExpRel {
   rank?: number;
 }
 
-export interface IUpdatePlayerResponse extends IResponse{
+export interface IUpdatePlayerResponse extends IResponse {
   data?: IPlayerExpRel;
 }
 

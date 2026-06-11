@@ -267,13 +267,13 @@ export const createTeamsMap =(teamList? : ITeam[]) => {
   if(!teamList) return map;
 
   for (const team of teamList) {
-    for (const playerId of (team?.players || [])) {
-      const key = String(playerId);
+    for (const player of (team?.players || [])) {
+      const playerId = typeof player === 'object' ?player._id : String(player);
 
-      if (map.has(key)) {
-        map.get(key)!.push(team);
+      if (map.has(playerId)) {
+        map.get(playerId)!.push(team);
       } else {
-        map.set(key, [team]);
+        map.set(playerId, [team]);
       }
     }
   }
