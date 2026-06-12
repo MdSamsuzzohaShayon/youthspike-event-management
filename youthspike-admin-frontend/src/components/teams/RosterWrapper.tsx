@@ -11,10 +11,11 @@ interface IRosterWrapperProps {
   events: IEvent[];
   team: ITeam;
   players: IPlayer[];
+  unassignedPlayers: IPlayer[];
   playerRanking: IPlayerRankingExpRel;
   teamList: ITeam[];
 }
-function RosterWrapper({ events, team, players, playerRanking, teamList }: IRosterWrapperProps) {
+function RosterWrapper({ events, team, players, unassignedPlayers, playerRanking, teamList }: IRosterWrapperProps) {
   // Local State
   const [playerIdsToAdd, setPlayerIdsToAdd] = useState<Set<string>>(new Set());
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
@@ -23,7 +24,6 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
   // Hooks
   const [mutateTeam] = useMutation(UPDATE_TEAM);
   const { showMessage } = useMessage();
-
 
 
 
@@ -37,7 +37,6 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
           variables: {
             input: { players: Array.from(playerIdsToAdd) },
             teamId: team._id,
-            eventId: "event._id", // temp
           },
         });
         // Need to add cache later
@@ -85,25 +84,26 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
   }, [players]);
 
 
-  const unassignedPlayers = useMemo(() => {
-    const list = [];
-    for (const player of activePlayers) {
-      if (!player.teams) continue;
-      const teamIds = [];
-      for (const t of player.teams) {
-        if (typeof t === "object") {
-          teamIds.push(t._id);
-        }
-        else {
-          teamIds.push(t);
-        }
-      }
-      if (!teamIds?.includes(team._id)) {
-        list.push(player);
-      }
-    }
-    return list;
-  }, [team, activePlayers]);
+
+  // const unassignedPlayers = useMemo(() => {
+  //   const list = [];
+  //   for (const player of activePlayers) {
+  //     if (!player.teams) continue;
+  //     const teamIds = [];
+  //     for (const t of player.teams) {
+  //       if (typeof t === "object") {
+  //         teamIds.push(t._id);
+  //       }
+  //       else {
+  //         teamIds.push(t);
+  //       }
+  //     }
+  //     if (!teamIds?.includes(team._id)) {
+  //       list.push(player);
+  //     }
+  //   }
+  //   return list;
+  // }, [team, activePlayers]);
 
   const divisionList: IOption[] = useMemo(() => {
     const divisions = divisionsOfEvents(events);
@@ -111,9 +111,7 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
   }, [events]);
 
 
-  
 
-  
 
 
   if (addPlayer) {
@@ -136,9 +134,13 @@ function RosterWrapper({ events, team, players, playerRanking, teamList }: IRost
           <PlayerSelectInput players={unassignedPlayers as IPlayer[]}
             events={events}
             onCheckboxChange={handleCheckboxChange} name="add-player-to-team" />
-          <button type="submit" className="w-full bg-yellow-400 text-gray-900 py-3 rounded-lg font-bold text-sm hover:bg-yellow-300 transition-colors shadow-lg">
-            ADD SELECTED PLAYERS
-          </button>
+
+
+          {unassignedPlayers.length > 0 && (
+            <button type="submit" className="btn-info">
+              ADD SELECTED PLAYERS
+            </button>
+          )}
         </form>
       </div>
     );

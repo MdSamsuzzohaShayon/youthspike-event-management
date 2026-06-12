@@ -80,6 +80,7 @@ export interface IGetTeamsResponse extends IResponse {
 interface ITeamRoster {
   events: IEvent[];
   players: IPlayer[];
+  unassignedPlayers: IPlayer[];
   groups: IGroupRelatives[];
   team: ITeam;
   rankings: IPlayerRankingItemExpRel[];

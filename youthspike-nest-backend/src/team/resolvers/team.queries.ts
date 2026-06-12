@@ -250,7 +250,7 @@ export class TeamQueries {
     try {
       const team = await this.teamService.findById(teamId);
       if (!team) return AppResponse.notFound("Team");
-      let [players, playerRanking, events] = await Promise.all([
+      let [players, playerRanking, events, unassignedPlayers] = await Promise.all([
         this.playerService.find({ events: { $in: team.events }, teams: { $in: [team._id] } }),
         this.playerRankingService.findOne({
           team: teamId,
@@ -260,6 +260,16 @@ export class TeamQueries {
           ],
         }),
         this.eventService.find({ _id: { $in: team.events as string[] } }),
+
+        // Get all unassigned players
+        this.playerService.find({
+          events: { $in: team.events }, $or: [
+            { teams: { $exists: false } },
+            { teams: { $size: 0 } }
+          ],
+          status: EPlayerStatus.ACTIVE,
+          division: team.division
+        }, 100, 0),
       ]);
 
 
@@ -330,6 +340,7 @@ export class TeamQueries {
           players: playerList as CustomPlayer[],
           playerRanking: playerRanking as CustomPlayerRanking,
           rankings: rankings as CustomPlayerRankingItem[],
+          unassignedPlayers: unassignedPlayers  as CustomPlayer[],
         },
       };
     } catch (err) {

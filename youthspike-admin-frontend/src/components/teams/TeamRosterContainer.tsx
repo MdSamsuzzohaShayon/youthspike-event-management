@@ -27,7 +27,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
     notFound();
   }
 
-  const { team, players, rankings, events, playerRanking } = data.getTeamRoster.data;
+  const { team, players, rankings, events, playerRanking, unassignedPlayers } = data.getTeamRoster.data;
 
 
   const { data: teamsData, loading, error } = useQuery<{ getTeams: IGetTeamsResponse }>(GET_TEAMS, {
@@ -39,6 +39,8 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
   const teamList = useMemo(() => {
     return (teamsData?.getTeams?.data || []) as ITeam[];
   }, [teamsData]);
+
+  
 
   const playerList = useMemo(() => {
     if (!players?.length || !rankings?.length) return [];
@@ -92,6 +94,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
           <RosterWrapper
             events={events}
             players={players}
+            unassignedPlayers={unassignedPlayers}
             team={team}
             playerRanking={playerRankingData}
             teamList={teamList}
