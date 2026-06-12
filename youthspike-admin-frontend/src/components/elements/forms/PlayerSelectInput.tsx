@@ -59,7 +59,7 @@ function PlayerSelectInput({ events, players, onCheckboxChange, extraClass, defa
   }, [players]);
 
 
-  const handleEventRedirect = (e: React.SyntheticEvent, eventId: string)=>{
+  const handleEventRedirect = (e: React.SyntheticEvent, eventId: string) => {
     e.preventDefault();
     SessionStorageService.setItem(CURRENT_EVENT, eventId);
     routerService.push(`/players/new/${ldoIdUrl}`);
@@ -74,31 +74,35 @@ function PlayerSelectInput({ events, players, onCheckboxChange, extraClass, defa
 
   return (
     <div className={`input-group w-full flex flex-col ${extraClass}`}>
-      <label htmlFor="players">
+      <label htmlFor="players flex justify-start items-center">
         <span className='text-xs'>Select Players or </span>
         <div className="w-full flex justify-start items-center flex-wrap gap-x-4">
-        {events.map((event) => (
-          <div
-            key={event._id}
-            role="presentation"
-            onClick={(e)=> handleEventRedirect(e, event._id)}
-            className="underline underline-offset-1 hover:text-yellow-400 text-xs"
-          >
-            Create Player in {event.name}
-          </div>
-        ))}
+          {events.map((event) => (
+            <div
+              key={event._id}
+              role="presentation"
+              onClick={(e) => handleEventRedirect(e, event._id)}
+              className="underline underline-offset-1 hover:text-yellow-400 text-xs"
+            >
+              Create Player in {event.name}
+            </div>
+          ))}
         </div>
       </label>
-      <InputField name='search' className='w-full' label='Search player' onChange={handleInputChange} />
-      <ul className="flex flex-wrap items-center gap-2">
-        {playerList.map(
-          (player, i) =>
-            <li key={`${player._id}-${i}`} className="flex gap-1 items-center">
-              <input type="checkbox" onChange={(e) => handleCheckboxChange(e, player._id)} />
-              <span className="capitalize">{`${player.firstName} ${player.lastName}`}</span>
-            </li>
-        )}
-      </ul>
+      {playerList.length > 0 && (
+        <>
+          <InputField name='search' className='w-full' label='Search player' onChange={handleInputChange} />
+          <ul className="flex flex-wrap items-center gap-2">
+            {playerList.map(
+              (player, i) =>
+                <li key={`${player._id}-${i}`} className="flex gap-1 items-center">
+                  <input type="checkbox" onChange={(e) => handleCheckboxChange(e, player._id)} />
+                  <span className="capitalize">{`${player.firstName} ${player.lastName}`}</span>
+                </li>
+            )}
+          </ul>
+        </>
+      )}
     </div>
   );
 }

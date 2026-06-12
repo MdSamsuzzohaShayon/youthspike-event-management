@@ -212,6 +212,20 @@ query GetTeamRoster($teamId: String!) {
         status
         username
       }
+
+      unassignedPlayers {
+        _id
+        captainofteams
+        cocaptainofteams
+        division
+        email
+        firstName
+        lastName
+        phone
+        profile
+        status
+        username
+      }
       team {
         _id
         active

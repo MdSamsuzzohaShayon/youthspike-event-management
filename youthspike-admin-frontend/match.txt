@@ -522,3 +522,11 @@ Preview / Send
 10. Add Layout Blocks Sections, Columns, Spacer, Button, Divider, Hero, Footer. And make sure those are working properly
 
 
+Team list 
+=========
+Gold team 
+White 
+Red Team 
+Navy 
+Brown 
+Platinum

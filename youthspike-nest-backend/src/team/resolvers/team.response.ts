@@ -222,6 +222,10 @@ export class TeamRoster {
   @Field((_type) => [CustomEvent], { nullable: true })
   events: CustomEvent[];
 
+  
+  @Field((_type) => [CustomPlayer], { nullable: true })
+  unassignedPlayers: CustomPlayer[];
+
 }
 
 @ObjectType()

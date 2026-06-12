@@ -750,6 +750,7 @@ type TeamRoster {
   playerRanking: CustomPlayerRanking
   rankings: [CustomPlayerRankingItem!]
   events: [CustomEvent!]
+  unassignedPlayers: [CustomPlayer!]
 }
 
 type TeamMatches {
@@ -767,6 +768,7 @@ type TeamDetails {
   playerRanking: CustomPlayerRanking
   rankings: [CustomPlayerRankingItem!]
   events: [CustomEvent!]
+  unassignedPlayers: [CustomPlayer!]
   groups: [CustomGroup!]
   captain: CaptainPlayer
   cocaptain: CoCaptainPlayer
