@@ -266,7 +266,7 @@ function PlayerAdd({ update, prevPlayer, teams, events }: IPlayerAddProps) {
 
 
       {teamOptions.length > 0 && (
-        <SelectInput name='teams' value={playerState.teams && playerState.teams.length > 0 ? playerState.teams[0] as string : null}
+        <SelectInput name='teams' className='mt-6' value={playerState.teams && playerState.teams.length > 0 ? playerState.teams[0] as string : null}
           optionList={teamOptions} handleSelect={handleTeamChange} />
       )}
 

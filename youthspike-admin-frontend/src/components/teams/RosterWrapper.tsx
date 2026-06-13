@@ -85,25 +85,6 @@ function RosterWrapper({ events, team, players, unassignedPlayers, playerRanking
 
 
 
-  // const unassignedPlayers = useMemo(() => {
-  //   const list = [];
-  //   for (const player of activePlayers) {
-  //     if (!player.teams) continue;
-  //     const teamIds = [];
-  //     for (const t of player.teams) {
-  //       if (typeof t === "object") {
-  //         teamIds.push(t._id);
-  //       }
-  //       else {
-  //         teamIds.push(t);
-  //       }
-  //     }
-  //     if (!teamIds?.includes(team._id)) {
-  //       list.push(player);
-  //     }
-  //   }
-  //   return list;
-  // }, [team, activePlayers]);
 
   const divisionList: IOption[] = useMemo(() => {
     const divisions = divisionsOfEvents(events);
