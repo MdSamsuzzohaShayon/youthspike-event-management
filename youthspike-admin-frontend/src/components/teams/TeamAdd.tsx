@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation';
 import GenericMultiSelect from '../elements/forms/GenericMultiSelect';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { CURRENT_EVENT } from '@/utils/constant';
+import validateTeam from '@/utils/validateTeam';
 
 
 
@@ -79,6 +80,11 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
       formEl.reset();
       handleClose(e);
     } else {
+      const validationError = validateTeam(teamState);
+      if (validationError) {
+        setMessage({ type: "error", message: validationError, code: 406 });
+        return;
+      }
       // Need to test this caching and redirecting
       await createTeam({
         teamState,
@@ -144,11 +150,16 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
   }
 
 
+  console.log({ availablePlayers });
+  console.log({ tp: teamState.players });
+
+
+
   // Memoization
-  const toBeCaptains = useMemo(() => {
+  const captainOptions: IOption[] = useMemo(() => {
     const playersWithEmail = availablePlayers.filter((ap) => teamState.players?.includes(ap._id) && ap.email && ap.email.trim() !== '');
     const options = makeOptionList(playersWithEmail);
-    return <SelectInput name="captain" optionList={options && options.length > 0 ? options : []} handleSelect={handleInputChange} />;
+    return options;
   }, [availablePlayers, teamState.players]);
 
 
@@ -226,7 +237,7 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
       />
 
       {divisionOptions.length > 0 && (
-        <SelectInput key="d-t-d-1" defaultValue={currDivision || teamState?.division} handleSelect={handleInputChange} name="division" className="mt-6" optionList={divisionOptions} />
+        <SelectInput key="d-t-d-1" defaultValue={currDivision || teamState?.division} handleSelect={handleInputChange} name="division" required={!update} className="mt-6" optionList={divisionOptions} />
       )}
 
       <SelectInput
@@ -294,7 +305,8 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
             />
           )}
         </div>)}
-        {teamState.players && teamState.players?.length > 0 && !update && toBeCaptains}
+        {/* {teamState.players && teamState.players?.length > 0 && !update && toBeCaptains} */}
+        {teamState.players && teamState.players?.length > 0 && !update && <SelectInput name="captain" optionList={captainOptions && captainOptions.length > 0 ? captainOptions : []} handleSelect={handleInputChange} />}
       </>)}
 
       <div className="input-group w-full mb-4">

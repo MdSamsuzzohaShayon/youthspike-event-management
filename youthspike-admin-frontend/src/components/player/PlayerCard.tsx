@@ -356,7 +356,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
   const OptionsButton = useMemo(
     () => (
       <div
-        className="w-8 md:w-10 h-8 md:h-10 relative flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+        className="w-8 md:w-10 h-8 md:h-10 relative flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600  transition-colors"
         aria-label="Options"
         role="presentation"
         onClick={() => setIsOptionsOpen(true)}

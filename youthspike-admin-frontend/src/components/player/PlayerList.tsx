@@ -14,7 +14,6 @@ import { handleError } from '@/utils/handleError';
 import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
 import { useMessage } from '@/lib/MessageProvider';
-import { isISODateString } from '@/utils/datetime';
 import { setPlayerRankings } from '@/utils/localStorage';
 import { useMutation } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
@@ -45,14 +44,17 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
   const screenWidth = useScreenWidth();
   const user = useUser();
   const { setMessage } = useMessage();
-  
 
-  const [mutatePlayerRanking] = useMutation<{updatePlayerRanking: IUpdatePlayerRankingRes}>(UPDATE_PLAYER_RANKING);
+
+  const [mutatePlayerRanking] = useMutation<{ updatePlayerRanking: IUpdatePlayerRankingRes }>(UPDATE_PLAYER_RANKING);
 
   /** State **/
   const [checkedPlayers, setCheckedPlayers] = useState<Map<string, boolean>>(new Map());
   const [canRank, setCanRank] = useState<boolean>(false);
   const [players, setPlayers] = useState<IPlayerRank[]>([]);
+  const animationFrameRef = useRef<number | null>(null);
+  const pointerYRef = useRef<number>(0);
+  const isDraggingRef = useRef<boolean>(false);
 
   /** Handle checkbox */
   const handleSelectPlayer = (e: React.SyntheticEvent, matchId: string) => {
@@ -65,6 +67,52 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     }
     setCheckedPlayers(newCheckedMatches);
     // e.preventDefault();
+  };
+
+  const updatePointerPosition = (event: MouseEvent | TouchEvent) => {
+    if (event instanceof MouseEvent) {
+      pointerYRef.current = event.clientY;
+      return;
+    }
+
+    if (event.touches.length > 0) {
+      pointerYRef.current = event.touches[0].clientY;
+    }
+  };
+
+  const startAutoScroll = () => {
+    const EDGE_DISTANCE = 120;
+    const SCROLL_SPEED = 15;
+
+    const scroll = () => {
+      if (!isDraggingRef.current) {
+        return;
+      }
+
+      const pointerY = pointerYRef.current;
+
+      if (pointerY < EDGE_DISTANCE) {
+        window.scrollBy(0, -SCROLL_SPEED);
+      } else if (window.innerHeight - pointerY < EDGE_DISTANCE) {
+        window.scrollBy(0, SCROLL_SPEED);
+      }
+
+      animationFrameRef.current = requestAnimationFrame(scroll);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(scroll);
+  };
+
+  const stopAutoScroll = () => {
+    isDraggingRef.current = false;
+
+    if (animationFrameRef.current !== null) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
+    window.removeEventListener("mousemove", updatePointerPosition);
+    window.removeEventListener("touchmove", updatePointerPosition);
   };
 
   const handleUpdate = async (upr: IUpdateRank[]) => {
@@ -124,9 +172,9 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
 
 
   // Memoization
-  const teamMap = useMemo(()=>{
+  const teamMap = useMemo(() => {
     const map = new Map();
-    if(!teamList) return map;
+    if (!teamList) return map;
     for (const team of teamList) {
       map.set(team._id, team);
     }
@@ -135,10 +183,10 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
   const teamsOfPlayerMap = useMemo(() => createTeamsMap(teamList), [teamList]);
 
 
-  const selectedTeam = useMemo(()=>{
+  const selectedTeam = useMemo(() => {
     return teamMap.get(teamId);
   }, [teamId, teamMap]);
-  
+
 
   useEffect(() => {
     if (playerList.length > 0) {
@@ -170,6 +218,34 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
       }
     }
   }, [playerList, playerRanking, inactive]);
+
+  const handleMove = (_event: Sortable.MoveEvent, originalEvent: Event) => {
+    const EDGE = 120;
+    const SPEED = 15;
+
+    const y =
+      originalEvent instanceof MouseEvent
+        ? originalEvent.clientY
+        : originalEvent instanceof TouchEvent
+          ? originalEvent.touches[0]?.clientY ?? 0
+          : 0;
+
+    if (y < EDGE) {
+      window.scrollBy({
+        top: -SPEED,
+        behavior: "auto",
+      });
+    }
+
+    if (window.innerHeight - y < EDGE) {
+      window.scrollBy({
+        top: SPEED,
+        behavior: "auto",
+      });
+    }
+
+    return true;
+  };
 
   /** Memoize Sortable Initialization **/
   useEffect(() => {
@@ -203,9 +279,26 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     const sortableList = Sortable.create(listRef.current, {
       animation: 150,
       easing: 'cubic-bezier(1, 0, 0, 1)',
-      onEnd: handleSortEnd,
       handle: '.drag-handle',
       ghostClass: 'sortable-ghost',
+
+      onStart() {
+        isDraggingRef.current = true;
+
+        window.addEventListener("mousemove", updatePointerPosition);
+        window.addEventListener("touchmove", updatePointerPosition, {
+          passive: true,
+        });
+
+        startAutoScroll();
+      },
+      onEnd(evt) {
+        stopAutoScroll();
+        handleSortEnd(evt);
+      },
+
+
+
       setData: (dataTransfer) => {
         dataTransfer.setData('text', '');
       },
@@ -214,7 +307,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     return () => sortableList.destroy();
   }, [handleSortEnd, rankControls, screenWidth, user, events]);
 
-  /** Derived State: Sorted Players */  
+  /** Derived State: Sorted Players */
   const sortedPlayerList: IPlayerRank[] = useMemo(() => {
     // inactive players won't have rankings
     if (inactive) return players;
@@ -224,50 +317,48 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
   }, [players, showRank, rankControls, playerRanking]);
 
 
-  
+
 
 
 
   /** Render List **/
   return (
-    <>
-      <ul ref={listRef} className="sortable-list" onContextMenu={handleContextMenu}>
-        {sortedPlayerList.map((player) => (
-          <motion.li
-            key={player._id}
-            className="sortable-item mb-2 flex items-center bg-gray-800 rounded-xl p-2"
-            variants={itemVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            transition={{ duration: 0.2 }}
-          >
-            {/* Drag Handle */}
-            {canRank && (
-              <div className="drag-handle cursor-grab flex items-center justify-center">
-                <Image height={20} width={20} src="/icons/sort.svg" alt="sort-icon" className="svg-white w-8" />
-              </div>
-            )}
+    <ul ref={listRef} className="sortable-list" onContextMenu={handleContextMenu}>
+      {sortedPlayerList.map((player) => (
+        <motion.li
+          key={player._id}
+          className="sortable-item mb-2 flex items-center bg-gray-800 rounded-xl p-2"
+          variants={itemVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          transition={{ duration: 0.2 }}
+        >
+          {/* Drag Handle */}
+          {canRank && (
+            <div className="drag-handle cursor-grab flex items-center justify-center">
+              <Image height={20} width={20} src="/icons/sort.svg" alt="sort-icon" className="svg-white w-8" />
+            </div>
+          )}
 
-            {/* Player Card */}
-            <PlayerCard
-              isChecked={checkedPlayers.get(player._id) ?? false}
-              onSelect={handleSelectPlayer}
-              player={player}
-              setIsLoading={setIsLoading}
-              showRank={showRank}
-              teams={teamsOfPlayerMap.get(player._id) || []}
-              teamList={teamList || []}
-              selectedTeam={selectedTeam}
-              divisionList={divisionList}
-              rankControls={rankControls}
-              rank={player.rank}
-            /> 
-          </motion.li>
-        ))}
-      </ul>
+          {/* Player Card */}
+          <PlayerCard
+            isChecked={checkedPlayers.get(player._id) ?? false}
+            onSelect={handleSelectPlayer}
+            player={player}
+            setIsLoading={setIsLoading}
+            showRank={showRank}
+            teams={teamsOfPlayerMap.get(player._id) || []}
+            teamList={teamList || []}
+            selectedTeam={selectedTeam}
+            divisionList={divisionList}
+            rankControls={rankControls}
+            rank={player.rank}
+          />
+        </motion.li>
+      ))}
+    </ul>
 
-    </>
   );
 }
 

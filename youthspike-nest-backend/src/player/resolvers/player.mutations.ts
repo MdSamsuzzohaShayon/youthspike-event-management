@@ -16,6 +16,7 @@ import { MatchService } from 'src/match/match.service';
 import { Match } from 'src/match/match.schema';
 import { Team } from 'src/team/team.schema';
 import { User } from 'src/user/user.schema';
+import { PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
 
 @Injectable()
 export class PlayerMutations implements IPlayerMutations {
@@ -29,144 +30,257 @@ export class PlayerMutations implements IPlayerMutations {
     private playerRankingService: PlayerRankingService,
   ) { }
 
-  private async handleTeamUpdate(
+
+
+
+
+  // ─── Pure helpers (no side-effects, fully testable) ───────────────────────────
+
+  /**
+   * Rebuilds a contiguous 1-based rank sequence from the given items.
+   * Returns an array of {_id, rank} pairs ready to be bulk-updated.
+   */
+  private buildReRankOps(
+    items: PlayerRankingItem[],
+  ): Array<{ id: unknown; rank: number }> {
+    return [...items]
+      .sort((a, b) => a.rank - b.rank)
+      .map((item, index) => ({ id: item._id, rank: index + 1 }));
+  }
+
+  /**
+   * Executes re-rank DB writes for a set of player-ranking documents.
+   */
+  private async applyReRank(
+    rankingIds: string[],
+    findItems: (filter: object) => Promise<PlayerRankingItem[]>,
+    updateOneItem: (filter: object, update: object) => Promise<unknown>,
+  ): Promise<void> {
+    const reRankOps: Promise<unknown>[] = [];
+
+    for (const rankingId of rankingIds) {
+      const items = await findItems({ playerRanking: rankingId });
+      const ops = this.buildReRankOps(items);
+      for (const { id, rank } of ops) {
+        reRankOps.push(updateOneItem({ _id: id }, { $set: { rank } }));
+      }
+    }
+
+    await Promise.all(reRankOps);
+  }
+
+  // ─── handleTeamUpdate ─────────────────────────────────────────────────────────
+
+  private async removePlayerFromPreviousTeam(
     playerId: string,
     prevTeamId: string,
-    newTeamId: string,
-    updatePromises: Promise<any>[],
     playerObj: Player,
     input: UpdateQuery<Player>,
-  ) {
-    if (prevTeamId) {
-      // ✅ 1. Remove player from old team(s) (single DB call)
-      updatePromises.push(
-        this.teamService.updateOne(
-          { _id: prevTeamId },
-          { $pull: { players: playerId }, $addToSet: { moved: playerId } },
+    updatePromises: Promise<unknown>[],
+  ): Promise<void> {
+    // 1. Pull player from the old team document.
+    updatePromises.push(
+      this.teamService.updateOne(
+        { _id: prevTeamId },
+        { $pull: { players: playerId }, $addToSet: { moved: playerId } },
+      ),
+    );
+
+    // 2. Remove the player's ranking items from every unlocked ranking in the old team.
+    const prevRankings = await this.playerRankingService.find({
+      team: prevTeamId,
+      rankLock: false,
+    });
+
+    if (prevRankings.length > 0) {
+      const rankingItems = await Promise.all(
+        prevRankings.map((r) =>
+          this.playerRankingService.findOneItem({ playerRanking: r._id, player: playerId }),
         ),
       );
 
-      // ✅ 2. Fetch all previous rankings & items in parallel
-      const prevRankings = await this.playerRankingService.find({
-        team: prevTeamId,
-        rankLock: false,
-      });
+      // Delete found items and pull their IDs from the parent ranking in one batch.
+      const deleteOps = rankingItems
+        .flatMap((item, idx) => {
+          if (!item) return [];
+          return [
+            this.playerRankingService.updateOne(
+              { _id: prevRankings[idx]._id },
+              { $pull: { rankings: item._id } },
+            ),
+            this.playerRankingService.deleteOneItem({ _id: item._id }),
+          ];
+        });
 
-      if (prevRankings.length > 0) {
-        // 🔄 Instead of looping with await, build all queries first
-        const rankingItemLookups = prevRankings.map((r) =>
-          this.playerRankingService.findOneItem({ playerRanking: r._id, player: playerId }),
-        );
+      await Promise.all(deleteOps);
 
-        const rankingItems = await Promise.all(rankingItemLookups);
-
-        // Delete ranking items & update rankings in one batch
-        const deleteAndPullOps = rankingItems
-          .filter(Boolean)
-          .flatMap((item, idx) => [
-            this.playerRankingService.updateOne({ _id: prevRankings[idx]._id }, { $pull: { rankings: item!._id } }),
-            this.playerRankingService.deleteOneItem({ _id: item!._id }),
-          ]);
-
-        await Promise.all(deleteAndPullOps);
-
-        // ✅ 3. Re-rank remaining players (parallel updates)
-        const reRankOps: Promise<any>[] = [];
-        for (const pr of prevRankings) {
-          const rankingItems = await this.playerRankingService.findItems({ playerRanking: pr._id });
-
-          // Use in-place sort (no extra array)
-          rankingItems.sort((a, b) => a.rank - b.rank);
-
-          // Build all update promises without awaiting each one
-          rankingItems.forEach((item, index) => {
-            reRankOps.push(this.playerRankingService.updateOneItem({ _id: item._id }, { $set: { rank: index + 1 } }));
-          });
-        }
-
-        await Promise.all(reRankOps);
-      }
-
-      // ✅ 4. Update player's team list efficiently
-      const existingTeams: string[] = Array.isArray(playerObj?.teams) ? playerObj.teams.map((t) => t.toString()) : [];
-
-      input.teams = existingTeams.filter((t) => t !== prevTeamId);
-      input.$addToSet = { prevteams: prevTeamId };
+      // Restore a contiguous rank sequence for remaining items.
+      await this.applyReRank(
+        prevRankings.map((r) => r._id),
+        (f) => this.playerRankingService.findItems(f),
+        (f, u) => this.playerRankingService.updateOneItem(f, u),
+      );
     }
 
-    // Remove as captain or co-captain from current team
-    if (playerObj?.captainofteams?.length > 0) {
-      await Promise.all([
-        this.teamService.updateMany(
-          { _id: { $in: playerObj.captainofteams.map(team => team?.toString()) } },
-          { $set: { captain: null } }
-        ),
+    // 3. Strip old team from player's team list; record it as a previous team.
+    const existingTeamIds: string[] = Array.isArray(playerObj.teams)
+      ? playerObj.teams.map((t) => t.toString())
+      : [];
 
+    input.teams = existingTeamIds.filter((id) => id !== prevTeamId);
+    input.$addToSet = { prevteams: prevTeamId };
+  }
+
+  private async removeCaptainRoles(
+    playerId: string,
+    playerObj: Player,
+  ): Promise<void> {
+    const captainTeamIds = playerObj.captainofteams?.map((t) => t?.toString()) ?? [];
+    const coCaptainTeamIds = playerObj.cocaptainofteams?.map((cc) => cc?.toString()) ?? [];
+
+    const ops: Promise<unknown>[] = [];
+
+    if (captainTeamIds.length > 0) {
+      ops.push(
+        this.teamService.updateMany(
+          { _id: { $in: captainTeamIds } },
+          { $set: { captain: null } },
+        ),
         this.playerService.updateOne(
           { _id: playerId },
           { $pull: { captainofteams: { $in: playerObj.captainofteams } } },
         ),
-      ]);
+      );
     }
 
-    if (playerObj?.cocaptainofteams?.length > 0) {
-      await Promise.all([
-        this.teamService.updateMany({ _id: { $in: playerObj.cocaptainofteams.map(cc => cc?.toString()) } }, { $set: { cocaptain: null } }),
-
+    if (coCaptainTeamIds.length > 0) {
+      ops.push(
+        this.teamService.updateMany(
+          { _id: { $in: coCaptainTeamIds } },
+          { $set: { cocaptain: null } },
+        ),
         this.playerService.updateOne(
           { _id: playerId },
           { $pull: { cocaptainofteams: { $in: playerObj.cocaptainofteams } } },
         ),
-      ]);
+      );
     }
 
-    // ✅ 5. Add player to new team (single DB call)
-    updatePromises.push(this.teamService.updateOne({ _id: newTeamId }, { $addToSet: { players: playerId } }));
-    input.teams.push(newTeamId);
+    await Promise.all(ops);
+  }
 
-    // ✅ 6. Add player to new team's rankings in parallel
+  private async addPlayerToNewTeam(
+    player: Player,
+    newTeamId: string,
+    input: UpdateQuery<Player>,
+    updatePromises: Promise<unknown>[],
+  ): Promise<void> {
+    const playerId = String(player._id);
+    // 1. Add player to the new team document.
+    updatePromises.push(
+      this.teamService.updateOne({ _id: newTeamId }, { $addToSet: { players: playerId } }),
+    );
+
+    if (Array.isArray(input.teams)) {
+      input.teams.push(newTeamId);
+    }else{
+      input.teams = player.teams ? [...player.teams, newTeamId] : [newTeamId];
+    }
+
+    // 2. Append the player to every unlocked ranking of the new team.
     const newTeam = await this.teamService.findById(newTeamId);
-    if (newTeam) {
-      const newTeamRankings = await this.playerRankingService.find({ team: newTeam._id, rankLock: false });
+    if (!newTeam) return;
 
-      // Prepare all ranking insertions first
-      const newRankingItemPromises = newTeamRankings.map((ranking, idx) =>
+    const newTeamRankings = await this.playerRankingService.find({
+      team: newTeam._id,
+      rankLock: false,
+    });
+
+    if (newTeamRankings.length === 0) return;
+
+    const newRankingItems = await Promise.all(
+      newTeamRankings.map((ranking, idx) =>
         this.playerRankingService.createAnItem({
           player: playerId,
           playerRanking: ranking._id,
-          rank: ranking.rankings.length + 1 + idx,
+          // Append after existing items; offset by idx to avoid duplicate ranks
+          // when multiple rankings are updated in the same tick.
+          rank: ranking.rankings.length + idx + 1,
         }),
+      ),
+    );
+
+    newRankingItems.forEach((item, idx) => {
+      updatePromises.push(
+        this.playerRankingService.updateOne(
+          { _id: newTeamRankings[idx]._id },
+          { $addToSet: { rankings: item._id } },
+        ),
       );
+    });
 
-      const newRankingItems = await Promise.all(newRankingItemPromises);
-
-      // Push all updates into updatePromises (no extra await here)
-      newRankingItems.forEach((item, idx) => {
-        updatePromises.push(
-          this.playerRankingService.updateOne({ _id: newTeamRankings[idx]._id }, { $addToSet: { rankings: item._id } }),
-        );
-      });
-
-      // ✅ 3. Re-rank remaining players (parallel updates)
-      const newRankings = await this.playerRankingService.find({ team: newTeam._id, rankLock: false });
-      const reRankOps: Promise<any>[] = [];
-      for (const pr of newRankings) {
-        const rankingItems = await this.playerRankingService.findItems({ playerRanking: pr._id });
-
-        // Use in-place sort (no extra array)
-        rankingItems.sort((a, b) => a.rank - b.rank);
-
-        // Build all update promises without awaiting each one
-        rankingItems.forEach((item, index) => {
-          reRankOps.push(this.playerRankingService.updateOneItem({ _id: item._id }, { $set: { rank: index + 1 } }));
-        });
-      }
-
-      await Promise.all(reRankOps);
-    }
+    // 3. Re-rank to close any gaps introduced by the append.
+    await this.applyReRank(
+      newTeamRankings.map((r) => r._id),
+      (f) => this.playerRankingService.findItems(f),
+      (f, u) => this.playerRankingService.updateOneItem(f, u),
+    );
   }
 
-  private matchToString(match: Match, teamMap: Map<string, Team>) {
+  private async handleTeamUpdate(
+    player: Player,
+    prevTeamId: string | undefined,
+    newTeamId: string,
+    updatePromises: Promise<unknown>[],
+    playerObj: Player,
+    input: UpdateQuery<Player>,
+  ): Promise<void> {
+    const playerId = player._id;
+    if (prevTeamId) {
+      await this.removePlayerFromPreviousTeam(playerId, prevTeamId, playerObj, input, updatePromises);
+    }
+
+    // Always strip captain/co-captain roles when moving teams.
+    if((playerObj.captainofteams && playerObj.captainofteams.length > 0) || (playerObj.captainofteams && playerObj.captainofteams.length > 0)){
+      await this.removeCaptainRoles(playerId, playerObj);
+    }
+
+    await this.addPlayerToNewTeam(player, newTeamId, input, updatePromises);
+  }
+
+  // ─── updatePlayer ─────────────────────────────────────────────────────────────
+
+  /**
+   * Returns a hashed password when a plain-text password is supplied, otherwise
+   * returns undefined so the caller can skip the field entirely.
+   */
+  private async hashPasswordIfProvided(
+    plainPassword: string | undefined,
+  ): Promise<string | undefined> {
+    if (!plainPassword) return undefined;
+    const salt = await bcrypt.genSalt(10);
+    return bcrypt.hash(plainPassword, salt);
+  }
+
+  /**
+   * Builds the partial User update that should be applied to a captain or
+   * co-captain user whenever player profile fields change.
+   */
+  private async buildUserProfileUpdate(
+    input: UpdatePlayerBody['input'],
+  ): Promise<Partial<User>> {
+    const userUpdate: Partial<User> = {};
+
+    if (input.firstName) userUpdate.firstName = input.firstName;
+    if (input.lastName) userUpdate.lastName = input.lastName;
+
+    const hashedPassword = await this.hashPasswordIfProvided(input.password);
+    if (hashedPassword) userUpdate.password = hashedPassword;
+
+    return userUpdate;
+  }
+
+  private matchToString(match: Match, teamMap: Map<string, Team>): string {
     let matchStr = '';
     matchStr += `${match.description} - `;
     const date = new Date(match.date);
@@ -478,7 +592,9 @@ export class PlayerMutations implements IPlayerMutations {
     }
   }
 
+
   async updatePlayers(input: UpdatePlayersInput[]): Promise<PlayersResponse> {
+
     try {
       if (input && input.length > 0) {
         const updatePromises = [];
@@ -492,7 +608,7 @@ export class PlayerMutations implements IPlayerMutations {
           // Move one team to another
           if (playerObj.team) {
             // temp playerObj.teams[0]
-            await this.handleTeamUpdate(playerId, playerObj.teams[0], playerObj.team, updatePromises, playerExist, playerObj);
+            await this.handleTeamUpdate(playerExist, playerObj.teams[0], playerObj.team, updatePromises, playerExist, playerObj);
             playerObj.teams = [playerObj.team];
             delete playerObj.team;
           }
@@ -511,110 +627,108 @@ export class PlayerMutations implements IPlayerMutations {
     } catch (error) {
       return AppResponse.handleError(error);
     }
+
   }
 
   async updatePlayer({ input, playerId, profile }: UpdatePlayerBody): Promise<PlayerResponse> {
     try {
-      const updatePromises: Promise<any>[] = [];
       const playerExist = await this.playerService.findById(playerId);
       if (!playerExist) return AppResponse.notFound('Player');
 
-      const playerObj: UpdateQuery<Player> = { ...input };
+      const updatePromises: Promise<unknown>[] = [];
+      const playerUpdate: UpdateQuery<Player> = { ...input };
 
-      // Upload image if profile is provided
+      // ── Profile image ──────────────────────────────────────────────────────
       if (profile) {
-        playerObj.profile = await this.cloudinaryService.uploadFiles(profile);
+        playerUpdate.profile = await this.cloudinaryService.uploadFiles(profile);
       }
 
-      // Check for duplicate username
+      // ── Username uniqueness + linked user email sync ───────────────────────
       if (input.username) {
         const newUsername = input.username.toLowerCase();
-        const duplicateUser = await this.playerService.findOne({ username: newUsername });
+        const existingOwner = await this.playerService.findOne({ username: newUsername });
 
-        const isDuplicate = duplicateUser && duplicateUser.username !== playerExist.username;
-        if (isDuplicate) {
+        if (existingOwner && existingOwner.username !== playerExist.username) {
           return AppResponse.handleError({
             name: 'Duplicate username',
             statusCode: HttpStatus.NOT_ACCEPTABLE,
-            message:
-              'Use another username in order to change the username, this username has been used by someone else.',
+            message: 'This username is already taken. Please choose a different one.',
           });
         }
 
-        // Update captain/co-captain user email
-        const updateUserEmail = { email: newUsername };
-        updatePromises.push(
-          this.userService.updateOne({ captainplayer: playerExist._id }, updateUserEmail),
-          this.userService.updateOne({ cocaptainplayer: playerExist._id }, updateUserEmail),
-        );
+        const emailUpdate = { email: newUsername };
+        if (playerExist.captainuser) {
+          updatePromises.push(
+            this.userService.updateOne({ _id: String(playerExist.captainuser) }, emailUpdate),
+          );
+        }
+        if (playerExist.cocaptainuser) {
+          updatePromises.push(
+            this.userService.updateOne({ _id: String(playerExist.cocaptainuser) }, emailUpdate),
+          );
+        }
       }
 
+      // ── Team transfer ──────────────────────────────────────────────────────
+      if (input.newTeamId) {
+        if (input.prevTeamId && input.prevTeamId === input.newTeamId) {
+          return AppResponse.handleError({
+            name: 'Invalid team',
+            message: 'The player is already assigned to this team.',
+          });
+        }
 
-      // If changing teams
-      const isTeamChange = input.prevTeamId && input.newTeamId;
-
-      if (input.newTeamId && input.prevTeamId && input.prevTeamId === input.newTeamId) {
-        return AppResponse.handleError({
-          name: 'Invalid team',
-          message: 'New team and previous team both are same, therefore no need to change',
-        });
-      }
-
-      if (isTeamChange) {
         await this.handleTeamUpdate(
-          playerId,
+          playerExist,
           input.prevTeamId,
           input.newTeamId,
           updatePromises,
           playerExist,
-          playerObj,
+          playerUpdate,
         );
       }
 
-      // Update firstName/lastName in user if player is captain/co-captain
-      // const updateUserName: Partial<{ firstName: string; lastName: string }> = {};
-      const userObj: Partial<User> = {};
-      if (input.firstName) userObj.firstName = input.firstName;
-      if (input.lastName) userObj.lastName = input.lastName;
-      if (input.password) {
-        // Update user
-        const salt = await bcrypt.genSalt(10);
-        const hashPwd = await bcrypt.hash(input.password, salt);
-
-        userObj.password = hashPwd;
+      // ── Linked captain/co-captain user profile sync ────────────────────────
+      const userProfileUpdate = await this.buildUserProfileUpdate(input);
+      if (Object.keys(userProfileUpdate).length > 0) {
+        if (playerExist.captainuser) {
+          updatePromises.push(
+            this.userService.updateOne({ _id: String(playerExist.captainuser) }, userProfileUpdate),
+          );
+        }
+        if (playerExist.cocaptainuser) {
+          updatePromises.push(
+            this.userService.updateOne({ _id: String(playerExist.cocaptainuser) }, userProfileUpdate),
+          );
+        }
       }
 
+      // ── Clean up transfer fields before persisting the player doc ──────────
+      delete playerUpdate.newTeamId;
+      delete playerUpdate.prevTeamId;
+      // password is stored on the User document, not on Player
+      delete playerUpdate.password;
 
-      if ((playerExist.captainuser || playerExist.cocaptainuser) && Object.keys(userObj).length) {
-        const userId = playerExist.captainuser || playerExist.cocaptainuser;
-        updatePromises.push(this.userService.updateOne({ _id: String(userId) }, userObj));
-      }
-
-
-
-
-      // Cleanup fields that shouldn't be updated
-      delete playerObj.team;
-      delete playerObj.newTeamId;
-      delete playerObj.prevTeamId;
-
-      if (Object.keys(playerObj).length) {
-        updatePromises.push(this.playerService.updateOne({ _id: playerId }, playerObj));
+      if (Object.keys(playerUpdate).length > 0) {
+        updatePromises.push(this.playerService.updateOne({ _id: playerId }, playerUpdate));
       }
 
       await Promise.all(updatePromises);
-      const findPlayer = await this.playerService.findById(playerId);
+
+      const updatedPlayer = await this.playerService.findById(playerId);
 
       return {
         code: HttpStatus.ACCEPTED,
-        message: 'Player has been updated successfully!',
         success: true,
-        data: findPlayer,
+        message: 'Player has been updated successfully!',
+        data: updatedPlayer,
       };
     } catch (error) {
       return AppResponse.handleError(error);
     }
   }
+
+
 
   async exportPlayers(eventId: string) {
     try {

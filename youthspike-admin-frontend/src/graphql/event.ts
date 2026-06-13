@@ -311,6 +311,7 @@ const GET_EVENT_WITH_GROUPS_AND_UNASSIGNED_PLAYERS = gql`
           lastName
           username
           division
+          email
         }
         groups {
           _id

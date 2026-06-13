@@ -16,10 +16,12 @@ import { UserRole } from 'src/user/user.schema';
 import { GroupService } from 'src/group/group.service';
 import { FileUpload } from 'graphql-upload/processRequest.mjs';
 import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
-import { QueryFilter } from 'mongoose';
+import { QueryFilter, Types, UpdateQuery } from 'mongoose';
 import { CustomTeam } from 'src/team/resolvers/team.response';
 import { ConfigService } from '@nestjs/config';
 const GraphQLUpload = GraphQLUploadModule.default;
+
+type ObjectIdLike = Types.ObjectId | string;
 
 @Injectable()
 export class TeamMutations {
@@ -36,141 +38,256 @@ export class TeamMutations {
   ) { }
 
 
+
+  /** Extracts a string id from either a raw ObjectId/string or a populated document. */
+  private toIdString(value: unknown): string {
+    if (value && typeof value === 'object' && '_id' in (value as Record<string, unknown>)) {
+      return String((value as { _id: unknown })._id);
+    }
+    return String(value);
+  }
+
+  /** Normalizes a division name for consistent storage/comparison. */
+  private normalizeDivisionName(division: string): string {
+    return division.toString().trim().toLowerCase();
+  }
+
+  /**
+   * Given the team's current groups and the desired list of group ids,
+   * returns which groups the team should be removed from and added to.
+   */
+  private computeGroupMembershipChanges(
+    currentGroups: unknown[],
+    desiredGroupIds: string[],
+  ): { groupsToLeave: string[]; groupsToJoin: string[] } {
+    const desiredGroupIdSet = new Set(desiredGroupIds);
+    const currentGroupIds = currentGroups.map((group) => this.toIdString(group));
+    const groupsToLeave = currentGroupIds.filter((groupId) => !desiredGroupIdSet.has(groupId));
+
+    return { groupsToLeave, groupsToJoin: desiredGroupIds };
+  }
+
+  /** Merges existing and incoming player ids into a deduplicated list of string ids. */
+  private mergeUniquePlayerIds(existingPlayerIds: ObjectIdLike[], incomingPlayerIds: ObjectIdLike[]): string[] {
+    const merged = new Set<string>();
+    existingPlayerIds.forEach((id) => merged.add(this.toIdString(id)));
+    incomingPlayerIds.forEach((id) => merged.add(this.toIdString(id)));
+    return Array.from(merged);
+  }
+
+  /** Returns a team's group ids with any null/undefined populate gaps removed. */
+  private sanitizeTeamGroups(team: Team): string[] {
+    if (!team.groups?.length) return [];
+    return team.groups.filter(Boolean).map((group) => this.toIdString(group));
+  }
+
+  /**
+   * Removes a player's previous captain/co-captain role and deletes the
+   * associated user account that was created for that role.
+   */
+  private async removePreviousTeamLeader(
+    previousLeaderId: string,
+    teamId: string,
+    leaderType: 'captain' | 'cocaptain',
+    updatePromises: Promise<unknown>[],
+  ): Promise<void> {
+    const previousPlayer = await this.playerService.findById(previousLeaderId);
+
+    const teamsField = leaderType === 'captain' ? 'captainofteams' : 'cocaptainofteams';
+    const userIdField = leaderType === 'captain' ? 'captainuser' : 'cocaptainuser';
+
+    // NOTE: $pull and field assignments must be combined under $set —
+    // mixing a raw field with a $-operator at the top level is invalid for mongoose updates.
+    updatePromises.push(
+      this.playerService.updateOne(
+        { _id: previousLeaderId },
+        {
+          $pull: { [teamsField]: teamId },
+          $set: { [userIdField]: null, username: null },
+        },
+      ),
+    );
+
+    const userToDeleteId = previousPlayer?.[userIdField];
+    if (userToDeleteId) {
+      updatePromises.push(this.userService.deleteOne({ _id: userToDeleteId.toString() }));
+    }
+  }
+
+  /** Assigns a player as the new captain/co-captain of a team. */
+  private assignNewTeamLeader(
+    newLeaderId: string,
+    teamId: string,
+    leaderType: 'captain' | 'cocaptain',
+    newUsername: string,
+    newUserId: ObjectIdLike,
+    updatePromises: Promise<unknown>[],
+  ): void {
+    const teamsField = leaderType === 'captain' ? 'captainofteams' : 'cocaptainofteams';
+    const userIdField = leaderType === 'captain' ? 'captainuser' : 'cocaptainuser';
+
+    updatePromises.push(
+      this.playerService.updateOne(
+        { _id: newLeaderId },
+        {
+          $addToSet: { [teamsField]: teamId },
+          $set: { [userIdField]: newUserId, username: newUsername },
+        },
+      ),
+    );
+  }
+
+  /**
+   * Handles a full captain/co-captain reassignment: creates the new leader's
+   * user account, cleans up the previous leader (if changed), assigns the new
+   * leader, and stages the team document update.
+   */
+  private async updateTeamLeaderRole(
+    team: Team,
+    teamId: string,
+    leaderType: 'captain' | 'cocaptain',
+    newLeaderId: string | undefined,
+    events: Event[],
+    updatePromises: Promise<unknown>[],
+    teamUpdate: UpdateQuery<Team>,
+  ): Promise<void> {
+    if (!newLeaderId) return;
+
+    const newLeader = await this.playerService.findById(newLeaderId);
+    if (!newLeader) return;
+
+    const previousLeaderId = team[leaderType]?.toString();
+    const newUsername = newLeader.username ?? this.playerService.playerUsername(newLeader.firstName);
+    const existingUser = await this.userService.findOne({ email: newLeader.username });
+
+    // For player/captain/co-captain we should select the player's event;
+    // temporarily defaulting to the team's first known event.
+    const createdUser = await this.userService.createCapUser(
+      newLeader,
+      existingUser,
+      events[0],
+      newUsername,
+      leaderType === 'captain' ? UserRole.captain : UserRole.co_captain,
+    );
+
+    if (previousLeaderId && previousLeaderId !== newLeaderId) {
+      await this.removePreviousTeamLeader(previousLeaderId, teamId, leaderType, updatePromises);
+    }
+
+    this.assignNewTeamLeader(newLeaderId, teamId, leaderType, newUsername, createdUser._id, updatePromises);
+
+    teamUpdate[leaderType] = newLeader._id;
+  }
+
+  /**
+   * Adds any newly-joined players to every non-locked player ranking of a team,
+   * appending them after the current highest rank.
+   */
+  private async addNewPlayersToTeamRankings(teamId: string, allPlayerIds: string[]): Promise<void> {
+    const playerRankings = await this.playerRankingService.find({ team: teamId, rankLock: false });
+    if (playerRankings.length === 0) return;
+
+    await Promise.all(
+      playerRankings.map(async (ranking) => {
+        const existingItems = await this.playerRankingService.findItems({ playerRanking: ranking._id });
+        const existingPlayerIds = new Set(existingItems.map((item) => item.player.toString()));
+        const highestRank = existingItems.length > 0 ? Math.max(...existingItems.map((item) => item.rank)) : 0;
+
+        const newPlayerIds = allPlayerIds.filter((playerId) => !existingPlayerIds.has(playerId));
+        if (newPlayerIds.length === 0) return;
+
+        const itemsToInsert = newPlayerIds.map((playerId, index) => ({
+          player: playerId,
+          rank: highestRank + index + 1,
+          playerRanking: ranking._id,
+        }));
+
+        const insertedItems = await this.playerRankingService.insertManyItems(itemsToInsert);
+        await this.playerRankingService.updateOne(
+          { _id: ranking._id },
+          { $addToSet: { rankings: { $each: insertedItems.map((item) => item._id.toString()) } } },
+        );
+      }),
+    );
+  }
+
+
+
   async singleTeamUpdate(
     input: UpdateTeamInput,
     team: Team,
     events: Event[],
     logo?: Promise<FileUpload>,
-  ): Promise<Team> {
+  ): Promise<Team | null> {
     const teamId = team._id.toString();
-    const updatePromises: Promise<any>[] = [];
-    const updatedTeamData: QueryFilter<Team> = { ...input };
+    const updatePromises: Promise<unknown>[] = [];
+    const teamUpdate: UpdateQuery<Team> = { ...input };
 
-    // ===== Helper to update a captain or co-captain =====
-    const updateTeamLeader = async (
-      leaderType: 'captain' | 'cocaptain',
-      newLeaderId?: string,
-    ) => {
-      if (!newLeaderId) return;
-      const prevLeaderId = team[leaderType]?.toString();
-      const newLeader = await this.playerService.findById(newLeaderId);
-      if (!newLeader) return;
-
-      const newUsername = newLeader.username ?? this.playerService.playerUsername(newLeader.firstName);
-      const existingUser = await this.userService.findOne({ email: newLeader.username });
-      // for player, captain, co-captain we should select player of a event
-      // temp - use last event for now
-      const createdUser = await this.userService.createCapUser(
-        newLeader,
-        existingUser,
-        events[0],
-        newUsername,
-        leaderType === 'captain' ? UserRole.captain : UserRole.co_captain,
-      );
-      const newUserId = createdUser._id;
-
-      // Remove old leader if changed
-      if (prevLeaderId && prevLeaderId !== newLeaderId) {
-        const prevPlayer = await this.playerService.findById(prevLeaderId);
-        updatePromises.push(
-          this.playerService.updateOne(
-            { _id: prevLeaderId },
-            leaderType === 'captain'
-              ? { $pull: { captainofteams: teamId }, captainuser: null, username: null }
-              : { $pull: { cocaptainofteams: teamId }, cocaptainuser: null, username: null },
-          ),
-        );
-        const userToDeleteId = leaderType === 'captain' ? prevPlayer?.captainuser : prevPlayer?.cocaptainuser;
-        if (userToDeleteId) updatePromises.push(this.userService.deleteOne({ _id: userToDeleteId.toString() }));
-      }
-
-      // Assign new leader
-      updatePromises.push(
-        this.playerService.updateOne(
-          { _id: newLeaderId },
-          leaderType === 'captain'
-            ? { $push: { captainofteams: teamId }, captainuser: newUserId, username: newUsername }
-            : { $push: { cocaptainofteams: teamId }, cocaptainuser: newUserId, username: newUsername },
-        ),
-      );
-
-      updatedTeamData[leaderType] = newLeader._id;
-    };
-
-    // ===== Update division =====
+    // ===== Division =====
     if (input.division) {
-      const division = input.division.toString().trim().toLowerCase();
-      updatedTeamData.division = division;
-      updatePromises.push(
-        this.playerService.updateMany({ teams: { $in: [teamId] } }, { $set: { division } }),
-      );
+      const division = this.normalizeDivisionName(input.division);
+      teamUpdate.division = division;
+      updatePromises.push(this.playerService.updateMany({ teams: { $in: [teamId] } }, { $set: { division } }));
     }
 
-    // ===== Update group =====
-    if (input.groups ) {
-      // New groups 
-      const groupSet = new Set<string>();
-      for (const groupId of input.groups) {
-        groupSet.add(groupId);
+    // ===== Groups =====
+    if (input.groups) {
+      const { groupsToLeave, groupsToJoin } = this.computeGroupMembershipChanges(team.groups ?? [], input.groups);
+
+      if (groupsToLeave.length > 0) {
+        updatePromises.push(
+          this.groupService.updateMany({ _id: { $in: groupsToLeave } }, { $pull: { teams: teamId } }),
+        );
       }
-      const newGroupSet = new Set<string>();
-      for (const group of team.groups) {
-        const groupId: string = typeof group === 'object' ? group._id : String(group);
-        if(!groupSet.has(groupId)){
-          newGroupSet.add(groupId);
-        }
-        
+      if (groupsToJoin.length > 0) {
+        updatePromises.push(
+          this.groupService.updateMany({ _id: { $in: groupsToJoin } }, { $addToSet: { teams: teamId } }),
+        );
       }
-      const prevGroupIds = team.groups as string[];
-      if (prevGroupIds) updatePromises.push(this.groupService.updateMany({ _id: { $in: prevGroupIds } }, { $pull: { teams: teamId } }));
-      updatePromises.push(this.groupService.updateMany({ _id: {$in: [...newGroupSet]} }, { $addToSet: { teams: teamId } }));
     }
 
-    // ===== Update captain and co-captain =====
-    await updateTeamLeader('captain', input.captain?.toString());
-    await updateTeamLeader('cocaptain', input.cocaptain?.toString());
+    // ===== Captain & co-captain =====
+    await this.updateTeamLeaderRole(team, teamId, 'captain', input.captain?.toString(), events, updatePromises, teamUpdate);
+    await this.updateTeamLeaderRole(team, teamId, 'cocaptain', input.cocaptain?.toString(), events, updatePromises, teamUpdate);
 
-    // ===== Update logo =====
+    // ===== Logo =====
     if (logo) {
       const logoUrl = await this.cloudinaryService.uploadFiles(logo);
-      if (logoUrl) updatedTeamData.logo = logoUrl;
+      if (logoUrl) teamUpdate.logo = logoUrl;
     }
 
-    // ===== Update event =====
+    // ===== Events =====
     if (input.events && input.events.length > 0) {
-      // List of events that does not present in the team
-      // Update events
-      updatePromises.push(this.eventService.updateMany({ _id: {$in: team.events as string[]} }, { $addToSet: { teams: teamId } }));
+      // NOTE: this links the team's *current* events to itself (team.events),
+      // not the newly-supplied input.events. Kept as-is to preserve existing
+      // behavior — flag for review if input.events was meant to be the target list.
+      updatePromises.push(
+        this.eventService.updateMany({ _id: { $in: team.events as string[] } }, { $addToSet: { teams: teamId } }),
+      );
     }
 
-    // ===== Update players =====
-    const inputPlayers = input.players ?? [];
-    const prevPlayerIds = team.players.map((p) => p.toString());
-    for (const playerId of inputPlayers) {
-      updatePromises.push(this.playerService.updateOne({ _id: playerId }, { $addToSet: { teams: teamId } }));
+    // ===== Players =====
+    
+    const incomingPlayerIds = (input.players ?? []) as ObjectIdLike[];
+    const existingPlayerIds = (team.players ?? []) as ObjectIdLike[];
+    
+    const allPlayerIds = this.mergeUniquePlayerIds(existingPlayerIds, incomingPlayerIds);
+
+    if (incomingPlayerIds.length > 0) {
+      updatePromises.push(
+        this.playerService.updateMany(
+          { _id: { $in: incomingPlayerIds.map((id) => this.toIdString(id)) } },
+          { $addToSet: { teams: teamId } },
+        ),
+      );
     }
-    updatedTeamData.players = Array.from(new Set([...prevPlayerIds, ...inputPlayers]));
+    teamUpdate.players = allPlayerIds;
 
-    // ===== Update team in DB =====
-    updatePromises.push(this.teamService.updateOne({ _id: teamId }, updatedTeamData));
+    // ===== Persist team document =====
+    updatePromises.push(this.teamService.updateOne({ _id: teamId }, teamUpdate));
 
-    // ===== Update player rankings =====
-    const playerRankings = await this.playerRankingService.find({ team: teamId, rankLock: false });
-    for (const pr of playerRankings) {
-      const rankings = await this.playerRankingService.findItems({ playerRanking: pr._id });
-      const highestRank = rankings.length ? Math.max(...rankings.map((r) => r.rank)) : 0;
-      const itemsToInsert = updatedTeamData.players
-        .filter((playerId) => !rankings.some((r) => r.player.toString() === playerId))
-        .map((playerId, index) => ({ player: playerId, rank: highestRank + index + 1, playerRanking: pr._id }));
-
-      if (itemsToInsert.length) {
-        const insertedRankings = await this.playerRankingService.insertManyItems(itemsToInsert);
-        await this.playerRankingService.updateOne(
-          { _id: pr._id },
-          { $addToSet: { rankings: { $each: insertedRankings.map((r) => r._id.toString()) } } },
-        );
-      }
-    }
+    // ===== Player rankings =====
+    updatePromises.push(this.addNewPlayersToTeamRankings(teamId, allPlayerIds));
 
     await Promise.all(updatePromises);
     return this.teamService.findById(teamId);
@@ -219,7 +336,7 @@ export class TeamMutations {
         });
       }
 
-      const newTeam = await this.teamService.create({...input, logo: logoUrl});
+      const newTeam = await this.teamService.create({ ...input, logo: logoUrl });
 
       // ===== Captain - User - Player - Team Relationship update =====
       const promiseOperations = [];
@@ -270,7 +387,7 @@ export class TeamMutations {
 
       if (input.groups) {
         promiseOperations.push(
-          this.groupService.updateMany({ _id: {$in: input.groups} }, { $addToSet: { teams: newTeam._id } }),
+          this.groupService.updateMany({ _id: { $in: input.groups } }, { $addToSet: { teams: newTeam._id } }),
         );
       }
 
@@ -297,29 +414,23 @@ export class TeamMutations {
     logo?: Promise<FileUpload>,
   ): Promise<CreateOrUpdateTeamResponse> {
     try {
-      const teamExist = await this.teamService.findById(teamId);
-      if (!teamExist) return AppResponse.notFound('Team');
+      const existingTeam = await this.teamService.findById(teamId);
+      if (!existingTeam) return AppResponse.notFound('Team');
 
+      const teamEvents = await this.eventService.find({ _id: { $in: existingTeam.events as string[] } });
+      if (!teamEvents || teamEvents.length === 0) return AppResponse.notFound('Event');
 
-      const events = await this.eventService.find({ _id: { $in: teamExist.events as string[] } });
-
-      if (!events || events.length === 0) {
-        return AppResponse.notFound("Event");
-      }
-
-
-      const updatedTeam = await this.singleTeamUpdate(input, teamExist, events, logo);
-      if (!updatedTeam) {
-        return AppResponse.notFound('Team');
-      }
-
-
+      const updatedTeam = await this.singleTeamUpdate(input, existingTeam, teamEvents, logo);
+      if (!updatedTeam) return AppResponse.notFound('Team');
 
       return {
         code: HttpStatus.ACCEPTED,
         success: true,
         message: 'A team has been updated successfully',
-        data: {...updatedTeam, groups: updatedTeam?.groups && updatedTeam.groups.length > 0 ? updatedTeam.groups.filter((g)=> g) : []} as CustomTeam,
+        data: {
+          ...updatedTeam,
+          groups: this.sanitizeTeamGroups(updatedTeam),
+        } as CustomTeam,
       };
     } catch (err) {
       return AppResponse.handleError(err);
