@@ -593,42 +593,6 @@ export class PlayerMutations implements IPlayerMutations {
   }
 
 
-  async updatePlayers(input: UpdatePlayersInput[]): Promise<PlayersResponse> {
-
-    try {
-      if (input && input.length > 0) {
-        const updatePromises = [];
-        let teamIds = [];
-        for (let i = 0; i < input.length; i++) {
-          const playerId = input[i]._id;
-          const playerExist = await this.playerService.findById(playerId);
-          if (!playerExist) continue;
-          teamIds = playerExist.teams;
-          const playerObj: UpdateQuery<Player> = { ...input[i], teams: teamIds || [] };
-          // Move one team to another
-          if (playerObj.team) {
-            // temp playerObj.teams[0]
-            await this.handleTeamUpdate(playerExist, playerObj.teams[0], playerObj.team, updatePromises, playerExist, playerObj);
-            playerObj.teams = [playerObj.team];
-            delete playerObj.team;
-          }
-          if (playerObj._id) delete playerObj._id;
-          updatePromises.push(this.playerService.updateOne({ _id: playerId }, playerObj));
-        }
-        await Promise.all(updatePromises);
-      }
-      const findPlayers = await this.playerService.find({ _id: { $in: input.map((i) => i._id) } });
-      return {
-        code: HttpStatus.ACCEPTED,
-        message: 'Multiple Players have been created successfully!',
-        success: true,
-        data: findPlayers,
-      };
-    } catch (error) {
-      return AppResponse.handleError(error);
-    }
-
-  }
 
   async updatePlayer({ input, playerId, profile }: UpdatePlayerBody): Promise<PlayerResponse> {
     try {

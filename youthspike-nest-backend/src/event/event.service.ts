@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { QueryFilter, Model, UpdateQuery } from 'mongoose';
 import { Event } from './event.schema';
+import { CustomEvent } from './resolvers/event.response';
 import { Types } from 'mongoose';
 
 
 @Injectable()
 export class EventService {
-  constructor(@InjectModel(Event.name) private eventModel: Model<Event>) {}
+  constructor(@InjectModel(Event.name) private eventModel: Model<Event>) { }
 
 
   async findById(id: string): Promise<Event | null> {
@@ -37,12 +38,12 @@ export class EventService {
     });
   }
 
-  async updateOne(filter: QueryFilter<Event>, updateData: UpdateQuery<Event>){
+  async updateOne(filter: QueryFilter<Event>, updateData: UpdateQuery<Event>) {
     const updateEvent = await this.eventModel.updateOne(filter, updateData);
     return updateEvent;
   }
 
-  async updateMany(filter: QueryFilter<Event>, updateData: UpdateQuery<Event>){
+  async updateMany(filter: QueryFilter<Event>, updateData: UpdateQuery<Event>) {
     const updateEvent = await this.eventModel.updateMany(filter, updateData);
     return updateEvent;
   }
@@ -53,5 +54,18 @@ export class EventService {
 
   async deleteOne(filter: QueryFilter<Event>) {
     return this.eventModel.deleteOne(filter);
+  }
+
+
+
+  // Helping functions
+  sanitizeEvents(events: CustomEvent[]): CustomEvent[] {
+    const eventList = [];
+    for (const event of events) {
+      const teamsOfEvent = (event?.teams || []).filter((t) => t);
+      eventList.push({ ...event, teams: teamsOfEvent });
+    }
+
+    return eventList;
   }
 }

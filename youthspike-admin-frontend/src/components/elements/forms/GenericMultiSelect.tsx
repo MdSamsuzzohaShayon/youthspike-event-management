@@ -116,7 +116,7 @@ function GenericMultiSelect<T extends IBaseSelectableItem>({
 
   return (
     <div className={`flex w-full flex-col gap-x-3 ${className}`}>
-      {label && <label className='text-sm font-medium text-gray-300 mb-1 uppercase'>{label}</label>}
+      {/* {label && <label className='text-sm font-medium text-gray-300 mb-1 uppercase'>{label}</label>} */}
 
       {items.length > 15 && (
         <InputField

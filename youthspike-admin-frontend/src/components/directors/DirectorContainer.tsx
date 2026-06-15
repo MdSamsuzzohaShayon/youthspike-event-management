@@ -53,7 +53,6 @@ function DirectorContainer({ queryRef }: IDirectorContainerProps) {
             setIsLoading={setIsLoading} 
             update={false} 
             setAddNewDirector={setAddNewDirector}
-            refetchFunc={refetchFunc} 
           />
         ) 
         : (
