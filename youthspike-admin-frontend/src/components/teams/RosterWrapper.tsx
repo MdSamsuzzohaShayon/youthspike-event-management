@@ -133,7 +133,7 @@ function RosterWrapper({ events, team, players, unassignedPlayers, playerRanking
         title="Team Roster"
         subtitle={`${activePlayers.length} active players`}
         action={
-          <button onClick={() => setAddPlayer(true)} className="bg-yellow-400 text-gray-900 px-4 py-2 rounded-lg text-xs font-bold hover:bg-yellow-300 transition-colors shadow-lg">
+          <button onClick={() => setAddPlayer(true)} className="btn-info">
             + ADD PLAYER
           </button>
         }

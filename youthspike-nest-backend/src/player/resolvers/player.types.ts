@@ -6,7 +6,6 @@ export interface IPlayerMutations {
   createPlayer(body: CreatePlayerBody): Promise<PlayerResponse>;
   createMultiPlayers(body: CreateMultiPlayerBody): Promise<PlayersResponse>;
   updatePlayer(body: UpdatePlayerBody): Promise<PlayerResponse>;
-  updatePlayers(input: UpdatePlayersInput[]): Promise<PlayersResponse>;
   deletePlayer(context: any, playerId: string): Promise<PlayersResponse>;
 }
 

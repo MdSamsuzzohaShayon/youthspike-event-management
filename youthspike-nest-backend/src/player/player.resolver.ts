@@ -64,15 +64,6 @@ export class PlayerResolver {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
-  @Mutation((_returns) => PlayersResponse)
-  async updatePlayers(
-    @Args('input', { type: () => [UpdatePlayersInput] }) input: UpdatePlayersInput[],
-  ): Promise<PlayersResponse> {
-    return this.playerMutations.updatePlayers(input);
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((_returns) => PlayersResponse)
   async createMultiPlayers(

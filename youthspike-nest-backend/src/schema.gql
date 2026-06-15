@@ -1555,7 +1555,6 @@ type Mutation {
   exportPlayers(eventId: String!): ExportPlayersResponse!
   createPlayer(input: CreatePlayerInput!, profile: Upload): PlayerResponse!
   updatePlayer(input: UpdatePlayerInput!, playerId: String!, profile: Upload): PlayerResponse!
-  updatePlayers(input: [UpdatePlayersInput!]!): PlayersResponse!
   createMultiPlayers(uploadedFile: Upload!, eventId: String!, division: String!): PlayersResponse!
   deletePlayer(playerId: String!): PlayersResponse!
   sendCredentials(eventId: String!, teamIds: [String!], captain: String, co_captain: String): AppResponse!
@@ -1772,19 +1771,6 @@ input UpdatePlayerInput {
   prevTeamId: String
   newTeamId: String
   password: String
-}
-
-input UpdatePlayersInput {
-  firstName: String
-  lastName: String
-  username: String
-  division: String
-  email: String
-  phone: String
-  teams: [String!]
-  events: [String!]
-  _id: String!
-  status: String
 }
 
 input UpdatePlayerRankingInput {

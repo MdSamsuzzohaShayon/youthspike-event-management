@@ -331,16 +331,18 @@ export class TeamQueries {
         ...usernamePromises
       ]);
 
+      const eventList = this.eventService.sanitizeEvents(events as CustomEvent[]);
+
       return {
         code: HttpStatus.OK,
         success: true,
         data: {
-          events: events as CustomEvent[],
+          events: eventList as CustomEvent[],
           team: team as CustomTeam,
           players: playerList as CustomPlayer[],
           playerRanking: playerRanking as CustomPlayerRanking,
           rankings: rankings as CustomPlayerRankingItem[],
-          unassignedPlayers: unassignedPlayers  as CustomPlayer[],
+          unassignedPlayers: unassignedPlayers as CustomPlayer[],
         },
       };
     } catch (err) {

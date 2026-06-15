@@ -153,7 +153,7 @@ export class PlayerQueries implements IPlayerQueries {
           }
 
         }
-        teams = await this.teamService.find({ _id: {$in: [...teamIds]}, ...teamQuery });
+        teams = await this.teamService.find({ _id: { $in: [...teamIds] }, ...teamQuery });
       }
 
       return {
@@ -294,13 +294,16 @@ export class PlayerQueries implements IPlayerQueries {
       const teams = await this.teamService.find(teamQuery);
 
 
+      const eventList = this.eventService.sanitizeEvents(events);
+
+
 
       return {
         code: HttpStatus.OK,
         success: true,
         message: 'events, players, groups',
         data: {
-          events,
+          events: eventList,
           teams: teams as CustomTeam[]
         },
       };

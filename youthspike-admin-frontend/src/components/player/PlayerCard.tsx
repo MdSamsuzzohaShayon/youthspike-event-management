@@ -150,7 +150,9 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
       mutateTeam,
       events: selectedTeam?.events.map((e) => typeof e === "object" ? e._id : e) ?? [],
     });
-    window.location.reload(); // temp
+    // window.location.reload(); // temp
+
+    
 
   };
 

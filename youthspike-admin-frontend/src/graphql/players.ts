@@ -290,19 +290,6 @@ const UPDATE_PLAYER = gql`
   ${UPDATE_PLAYER_RAW}
 `;
 
-const UPDATE_PLAYERS = gql`
-mutation UpdatePlayers($input: [UpdatePlayersInput!]!) {
-  updatePlayers(input: $input) {
-    code
-    success
-    message
-    data {
-      ${playerResponse}
-    }
-  }
-}
-`;
-
 const DELETE_A_PLAYER = gql`
   mutation DeletePlayer($playerId: String!) {
     deletePlayer(playerId: $playerId) {
@@ -323,7 +310,6 @@ export {
   CREATE_PLAYER_RAW,
   CREATE_PLAYER,
   UPDATE_PLAYER_RAW,
-  UPDATE_PLAYERS,
   UPDATE_PLAYER,
   DELETE_A_PLAYER,
   GET_PLAYER_AND_TEAMS_RAW,

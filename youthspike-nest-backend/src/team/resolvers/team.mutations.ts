@@ -267,10 +267,10 @@ export class TeamMutations {
     }
 
     // ===== Players =====
-    
+
     const incomingPlayerIds = (input.players ?? []) as ObjectIdLike[];
     const existingPlayerIds = (team.players ?? []) as ObjectIdLike[];
-    
+
     const allPlayerIds = this.mergeUniquePlayerIds(existingPlayerIds, incomingPlayerIds);
 
     if (incomingPlayerIds.length > 0) {
@@ -298,22 +298,48 @@ export class TeamMutations {
     const teamMatchIds = teamExist.matches.map((m) => m.toString());
 
     const updatePromises = [];
-    updatePromises.push(this.playerRankingService.deleteOne({ team: teamExist._id }));
+    // remove team 
 
+    const playerRankings = await this.playerRankingService.find({ team: teamExist._id });
+    for (const playerRanking of playerRankings) {
+      updatePromises.push(this.playerRankingService.deleteManyItem({ playerRanking: playerRanking._id }));
+    }
+    // Delete player ranking and player ranking item
+    updatePromises.push(this.playerRankingService.deleteMany({ team: teamExist._id }));
+
+
+    // Remove team from player
     updatePromises.push(
-      this.playerService.updateMany({ _id: { $in: teamPlayerIds } }, { $pull: { team: teamPlayerIds } }),
+      this.playerService.updateMany({ _id: { $in: teamPlayerIds } }, { $pull: { teams: teamExist._id } }),
     );
-    if (teamExist.captain)
-      updatePromises.push(this.playerService.updateOne({ _d: teamExist.captain }, { $pull: { teams: teamExist._id } }));
-    if (teamExist.cocaptain)
+
+    // Remove prevteams from players
+    updatePromises.push(this.playerService.updateOne({ prevteams: teamExist._id }, { $pull: { prevteams: teamExist._id } }));
+
+    // Remove captain from players
+    if (teamExist.captain) {
+      updatePromises.push(this.playerService.updateOne({ _id: teamExist.captain }, { $pull: { captainofteams: teamExist._id } }));
+    }
+
+
+    // Remove co captain from players
+    if (teamExist.cocaptain) {
       updatePromises.push(
-        this.playerService.updateOne({ _d: teamExist.cocaptain }, { $pull: { teams: teamExist._id } }),
+        this.playerService.updateOne({ _id: teamExist.cocaptain }, { $pull: { cocaptainofteams: teamExist._id } }),
       );
+    }
+
+    // Remove team from events
+    if (teamExist.events.length > 0) {
+      updatePromises.push(this.eventService.updateMany({ _id: { $in: [...teamExist.events as string[]] } }, { $pull: { teams: teamExist._id } }));
+    }
+
+    // Remove matches of the team
     if (teamMatchIds.length > 0)
       updatePromises.push(
         this.matchService.updateMany({ _id: { $in: teamMatchIds } }, { $set: { teamA: null, teamB: null } }),
       );
-    updatePromises.push(this.teamService.delete({ _id: teamExist._id }));
+    updatePromises.push(this.teamService.deleteMany({ _id: teamExist._id }));
     await Promise.all(updatePromises);
   }
 

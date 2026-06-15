@@ -51,7 +51,6 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
 
   const [teamState, setTeamState] = useState<TAddTeam>(initialTeamState);
   const [updateTeamState, setUpdateTeamState] = useState<Partial<TAddTeam>>({});
-  const [availablePlayers, setAvailablePlayers] = useState<IPlayer[]>([]);
   const [availableAddition, setAvailableAdition] = useState(false);
 
   const uploadedLogo = useRef<null | MediaSource | Blob>(null);
@@ -59,6 +58,17 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
   // GraphQL
   const [addTeam, { data, loading, error }] = useMutation<{ createTeam: IGetTeamResponse }>(ADD_A_TEAM);
   const [mutateTeam, { data: mData, loading: mLoading, error: mError }] = useMutation<{ updateTeam: IGetTeamResponse }>(UPDATE_TEAM);
+
+
+  // Memomization
+  const availablePlayers = useMemo(() => {
+    return [...(players ?? [])].sort((a, b) => {
+      const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+      const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+
+      return nameA.localeCompare(nameB);
+    });
+  }, [players]);
 
 
   // Handle events
@@ -199,9 +209,7 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
     }
   }, [prevTeam]);
 
-  useEffect(() => {
-    setAvailablePlayers(players || []);
-  }, [players]);
+
 
 
   useEffect(() => {
@@ -210,6 +218,8 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
       setTeamState((prev) => ({ ...prev, events: [...new Set([...(prev?.events || []) as string[], currentEvent])] as string[] }));
     }
   }, []);
+
+
 
 
 
