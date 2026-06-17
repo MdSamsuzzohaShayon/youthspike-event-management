@@ -4,10 +4,10 @@ import React from 'react';
 interface IDeletePlayerDialogProps{
     deleteEl: React.RefObject<HTMLDialogElement | null>; 
     player: IPlayerRank; 
-    handleDelete: (e: React.SyntheticEvent, playerId: string)=> void;
+    onDelete: (e: React.SyntheticEvent, playerId: string)=> void;
 }
 
-function DeletePlayerDialog({deleteEl, player, handleDelete}: IDeletePlayerDialogProps) {
+function DeletePlayerDialog({deleteEl, player, onDelete}: IDeletePlayerDialogProps) {
   return (
     <dialog ref={deleteEl} className="modal-dialog p-4">
         <div className="flex flex-col gap-y-2">
@@ -17,7 +17,7 @@ function DeletePlayerDialog({deleteEl, player, handleDelete}: IDeletePlayerDialo
             Name: {player?.firstName} {player?.lastName}
           </p>
           <div className="buttons flex w-full justify-between items-center">
-            <div className="btn-info" onClick={(e) => handleDelete(e, player._id)}>
+            <div className="btn-info" onClick={(e) => onDelete(e, player._id)}>
               Confirm
             </div>
             <div className="btn-danger" onClick={(e) => deleteEl.current?.close()}>

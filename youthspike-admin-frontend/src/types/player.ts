@@ -40,7 +40,7 @@ export interface IPlayer extends IDocument {
 }
 
 export type TAddPlayer = Omit<IPlayer, '_id' | 'status' | 'profile' | 'captainofteams' | 'cocaptainofteams'>;
-export type TUpdatePlayer = Omit<IPlayer, '_id' | 'status' | 'profile' | 'captainofteams' | 'cocaptainofteams'> & {
+export type TUpdatePlayer = Omit<IPlayer, '_id' | 'profile' | 'captainofteams' | 'cocaptainofteams'> & {
   password: string;
   confirmPassword: string;
   prevTeamId: string;
