@@ -17,10 +17,12 @@ function DirectorContainer({ queryRef }: IDirectorContainerProps) {
   
   // Use the preloaded query
   const { data } = useReadQuery(queryRef);
+
+  
   
   
   const { data: ldosData } = data.getEventDirectors || {};
-  
+
 
   // Transform the data if needed to match your existing ILDOItem interface
   const ldoList: ILDO[] = useMemo(() => {

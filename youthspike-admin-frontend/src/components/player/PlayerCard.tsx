@@ -1,15 +1,12 @@
-import { DELETE_A_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
-import { UPDATE_TEAM } from '@/graphql/teams';
 import { EPlayerStatus } from '@/types/player';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
 import React, { useMemo, useRef, useState, useCallback } from 'react';
-import { IGetTeamResponse, IOption, IPlayerRank, IResponse, ITeam, IUpdatePlayerResponse, TAddTeam } from '@/types';
+import { IOption, IPlayerRank, ITeam, TUpdatePlayer, TUpdateTeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { useUser } from '@/lib/UserProvider';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
-import { handleError } from '@/utils/handleError';
 import { useLdoId } from '@/lib/LdoProvider';
 import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
@@ -19,12 +16,9 @@ import TextImg from '../elements/TextImg';
 import AddEmailDialog from './AddEmailDialog';
 import { FRONTEND_URL } from '@/utils/keys';
 import DeletePlayerDialog from './DeletePlayerDialog';
-import { useApolloClient, useMutation } from '@apollo/client/react';
-import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
-import updateTeam from '@/utils/request-handlers/updateTeam';
+import { useApolloClient } from '@apollo/client/react';
 import routerService from '@/lib/router-service';
-import SessionStorageService from '@/utils/SessionStorageService';
-import { CURRENT_EVENT } from '@/utils/constant';
+
 
 interface IPlayerCardProps {
   player: IPlayerRank;
@@ -38,11 +32,17 @@ interface IPlayerCardProps {
   rankControls?: boolean;
   divisionList?: IOption[];
   rank?: number | null;
+
+  // New 
+  onUpdateTeam: (e: React.SyntheticEvent, update: Partial<TUpdateTeam>, teamId: string) => void;
+  onUpdatePlayer: (e: React.SyntheticEvent, update: Partial<TUpdatePlayer>, playerId: string) => void;
+  onDelete: (e: React.SyntheticEvent, playerId: string) => void;
 }
 
 
 
-export default function PlayerCard({ player, isChecked, onSelect, teams, teamList, setIsLoading, showRank, rank, divisionList, rankControls, selectedTeam }: IPlayerCardProps) {
+export default function PlayerCard({ player, isChecked, onSelect, teams, teamList, setIsLoading, showRank, rank, divisionList, rankControls, selectedTeam,
+  onUpdateTeam, onUpdatePlayer, onDelete }: IPlayerCardProps) {
 
 
 
@@ -68,10 +68,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
   const { ldoIdUrl } = useLdoId();
   const apolloClient = useApolloClient();
 
-  // Mutations
-  const [mutateTeam] = useMutation<{ updateTeam: IGetTeamResponse }>(UPDATE_TEAM);
-  const [mutatePlayer, { client }] = useMutation<{ updatePlayer: IUpdatePlayerResponse }>(UPDATE_PLAYER);
-  const [deleteAPlayer] = useMutation<{ deletePlayer: IResponse }>(DELETE_A_PLAYER);
+
 
   // Memoized values
   const name = useMemo(() => `${player.firstName} ${player.lastName}`, [player.firstName, player.lastName]);
@@ -90,11 +87,11 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
   }, [teams]);
   const captainofteams = useMemo(() => player.captainofteams?.map((t) => (typeof t === 'object' ? t?._id : t)) || [], [player]);
   const cocaptainofteams = useMemo(() => player.cocaptainofteams?.map((t) => (typeof t === 'object' ? t?._id : t)) || [], [player]);
-  
-  
+
+
 
   const teamSet = useMemo(() => new Set(teams.map((team) => typeof team === 'object' ? team._id : team)), [teams]);
-  
+
   const isCaptain = useMemo(() => {
 
     let captain = false;
@@ -109,7 +106,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
   }, [teamSet, captainofteams]);
 
 
-  
+
   const isCoCaptain = useMemo(() => {
 
     let cocaptain = false;
@@ -130,49 +127,6 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
 
 
   // Optimized callbacks
-  const makeCaptainOrCoCaptain = async (input: { captain?: string; cocaptain?: string }) => {
-    setActionOpen((prev) => !prev);
-
-    if (!selectedTeam) {
-      console.error("No selected team found");
-
-      return;
-    }
-
-
-    await updateTeam({
-      prevTeam: selectedTeam,
-      updateTeamState: input as Partial<TAddTeam>,
-      setMessage,
-      setIsLoading,
-      uploadedLogo: uploadedLogoRef,
-      apolloClient,
-      mutateTeam,
-      events: selectedTeam?.events.map((e) => typeof e === "object" ? e._id : e) ?? [],
-    });
-    // window.location.reload(); // temp
-
-    
-
-  };
-
-
-
-  const handleMakeCaptain = useCallback(
-    (e: React.SyntheticEvent, playerId: string) => {
-      e.preventDefault();
-      makeCaptainOrCoCaptain({ captain: playerId });
-    },
-    [makeCaptainOrCoCaptain],
-  );
-
-  const handleMakeCoCaptain = useCallback(
-    (e: React.SyntheticEvent, playerId: string) => {
-      e.preventDefault();
-      makeCaptainOrCoCaptain({ cocaptain: playerId });
-    },
-    [makeCaptainOrCoCaptain],
-  );
 
   const handleMovePlayerBox = useCallback((e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -181,46 +135,8 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
     dialogMoveRef.current?.showModal();
   }, []);
 
-  const handleChangeStatus = useCallback(
-    async (e: React.SyntheticEvent, newStatus: EPlayerStatus, playerId: string) => {
-      e.preventDefault();
-      setActionOpen((prev) => !prev);
-      try {
-        const response = await mutatePlayer({
-          variables: {
-            input: { status: newStatus, newTeamId: teamsOfPlayer[0] }, // temp
-            playerId,
-          },
-        });
-        const success = await handleResponseCheck(response.data?.updatePlayer, setMessage);
-        if (!success) return;
 
-        // Add cache
-      } catch (error: any) {
-        handleError({ error, setMessage });
-      }
-    },
-    [teamsOfPlayer, mutatePlayer, setMessage],
-  );
 
-  const handleDelete = useCallback(
-    async (e: React.SyntheticEvent, playerId: string) => {
-      e.preventDefault();
-      try {
-        setActionOpen((prev) => !prev);
-        if (setIsLoading) setIsLoading(true);
-        const response = await deleteAPlayer({ variables: { playerId } });
-        const success = await handleResponseCheck(response.data?.deletePlayer, setMessage);
-        if (!success) return;
-        // Add cache
-      } catch (error: any) {
-        handleError({ error, setMessage });
-      } finally {
-        if (setIsLoading) setIsLoading(false);
-      }
-    },
-    [deleteAPlayer, setMessage, client, setIsLoading],
-  );
 
   const closeModal = useCallback(() => {
     if (dialogEl.current) {
@@ -239,6 +155,32 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
     }
   }, []);
 
+  const handleCaptainEmail = 
+    async (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      if (!newEmail.trim()) return;
+
+      const updateObj: { email?: string; captain?: string; cocaptain?: string } = { email: newEmail };
+      if (newPlayerRole === UserRole.captain) {
+        updateObj.captain = player._id;
+      } else if (newPlayerRole === UserRole.co_captain) {
+        updateObj.cocaptain = player._id;
+      }
+
+      try {
+        await onUpdatePlayer(e, {email: newEmail}, player._id)
+        if (updateObj.email) {
+          delete updateObj.email;
+          if(selectedTeam?._id){
+            await onUpdateTeam(e, updateObj, selectedTeam?._id as string)
+          }
+        }
+        closeModal();
+      } catch (error: unknown) {
+        console.error(error);
+      }
+    }
+
   const handleEmailClose = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (dialogEl.current) {
@@ -256,36 +198,6 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
 
   }
 
-  const handleCaptainEmail = useCallback(
-    async (e: React.SyntheticEvent) => {
-      e.preventDefault();
-      if (!newEmail.trim()) return;
-
-      const updateObj: { email?: string; captain?: string; cocaptain?: string } = { email: newEmail };
-      if (newPlayerRole === UserRole.captain) {
-        updateObj.captain = player._id;
-      } else if (newPlayerRole === UserRole.co_captain) {
-        updateObj.cocaptain = player._id;
-      }
-
-      try {
-        await mutatePlayer({
-          variables: {
-            input: { email: newEmail },
-            playerId: player._id,
-          },
-        });
-        if (updateObj.email) {
-          delete updateObj.email;
-          await makeCaptainOrCoCaptain(updateObj);
-        }
-        closeModal();
-      } catch (error: any) {
-        handleError({ error, setMessage });
-      }
-    },
-    [newEmail, newPlayerRole, player._id, mutatePlayer, makeCaptainOrCoCaptain, closeModal, setMessage],
-  );
 
   // Memoized components
   const PlayerRole = useMemo(
@@ -386,14 +298,14 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
                       <li
                         role="presentation"
                         className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
-                        onClick={(e) => (player.email?.trim() ? handleMakeCaptain(e, player._id) : handleOpenDialog(e, UserRole.captain))}
+                        onClick={(e) => (player.email?.trim() && selectedTeam?._id ? onUpdateTeam(e, { captain: player._id }, selectedTeam?._id) : handleOpenDialog(e, UserRole.captain))}
                       >
                         Make Captain
                       </li>
                       <li
                         role="presentation"
                         className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
-                        onClick={(e) => (player.email?.trim() ? handleMakeCoCaptain(e, player._id) : handleOpenDialog(e, UserRole.co_captain))}
+                        onClick={(e) => (player.email?.trim() && selectedTeam?._id ? onUpdateTeam(e, { cocaptain: player._id }, selectedTeam?._id) : handleOpenDialog(e, UserRole.co_captain))}
                       >
                         Make Co-Captain
                       </li>
@@ -403,11 +315,11 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
                     Move Player
                   </li>
                   {player.status === EPlayerStatus.ACTIVE ? (
-                    <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => handleChangeStatus(e, EPlayerStatus.INACTIVE, player._id)}>
+                    <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => onUpdatePlayer(e, { status: EPlayerStatus.INACTIVE }, player._id)}>
                       Make Inactive
                     </li>
                   ) : (
-                    <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => handleChangeStatus(e, EPlayerStatus.ACTIVE, player._id)}>
+                    <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => onUpdatePlayer(e, { status: EPlayerStatus.ACTIVE }, player._id)}>
                       Make Active
                     </li>
                   )}
@@ -433,11 +345,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
       ldoIdUrl,
       user.info?.role,
       rankControls,
-      handleMakeCaptain,
-      handleMakeCoCaptain,
       handleMovePlayerBox,
-      handleChangeStatus,
-      handleDelete,
       handleOpenDialog,
     ],
   );
@@ -484,7 +392,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
       <PlayerMoveDialog
         dialogMoveRef={dialogMoveRef}
         divisionList={divisionList || []}
-        mutatePlayer={mutatePlayer}
+        onUpdatePlayer={onUpdatePlayer}
         player={player}
         setMessage={setMessage}
         setActionOpen={setActionOpen}
@@ -494,7 +402,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
       />
 
       {/* Actions items end */}
-      <DeletePlayerDialog deleteEl={deleteEl} handleDelete={handleDelete} player={player} />
+      <DeletePlayerDialog deleteEl={deleteEl} onDelete={onDelete} player={player} />
     </>
   );
 }

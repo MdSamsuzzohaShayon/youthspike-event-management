@@ -6,7 +6,7 @@ import './PlayerList.css';
 import useScreenWidth from '../../hooks/useScreenWidth';
 import PlayerCard from './PlayerCard';
 
-import { IPlayerExpRel, IPlayerRankingExpRel, IEvent, IOption, ITeam, IPlayerRank, IUpdatePlayerRankingRes, IPlayer } from '@/types';
+import { IPlayerExpRel, IPlayerRankingExpRel, IEvent, IOption, ITeam, IPlayerRank, IUpdatePlayerRankingRes, IPlayer, IGetTeamResponse, IUpdatePlayerResponse, IResponse, TUpdateTeam, TAddTeam, TUpdatePlayer } from '@/types';
 import Image from 'next/image';
 import { itemVariants } from '@/utils/animation';
 import { UPDATE_PLAYER_RANKING } from '@/graphql/player-ranking';
@@ -15,9 +15,13 @@ import { useUser } from '@/lib/UserProvider';
 import { UserRole } from '@/types/user';
 import { useMessage } from '@/lib/MessageProvider';
 import { setPlayerRankings } from '@/utils/localStorage';
-import { useMutation } from '@apollo/client/react';
+import { useApolloClient, useMutation } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
 import { createTeamsMap } from '@/utils/helper';
+import { UPDATE_TEAM } from '@/graphql/teams';
+import { DELETE_A_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
+import updateTeam from '@/utils/request-handlers/updateTeam';
+import updatePlayer from '@/utils/request-handlers/updatePlayer';
 
 interface IPlayerListProps {
   playerList: IPlayerExpRel[];
@@ -44,8 +48,13 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
   const screenWidth = useScreenWidth();
   const user = useUser();
   const { setMessage } = useMessage();
+  const apolloClient = useApolloClient();
 
 
+  // Mutations
+  const [mutateTeam] = useMutation<{ updateTeam: IGetTeamResponse }>(UPDATE_TEAM);
+  const [mutatePlayer, { client }] = useMutation<{ updatePlayer: IUpdatePlayerResponse }>(UPDATE_PLAYER);
+  const [deleteAPlayer] = useMutation<{ deletePlayer: IResponse }>(DELETE_A_PLAYER);
   const [mutatePlayerRanking] = useMutation<{ updatePlayerRanking: IUpdatePlayerRankingRes }>(UPDATE_PLAYER_RANKING);
 
   /** State **/
@@ -165,6 +174,43 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     }
   };
 
+
+  // ============= Event handlers
+
+  const handleDelete = async (event: React.SyntheticEvent, playerId: string) => {
+    event.preventDefault();
+    const response = await deleteAPlayer({ variables: { playerId } });
+    console.log(response);
+    window.location.reload();
+  }
+
+
+  const handleUpdateTeam = async (event: React.SyntheticEvent, updateTeamState: Partial<TUpdateTeam>) => {
+    event.preventDefault();
+    await updateTeam({
+      prevTeam: selectedTeam,
+      updateTeamState,
+      setMessage,
+      setIsLoading,
+      apolloClient,
+      mutateTeam,
+      events: selectedTeam?.events.map((e: string | IEvent) => typeof e === "object" ? e._id : e) ?? [],
+    });
+    window.location.reload();
+  }
+
+
+  const handleUpdatePlayer = (event: React.SyntheticEvent, updatePlayerState: Partial<TUpdatePlayer>, playerId: string) => {
+    event.preventDefault();
+    const player = players.find((p) => p._id === playerId);
+    if(!player){
+      console.error(`There are no player with this ID: ${playerId}`);
+      return;
+    }
+    updatePlayer({ mutatePlayer, playerUpdate: updatePlayerState, prevPlayer: player as IPlayer, setIsLoading, setMessage, uploadedProfile: null })
+    window.location.reload();
+  }
+
   const handleContextMenu = (e: React.SyntheticEvent) => {
     e.preventDefault(); // Prevent the default context menu from showing
   };
@@ -219,33 +265,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     }
   }, [playerList, playerRanking, inactive]);
 
-  const handleMove = (_event: Sortable.MoveEvent, originalEvent: Event) => {
-    const EDGE = 120;
-    const SPEED = 15;
 
-    const y =
-      originalEvent instanceof MouseEvent
-        ? originalEvent.clientY
-        : originalEvent instanceof TouchEvent
-          ? originalEvent.touches[0]?.clientY ?? 0
-          : 0;
-
-    if (y < EDGE) {
-      window.scrollBy({
-        top: -SPEED,
-        behavior: "auto",
-      });
-    }
-
-    if (window.innerHeight - y < EDGE) {
-      window.scrollBy({
-        top: SPEED,
-        behavior: "auto",
-      });
-    }
-
-    return true;
-  };
 
   /** Memoize Sortable Initialization **/
   useEffect(() => {
@@ -307,6 +327,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     return () => sortableList.destroy();
   }, [handleSortEnd, rankControls, screenWidth, user, events]);
 
+
   /** Derived State: Sorted Players */
   const sortedPlayerList: IPlayerRank[] = useMemo(() => {
     // inactive players won't have rankings
@@ -354,6 +375,9 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
             divisionList={divisionList}
             rankControls={rankControls}
             rank={player.rank}
+            onUpdateTeam={handleUpdateTeam}
+            onDelete={handleDelete}
+            onUpdatePlayer={handleUpdatePlayer}
           />
         </motion.li>
       ))}

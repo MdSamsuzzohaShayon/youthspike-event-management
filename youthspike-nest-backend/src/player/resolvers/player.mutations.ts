@@ -7,7 +7,7 @@ import { PlayerService } from '../player.service';
 import { UserService } from 'src/user/user.service';
 import { AppResponse } from 'src/shared/response';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
-import { Player } from '../player.schema';
+import { EPlayerStatus, Player } from '../player.schema';
 import { UpdateQuery } from 'mongoose';
 import { CreateMultiPlayerBody, CreatePlayerBody, UpdatePlayerBody, UpdatePlayersInput } from './player.input';
 import { ExportOrganizedPlayers, ExportPlayersResponse, PlayerResponse, PlayersResponse } from './player.response';
@@ -87,16 +87,27 @@ export class PlayerMutations implements IPlayerMutations {
     );
 
     // 2. Remove the player's ranking items from every unlocked ranking in the old team.
+    await this.removePlayerFromRankings([prevTeamId], playerId);
+
+    // 3. Strip old team from player's team list; record it as a previous team.
+    const existingTeamIds: string[] = Array.isArray(playerObj.teams)
+      ? playerObj.teams.map((t) => t.toString())
+      : [];
+
+    input.teams = existingTeamIds.filter((id) => id !== prevTeamId);
+    input.$addToSet = { prevteams: prevTeamId };
+  }
+
+  private async removePlayerFromRankings(prevTeamIds: string[], playerId: string) {
     const prevRankings = await this.playerRankingService.find({
-      team: prevTeamId,
+      team: { $in: prevTeamIds },
       rankLock: false,
     });
 
     if (prevRankings.length > 0) {
       const rankingItems = await Promise.all(
-        prevRankings.map((r) =>
-          this.playerRankingService.findOneItem({ playerRanking: r._id, player: playerId }),
-        ),
+        prevRankings.map((r) => this.playerRankingService.findOneItem({ playerRanking: r._id, player: playerId })
+        )
       );
 
       // Delete found items and pull their IDs from the parent ranking in one batch.
@@ -106,7 +117,7 @@ export class PlayerMutations implements IPlayerMutations {
           return [
             this.playerRankingService.updateOne(
               { _id: prevRankings[idx]._id },
-              { $pull: { rankings: item._id } },
+              { $pull: { rankings: item._id } }
             ),
             this.playerRankingService.deleteOneItem({ _id: item._id }),
           ];
@@ -118,17 +129,9 @@ export class PlayerMutations implements IPlayerMutations {
       await this.applyReRank(
         prevRankings.map((r) => r._id),
         (f) => this.playerRankingService.findItems(f),
-        (f, u) => this.playerRankingService.updateOneItem(f, u),
+        (f, u) => this.playerRankingService.updateOneItem(f, u)
       );
     }
-
-    // 3. Strip old team from player's team list; record it as a previous team.
-    const existingTeamIds: string[] = Array.isArray(playerObj.teams)
-      ? playerObj.teams.map((t) => t.toString())
-      : [];
-
-    input.teams = existingTeamIds.filter((id) => id !== prevTeamId);
-    input.$addToSet = { prevteams: prevTeamId };
   }
 
   private async removeCaptainRoles(
@@ -169,30 +172,10 @@ export class PlayerMutations implements IPlayerMutations {
     await Promise.all(ops);
   }
 
-  private async addPlayerToNewTeam(
-    player: Player,
-    newTeamId: string,
-    input: UpdateQuery<Player>,
-    updatePromises: Promise<unknown>[],
-  ): Promise<void> {
-    const playerId = String(player._id);
-    // 1. Add player to the new team document.
-    updatePromises.push(
-      this.teamService.updateOne({ _id: newTeamId }, { $addToSet: { players: playerId } }),
-    );
-
-    if (Array.isArray(input.teams)) {
-      input.teams.push(newTeamId);
-    }else{
-      input.teams = player.teams ? [...player.teams, newTeamId] : [newTeamId];
-    }
-
-    // 2. Append the player to every unlocked ranking of the new team.
-    const newTeam = await this.teamService.findById(newTeamId);
-    if (!newTeam) return;
+  private async addPlayerToRankings(teamIds: string[], playerId: string) {
 
     const newTeamRankings = await this.playerRankingService.find({
-      team: newTeam._id,
+      team: { $in: teamIds },
       rankLock: false,
     });
 
@@ -210,6 +193,7 @@ export class PlayerMutations implements IPlayerMutations {
       ),
     );
 
+    const updatePromises: Promise<unknown>[] = [];
     newRankingItems.forEach((item, idx) => {
       updatePromises.push(
         this.playerRankingService.updateOne(
@@ -219,12 +203,39 @@ export class PlayerMutations implements IPlayerMutations {
       );
     });
 
+    await Promise.all(updatePromises);
+
     // 3. Re-rank to close any gaps introduced by the append.
     await this.applyReRank(
       newTeamRankings.map((r) => r._id),
       (f) => this.playerRankingService.findItems(f),
       (f, u) => this.playerRankingService.updateOneItem(f, u),
     );
+  }
+
+  private async addPlayerToNewTeam(
+    player: Player,
+    newTeamId: string,
+    input: UpdateQuery<Player>,
+    updatePromises: Promise<unknown>[],
+  ): Promise<void> {
+    const playerId = String(player._id);
+    // 1. Add player to the new team document.
+    updatePromises.push(
+      this.teamService.updateOne({ _id: newTeamId }, { $addToSet: { players: playerId } }),
+    );
+
+    if (Array.isArray(input.teams)) {
+      input.teams.push(newTeamId);
+    } else {
+      input.teams = player.teams ? [...player.teams, newTeamId] : [newTeamId];
+    }
+
+    // 2. Append the player to every unlocked ranking of the new team.
+    const newTeam = await this.teamService.findById(newTeamId);
+    if (!newTeam) return;
+
+    await this.addPlayerToRankings([newTeam._id], playerId);
   }
 
   private async handleTeamUpdate(
@@ -241,7 +252,7 @@ export class PlayerMutations implements IPlayerMutations {
     }
 
     // Always strip captain/co-captain roles when moving teams.
-    if((playerObj.captainofteams && playerObj.captainofteams.length > 0) || (playerObj.captainofteams && playerObj.captainofteams.length > 0)){
+    if ((playerObj.captainofteams && playerObj.captainofteams.length > 0) || (playerObj.captainofteams && playerObj.captainofteams.length > 0)) {
       await this.removeCaptainRoles(playerId, playerObj);
     }
 
@@ -650,6 +661,20 @@ export class PlayerMutations implements IPlayerMutations {
           playerExist,
           playerUpdate,
         );
+      }
+
+
+      if (input.status && input.status !== playerExist.status) {
+        // If inactive then remove ranking, and rerank them
+        if (input.status === EPlayerStatus.INACTIVE) {
+          // Delete previous ranking
+          if (playerExist.teams && playerExist.teams.length > 0) {
+            await this.removePlayerFromRankings(playerExist.teams as string[], playerId);
+          }
+        } else if (playerExist.teams && playerExist.teams.length > 0) {
+          // if active again then add ranking 
+          await this.addPlayerToRankings(playerExist.teams as string[], playerId);
+        }
       }
 
       // ── Linked captain/co-captain user profile sync ────────────────────────

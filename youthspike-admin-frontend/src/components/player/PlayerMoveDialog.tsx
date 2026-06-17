@@ -27,7 +27,7 @@ import { useApolloClient } from '@apollo/client/react';
 import { GET_TEAM_ROSTER } from '@/graphql/teams';
 
 
-interface IPlayerMoveData{
+interface IPlayerMoveData {
   getTeamRoster: IGetTeamRosterResponse;
 }
 
@@ -40,7 +40,7 @@ interface PlayerMoveDialogProps {
   teamList: ITeam[];
   teamId: string | null;
 
-  mutatePlayer: TPlayerMutationFunction;
+  onUpdatePlayer: (e: React.SyntheticEvent, update: Partial<TUpdatePlayer>, playerId: string) => void;
 
   setActionOpen: React.Dispatch<
     React.SetStateAction<boolean>
@@ -61,7 +61,7 @@ function PlayerMoveDialog({
   divisionList,
   teamList,
   teamId,
-  mutatePlayer,
+  onUpdatePlayer,
   setActionOpen,
   setMessage,
   setMovePlayer,
@@ -142,6 +142,8 @@ function PlayerMoveDialog({
   const handleMovePlayer = async (
     e: React.SyntheticEvent,
   ) => {
+    if (teamId) onUpdatePlayer(e, { prevTeamId: teamId || undefined, newTeamId: selectedTeamId || undefined }, player._id)
+    /*
     e.preventDefault();
     const mutationInput: Partial<TUpdatePlayer> =
     {
@@ -158,7 +160,6 @@ function PlayerMoveDialog({
 
     updatePlayer({ setMessage, setIsLoading, playerUpdate: mutationInput, prevPlayer: player as IPlayer, uploadedProfile: null, mutatePlayer });
 
-    /*
     // After moving player successfully
     // Update cache like this with writeFragment
 
@@ -202,7 +203,7 @@ function PlayerMoveDialog({
     */
 
 
-    window.location.reload();
+    // window.location.reload();
   };
 
   const currentTeamName =

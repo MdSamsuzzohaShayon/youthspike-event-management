@@ -60,6 +60,7 @@ export interface ITeamRelatives extends ITeamCommon{
 
 
 export type TAddTeam = Omit<ITeamRelatives, '_id' | 'num' | 'rankLock' | 'playerRankings'>;
+export type TUpdateTeam = Omit<ITeamRelatives, '_id' | 'num' | 'rankLock' | 'playerRankings'>;
 
 export interface ITeamScore {
   rank: number;

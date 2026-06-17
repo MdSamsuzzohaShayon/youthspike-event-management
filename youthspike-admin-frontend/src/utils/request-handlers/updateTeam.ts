@@ -21,9 +21,9 @@ interface IUpdateTeam {
   apolloClient: ApolloClient;
   setMessage: (message: Omit<IMessage, "id">) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  uploadedLogo: React.RefObject<null | Blob | MediaSource>;
   // playerIdList: string[];
   mutateTeam: TUpdateTeamFunction;
+  uploadedLogo?: React.RefObject<null | Blob | MediaSource>;
 }
 
 export async function updateTeam({
@@ -56,7 +56,7 @@ export async function updateTeam({
     let responseData: IGetTeamResponse | undefined;
 
     // 🧠 Upload with logo (if any)
-    if (uploadedLogo.current instanceof Blob) {
+    if (uploadedLogo && uploadedLogo.current instanceof Blob) {
       const formData = new FormData();
       formData.set(
         'operations',
