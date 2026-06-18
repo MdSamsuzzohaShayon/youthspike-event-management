@@ -86,7 +86,7 @@ export class AceNoThirdTouchHandler {
         } else {
           // no previous net exist 
           // Same person will be setver but receiver will be changed
-          this.scoreKeeperHelper.rotateReceiverEqualScoring(net);
+          this.scoreKeeperHelper.rotateServerReceiverEqualScoring(net, null);
         }
       } else {
         // Previous strategy - Strategy A

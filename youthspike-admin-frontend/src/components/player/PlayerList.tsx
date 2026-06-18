@@ -185,7 +185,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
   }
 
 
-  const handleUpdateTeam = async (event: React.SyntheticEvent, updateTeamState: Partial<TUpdateTeam>) => {
+  const handleUpdateTeam = async (event: React.SyntheticEvent, updateTeamState: Partial<Pick<TUpdateTeam, 'captain' | 'cocaptain'>>) => {
     event.preventDefault();
     await updateTeam({
       prevTeam: selectedTeam,
@@ -196,7 +196,8 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
       mutateTeam,
       events: selectedTeam?.events.map((e: string | IEvent) => typeof e === "object" ? e._id : e) ?? [],
     });
-    window.location.reload();
+    // Remove player
+    // Update cache and players state
   }
 
 

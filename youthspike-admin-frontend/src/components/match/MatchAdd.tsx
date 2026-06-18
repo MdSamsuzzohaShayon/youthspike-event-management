@@ -104,7 +104,7 @@ function MatchAdd({ eventId, setIsLoading, teamList, currDivision, groupList, up
   };
 
   const handleToggleInput = (e: React.SyntheticEvent) => {
-    e.preventDefault();
+    // e.preventDefault();
     const inputEl = e.target as HTMLInputElement;
     const name = inputEl.name as keyof IAddMatch;
 

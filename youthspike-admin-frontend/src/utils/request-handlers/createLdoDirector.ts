@@ -104,6 +104,7 @@ export async function createLdoDirector({
 
       // 🔴 Handle GraphQL errors
       if (json.errors?.length) {
+
         throw new Error(json.errors[0].message || 'GraphQL Error');
       }
 
@@ -194,15 +195,18 @@ export async function createLdoDirector({
       message = error.message;
     }
 
+
     setMessage({
       type: 'error',
       message,
     });
 
-    SessionStorageService.removeItem(DIVISION);
-    removeTeamFromStore();
-    await fetch('/api/logout', { method: 'GET' });
-    routerService.push('/login');
+    if (message === "Unauthorized") {
+      SessionStorageService.removeItem(DIVISION);
+      removeTeamFromStore();
+      await fetch('/api/logout', { method: 'GET' });
+      routerService.push('/login');
+    }
 
 
     throw new Error(message);
