@@ -10,7 +10,7 @@ export class AceNoTouchHandler {
   constructor(
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
     private readonly pointsUpdateHelper: PointsUpdateHelper,
-  ) {}
+  ) { }
 
   async handle(@ConnectedSocket() client: Socket, @MessageBody() body: AceNoTouchInput, server: Server) {
     try {
@@ -48,35 +48,35 @@ export class AceNoTouchHandler {
       const receiverBefore = String(net.receiver);
 
       // Rotation strategy will depend on selected item from frontend
-      if(body.playStrategy === EPlayStrategy.EQUAL_SERVING){
+      if (body.playStrategy === EPlayStrategy.EQUAL_SERVING) {
         /**
          * Check previous play
          * If the server was also server in the previous play then change him otherwise keep him
          * If the server stays then the position will be changes
          */
         // const serverReceiverOnNetExist = await serverReceiverOnNetService.findOne({ net: body.net });
-        if(net.mutate > 1){
+        if (net.mutate > 1) {
           const allSinglePlays = await this.scoreKeeperHelper.loadAllSinglePlayAction(body.net, body.room, net.mutate);
-          const previousPlay = allSinglePlays.find((play)=> play.play === net.mutate - 1);
-          if(!previousPlay) {
+          const previousPlay = allSinglePlays.find((play) => play.play === net.mutate - 1);
+          if (!previousPlay) {
             throw new Error("Previous play did not match for this strategy, try reverting or reseting all plays!")
           }
           // Same person has served twice, so server receiver both will be changed
-          if(previousPlay.server === net.server){
-            const twoStepBack = allSinglePlays.find((play)=> play.play === net.mutate - 2);
+          if (previousPlay.server === net.server) {
+            const twoStepBack = allSinglePlays.find((play) => play.play === net.mutate - 2);
             const previousServerOfOtherTeam = twoStepBack?.server ? String(twoStepBack?.server) : null;
             this.scoreKeeperHelper.rotateServerReceiverEqualScoring(net, previousServerOfOtherTeam);
-          }else{
+          } else {
             // This person is new server, so only receiver will be changed
             this.scoreKeeperHelper.rotateReceiverEqualScoring(net);
           }
           // Check previous net, if he was in the previous net then change to new net
-        }else{
+        } else {
           // no previous net exist 
           // Same person will be setver but receiver will be changed
-          this.scoreKeeperHelper.rotateReceiverEqualScoring(net);
+          this.scoreKeeperHelper.rotateServerReceiverEqualScoring(net, null);
         }
-      }else{
+      } else {
         // Previous strategy - Strategy A
         this.scoreKeeperHelper.rotateReceiver(net);
       }
