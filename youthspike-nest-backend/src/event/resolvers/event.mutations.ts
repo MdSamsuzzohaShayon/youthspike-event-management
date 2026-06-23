@@ -215,7 +215,7 @@ export class EventMutations implements IEventMutations {
       const ldo = await this.ldoService.findByDirectorId(directorId);
 
       // ===== Arrange data and save to database =====
-      const eventData: Partial<Event & {newteams: string[]}> = {
+      const eventData: Partial<Event & { newteams: string[] }> = {
         ...updateInput,
         ldo: ldo._id,
         // sponsors: cloudinaryUrls,
@@ -269,10 +269,25 @@ export class EventMutations implements IEventMutations {
       }
 
       // ===== Update Teams =====
-      if(updateInput.newteams && updateInput.newteams.length > 0){
-        eventData.teams = [...new Set([...eventExist.teams.map((teamId) => String(teamId)), ...updateInput.newteams])]
+      if (updateInput.newteams && updateInput.newteams.length > 0) {
+        const teamIds = [...new Set([...eventExist.teams.map((teamId) => String(teamId)), ...updateInput.newteams])];
+        const teams = await this.teamService.find({ _id: { $in: teamIds } }, 0, 1000);
+        eventData.teams = teamIds;
+
+        // All players must be included in the event 
+        const playerSet = new Set(eventExist.players.map((playerId) => String(playerId)));
+        for (const team of teams) {
+          if (!team?.players) continue;
+          for (const playerId of team.players) {
+            playerSet.add(String(playerId));
+          }
+        }
+        eventData.players = [...playerSet];
+
+
         await Promise.all([
-          this.teamService.updateMany({_id: {$in: updateInput.newteams}}, {$addToSet: {events: eventId}}),
+          this.teamService.updateMany({ _id: { $in: updateInput.newteams } }, { $addToSet: { events: eventId } }),
+          this.playerService.updateMany({ _id: { $in: [...playerSet] } }, { $addToSet: { events: eventId } }),
         ]);
         delete eventData.newteams;
       }

@@ -88,7 +88,6 @@ interface ITeamRowProps {
 // Desktop row
 // ─────────────────────────────────────────────────────────────────────────────
 function TeamRow({ team, ldoIdUrl, eventMap, user, isChecked, onCheckedTeam }: ITeamRowProps) {
-  console.log(team);
 
   return (
     <tr className="group border-b border-white/[0.05] transition-colors duration-150 hover:bg-white/[0.03]">
@@ -342,6 +341,10 @@ export default function TeamTable({ teams, events }: ITeamTableProps) {
 
       {/* ── Mobile cards ───────────────────────────────────────────────── */}
       <div className="md:hidden space-y-3 p-4">
+        <button onClick={() => bulkModalRef.current?.showModal()} className="w-8 h-8 flex items-center justify-center bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors" aria-label="Team options">
+          <Image width={16} height={16} src="/icons/dots-vertical.svg" alt="Options" className="svg-white" />
+        </button>
+
         {teams.map((team) => (
           <MobileCard key={team._id} team={team} ldoIdUrl={ldoIdUrl} eventMap={eventMap} user={user} isChecked={checkedTeams.get(team._id) ?? false} onCheckedTeam={handleCheckedTeam} />
         ))}
