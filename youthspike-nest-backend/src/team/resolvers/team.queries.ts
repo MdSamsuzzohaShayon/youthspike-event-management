@@ -530,9 +530,13 @@ export class TeamQueries {
         captainIds.length
           ? this.playerService.find({ _id: { $in: captainIds } })
           : [],
-        eventIds?.length
-          ? this.eventService.find({ _id: { $in: eventIds } })
-          : this.eventService.find({ _id: { $in: [...eventIdTeamsSet] } }),
+
+        // temp
+        // FOr now let's get all events
+        // eventIds?.length
+        //   ? this.eventService.find({ _id: { $in: eventIds } })
+        //   : this.eventService.find({ _id: { $in: [...eventIdTeamsSet] } }),
+        this.eventService.find({}),
         eventIds?.length
           ? this.groupService.find({ event: { $in: eventIds } })
           : this.groupService.find({ event: { $in: [...eventIdTeamsSet] } }),

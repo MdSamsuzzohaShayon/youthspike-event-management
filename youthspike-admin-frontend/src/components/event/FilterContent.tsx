@@ -11,7 +11,6 @@ import routerService from '@/lib/router-service';
 
 interface IFilterContentProps {
   // This is optional because we can search for all matches, not just matches of a specific event
-  eventId?: string;
   divisions: string;
   groups: IGroup[];
   loading: boolean;
@@ -22,6 +21,7 @@ interface IFilterContentProps {
   hasUnsavedChanges: boolean;
   hasActiveFilters: boolean;
   filterPage: EFilterPage;
+  eventId?: string;
   showStatus?: boolean;
 }
 

@@ -47,6 +47,24 @@ function readDate(isoDateString: string) {
   }
 }
 
+function readTimestamp(timestamp: number): string {
+  const date = new Date(timestamp);
+
+  const day = date.toLocaleString("en-GB", {
+    day: "2-digit",
+  });
+
+  const month = date
+    .toLocaleString("en-GB", {
+      month: "short",
+    })
+    .toLowerCase();
+
+  const year = date.getFullYear();
+
+  return `${day} ${month}, ${year}`;
+}
+
 function readDateTemp(isoDateString: string) {
   const date = new Date(isoDateString);
 
@@ -142,4 +160,4 @@ function getLocalDateTimeISO(): string {
 }
 
 
-export { validateMatchDatetime, defaultInputValue, readDate, formatUSPhoneNumber, getCurrentDate, readDateTemp, isISODateString, getLocalDateTimeISO, monthNamesShort };
+export { validateMatchDatetime, defaultInputValue, readDate, formatUSPhoneNumber, getCurrentDate, readDateTemp, isISODateString, getLocalDateTimeISO, monthNamesShort, readTimestamp};

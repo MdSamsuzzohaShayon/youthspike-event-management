@@ -215,7 +215,7 @@ export class EventMutations implements IEventMutations {
       const ldo = await this.ldoService.findByDirectorId(directorId);
 
       // ===== Arrange data and save to database =====
-      const eventData: Partial<Event> = {
+      const eventData: Partial<Event & {newteams: string[]}> = {
         ...updateInput,
         ldo: ldo._id,
         // sponsors: cloudinaryUrls,
@@ -266,6 +266,15 @@ export class EventMutations implements IEventMutations {
         if (logoUrl) {
           eventData.logo = logoUrl;
         }
+      }
+
+      // ===== Update Teams =====
+      if(updateInput.newteams && updateInput.newteams.length > 0){
+        eventData.teams = [...new Set([...eventExist.teams.map((teamId) => String(teamId)), ...updateInput.newteams])]
+        await Promise.all([
+          this.teamService.updateMany({_id: {$in: updateInput.newteams}}, {$addToSet: {events: eventId}}),
+        ]);
+        delete eventData.newteams;
       }
 
       // ===== Update divisions =====

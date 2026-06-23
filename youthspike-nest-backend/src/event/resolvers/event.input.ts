@@ -150,7 +150,10 @@ export class EventFilterInput {
 }
 
 @InputType()
-export class UpdateEventInput extends PartialType(CreateEventInput) {}
+export class UpdateEventInput extends PartialType(CreateEventInput) {
+  @Field(() => [String], { nullable: true })
+  newteams?: string[];
+}
 
 
 @ObjectType()

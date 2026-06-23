@@ -3,14 +3,25 @@
 // ─── TeamTable ────────────────────────────────────────────────────────────────
 // Drop-in replacement. Logic unchanged; markup / Tailwind redesigned.
 
-import { ITeam } from '@/types';
+import { IEvent, IEventRelatives, IResponse, ITeam, IUserContext, UserRole } from '@/types';
 import { CldImage } from 'next-cloudinary';
 import TextImg from '../elements/TextImg';
 import Link from 'next/link';
 import { useLdoId } from '@/lib/LdoProvider';
+import React, { useMemo, useRef, useState } from 'react';
+import CheckboxInput from '../elements/forms/CheckboxInput';
+import { useUser } from '@/lib/UserProvider';
+import { readDate, readTimestamp } from '@/utils/datetime';
+import Image from 'next/image';
+import SelectInput from '../elements/forms/SelectInput';
+import { divisionsToOptionList } from '@/utils/helper';
+import { updateEventWithFiles } from '@/utils/request-handlers/updateEvent';
+import { useMutation } from '@apollo/client/react';
+import { UPDATE_EVENT } from '@/graphql/event';
 
 interface ITeamTableProps {
   teams: ITeam[];
+  events: IEventRelatives[];
 }
 
 // ── shared pill / badge ───────────────────────────────────────────────────────
@@ -63,14 +74,30 @@ function TeamAvatar({ team, size = 'sm' }: { team: ITeam; size?: 'sm' | 'md' }) 
   );
 }
 
+
+interface ITeamRowProps {
+  team: ITeam;
+  ldoIdUrl: string;
+  eventMap: Map<string, IEventRelatives>;
+  user: IUserContext;
+  isChecked: boolean;
+  onCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Desktop row
 // ─────────────────────────────────────────────────────────────────────────────
-function TeamRow({ team, ldoIdUrl }: { team: ITeam; ldoIdUrl: string }) {
+function TeamRow({ team, ldoIdUrl, eventMap, user, isChecked, onCheckedTeam }: ITeamRowProps) {
+  console.log(team);
+
   return (
     <tr className="group border-b border-white/[0.05] transition-colors duration-150 hover:bg-white/[0.03]">
+
       {/* Name */}
       <td className="py-4 px-6">
+        {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
+          <CheckboxInput _id={team._id} name="team-select" defaultValue={isChecked} handleInputChange={onCheckedTeam} className='mr-2' />
+        )}
         <span className="font-semibold text-white group-hover:text-yellow-400 transition-colors duration-150">
           {team.name}
         </span>
@@ -86,19 +113,30 @@ function TeamRow({ team, ldoIdUrl }: { team: ITeam; ldoIdUrl: string }) {
         {team.division ? <DivisionBadge label={team.division} /> : <span className="text-gray-600">—</span>}
       </td>
 
+      {/* // Date  */}
+      <td className="py-4 px-6">
+        {team?.createdAt && readTimestamp(parseInt(team.createdAt, 10))}
+      </td>
+
       {/* Events */}
       <td className="py-4 px-6">
         <div className="flex flex-wrap gap-1 justify-center">
-          {team.events.length === 0 && <span className="text-gray-600 text-xs">No events</span>}
-          {team.events.map((event) => (
-            <Link
-              key={event?._id}
-              href={`/${event?._id}/teams/${ldoIdUrl}`}
-              className="inline-block rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs text-gray-300 transition-colors hover:border-yellow-400/40 hover:text-yellow-300"
-            >
-              {event?.name}
-            </Link>
-          ))}
+          {!team.events?.length ? <span className="text-gray-600 text-xs">No events</span> : (<>
+            {team.events.map((eventId) => {
+              const event = eventMap.get(String(eventId));
+              if (!event) return null;
+
+              return (
+                <Link
+                  key={event?._id}
+                  href={`/${event?._id}/teams/${ldoIdUrl}`}
+                  className="inline-block rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs text-gray-300 transition-colors hover:border-yellow-400/40 hover:text-yellow-300"
+                >
+                  {event?.name}
+                </Link>
+              )
+            })}
+          </>)}
         </div>
       </td>
 
@@ -120,9 +158,9 @@ function TeamRow({ team, ldoIdUrl }: { team: ITeam; ldoIdUrl: string }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Mobile card
 // ─────────────────────────────────────────────────────────────────────────────
-function MobileCard({ team, ldoIdUrl }: { team: ITeam; ldoIdUrl: string }) {
+function MobileCard({ team, ldoIdUrl, eventMap, user, isChecked, onCheckedTeam }: ITeamRowProps) {
   return (
-    <div className="relative overflow-hidden rounded-xl border border-white/[0.08] bg-[#161616] p-4 transition-all duration-200 hover:border-yellow-400/30 hover:shadow-lg hover:shadow-yellow-400/5">
+    <div className="relative overflow-hidden rounded-xl border border-white/[0.08] p-4 transition-all duration-200 hover:border-yellow-400/30 hover:shadow-lg hover:shadow-yellow-400/5">
       {/* top accent line */}
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-400/40 to-transparent" />
 
@@ -138,17 +176,22 @@ function MobileCard({ team, ldoIdUrl }: { team: ITeam; ldoIdUrl: string }) {
       </div>
 
       {/* Events */}
-      {team.events.length > 0 && (
+      {team.events?.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1.5">
-          {team.events.map((event) => (
-            <Link
-              key={event?._id}
-              href={`/${event?._id}/teams/${ldoIdUrl}`}
-              className="inline-block rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs text-gray-300 hover:border-yellow-400/40 hover:text-yellow-300 transition-colors"
-            >
-              {event?.name}
-            </Link>
-          ))}
+          {team.events.map((eventId) => {
+            const event = eventMap.get(String(eventId));
+            if (!event) return null;
+
+            return (
+              <Link
+                key={event?._id}
+                href={`/${event?._id}/teams/${ldoIdUrl}`}
+                className="inline-block rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs text-gray-300 hover:border-yellow-400/40 hover:text-yellow-300 transition-colors"
+              >
+                {event?.name}
+              </Link>
+            )
+          })}
         </div>
       )}
 
@@ -160,6 +203,9 @@ function MobileCard({ team, ldoIdUrl }: { team: ITeam; ldoIdUrl: string }) {
         <ActionLink href={`/teams/${team._id}/update/${ldoIdUrl}`} variant="outline">
           Edit
         </ActionLink>
+        {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
+          <CheckboxInput _id={team._id} name="team-select" defaultValue={isChecked} handleInputChange={onCheckedTeam} />
+        )}
       </div>
     </div>
   );
@@ -168,8 +214,95 @@ function MobileCard({ team, ldoIdUrl }: { team: ITeam; ldoIdUrl: string }) {
 // ─────────────────────────────────────────────────────────────────────────────
 // Main export
 // ─────────────────────────────────────────────────────────────────────────────
-export default function TeamTable({ teams }: ITeamTableProps) {
+export default function TeamTable({ teams, events }: ITeamTableProps) {
   const { ldoIdUrl } = useLdoId();
+  const user = useUser();
+  const [mutateEvent] = useMutation<{ updateEvent: IResponse }>(UPDATE_EVENT);
+
+  // State
+  const [checkedTeams, setCheckedTeams] = useState<Map<string, boolean>>(new Map());
+  const bulkModalRef = useRef<HTMLDialogElement | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<IEventRelatives | null>(null);
+
+
+  // Memoization
+  const eventMap = useMemo(() => {
+    const map = new Map<string, IEventRelatives>();
+    for (const event of events) {
+      map.set(event._id, event);
+    }
+    return map;
+  }, [events]);
+
+  const checkedTeamIds = useMemo(() => {
+    return Array.from(checkedTeams)
+      .filter(([_, isChecked]) => isChecked) // Filter for checked items
+      .map(([teamId]) => teamId)
+  }, [checkedTeams]); // Map to just the team IDs
+
+
+
+  // Handle events
+  const handleCheckedTeam = (e: React.SyntheticEvent, teamId: string) => {
+    const inputEl = e.target as HTMLInputElement;
+    const newCheckedItems: Map<string, boolean> = new Map(checkedTeams);
+    if (inputEl.checked) {
+      newCheckedItems.set(teamId, true);
+    } else {
+      newCheckedItems.set(teamId, false);
+    }
+    setCheckedTeams(newCheckedItems);
+  };
+
+  const handleChangeEvent = (e: React.SyntheticEvent) => {
+    const inputEl = e.target as HTMLInputElement;
+    const event = eventMap.get(inputEl.value);
+    if (event) setSelectedEvent(event);
+  };
+
+
+
+
+  const handleAddTeamsToEvent = async (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    // Division based on event
+    // Division must match with team division
+    // Otherwise show an warning
+    // If some division of a team are not available, then add them to the event
+    // Do not send those teams that are already on the event
+
+    const teamSet = new Set(checkedTeamIds);
+    const divisionSet = new Set();
+    for (const team of teams) {
+      if (!teamSet.has(team._id)) continue;
+      if (!team.division) continue;
+      divisionSet.add(String(team.division).toLowerCase());
+    }
+
+    const eventDivisionList = selectedEvent?.divisions.split(',');
+
+    if (eventDivisionList) {
+      for (const division of eventDivisionList) {
+        // All of them will be lower case
+        divisionSet.add(division.trim().toLowerCase());
+      }
+    }
+
+    const divisions = [...divisionSet].join(',');
+
+
+    await mutateEvent({ variables: { sponsorsInput: [], updateInput: { newteams: [...teamSet], divisions }, eventId: selectedEvent?._id } });
+
+    window.location.reload();
+  }
+
+
+  const handleCloseModal = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    bulkModalRef.current?.close();
+    setSelectedEvent(null);
+  }
+
 
   return (
     <div className="w-full">
@@ -178,12 +311,17 @@ export default function TeamTable({ teams }: ITeamTableProps) {
         <table className="w-full border-collapse">
           <thead>
             <tr className="border-b border-white/[0.08]">
-              {['Team Name', 'Logo', 'Division', 'Events', 'Actions'].map((col) => (
+              <th className="py-4 px-6 relative flex justify-start items-center gap-x-2">
+                <button onClick={() => bulkModalRef.current?.showModal()} className="w-8 h-8 flex items-center justify-center bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors" aria-label="Team options">
+                  <Image width={16} height={16} src="/icons/dots-vertical.svg" alt="Options" className="svg-white" />
+                </button>
+                <span className='font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500 text-left'>Team Name</span>
+              </th>
+              {['Logo', 'Division', 'Date', 'Events', 'Actions'].map((col) => (
                 <th
                   key={col}
-                  className={`py-4 px-6 font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500 ${
-                    col === 'Team Name' || col === 'Logo' ? 'text-left' : 'text-center'
-                  }`}
+                  className={`py-4 px-6 font-mono text-[10px] uppercase tracking-[0.2em] text-gray-500 ${col === 'Team Name' || col === 'Logo' ? 'text-left' : 'text-center'
+                    }`}
                 >
                   {col}
                 </th>
@@ -192,7 +330,7 @@ export default function TeamTable({ teams }: ITeamTableProps) {
           </thead>
           <tbody>
             {teams.map((team) => (
-              <TeamRow key={team._id} team={team} ldoIdUrl={ldoIdUrl} />
+              <TeamRow key={team._id} team={team} ldoIdUrl={ldoIdUrl} eventMap={eventMap} user={user} isChecked={checkedTeams.get(team._id) ?? false} onCheckedTeam={handleCheckedTeam} />
             ))}
           </tbody>
         </table>
@@ -205,12 +343,46 @@ export default function TeamTable({ teams }: ITeamTableProps) {
       {/* ── Mobile cards ───────────────────────────────────────────────── */}
       <div className="md:hidden space-y-3 p-4">
         {teams.map((team) => (
-          <MobileCard key={team._id} team={team} ldoIdUrl={ldoIdUrl} />
+          <MobileCard key={team._id} team={team} ldoIdUrl={ldoIdUrl} eventMap={eventMap} user={user} isChecked={checkedTeams.get(team._id) ?? false} onCheckedTeam={handleCheckedTeam} />
         ))}
         {teams.length === 0 && (
           <div className="py-16 text-center text-gray-600 font-mono text-sm">No teams found</div>
         )}
       </div>
+
+      <dialog ref={bulkModalRef} className="modal-dialog">
+        <form onSubmit={handleAddTeamsToEvent} className="p-4">
+          <button onClick={handleCloseModal} className="w-8 h-8 float-right" aria-label="Team options">
+            <Image width={16} height={16} src="/icons/close.svg" alt="Options" className="svg-white" />
+          </button>
+          <h3>Add teams to event</h3>
+
+          {checkedTeamIds.length === 0 ? <p>No team selected</p> : <p>There are {checkedTeamIds.length} teams selected!</p>}
+
+          <SelectInput
+            name="event"
+            optionList={events.map((g, gI) => ({
+              id: gI + 1,
+              value: g._id,
+              text: g.name,
+            }))}
+            handleSelect={handleChangeEvent}
+          />
+          {/* 
+          {divisionOptions.length > 0 && (
+            <SelectInput
+              name="division"
+              optionList={divisionOptions}
+              handleSelect={handleChangeDivision}
+            />
+          )} */}
+
+          <div className="flex justify-start gap-x-2 items-center mt-4">
+            <button type="submit" disabled={checkedTeamIds.length === 0} className="btn-info">Add</button>
+            <button className="btn-danger">Cancel</button>
+          </div>
+        </form>
+      </dialog>
     </div>
   );
 }

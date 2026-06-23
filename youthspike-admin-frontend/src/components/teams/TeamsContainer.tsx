@@ -16,8 +16,8 @@ import ActiveFiltersBar from '../event/ActiveFiltersBar';
 
 interface ITeamsContainerProps {
   queryRef: QueryRef<{ searchTeams: ISearchTeamResponse }>;
-  eventId: string;
   initialSearchParams: Partial<ISearchFilter>;
+  eventId?: string;
 }
 
 const DEFAULT_FILTER_STATE: ITeamFilter = {
@@ -66,7 +66,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
   // Build query variables
   const buildQueryVariables = useCallback(
     (filter: ITeamFilter, offset: number = 0) => ({
-      eventIds: [eventId],
+      eventIds: eventId ? [eventId] : [],
       filter: {
         limit: PAGE_SIZE,
         offset,
@@ -183,7 +183,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
   }, [teams.length, appliedFilter, executeSearchQuery]);
 
 
-  const selectedEvent = useMemo(()=> {return events.find((e)=> e._id === eventId)}, [events, eventId]);
+  const selectedEvent = useMemo(()=> {return eventId ? events.find((e)=> e._id === eventId) : null}, [events, eventId]);
   const divisions = useMemo(()=> divisionsOfEvents(events), [events]);
   const divivionList = useMemo(()=> divisionsToOptionList(divisions), [divisions]);
 
@@ -289,7 +289,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
         </div>
       )}
 
-      <MultiPlayerAddDialog divisionList={divivionList} eventId={eventId} importerEl={importerEl} setIsLoading={() => { }} />
+      {eventId && <MultiPlayerAddDialog divisionList={divivionList} eventId={eventId} importerEl={importerEl} setIsLoading={() => { }} />}
     </div>
   );
 }
