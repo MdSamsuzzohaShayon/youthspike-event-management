@@ -27,6 +27,8 @@ import { ApolloCache } from '@apollo/client';
 
 interface ITeamCommon{
   _id: string;
+  createdAt: string;
+  updatedAt: string;
   name: string;
   active: boolean;
   logo?: string | null;

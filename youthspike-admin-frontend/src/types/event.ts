@@ -69,6 +69,14 @@ export interface IEventExpRel extends IEvent {
   groups: IGroup[];
 }
 
+export interface IEventRelatives extends IEvent {
+  matches:string[];
+  players: string[];
+  teams: string[];
+  ldo: string;
+  groups:string[];
+}
+
 export interface IEventAdd extends IDefaultEventMatch {
   name: string;
   logo?: null | string;

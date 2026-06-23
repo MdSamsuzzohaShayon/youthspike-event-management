@@ -555,6 +555,8 @@ query SearchTeams($eventIds: [String!], $filter: TeamSearchFilter) {
         logo
         name
         num
+        createdAt
+        events
         matches
         division
         players

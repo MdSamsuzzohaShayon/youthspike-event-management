@@ -1422,6 +1422,7 @@ input UpdateEventInput {
   ldo: String
   id: String
   defaultSponsor: Boolean = true
+  newteams: [String!]
 }
 
 type Query {
