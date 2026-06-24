@@ -60,7 +60,9 @@ export class TeamQueries {
         query = { events: { $in: eventIds } };
       }
 
-      const teams = await this.teamService.find(query, offset, limit);
+      // temp
+      const tempLimit = 5000;
+      const teams = await this.teamService.find(query, offset, tempLimit);
 
       return {
         code: HttpStatus.OK,

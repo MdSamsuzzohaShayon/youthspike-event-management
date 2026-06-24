@@ -1,11 +1,13 @@
 import { UPDATE_TEAM } from '@/graphql/teams';
 import { useMessage } from '@/lib/MessageProvider';
 import { EPlayerStatus, IEvent, IOption, IPlayer, IPlayerExpRel, IPlayerRankingExpRel, ITeam } from '@/types';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import PlayerList from '../player/PlayerList';
 import { divisionsOfEvents, divisionsToOptionList } from '@/utils/helper';
 import { useMutation } from '@apollo/client/react';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { CURRENT_EVENT } from '@/utils/constant';
 
 interface IRosterWrapperProps {
   events: IEvent[];
@@ -20,6 +22,7 @@ function RosterWrapper({ events, team, players, unassignedPlayers, playerRanking
   const [playerIdsToAdd, setPlayerIdsToAdd] = useState<Set<string>>(new Set());
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [selectedEvent, setSelectedEvent] = useState<IEvent | null>(null);
 
   // Hooks
   const [mutateTeam] = useMutation(UPDATE_TEAM);
@@ -85,14 +88,35 @@ function RosterWrapper({ events, team, players, unassignedPlayers, playerRanking
 
 
 
-
   const divisionList: IOption[] = useMemo(() => {
-    const divisions = divisionsOfEvents(events);
-    return divisionsToOptionList(divisions);
+    const currentEventId = SessionStorageService.getItem(CURRENT_EVENT);
+    const allDivisions = divisionsOfEvents(events);
+
+    if (!currentEventId) {
+      return divisionsToOptionList(allDivisions);
+    }
+
+    const currentEvent = events.find(
+      (event) => event._id === currentEventId,
+    );
+
+    return divisionsToOptionList(
+      currentEvent?.divisions ?? allDivisions,
+    );
   }, [events]);
 
 
 
+
+  useEffect(() => {
+    const event = SessionStorageService.getItem(CURRENT_EVENT);
+    if (event) {
+      const eventExist = events.find((e) => e._id === event);
+      if (eventExist) {
+        setSelectedEvent(eventExist);
+      }
+    }
+  }, [events]);
 
 
   if (addPlayer) {

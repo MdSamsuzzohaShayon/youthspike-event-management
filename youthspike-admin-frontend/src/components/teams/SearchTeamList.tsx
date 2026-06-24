@@ -550,6 +550,9 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
 
   // Memoized Values
   const divisionOptionsList = useMemo(() => {
+    // selectedTeam
+    console.log(event.divisions);
+    
     return divisionsToOptionList(event?.divisions || '');
   }, [event]);
 

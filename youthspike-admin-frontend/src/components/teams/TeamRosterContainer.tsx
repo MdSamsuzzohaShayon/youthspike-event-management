@@ -11,7 +11,7 @@ import { useLdoId } from '@/lib/LdoProvider';
 import TeamNavigation from './TeamNavigation';
 import { GET_TEAMS } from '@/graphql/teams';
 import SessionStorageService from '@/utils/SessionStorageService';
-import { TEAM } from '@/utils/constant';
+import { CURRENT_EVENT, TEAM } from '@/utils/constant';
 
 
 interface TeamRosterContainerProps {
@@ -30,17 +30,21 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
   const { team, players, rankings, events, playerRanking, unassignedPlayers } = data.getTeamRoster.data;
 
 
+  const currentEvent = SessionStorageService.getItem(CURRENT_EVENT);
+  const eventIds = currentEvent ? [currentEvent] : (events?.map(e => e._id) || undefined);
+
   const { data: teamsData, loading, error } = useQuery<{ getTeams: IGetTeamsResponse }>(GET_TEAMS, {
-    variables: { eventIds: events?.map(e => e._id) || undefined },
+    variables: { eventIds },
     fetchPolicy: "cache-first",
   });
-  
+
+
 
   const teamList = useMemo(() => {
     return (teamsData?.getTeams?.data || []) as ITeam[];
   }, [teamsData]);
 
-  
+
 
   const playerList = useMemo(() => {
     if (!players?.length || !rankings?.length) return [];
@@ -75,6 +79,14 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
       SessionStorageService.removeItem(TEAM);
     }
   }, [team]);
+
+
+  // useEffect(() => {
+  //   // Remove event on unmount
+  //   return () => {
+  //     SessionStorageService.removeItem(CURRENT_EVENT);
+  //   }
+  // }, []);
 
   return (
     <div className="min-h-screen">

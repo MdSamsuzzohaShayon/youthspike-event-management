@@ -16,6 +16,7 @@ async function TeamsPage({
     division = "",
     group = "",
   } = await searchParams;
+  
   return (
     <div>
       <Teams eventId={eventId} search={search} division={division} group={group} />
