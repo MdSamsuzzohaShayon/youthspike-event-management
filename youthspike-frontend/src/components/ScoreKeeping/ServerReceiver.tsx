@@ -58,6 +58,8 @@ interface IServerReceiverProps {
   userInfo: IUser | null;
 }
 
+const DEFAULT_PLAY_STRATEGY = EPlayStrategy.EQUAL_SERVING;
+
 export default function ServerReceiver({
   matchId,
   matchData,
@@ -122,7 +124,7 @@ export default function ServerReceiver({
     useState<boolean>(false);
   const [toBeSelectedPlay, setToBeSelectedPlay] = useState<number | null>(null); // Selected playId before confirmation
   const [awardTo, setAwardTo] = useState<ETeam | null>(null);
-  const [playStrategy, setPlayStrategy] = useState<EPlayStrategy>(EPlayStrategy.RALLY_SCORING);
+  const [playStrategy, setPlayStrategy] = useState<EPlayStrategy>(DEFAULT_PLAY_STRATEGY);
 
   const confirmBoxEl = useRef<HTMLDialogElement | null>(null);
   const changePlayEl = useRef<HTMLDialogElement | null>(null);
@@ -451,8 +453,8 @@ export default function ServerReceiver({
     if (strategyExists) {
       setPlayStrategy(strategyExists === EPlayStrategy.EQUAL_SERVING ? EPlayStrategy.EQUAL_SERVING : EPlayStrategy.RALLY_SCORING)
     } else {
-      setPlayStrategy(EPlayStrategy.RALLY_SCORING);
-      SessionStorageService.setItem(PLAY_STRATEGY, EPlayStrategy.RALLY_SCORING);
+      setPlayStrategy(DEFAULT_PLAY_STRATEGY);
+      SessionStorageService.setItem(PLAY_STRATEGY, DEFAULT_PLAY_STRATEGY);
     }
   }, []);
 

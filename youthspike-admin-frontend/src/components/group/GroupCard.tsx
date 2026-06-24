@@ -70,17 +70,21 @@ const TeamList: React.FC<TeamListProps> = ({ teams }) => (
 interface GroupStatsProps {
   teamCount: number;
   isActive: boolean;
+  division: string;
 }
 
-const GroupStats: React.FC<GroupStatsProps> = ({ teamCount, isActive }) => (
-  <>
+const GroupStats: React.FC<GroupStatsProps> = ({ teamCount, isActive, division }) => (
+  <div>
     <p className="text-sm text-gray-500 text-gray-400">
       Total Teams: <span className="font-semibold">{teamCount}</span>
     </p>
     <p className="text-sm text-gray-500 text-gray-400">
       Status: <span className="font-semibold">{isActive ? "Active" : "Inactive"}</span>
     </p>
-  </>
+    <p className="text-sm text-gray-500 text-gray-400">
+      Division: <span className="font-semibold">{division}</span>
+    </p>
+  </div>
 );
 
 interface ActionMenuProps {
@@ -316,7 +320,7 @@ function GroupCard({ group, setIsLoading, divisionList }: IGroupCardProps) {
       
       <TeamList teams={group.teams} />
       
-      <GroupStats teamCount={group.teams.length} isActive={group.active} />
+      <GroupStats teamCount={group.teams.length} isActive={group.active} division={group.division} />
 
       <ActionMenu
         isOpen={isActionMenuOpen}

@@ -3,7 +3,7 @@
 import { IGroupAdd, ITeam } from '@/types';
 import React, { useEffect, useState } from 'react';
 import TeamSelectInput from '../elements/forms/TeamSelectInput';
-import { ADD_GROUP } from '@/graphql/group';
+import { ADD_GROUP, UPDATE_GROUP } from '@/graphql/group';
 import { handleError } from '@/utils/handleError';
 import { useRouter } from 'next/navigation';
 import { EGroupRule, ICreateGroup } from '@/types/group';
@@ -24,6 +24,7 @@ interface IGroupAddOrUpdateProps {
 function GroupAddOrUpdate({ eventId, teamList, update, prevGroup, division }: IGroupAddOrUpdateProps) {
   // Hooks
   const [eventAdd] = useMutation<{ createGroup: ICreateGroup }>(ADD_GROUP);
+  const [mutateGroup] = useMutation(UPDATE_GROUP);
   const router = useRouter();
   const { setMessage } = useMessage();
   const { ldoIdUrl } = useLdoId();
@@ -76,20 +77,29 @@ function GroupAddOrUpdate({ eventId, teamList, update, prevGroup, division }: IG
   const handleGroupAdd = async (e: React.SyntheticEvent) => {
     e.preventDefault();
 
-    if (!division || division === '') {
-      setMessage({ message: 'Must a division for the group', type:"error" });
-      return;
-    }
-
+    
     try {
-      setIsLoading(true);
-      const groupResponse = await eventAdd({ variables: { input: { ...groupState, division } } });
+      if(update){
+        const groupId = prevGroup?._id;
 
-      const success = await handleResponseCheck(groupResponse.data?.createGroup, setMessage);
-      if (success) {
-        router.push(`/${eventId}/groups/${ldoIdUrl}`);
-        router.refresh();
+        if(!groupId){
+          setMessage({ message: 'No group selected to be updated!', type:"error" });
+          return;
+        }
+
+        await mutateGroup({ variables: { updateInput: { _id: groupId, ...updateGroup } } });
+      }else{
+        setIsLoading(true);
+        if (!division || division === '') {
+          setMessage({ message: 'Must a division for the group', type:"error" });
+          return;
+        }
+        const groupResponse = await eventAdd({ variables: { input: { ...groupState, division } } });  
+        const success = await handleResponseCheck(groupResponse.data?.createGroup, setMessage);
       }
+
+      router.push(`/${eventId}/groups/${ldoIdUrl}`);
+      router.refresh();
     } catch (error: any) {
       handleError({ error, setMessage });
     } finally {

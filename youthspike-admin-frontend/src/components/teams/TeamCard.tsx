@@ -32,7 +32,7 @@ interface ITeamCardProps {
 function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCredential, onMoveTeamOpen, onDeleteTeamOpen }: ITeamCardProps) {
   // Hooks
   const { ldoIdUrl } = useLdoId();
-  const [updateGroup] = useMutation(UPDATE_GROUP);
+  const [mutateGroup] = useMutation(UPDATE_GROUP);
 
   // References
   const actionEl = useRef<null | HTMLUListElement>(null);
@@ -55,7 +55,8 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
     setSelectedGroup(newGroupId);
 
     try {
-      await updateGroup({
+      // removeteams
+      await mutateGroup({
         variables: {
           updateInput: { _id: newGroupId, teams: [team._id] },
           eventId,
@@ -110,8 +111,8 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
 
 
   const groupOptions = useMemo(() => {
-    return groupList.map((g, i) => ({ id: i + 1, text: g.name, value: g._id }));
-  }, [groupList])
+    return groupList.filter((g) => g.division.trim().toLowerCase() === team.division.trim().toLowerCase()).map((g, i) => ({ id: i + 1, text: g.name, value: g._id }));
+  }, [groupList, team])
 
   const sendCredentialLabel = team.sendCredentials ? 'Resend' : 'Send';
 

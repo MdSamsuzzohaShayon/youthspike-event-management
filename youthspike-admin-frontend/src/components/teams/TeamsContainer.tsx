@@ -71,7 +71,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
         limit: PAGE_SIZE,
         offset,
         search: filter.search || undefined,
-        division: filter.division || SessionStorageService.getItem(DIVISION) || undefined,
+        division: filter.division || undefined,
         group: filter.group || undefined,
       },
     }),
@@ -196,6 +196,13 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
       isInitial.current = false;
     }
   }, [initialData, updateAllData]);
+
+  useEffect(()=>{
+    const currDivision = SessionStorageService.getItem(DIVISION)
+    if(currDivision){
+      setLocalFilter((prev)=> ({...prev, division: String(currDivision)}));
+    }
+  }, []);
 
   // Update local filter
   const updateLocalFilter = (key: string, value: string) => {

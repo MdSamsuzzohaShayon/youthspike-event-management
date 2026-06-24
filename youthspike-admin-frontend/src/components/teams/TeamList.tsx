@@ -45,7 +45,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
   // Mutations
   const [sendCredentials, { data, error }] = useMutation(SEND_CREDENTIALS);
   const [deleteMultipleTeams] = useMutation<{deleteTeams: IResponse}>(DELETE_MULTIPLE_TEAMS);
-  const [updateGroup] = useMutation(UPDATE_GROUP);
+  const [mutateGroup] = useMutation(UPDATE_GROUP);
 
   // eslint-disable-next-line no-unused-vars
   const handleGroupFilter = (e: React.SyntheticEvent, groupId: string | null) => {
@@ -153,7 +153,7 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
     // Send captain credentials to the captain and co captain credentials to co captain
     try {
       setIsLoading(true);
-      await updateGroup({ variables: { updateInput: { _id: inputEl.value, teams: checkedTeamIds } } });
+      await mutateGroup({ variables: { updateInput: { _id: inputEl.value, teams: checkedTeamIds } } });
       if (refetchFunc) await refetchFunc();
     } catch (error) {
       console.log(error);

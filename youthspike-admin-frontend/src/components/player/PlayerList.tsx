@@ -42,6 +42,11 @@ interface IUpdateRank {
   rank: number;
 }
 
+const EDGE_DISTANCE = 120; // px from top/bottom to trigger scroll
+const MAX_SPEED = 20;       // max px per frame
+// const EDGE_DISTANCE = 120;
+// const MAX_SPEED = 20; // px per 16ms frame (cap)
+
 function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank, divisionList, teamId, playerRanking, events, inactive }: IPlayerListProps) {
   const listRef = useRef<HTMLUListElement>(null);
   const isMounted = useRef<boolean>(false);
@@ -64,13 +69,14 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
   const animationFrameRef = useRef<number | null>(null);
   const pointerYRef = useRef<number>(0);
   const isDraggingRef = useRef<boolean>(false);
+  const lastScrollTimeRef = useRef<number>(0); // NEW: for delta-time compensation
 
   /** Handle checkbox */
   const handleSelectPlayer = (e: React.SyntheticEvent, matchId: string) => {
     const inputEl = e.target as HTMLInputElement;
     const newCheckedMatches: Map<string, boolean> = new Map(checkedPlayers);
     if (inputEl.checked) {
-      newCheckedMatches.set(matchId, true);
+      newCheckedMatches.set(matchId, true); 
     } else {
       newCheckedMatches.set(matchId, false);
     }
@@ -78,51 +84,70 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     // e.preventDefault();
   };
 
-  const updatePointerPosition = (event: MouseEvent | TouchEvent) => {
+  const updatePointerPosition = useCallback((event: MouseEvent | TouchEvent) => {
     if (event instanceof MouseEvent) {
       pointerYRef.current = event.clientY;
-      return;
-    }
-
-    if (event.touches.length > 0) {
+    } else if (event.touches.length > 0) {
       pointerYRef.current = event.touches[0].clientY;
     }
-  };
+  }, []);
 
-  const startAutoScroll = () => {
-    const EDGE_DISTANCE = 120;
-    const SCROLL_SPEED = 15;
 
-    const scroll = () => {
-      if (!isDraggingRef.current) {
-        return;
-      }
+  const startAutoScroll = useCallback(() => {
 
+  
+    const scroll = (timestamp: number) => {
+      if (!isDraggingRef.current) return;
+  
+      // Delta-time compensation: scale speed by elapsed ms / 16ms baseline
+      const delta = lastScrollTimeRef.current
+        ? Math.min((timestamp - lastScrollTimeRef.current) / 16, 3) // cap multiplier at 3x
+        : 1;
+      lastScrollTimeRef.current = timestamp;
+  
       const pointerY = pointerYRef.current;
-
-      if (pointerY < EDGE_DISTANCE) {
-        window.scrollBy(0, -SCROLL_SPEED);
-      } else if (window.innerHeight - pointerY < EDGE_DISTANCE) {
-        window.scrollBy(0, SCROLL_SPEED);
+      const distanceFromTop = pointerY;
+      const distanceFromBottom = window.innerHeight - pointerY;
+  
+      let scrollAmount = 0;
+  
+      if (distanceFromTop < EDGE_DISTANCE) {
+        // Closer to edge = faster; linear interpolation
+        const intensity = 1 - distanceFromTop / EDGE_DISTANCE;
+        scrollAmount = -Math.round(MAX_SPEED * intensity * delta);
+      } else if (distanceFromBottom < EDGE_DISTANCE) {
+        const intensity = 1 - distanceFromBottom / EDGE_DISTANCE;
+        scrollAmount = Math.round(MAX_SPEED * intensity * delta);
       }
-
+  
+      if (scrollAmount !== 0) {
+        window.scrollBy({ top: scrollAmount, behavior: 'instant' });
+      }
+  
       animationFrameRef.current = requestAnimationFrame(scroll);
     };
-
+  
+    // Cancel any existing loop before starting a new one
+    if (animationFrameRef.current !== null) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
+    lastScrollTimeRef.current = 0;
     animationFrameRef.current = requestAnimationFrame(scroll);
-  };
-
-  const stopAutoScroll = () => {
+  }, []);
+  
+  const stopAutoScroll = useCallback(() => {
     isDraggingRef.current = false;
-
+    lastScrollTimeRef.current = 0;
+  
     if (animationFrameRef.current !== null) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
-
-    window.removeEventListener("mousemove", updatePointerPosition);
-    window.removeEventListener("touchmove", updatePointerPosition);
-  };
+  
+    window.removeEventListener('mousemove', updatePointerPosition);
+    window.removeEventListener('touchmove', updatePointerPosition);
+  }, [updatePointerPosition]);
+  if (typeof window === 'undefined') return; // SSR guard
 
   const handleUpdate = async (upr: IUpdateRank[]) => {
     if (upr.length > 0) {
@@ -204,7 +229,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
   const handleUpdatePlayer = (event: React.SyntheticEvent, updatePlayerState: Partial<TUpdatePlayer>, playerId: string) => {
     event.preventDefault();
     const player = players.find((p) => p._id === playerId);
-    if(!player){
+    if (!player) {
       console.error(`There are no player with this ID: ${playerId}`);
       return;
     }
@@ -306,10 +331,20 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
       onStart() {
         isDraggingRef.current = true;
 
-        window.addEventListener("mousemove", updatePointerPosition);
-        window.addEventListener("touchmove", updatePointerPosition, {
-          passive: true,
-        });
+        window.addEventListener(
+          "mousemove",
+          updatePointerPosition,
+          true
+        );
+        // Remove `passive: true` — you need to control this listener properly
+        window.addEventListener(
+          "touchmove",
+          updatePointerPosition,
+          {
+            passive: true,
+            capture: true,
+          }
+        );
 
         startAutoScroll();
       },
