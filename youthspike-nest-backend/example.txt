@@ -553,12 +553,9 @@ n - Waco Bears
 
 
 
-Platinum
+Database Operations 
 
-Kenny Velu
-Tab Dayani
-Joey Lu
-Conor Cronan
-Dylan Gnat
-Jacob Arms
-Shazeb Dayani
+const targetEvent = db.events.findOne({_id: ObjectId("6a39511182e440a1f21ae086")})
+const teamIds = targetEvent.teams
+const teamObjectIds = teamIds.map((id) => ObjectId(id))
+

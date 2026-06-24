@@ -1803,4 +1803,5 @@ input UpdateGroupInput {
   teams: [String!]
   matches: [String!]
   _id: String!
+  removeteams: [String!]
 }

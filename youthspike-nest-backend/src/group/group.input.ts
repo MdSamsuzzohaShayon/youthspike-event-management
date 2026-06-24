@@ -30,4 +30,7 @@ export class CreateGroupInput {
 export class UpdateGroupInput extends PartialType(CreateGroupInput) {
   @Field()
   _id: string;
+
+  @Field((_type) => [String], {nullable: true})
+  removeteams: string[];
 }

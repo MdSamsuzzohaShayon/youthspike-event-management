@@ -74,7 +74,7 @@ export class GroupResolver {
     @Args('eventId', { nullable: true }) eventId?: string,
   ): Promise<GetGroupResponse> {
     try {
-      const { _id: groupId, teams: newTeamIds, ...restUpdateData } = updateInput;
+      const { _id: groupId, teams: newTeamIds, removeteams, ...restUpdateData } = updateInput;
 
       // ✅ Step 1: Validate Group
       const existingGroup = await this.groupService.findOne({ _id: groupId });
@@ -104,12 +104,14 @@ export class GroupResolver {
         );
 
         // 🔥 4.2 Remove old group references from teams
-        updateOperations.push(
-          this.teamService.updateMany(
-            { _id: { $in: newTeamIds } },
-            { $pull: { groups: { $in: otherGroupIds } } }
-          )
-        );
+        if(removeteams && removeteams.length > 0){
+          updateOperations.push(
+            this.teamService.updateMany(
+              { _id: { $in: removeteams } },
+              { $pull: { groups: groupId } }
+            )
+          );
+        }
 
         // 🔥 4.3 Add new group to teams
         updateOperations.push(
@@ -123,7 +125,7 @@ export class GroupResolver {
         updateOperations.push(
           this.groupService.updateOne(
             { _id: groupId },
-            { $addToSet: { teams: { $each: newTeamIds } } }
+            { $addToSet: { teams: newTeamIds } }
           )
         );
       }
