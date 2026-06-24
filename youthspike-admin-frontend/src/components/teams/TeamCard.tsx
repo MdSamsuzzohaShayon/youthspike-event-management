@@ -89,7 +89,17 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
     setActionOpen(false);
   }
 
+  const onTeamRedirect=(e: React.SyntheticEvent)=>{
+    e.preventDefault();
+    if(eventId){
+      SessionStorageService.setItem(CURRENT_EVENT, eventId);
+    }
+    // {`/teams/${team._id}/roster/${ldoIdUrl}`}
+    routerService.push(`/teams/${team._id}/roster/${ldoIdUrl}`);
+  }
 
+
+  // Memoization
   const { activePlayers, inactivePlayers } = useMemo(() => {
     const active = [],
       inactive = [];
@@ -228,10 +238,11 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
           />
         </button>
         <div className="flex justify-center items-start flex-col">
-          <span>{team.division}</span>
-          <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`}>
+          <span className='uppercase'>{team.division.toUpperCase()}</span>
+          {/* <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`}>
             <button className="btn-info">Preview</button>
-          </Link>
+          </Link> */}
+          <Link href="#" className="btn-info" type='button' onClick={onTeamRedirect}>PREVIEW</Link>
         </div>
 
 
@@ -340,7 +351,7 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
 
         {/* Bottom Section */}
         <div className="w-full flex items-center justify-end gap-2">
-          <span>Division: {team.division}</span>
+          <span className='uppercase'>Division: {team.division}</span>
           <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`}>
             <button className="btn-info">Preview</button>
           </Link>
