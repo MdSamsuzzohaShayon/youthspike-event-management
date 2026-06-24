@@ -61,7 +61,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
   const [hasMore, setHasMore] = useState<boolean>(true);
   const [isApplyingFilters, setIsApplyingFilters] = useState<boolean>(false);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
-  const importerEl = useRef<HTMLDialogElement | null>(null);
+  const importerRef = useRef<HTMLDialogElement | null>(null);
 
   // Build query variables
   const buildQueryVariables = useCallback(
@@ -184,8 +184,8 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
 
 
   const selectedEvent = useMemo(()=> {return eventId ? events.find((e)=> e._id === eventId) : null}, [events, eventId]);
-  const divisions = useMemo(()=> divisionsOfEvents(events), [events]);
-  const divivionList = useMemo(()=> divisionsToOptionList(divisions), [divisions]);
+  // const divisions = useMemo(()=> divisionsOfEvents(events), [events]);
+  const divivionList = useMemo(()=> selectedEvent ? divisionsToOptionList(selectedEvent?.divisions) : [], [selectedEvent]);
 
   
 
@@ -226,7 +226,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
         eventId={eventId}
         filterPage={EFilterPage.TEAMS}
         groups={groups}
-        divisions={divisions}
+        divisions={selectedEvent?.divisions || ''}
         loading={isApplyingFilters}
         filter={localFilter}
         updateFilter={updateLocalFilter}
@@ -240,7 +240,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
         type="button"
         onClick={(e) => {
           e.stopPropagation();
-          importerEl.current?.showModal();
+          importerRef.current?.showModal();
         }}
         className="btn-info text-center"
       >
@@ -296,7 +296,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
         </div>
       )}
 
-      {eventId && <MultiPlayerAddDialog divisionList={divivionList} eventId={eventId} importerEl={importerEl} setIsLoading={() => { }} />}
+      {eventId && <MultiPlayerAddDialog divisionList={divivionList} eventId={eventId} importerRef={importerRef} setIsLoading={() => { }} />}
     </div>
   );
 }

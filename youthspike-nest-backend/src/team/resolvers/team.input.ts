@@ -72,12 +72,10 @@ export class CreateTeamInput{
 @InputType()
 export class UpdateTeamInput extends PartialType(CreateTeamInput) {
 
-  // @Field((_type) => String, { nullable: true })
-  // email?: string;
 }
 
 @InputType()
-export class UpdateTeamsInput extends PartialType(CommonInput) {
+export class UpdateTeamsInput {
   @Field((_type) => [String], { nullable: true })
   teamIds: string[];
 
@@ -86,6 +84,12 @@ export class UpdateTeamsInput extends PartialType(CommonInput) {
 
   @Field((_type) => String, { nullable: true })
   email?: string;
+
+  @Field(() => [String], { nullable: false })
+  groups: string[];
+
+  @Field({ nullable: false })
+  division: string;
 
 }
 

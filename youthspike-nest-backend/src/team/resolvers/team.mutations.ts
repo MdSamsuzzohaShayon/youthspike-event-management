@@ -469,16 +469,22 @@ export class TeamMutations {
     logo?: Promise<FileUpload>,
   ): Promise<CreateOrUpdateTeamsResponse> {
     try {
-      const [teamsExist, eventExist] = await Promise.all([
-        this.teamService.find({ _id: { $in: input.teamIds } }),
+      const teamIds = new Set(input.teamIds.filter((team) => team));
+      if (!teamIds || teamIds.size === 0) return AppResponse.notFound('Teams');
+      const [teams, eventExist] = await Promise.all([
+        this.teamService.find({ _id: { $in: [...teamIds] } }),
         this.eventService.findById(eventId),
       ]);
-      if (!teamsExist || teamsExist.length === 0) return AppResponse.notFound('Team');
+      if (!teams || teams.length === 0) return AppResponse.notFound('Teams');
       if (!eventExist) return AppResponse.notFound('Event');
 
       const updatePromises = [];
-      for (const team of teamsExist) {
-        // updatePromises.push(this.singleTeamUpdate(input, team, eventExist, logo));
+      for (const team of teams) {
+        const eventIds = (team.events as string[]).filter(
+          (id) => id && Types.ObjectId.isValid(id)
+        );
+        const events = await this.eventService.find({ _id: { $in: eventIds as string[] } });
+        updatePromises.push(this.singleTeamUpdate(input, team, events, logo));
       }
 
       const updatedTeams = await Promise.all(updatePromises);;
@@ -486,28 +492,11 @@ export class TeamMutations {
         return AppResponse.notFound('Team');
       }
 
-      // Convert Team to CustomTeam format
-
-      const customTeams = [];
-      for (const team of updatedTeams) {
-        const customTeam = {
-          ...team,
-          matches: (team.matches || []).map((m: any) => m?.toString?.() || String(m)),
-          nets: (team.nets || []).map((n: any) => n?.toString?.() || String(n)),
-          players: (team.players || []).map((p: any) => p?.toString?.() || String(p)),
-          captain: team.captain ? String(team.captain) : undefined,
-          cocaptain: team.cocaptain ? String(team.cocaptain) : undefined,
-          group: team.group ? String(team.group) : undefined,
-        };
-        customTeams.push(customTeam);
-
-      }
-
       return {
         code: HttpStatus.ACCEPTED,
         success: true,
         message: 'A team has been updated successfully',
-        data: customTeams,
+        data: updatedTeams,
       };
     } catch (err) {
       return AppResponse.handleError(err);

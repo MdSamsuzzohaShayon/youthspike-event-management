@@ -1631,15 +1631,11 @@ input UpdateTeamInput {
 }
 
 input UpdateTeamsInput {
-  name: String
-  active: Boolean
-  division: String
-  group: String
-  captain: String
-  events: [ID!]
   teamIds: [String!]
   cocaptain: String
   email: String
+  groups: [String!]!
+  division: String!
 }
 
 input CreateMatchInput {

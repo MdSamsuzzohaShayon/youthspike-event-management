@@ -139,7 +139,7 @@ function FilterContent({
 
       {/* Search Input */}
       <div className="relative mb-3">
-        <InputField name="search" type="text" defaultValue={filter.search || ''} onChange={handleSearchChange} />
+        <InputField name="search" type="text" value={filter.search || ''} onChange={handleSearchChange} />
       </div>
 
       {/* Status Filter */}

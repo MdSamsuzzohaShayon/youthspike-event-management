@@ -73,14 +73,15 @@ const BulkActionMenu: React.FC<BulkActionMenuProps> = ({
           <Image src="/icons/share.svg" className="svg-white" alt="Send" width={16} height={16} />
           Change Group
         </li>
-        <li
+        {/* // temp  - make sure singleTeamUpdate function in the backend works properly when moving multiple teams, currently it is giving me an error*/}
+        {/* <li
           role="presentation"
           className="capitalize px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
           onClick={onBulkTeamOpen}
         >
           <Image className="svg-white" src="/icons/move.svg" alt="Move" width={16} height={16} />
           Move team
-        </li>
+        </li> */}
       </motion.ul>
     </AnimatePresence>
   );
@@ -254,6 +255,10 @@ const DeleteConfirmDialog: React.FC<IDeleteConfirmDialogProps> = ({ deleteDialog
 };
 
 
+type TUpdateTeams = Partial<Pick<ITeam, 'division' | 'groups'> & {
+  teamIds: string[];
+}>;
+
 
 // Main Component
 function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }: ISearchTeamListProps) {
@@ -275,9 +280,9 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
   const [checkedTeamsMap, setCheckedTeamsMap] = useState<Map<string, boolean>>(new Map());
   const [selectedGroupIdFilter, setSelectedGroupIdFilter] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [selectedTeamForMove, setSelectedTeamForMove] = useState<ITeam | null>(null);
+  const [selectedTeam, setSelectedTeam] = useState<ITeam | null>(null);
   const [selectedTeamForDelete, setSelectedTeamForDelete] = useState<ITeam | null>(null);
-  const [teamUpdateInput, setTeamUpdateInput] = useState<Partial<Pick<ITeam, 'division' | 'groups'>>>({});
+  const [teamUpdateInput, setTeamUpdateInput] = useState<TUpdateTeams>({});
   const [filteredTeamList, setFilteredTeamList] = useState<ITeam[]>(teamList);
 
   // Mutations
@@ -397,7 +402,6 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
           const updatedTeams: ITeam[] = [];
           for (const t of prev) {
             if (checkedTeamIds.includes(t._id)) {
-              // @ts-ignore
               updatedTeams.push({ ...t, group: inputElement.value });
             } else {
               updatedTeams.push(t);
@@ -453,13 +457,13 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
 
   const handleOpenMoveTeamDialog = (e: React.SyntheticEvent, team: ITeam): void => {
     e.preventDefault();
-    setSelectedTeamForMove(team);
+    setSelectedTeam(team);
     moveTeamDialogRef.current?.showModal();
   };
 
   const handleDeleteTeamOpen = (e: React.SyntheticEvent, team: ITeam): void => {
     e.preventDefault();
-    setSelectedTeamForDelete(team);
+    setSelectedTeam(team);
     deleteDialogRef.current?.showModal();
   };
 
@@ -472,7 +476,12 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
     } else {
       val = inputElement.value;
     }
-    setTeamUpdateInput((previousInput) => ({ ...previousInput, [inputElement.name]: val }));
+    if (selectedTeam) {
+      const updatedCheckedTeams = new Map(checkedTeamsMap);
+      updatedCheckedTeams.set(selectedTeam._id, true);
+      setCheckedTeamsMap(updatedCheckedTeams);
+    }
+    setTeamUpdateInput((prevInput) => ({ ...prevInput, [inputElement.name]: val, }));
 
   };
 
@@ -488,14 +497,10 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       const checkedTeamIds = getCheckedTeamIds();
 
 
-      const input = {
-        teamIds: checkedTeamIds,
-        division: teamUpdateInput.division,
-        groups: teamUpdateInput.groups
-      }
+      const variables = { input: {...teamUpdateInput, teamIds: checkedTeamIds}, eventId: event._id };
 
       const response = await moveTeamsMutation({
-        variables: { input, eventId: event._id },
+        variables,
       });
       const isSuccessful = await handleResponseCheck(response.data?.updateTeams, setMessage);
       if (isSuccessful) {
@@ -504,7 +509,8 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
           // setFilteredTeamList(updatedList)
         }
 
-        setSelectedTeamForMove(null);
+        setSelectedTeam(null);
+
 
 
       }
@@ -577,13 +583,13 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       setFilteredTeamList(teamList);
       return;
     }
-  
+
     const filterId = selectedGroupIdFilter;
-  
+
     const filteredTeams = teamList.filter((team) =>
       team.groups?.some((g) => String(g) == filterId) // loose equality avoids String()
     );
-  
+
     setFilteredTeamList(filteredTeams);
   }, [teamList, selectedGroupIdFilter]);
 
@@ -664,7 +670,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
       {/* Move Team Dialog */}
       <MoveTeamDialog
         dialogRef={moveTeamDialogRef}
-        selectedTeam={selectedTeamForMove}
+        selectedTeam={selectedTeam}
         divisionOptions={divisionOptionsList}
         groupOptions={groupOptionsList}
         onTeamUpdateChange={handleTeamUpdateInputChange}
