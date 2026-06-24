@@ -17,6 +17,7 @@ import { Match } from 'src/match/match.schema';
 import { Team } from 'src/team/team.schema';
 import { User } from 'src/user/user.schema';
 import { PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
+import { CustomTeam } from 'src/team/resolvers/team.response';
 
 @Injectable()
 export class PlayerMutations implements IPlayerMutations {
@@ -487,9 +488,45 @@ export class PlayerMutations implements IPlayerMutations {
       const playerIds = [];
       const teamIds = [];
       const promiseOperations = [];
+      const teamNames = teams.map((team) => team.name);
+
+      /*
+      // Find all teams from the database (division and event must match as well)
+      const prevTeams = await this.teamService.find({
+        name: { $in: teamNames.map(name => new RegExp(`^${name}$`, 'i')) },
+        events: eventId
+      });
+      const prevTeamNames = new Set<string>();
+      // Update previous teams
+      for (let i = 0; i < prevTeams.length; i+=1) {
+        const team = prevTeams[i];
+        prevTeamNames.add(team.name);
+        const updateState: Partial<CustomTeam> = {};
+        if(team.division !== division){
+          updateState.division = team.division;
+        }
+
+        // Update player 
+        let prevPlayerIds = [...team.players];
+
+        
+        // and update player ranking
+
+        // Update player
+        promiseOperations.push(this.teamService.updateOne({_id: team._id}, {$set: updateState}));
+
+
+      }
+      // Remove all those teams from to be created team list
+      */
+
       for (let i = 0; i < teams.length; i += 1) {
         try {
           const teamObj = { ...teams[i] };
+          // If there is a previous team skip it, because we have already updated
+          // if(prevTeamNames.has(teamObj.name)) {
+          //   continue;
+          // }
           let teamPlayers = [...teams[i].players];
           const playerNames = teamPlayers.map((p) => typeof p === 'object' && p.name);
           const duplicatePlayers = await this.playerService.find({ name: { $in: playerNames }, events: eventId });
@@ -501,7 +538,14 @@ export class PlayerMutations implements IPlayerMutations {
           const teamPlayerIds = playerList.map((p) => p._id);
           playerIds.push(...teamPlayerIds);
           teamObj.players = teamPlayerIds as string[];
-          const teamExist = await this.teamService.findOne({ event: eventId, name: teamObj.name });
+          // const teamExist = await this.teamService.findOne({ event: eventId, name: teamObj.name });
+          const teamExist = await this.teamService.findOne({
+            name: new RegExp(
+              `^${teamObj.name.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`,
+              'i'
+            ),
+            events: eventId,
+          });
           // const eventExist = await this.eventService.findById(eventId);
           let team = teamExist;
           if (teamExist) {

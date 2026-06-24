@@ -60,7 +60,7 @@ function MultiPlayerAdd({
 }: MultiPlayerAddProps) {
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
-  const { showMessage } = useMessage();
+  const { setMessage } = useMessage();
 
   const uploadedFileRef = useRef<File | null>(null);
   const [selectedDivision, setSelectedDivision] = useState<string>('');
@@ -96,7 +96,7 @@ function MultiPlayerAdd({
     e.preventDefault();
 
     if (!selectedDivision || !uploadedFileRef.current) {
-      showMessage({ type: 'error', code: 400, message: 'Division and file are required.' });
+      setMessage({ type: 'error', code: 400, message: 'Division and file are required.' });
       return;
     }
 
@@ -135,7 +135,7 @@ function MultiPlayerAdd({
 
       const success = await handleResponseCheck(
         responseJson?.data?.createMultiPlayers,
-        showMessage,
+        setMessage,
       );
 
       if (!success) return;
@@ -143,7 +143,7 @@ function MultiPlayerAdd({
       await router.push(`/${eventId}/teams/${ldoIdUrl}`);
 
       if (responseJson?.data?.createMultiPlayers?.code !== 201) {
-        showMessage({
+        setMessage({
           type: 'error',
           code: responseJson.data.createMultiPlayers.code,
           message: 'Some email already registered with players!',
@@ -154,7 +154,7 @@ function MultiPlayerAdd({
       closeDialog();
     } catch (error) {
       closeDialog();
-      handleError({ error, showMessage });
+      handleError({ error, setMessage });
     } finally {
       setIsLoading(false);
     }
