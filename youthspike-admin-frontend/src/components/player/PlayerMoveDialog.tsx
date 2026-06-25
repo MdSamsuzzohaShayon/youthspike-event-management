@@ -103,7 +103,7 @@ function PlayerMoveDialog({
         }
 
         return (
-          team.division.trim().toLowerCase() ===
+          team?.division?.trim()?.toLowerCase() ===
           normalizedDivision
         );
       })

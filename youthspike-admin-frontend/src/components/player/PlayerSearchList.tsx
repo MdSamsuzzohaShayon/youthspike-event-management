@@ -28,17 +28,19 @@ import updateTeam from "@/utils/request-handlers/updateTeam";
 import { useMessage } from "@/lib/MessageProvider";
 import updatePlayer from "@/utils/request-handlers/updatePlayer";
 
-interface IProps {
+interface IPlayerSearchListProps {
   events: IEvent[];
   playerList: IPlayer[];
   teamList: ITeam[];
+  selectedEvent?: IEvent | null;
 }
 
 function PlayerSearchList({
   events,
   playerList,
   teamList,
-}: IProps) {
+  selectedEvent
+}: IPlayerSearchListProps) {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   
   // Hooks
@@ -52,14 +54,14 @@ function PlayerSearchList({
   
 
 
-  const handleDelete = async (event: React.SyntheticEvent, playerId: string) => {
+  const handleDelete = async (e: React.SyntheticEvent, playerId: string) => {
     const response = await deleteAPlayer({ variables: { playerId } });
-    console.log(response);
+    // console.log(response);
     window.location.reload();
   }
 
-
-  const handleUpdateTeam = async (event: React.SyntheticEvent, updateTeamState: Partial<TUpdateTeam>) => {
+  
+  const handleUpdateTeam = async (e: React.SyntheticEvent, updateTeamState: Partial<TUpdateTeam>) => {
     const selectedTeam: ITeamRelatives | null = null;
     await updateTeam({
       prevTeam: selectedTeam,
@@ -75,7 +77,7 @@ function PlayerSearchList({
   }
 
 
-  const handleUpdatePlayer = (event: React.SyntheticEvent, updatePlayerState: Partial<TUpdatePlayer>, playerId: string) => {
+  const handleUpdatePlayer = (e: React.SyntheticEvent, updatePlayerState: Partial<TUpdatePlayer>, playerId: string) => {
     const player = playerList.find((p) => p._id === playerId);
     updatePlayer({ mutatePlayer, playerUpdate: updatePlayerState, prevPlayer: player as IPlayer, setIsLoading, setMessage, uploadedProfile: null })
     window.location.reload();
@@ -129,7 +131,7 @@ function PlayerSearchList({
                 isChecked={false}
                 onSelect={() => { }}
                 setIsLoading={setIsLoading}
-
+                selectedEvent={selectedEvent || null}
                 onUpdateTeam={handleUpdateTeam}
                 onDelete={handleDelete}
                 onUpdatePlayer={handleUpdatePlayer}

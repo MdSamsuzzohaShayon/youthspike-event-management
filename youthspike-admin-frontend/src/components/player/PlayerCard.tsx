@@ -2,7 +2,7 @@ import { EPlayerStatus } from '@/types/player';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
 import React, { useMemo, useRef, useState, useCallback } from 'react';
-import { IOption, IPlayerRank, ITeam, TUpdatePlayer, TUpdateTeam } from '@/types';
+import { IEvent, IOption, IPlayerRank, ITeam, TUpdatePlayer, TUpdateTeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { useUser } from '@/lib/UserProvider';
 import Image from 'next/image';
@@ -18,6 +18,8 @@ import { FRONTEND_URL } from '@/utils/keys';
 import DeletePlayerDialog from './DeletePlayerDialog';
 import { useApolloClient } from '@apollo/client/react';
 import routerService from '@/lib/router-service';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { CURRENT_EVENT } from '@/utils/constant';
 
 
 interface IPlayerCardProps {
@@ -27,6 +29,7 @@ interface IPlayerCardProps {
   teams: ITeam[]; // all team of player
   teamList: ITeam[]; // all team list
   selectedTeam?: ITeam | null; // if we are inside a team
+  selectedEvent?: IEvent | null; // if we are inside a team
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
   showRank?: boolean;
   rankControls?: boolean;
@@ -41,7 +44,7 @@ interface IPlayerCardProps {
 
 
 
-export default function PlayerCard({ player, isChecked, onSelect, teams, teamList, setIsLoading, showRank, rank, divisionList, rankControls, selectedTeam,
+export default function PlayerCard({ player, isChecked, onSelect, teams, teamList, setIsLoading, showRank, rank, divisionList, rankControls, selectedTeam, selectedEvent,
   onUpdateTeam, onUpdatePlayer, onDelete }: IPlayerCardProps) {
 
 
@@ -59,7 +62,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
   // Reference
   const dialogEl = useRef<HTMLDialogElement | null>(null);
   const dialogMoveRef = useRef<HTMLDialogElement | null>(null);
-  const uploadedLogoRef = useRef<Blob | null | MediaSource>(null);
+
 
 
   // Hooks
@@ -67,6 +70,16 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
   const user = useUser();
   const { ldoIdUrl } = useLdoId();
   const apolloClient = useApolloClient();
+
+
+  const handleRedirectTeam=(e:React.SyntheticEvent, teamId: string)=>{
+    e.preventDefault();
+    // `/teams/${team._id}/roster/${ldoIdUrl}`
+    if(selectedEvent){
+      SessionStorageService.setItem(CURRENT_EVENT, selectedEvent._id);
+    }
+    routerService.push(`/teams/${teamId}/roster/${ldoIdUrl}`)
+  }
 
 
 
@@ -219,7 +232,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
         <div className="w-full md:flex-col flex flex-wrap justify-between items-center md:items-start">
           <h5 className="break-words text-xs md:text-lg font-semibold capitalize">{name}</h5>
           {teamsOfPlayer && teamsOfPlayer.length > 0 && (
-            teamsOfPlayer.map((team) => (<Link key={team._id} href={`/teams/${team._id}/roster/${ldoIdUrl}`} className="md:hidden text-yellow-logo uppercase font-bold tracking-wide underline">
+            teamsOfPlayer.map((team) => (<Link key={team._id} href="#" onClick={(e) => handleRedirectTeam(e, team._id)} className="md:hidden text-yellow-logo uppercase font-bold tracking-wide underline">
               {team.name.slice(0, 3)}
             </Link>))
           )}

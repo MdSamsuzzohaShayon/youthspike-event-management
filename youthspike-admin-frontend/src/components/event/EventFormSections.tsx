@@ -1,7 +1,7 @@
 import React from 'react';
 import { IDateChangeHandlerProps, IEventAdd, IProStatsAdd } from '@/types';
 import { assignStrategies, tieBreakingRules, lockTimes, homeTeamStrategy } from '@/utils/staticData';
-import { ERosterLock } from '@/types/event';
+import { ERosterLock, TUpdateEvent } from '@/types/event';
 import InputField from '../elements/forms/InputField';
 import ImageInput from '../elements/forms/ImageInput';
 import DateInput from '../elements/forms/DateInput';
@@ -15,7 +15,7 @@ import ProStatsInput from './ProStatsInput';
 interface EventFormSectionsProps {
   update: boolean;
   eventState: IEventAdd;
-  updateEvent: Partial<IEventAdd>;
+  updateEvent: TUpdateEvent;
   onInputChange: (e: React.SyntheticEvent) => void;
   onToggleChange: (e: React.SyntheticEvent) => void;
   onNumberChange: (e: React.SyntheticEvent) => void;
@@ -27,7 +27,7 @@ interface EventFormSectionsProps {
   onLogoChange?: (uploadedFile: Blob | MediaSource) => void;
   prevEvent?: IEventAdd;
   setEventState?: React.Dispatch<React.SetStateAction<IEventAdd>>;
-  setUpdateEvent?: React.Dispatch<React.SetStateAction<Partial<IEventAdd>>>;
+  setUpdateEvent?: React.Dispatch<React.SetStateAction<TUpdateEvent>>;
   eventId?: string | null;
 }
 
@@ -79,7 +79,7 @@ const EventFormSections: React.FC<EventFormSectionsProps> = ({
           <h4 className="capitalize text-lg font-semibold mb-1">Divisions</h4>
         )}
 
-        {<ShowDivisions divisions={eventState?.divisions || ''} onInputChange={onInputChange} />}
+        {<ShowDivisions divisions={eventState?.divisions || ''} onInputChange={onInputChange} updatedivisions={updateEvent?.updatedivisions} />}
       </div>
 
       <SelectInput name="homeTeam" label="How is home team decided?" handleSelect={onSelectChange} optionList={homeTeamStrategy} defaultValue={eventState.homeTeam} />

@@ -85,7 +85,7 @@ export class UpdateTeamsInput {
   @Field((_type) => String, { nullable: true })
   email?: string;
 
-  @Field(() => [String], { nullable: false })
+  @Field(() => [String], { nullable: true })
   groups: string[];
 
   @Field({ nullable: false })

@@ -19,6 +19,9 @@ interface TeamRosterContainerProps {
   teamId: string;
 }
 
+
+const TEAM_LIMIT = 500;
+
 function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
   const { ldoIdUrl } = useLdoId();
   const { data } = useReadQuery(queryRef);
@@ -34,7 +37,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
   const eventIds = currentEvent ? [currentEvent] : (events?.map(e => e._id) || undefined);
 
   const { data: teamsData, loading, error } = useQuery<{ getTeams: IGetTeamsResponse }>(GET_TEAMS, {
-    variables: { eventIds },
+    variables: { eventIds, limit:  TEAM_LIMIT},
     fetchPolicy: "cache-first",
   });
 

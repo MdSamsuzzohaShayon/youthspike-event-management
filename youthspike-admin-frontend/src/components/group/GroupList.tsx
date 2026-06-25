@@ -21,9 +21,9 @@ function GroupList({
   const filteredGroupList = useMemo(() => {
     if (!currentDivision) return groupList;
     
-    const normalizedDivision = currentDivision.trim().toUpperCase();
+    const normalizedDivision = currentDivision?.trim()?.toUpperCase();
     return groupList.filter(
-      (group) => group.division.trim().toUpperCase() === normalizedDivision
+      (group) => group?.division && group?.division?.trim()?.toUpperCase() === normalizedDivision
     );
   }, [groupList, currentDivision]);
 

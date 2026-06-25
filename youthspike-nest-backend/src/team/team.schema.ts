@@ -6,7 +6,6 @@ import mongoose from 'mongoose';
 import { Event } from 'src/event/event.schema';
 import { Group } from 'src/group/group.schema';
 import { Match } from 'src/match/match.schema';
-import { Net } from 'src/net/net.schema';
 import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
 import { Player } from 'src/player/player.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
@@ -29,8 +28,8 @@ export class Team extends AppDocument {
   @Prop({ required: true })
   active: boolean;
 
-  @Field({ nullable: false })
-  @Prop({ required: true })
+  @Field({ nullable: true })
+  @Prop({ required: false })
   division: string;
 
   @Field({ nullable: true })

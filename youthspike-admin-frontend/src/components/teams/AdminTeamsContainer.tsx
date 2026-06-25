@@ -187,7 +187,7 @@ function TeamsContainer({ queryRef, initialSearchParams }: ITeamsContainerProps)
 
   // const selectedEvent = useMemo(()=> {return events.find((e)=> e._id === eventId)}, [events, eventId]);
   const divisions = useMemo(() => divisionsOfEvents(events), [events]);
-  const divivionList = useMemo(() => divisionsToOptionList(divisions), [divisions]);
+  // const divivionList = useMemo(() => divisionsToOptionList(divisions), [divisions]);
 
 
 

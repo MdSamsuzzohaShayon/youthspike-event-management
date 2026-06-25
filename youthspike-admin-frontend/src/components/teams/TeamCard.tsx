@@ -121,7 +121,7 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
 
 
   const groupOptions = useMemo(() => {
-    return groupList.filter((g) => g.division.trim().toLowerCase() === team.division.trim().toLowerCase()).map((g, i) => ({ id: i + 1, text: g.name, value: g._id }));
+    return groupList.filter((g) => g?.division?.trim()?.toLowerCase() === team?.division?.trim()?.toLowerCase()).map((g, i) => ({ id: i + 1, text: g.name, value: g._id }));
   }, [groupList, team])
 
   const sendCredentialLabel = team.sendCredentials ? 'Resend' : 'Send';
@@ -238,7 +238,7 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
           />
         </button>
         <div className="flex justify-center items-start flex-col">
-          <span className='uppercase'>{team.division.toUpperCase()}</span>
+        { team.division && <span className='uppercase'>{team.division.toUpperCase()}</span>}
           {/* <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`}>
             <button className="btn-info">Preview</button>
           </Link> */}

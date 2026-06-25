@@ -8,7 +8,7 @@ const DateTimeInput = (props: IDateinputProps) => {
         const inputEl = e.target as HTMLInputElement;
         
         const inputValue= new Date(`${inputEl.value}`);
-        if(props.handleDateChange)props.handleDateChange({ name: props.name, value: inputValue.toISOString() });
+        if(props.handleDateChange)props.handleDateChange(props.name, inputValue.toISOString() );
     };
 
     const inputProps: Record<string, any> = {

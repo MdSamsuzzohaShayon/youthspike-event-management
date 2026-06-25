@@ -29,7 +29,7 @@ export interface IPlayer extends IDocument {
   username: string;
   email: string;
   phone?: string;
-  division: string;
+  division?: string | null;
   events?: string[];
   teams?: ITeam[] | string[];
 
@@ -53,7 +53,7 @@ export interface IPlayerExpRel extends IDocument {
   profile: string | null;
   username: string;
   phone?: string;
-  division: string;
+  division?: string;
   email?: string;
   status: EPlayerStatus,
   events?: IEvent[];

@@ -58,7 +58,7 @@ function FilterContent({
   }, [divisions]);
 
   const filteredGroups = useMemo(() => {
-    const newGroups = filter.division ? groups.filter((g) => g.division.trim().toLowerCase() === filter.division!.trim().toLowerCase()) : groups;
+    const newGroups = filter?.division ? groups.filter((g) => g?.division?.trim()?.toLowerCase() === filter?.division?.trim()?.toLowerCase()) : groups;
 
     const groupOptions = newGroups.map((g, i) => ({
       id: i + 1,
@@ -68,7 +68,7 @@ function FilterContent({
     }));
 
     return [...groupOptions];
-  }, [groups, filter.division]);
+  }, [groups, filter?.division]);
 
   const handleDivisionChange = (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLSelectElement;
@@ -131,7 +131,7 @@ function FilterContent({
     >
       <div className="grid grid-cols-2 gap-3 mb-3">
         {/* Division */}
-        <SelectInput handleSelect={handleDivisionChange} name="division" optionList={divisionList} label="Division" value={filter.division} />
+        <SelectInput handleSelect={handleDivisionChange} name="division" optionList={divisionList} label="Division" value={filter?.division} />
 
         {/* Group */}
         <SelectInput handleSelect={handleGroupChange} name="group" optionList={filteredGroups} label="Group" value={filter.group} />

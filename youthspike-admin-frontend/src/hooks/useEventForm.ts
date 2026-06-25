@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { IEventAdd, IProStatsAdd, ETieBreakingStrategy, IEvent, IProStats, IEventSponsor } from '@/types';
+import { IEventAdd, IProStatsAdd, ETieBreakingStrategy, IEvent, IProStats, IEventSponsor, IUpdatedivisions } from '@/types';
 import { getLocalDateTimeISO } from '@/utils/datetime';
 import { assignStrategies, tieBreakingRules, lockTimes, homeTeamStrategy } from '@/utils/staticData';
 
@@ -106,9 +106,7 @@ export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, pr
     setters[prefix]((prev: IProStatsAdd) => ({ ...prev, [field]: value }));
   };
 
-  // const handleSponsors = (sponsor: Omit<IEventSponsor, '_id' | 'event'>) => {
-  //   setSponsors(prev => [...prev.filter(ps => ps.company !== sponsor.company), sponsor]);
-  // };
+
 
   const handleSponsorRemove = (companyName: string | null) => {
     setSponsors(prev => prev.filter(imgFile =>

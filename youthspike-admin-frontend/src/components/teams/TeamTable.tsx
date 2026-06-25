@@ -109,7 +109,7 @@ function TeamRow({ team, ldoIdUrl, eventMap, user, isChecked, onCheckedTeam }: I
 
       {/* Division */}
       <td className="py-4 px-6 text-center">
-        {team.division ? <DivisionBadge label={team.division} /> : <span className="text-gray-600">—</span>}
+        {team?.division ? <DivisionBadge label={team.division} /> : <span className="text-gray-600">—</span>}
       </td>
 
       {/* // Date  */}
@@ -169,7 +169,7 @@ function MobileCard({ team, ldoIdUrl, eventMap, user, isChecked, onCheckedTeam }
           <TeamAvatar team={team} size="md" />
           <div className="min-w-0">
             <h2 className="truncate font-bold text-white">{team.name}</h2>
-            {team.division && <DivisionBadge label={team.division} />}
+            {team?.division && <DivisionBadge label={team.division} />}
           </div>
         </div>
       </div>

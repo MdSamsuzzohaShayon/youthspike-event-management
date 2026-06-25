@@ -70,7 +70,7 @@ const TeamList: React.FC<TeamListProps> = ({ teams }) => (
 interface GroupStatsProps {
   teamCount: number;
   isActive: boolean;
-  division: string;
+  division?: string | null;
 }
 
 const GroupStats: React.FC<GroupStatsProps> = ({ teamCount, isActive, division }) => (
@@ -81,9 +81,11 @@ const GroupStats: React.FC<GroupStatsProps> = ({ teamCount, isActive, division }
     <p className="text-sm text-gray-500 text-gray-400">
       Status: <span className="font-semibold">{isActive ? "Active" : "Inactive"}</span>
     </p>
-    <p className="text-sm text-gray-500 text-gray-400">
-      Division: <span className="font-semibold">{division}</span>
-    </p>
+    {division && (
+      <p className="text-sm text-gray-500 text-gray-400">
+        Division: <span className="font-semibold">{division}</span>
+      </p>
+    )}
   </div>
 );
 
@@ -286,7 +288,7 @@ function GroupCard({ group, setIsLoading, divisionList }: IGroupCardProps) {
 
   const handleMoveGroupSubmit = useCallback(async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    
+
     if (!selectedDivision) return;
 
     try {
@@ -317,10 +319,10 @@ function GroupCard({ group, setIsLoading, divisionList }: IGroupCardProps) {
       exit="exit"
     >
       <GroupHeader groupName={group.name} onToggleMenu={toggleActionMenu} />
-      
+
       <TeamList teams={group.teams} />
-      
-      <GroupStats teamCount={group.teams.length} isActive={group.active} division={group.division} />
+
+      <GroupStats teamCount={group.teams.length} isActive={group.active} division={group?.division} />
 
       <ActionMenu
         isOpen={isActionMenuOpen}

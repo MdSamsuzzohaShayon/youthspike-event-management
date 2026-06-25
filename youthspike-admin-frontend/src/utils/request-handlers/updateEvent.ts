@@ -99,6 +99,7 @@ export async function updateEventWithFiles({
   const inputData = { ...updateEvent };
   if (inputData.startDate) inputData.startDate = new Date(inputData.startDate).toISOString();
   if (inputData.endDate) inputData.endDate = new Date(inputData.endDate).toISOString();
+  if(inputData.divisions) delete inputData.divisions;
 
   const { sponsorsInput, sponsorFileList, sponsorsStringInput } = processSponsorsForUpdate(sponsors);
 

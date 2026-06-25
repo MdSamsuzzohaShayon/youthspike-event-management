@@ -18,7 +18,7 @@ interface IGroupAddOrUpdateProps {
   teamList: ITeam[];
   update: boolean;
   prevGroup?: IGroupAdd | null;
-  division?: string;
+  division?: string | null;
 }
 
 function GroupAddOrUpdate({ eventId, teamList, update, prevGroup, division }: IGroupAddOrUpdateProps) {
@@ -55,16 +55,16 @@ function GroupAddOrUpdate({ eventId, teamList, update, prevGroup, division }: IG
     }
   };
 
-  const handleDivisionInputChange = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    const inputEl = e.target as HTMLInputElement;
-    setGroupState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
-    let nTList = teamList.filter((t) => t.division && inputEl.value && t.division.toString().toUpperCase() === inputEl.value.toString().toUpperCase());
-    // If A team already has a group he should not be shown
-    // nTList = nTList.filter((t) => !t.group || !t.group?._id);
-    nTList = nTList.filter((t) => !t.groups || t.groups.length === 0);
-    setFilteredTeams(nTList);
-  };
+  // const handleDivisionInputChange = (e: React.SyntheticEvent) => {
+  //   e.preventDefault();
+  //   const inputEl = e.target as HTMLInputElement;
+  //   setGroupState((prevState) => ({ ...prevState, [inputEl.name]: inputEl.value }));
+  //   let nTList = teamList.filter((t) => t.division && inputEl.value && t.division.toString().toUpperCase() === inputEl.value.toString().toUpperCase());
+  //   // If A team already has a group he should not be shown
+  //   // nTList = nTList.filter((t) => !t.group || !t.group?._id);
+  //   nTList = nTList.filter((t) => !t.groups || t.groups.length === 0);
+  //   setFilteredTeams(nTList);
+  // };
 
   const handleCheckboxChange = (teamId: string, isChecked: boolean) => {
     if (isChecked) {
@@ -80,6 +80,7 @@ function GroupAddOrUpdate({ eventId, teamList, update, prevGroup, division }: IG
     
     try {
       if(update){
+        // @ts-ignore
         const groupId = prevGroup?._id;
 
         if(!groupId){

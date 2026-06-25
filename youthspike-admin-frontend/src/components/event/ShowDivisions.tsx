@@ -1,33 +1,40 @@
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import InputField from '../elements/forms/InputField';
 import Image from 'next/image';
+import { IUpdatedivisions } from '@/types';
 
 interface ShowDivisionsProps {
   divisions: string; // comma-separated string
+  updatedivisions?: IUpdatedivisions[];
   onInputChange: (e: React.SyntheticEvent) => void;
 }
 
-const ShowDivisions: React.FC<ShowDivisionsProps> = ({ divisions, onInputChange }) => {
+const ShowDivisions: React.FC<ShowDivisionsProps> = ({ divisions, updatedivisions = [], onInputChange }) => {
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const [editIndex, setEditIndex] = useState<number | null>(null);
   const [divisionList, setDivisionList] = useState<string[]>([]);
+  const [prevSelectedDivision, setPrevSelectedDivision] = useState<string | null>(null);
 
   // Sync local state when prop changes
+  // console.log({divisions});
+
   useEffect(() => {
     setDivisionList(
       divisions
         .split(',')
-        .map((d) => d.trim())
+        .filter(d => d)
+        .map((d) => d?.trim())
         .filter(Boolean),
     );
   }, [divisions]);
 
   const openDialog = useCallback(
-    (index: number | null) => {
+    (index: number | null, item?: string) => {
       setEditIndex(index);
       dialogRef.current?.showModal();
       const inputEl = document.getElementById('division-input') as HTMLInputElement | null;
       if (inputEl) inputEl.value = index !== null ? divisionList[index] : '';
+      if (item) setPrevSelectedDivision(item)
     },
     [divisionList],
   );
@@ -52,8 +59,27 @@ const ShowDivisions: React.FC<ShowDivisionsProps> = ({ divisions, onInputChange 
   const handleDelete = useCallback(
     (item: string) => {
       updateParent(divisionList.filter((d) => d !== item));
+      // set previous player
+      const divisionObj: IUpdatedivisions = {
+        prev: item
+      }
+
+      const list = [...updatedivisions];
+      const findIndex = updatedivisions.findIndex((division) => String(division).trim().toLowerCase() === item.trim().toLowerCase());
+      if (findIndex !== -1) {
+        list[findIndex] = divisionObj;
+      } else {
+        list.push(divisionObj);
+      }
+
+      const syntheticEvent = {
+        target: { name: 'updatedivisions', value: list },
+      } as unknown as React.SyntheticEvent;
+
+      onInputChange(syntheticEvent);
+
     },
-    [divisionList, updateParent],
+    [onInputChange, updateParent],
   );
 
   const handleSave = useCallback(
@@ -65,10 +91,47 @@ const ShowDivisions: React.FC<ShowDivisionsProps> = ({ divisions, onInputChange 
       const value = inputEl.value.trim();
       let newDivisionsArr = [...divisionList];
 
-      if (editIndex !== null) {
+      if (editIndex !== null && prevSelectedDivision) {
         newDivisionsArr[editIndex] = value;
+
+        const divisionObj: IUpdatedivisions = {
+          new: value,
+          prev: prevSelectedDivision
+        }
+
+        const list = [...updatedivisions];
+        const findIndex = updatedivisions.findIndex((division) => division && value && String(division).trim().toLowerCase() === value.trim().toLowerCase());
+        if (findIndex !== -1) {
+          list[findIndex] = divisionObj;
+        } else {
+          list.push(divisionObj);
+        }
+
+        const syntheticEvent = {
+          target: { name: 'updatedivisions', value: list },
+        } as unknown as React.SyntheticEvent;
+
+        onInputChange(syntheticEvent);
       } else {
+        // Add new 
         newDivisionsArr.push(value);
+        const divisionObj: IUpdatedivisions = {
+          new: value
+        }
+
+        const list = [...updatedivisions];
+        const findIndex = updatedivisions.findIndex((division) => division && value && String(division).trim().toLowerCase() === value.trim().toLowerCase());
+        if (findIndex !== -1) {
+          list[findIndex] = divisionObj;
+        } else {
+          list.push(divisionObj);
+        }
+
+        const syntheticEvent = {
+          target: { name: 'updatedivisions', value: list },
+        } as unknown as React.SyntheticEvent;
+
+        onInputChange(syntheticEvent);
       }
 
       updateParent(newDivisionsArr);
@@ -92,7 +155,7 @@ const ShowDivisions: React.FC<ShowDivisionsProps> = ({ divisions, onInputChange 
       {divisionList.map((item, i) => (
         <li key={`${item}-${i}`} className="px-4 py-2 rounded-full bg-gray-800 flex items-center justify-between">
           {item}
-          <img className="w-4 h-4 svg-white ml-2" role="presentation" onClick={() => openDialog(i)} src="/icons/edit.svg" alt="Edit" />
+          <img className="w-4 h-4 svg-white ml-2" role="presentation" onClick={() => openDialog(i, item)} src="/icons/edit.svg" alt="Edit" />
           <img className="w-4 h-4 svg-white ml-2" role="presentation" onClick={() => handleDelete(item)} src="/icons/close.svg" alt="Remove" />
         </li>
       ))}

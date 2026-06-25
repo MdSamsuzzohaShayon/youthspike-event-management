@@ -26,7 +26,7 @@ function GroupAddSidebar({ eventId, divisionList, groupList }: IGroupAddSidebarP
     const handleDivisionSelection = (e: React.SyntheticEvent) => {
         e.preventDefault();
         const inputEl = e.target as HTMLInputElement;
-        setCurrDivision(inputEl.value.trim());
+        if(inputEl?.value)setCurrDivision(inputEl?.value?.trim());
     };
     
 

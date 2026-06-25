@@ -13,7 +13,7 @@ export interface IGroupAdd {
   name: string;
   event: string;
   active: boolean;
-  division: string;
+  division?: string;
   rule: EGroupRule.CAN_PLAY_EACH_OTHER;
   teams: string[];
   matches: string[];
