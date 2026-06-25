@@ -141,7 +141,7 @@ export class EmailsenderService {
       const renderedHtml = this.renderTemplate(templateHtml, values);
 
       await this.transporter.sendMail({
-        from: `American Spikers League <${this.configService.get<string>('EMAIL_USER')}>`,
+        from: `${this.configService.get<string>('LEAGUE_NAME')} <${this.configService.get<string>('EMAIL_USER')}>`,
         to: to.join(', '),
         subject,
         html: renderedHtml,
@@ -167,7 +167,7 @@ export class EmailsenderService {
       const renderedHtml = this.renderTemplate(htmlContent, values);
 
       await this.transporter.sendMail({
-        from: `American Spikers League <${this.configService.get<string>('EMAIL_USER')}>`,
+        from: `${this.configService.get<string>('LEAGUE_NAME')} <${this.configService.get<string>('EMAIL_USER')}>`,
         to: to.join(', '),
         subject,
         html: renderedHtml,
@@ -189,7 +189,7 @@ export class EmailsenderService {
       const replacedHtmlContent = htmlContent.replace('{{informations}}', JSON.stringify(info));
 
       await this.transporter.sendMail({
-        from: `American Spikers League <${this.configService.get<string>('EMAIL_USER')}>`,
+        from: `${this.configService.get<string>('LEAGUE_NAME')} <${this.configService.get<string>('EMAIL_USER')}>`,
         to: to.join(', '),
         subject,
         html: replacedHtmlContent,
