@@ -4,6 +4,9 @@ import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 import TextImg from '../elements/TextImg';
+import { LDO_ID } from '@/utils/constant';
+import SessionStorageService from '@/utils/SessionStorageService';
+import routerService from '@/lib/router-service';
 
 interface IDeleteRowProps{
     ldo: ILDO;
@@ -11,6 +14,11 @@ interface IDeleteRowProps{
 }
 const DirectorRow = ({ ldo, handleDeleteLDO }: IDeleteRowProps) => {
     
+    const handleRedirect=(e: React.SyntheticEvent)=>{
+        e.preventDefault();
+        SessionStorageService.setItem(LDO_ID, ldo._id);
+        routerService.push(`/?${LDO_ID}=${ldo._id}`);
+    }
 
     return (
         <tr className='hover:bg-gray-900 transition'  >
@@ -22,7 +30,7 @@ const DirectorRow = ({ ldo, handleDeleteLDO }: IDeleteRowProps) => {
             <td className="py-4 px-6 lowercase" >{ldo.phone}</td>
             <td className="py-4 px-6 lowercase" >{ldo.director?.email}</td>
             <td className="py-4 px-6 flex justify-center items-center gap-2" >
-                <Link href={`/?ldoId=${ldo._id}`}>
+                <Link href="#" onClick={handleRedirect}>
                     <Image height={20} width={20} src='/icons/event.svg' alt='edit' className='w-6 svg-white' />
                 </Link>
                 <Link href={`/admin/directors/${ldo._id}`}>

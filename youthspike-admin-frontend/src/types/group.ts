@@ -19,6 +19,11 @@ export interface IGroupAdd {
   matches: string[];
 }
 
+export type TUpdateGroup = Partial<IGroupAdd & {
+  _id: string;
+  removeteams: string[];
+}>;
+
 export interface IGroup extends IDocument {
   name: string;
   active: boolean;

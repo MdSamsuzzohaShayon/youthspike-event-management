@@ -127,6 +127,15 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
     }
   };
 
+  const handleGroupChange = (e: React.SyntheticEvent) => {
+    const inputEl = e.target as HTMLInputElement | HTMLSelectElement;
+    setTeamState((prevState) => ({ ...prevState, groups: [inputEl.value] }));
+    if (update) {
+      setUpdateTeamState((prevState) => ({ ...prevState, groups: [inputEl.value] }));
+    }
+  };
+
+
   const makeOptionList = (ap: IPlayer[]): IOption[] => {
     const newPlayerList: IOption[] = [];
     for (let i = 0; i < ap.length; i += 1) {
@@ -253,7 +262,7 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
       <SelectInput
         key="g-t-d"
         required={!update}
-        handleSelect={handleInputChange}
+        handleSelect={handleGroupChange}
         name="group"
         className="mt-6"
         optionList={
