@@ -381,7 +381,7 @@ type Player {
   status: EPlayerStatus!
   profile: String
   phone: String
-  division: String!
+  division: String
   events: [Event!]
   archivedEvents: [Event!]
   teams: [Team!]
@@ -544,7 +544,7 @@ type PlayerWithTeam {
   status: EPlayerStatus!
   profile: String
   phone: String
-  division: String!
+  division: String
   events: [Event!]
   archivedEvents: [Event!]
   teams: [String!]
@@ -684,7 +684,7 @@ type CaptainPlayer {
   status: EPlayerStatus!
   profile: String
   phone: String
-  division: String!
+  division: String
   events: [Event!]
   archivedEvents: [Event!]
   teams: [Team!]
@@ -711,7 +711,7 @@ type CoCaptainPlayer {
   status: EPlayerStatus!
   profile: String
   phone: String
-  division: String!
+  division: String
   events: [Event!]
   archivedEvents: [Event!]
   teams: [Team!]
@@ -905,7 +905,7 @@ type SearchPlayers {
   status: EPlayerStatus!
   profile: String
   phone: String
-  division: String!
+  division: String
   events: [Event!]
   archivedEvents: [Event!]
   teams: [CustomTeam!]!
@@ -953,7 +953,7 @@ type CustomPlayer {
   status: EPlayerStatus!
   profile: String
   phone: String
-  division: String!
+  division: String
   events: [Event!]
   archivedEvents: [Event!]
   teams: [String!]!

@@ -142,7 +142,12 @@ function PlayerMoveDialog({
   const handleMovePlayer = async (
     e: React.SyntheticEvent,
   ) => {
-    if (teamId) onUpdatePlayer(e, { prevTeamId: teamId || undefined, newTeamId: selectedTeamId || undefined }, player._id)
+    if (!teamId) {
+      setMessage({type: 'error', message: `There are no team with this ID: ${teamId}`});
+      console.error(`There are no team with this ID: ${teamId}`);
+      return;
+    }
+    onUpdatePlayer(e, { prevTeamId: teamId || undefined, newTeamId: selectedTeamId || undefined }, player._id)
     /*
     e.preventDefault();
     const mutationInput: Partial<TUpdatePlayer> =

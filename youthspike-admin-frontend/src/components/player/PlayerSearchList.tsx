@@ -77,8 +77,20 @@ function PlayerSearchList({
   }
 
 
-  const handleUpdatePlayer = (e: React.SyntheticEvent, updatePlayerState: Partial<TUpdatePlayer>, playerId: string) => {
+  // const handleUpdatePlayer = (e: React.SyntheticEvent, updatePlayerState: Partial<TUpdatePlayer>, playerId: string) => {
+  //   const player = playerList.find((p) => p._id === playerId);
+  //   updatePlayer({ mutatePlayer, playerUpdate: updatePlayerState, prevPlayer: player as IPlayer, setIsLoading, setMessage, uploadedProfile: null })
+  //   window.location.reload();
+  // }
+
+  const handleUpdatePlayer = (event: React.SyntheticEvent, updatePlayerState: Partial<TUpdatePlayer>, playerId: string) => {
+    event.preventDefault();
     const player = playerList.find((p) => p._id === playerId);
+    if (!player) {
+      setMessage({type: 'error', message: `There are no player with this ID: ${playerId}`});
+      console.error(`There are no player with this ID: ${playerId}`);
+      return;
+    }
     updatePlayer({ mutatePlayer, playerUpdate: updatePlayerState, prevPlayer: player as IPlayer, setIsLoading, setMessage, uploadedProfile: null })
     window.location.reload();
   }
