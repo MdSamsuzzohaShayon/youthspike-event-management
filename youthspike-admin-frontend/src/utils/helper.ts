@@ -21,7 +21,10 @@ export const divisionsToOptionList = (divisions: string) => {
   if (divisions && divisions.trim() !== '') {
     const dl = divisions.split(',');
     for (let i = 0; i < dl.length; i++) {
-      const div = dl[i].trim();
+      if(!dl[i]){
+        continue;
+      }
+      const div = dl[i]?.trim();
       if (div !== "") {
         divs.push({ id: i + 1, text: div, value: div.toLowerCase() });
       }
@@ -181,13 +184,13 @@ export const aggregatePlayerStats = (stats: IPlayerStats[]): IAggregatedStats =>
 /**
  * Filters items by division (case-insensitive).
  */
-export function filterByDivision<T extends { division: string }>(
+export function filterByDivision<T extends { division?: string | null }>(
   items: T[],
   division: string
 ): T[] {
   const normalizedDivision = division.toLowerCase();
   return items.filter(
-    (item) => item.division.toLowerCase() === normalizedDivision
+    (item) => item?.division?.toLowerCase() === normalizedDivision
   );
 }
 

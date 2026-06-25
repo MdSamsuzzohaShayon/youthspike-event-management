@@ -76,7 +76,7 @@ const ActiveFiltersBar: React.FC<ActiveFiltersProps> = ({
             Active Filters:
           </span>
 
-          {appliedFilter.division && (
+          {appliedFilter?.division && (
             <FilterTag label={`Division: ${appliedFilter.division}`} />
           )}
 

@@ -28,7 +28,12 @@ function GroupAddContainer({ queryRef, eventId }: IProps) {
   // -------------------- Handlers --------------------
   const handleDivisionChange = (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLSelectElement;
-    const division = inputEl.value.trim();
+    const division = inputEl?.value?.trim();
+
+    if(!division){
+      console.error("No division found");
+      return;
+    }
 
     setSelectedDivision(division);
 

@@ -258,7 +258,7 @@ function PlayersStatsContainer({
           .includes(appliedFilter.search.toLowerCase());
 
       const matchesDivision =
-        !appliedFilter.division || player.division === appliedFilter.division;
+        !appliedFilter.division || player?.division === appliedFilter.division;
 
       return matchesSearch && matchesDivision;
     });
@@ -314,16 +314,7 @@ function PlayersStatsContainer({
     [allPlayers, currentOffset, appliedFilter.limit]
   );
 
-  const activeFilterString = useMemo(() => {
-    let text = "";
-    if (appliedFilter.division) text += `Division: ${appliedFilter.division}, `;
-    if (appliedFilter.group) {
-      const group = groups.find((g) => g._id === appliedFilter.group);
-      if (group) text += `Group: ${group.name}, `;
-    }
-    if (appliedFilter.search) text += `Search: ${appliedFilter.search}`;
-    return text;
-  }, [groups, appliedFilter]);
+
 
   return (
     <div className="animate-fade-in">

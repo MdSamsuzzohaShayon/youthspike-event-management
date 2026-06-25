@@ -311,7 +311,6 @@ function TeamList({ teamList, groupList, eventId, eventList, setIsLoading, refet
 
       <dialog ref={cngGroupEl} className="modal-dialog">
         <h3>Change Group</h3>
-        {/* .filter((g) => g.division.trim().toUpperCase() === team.division.trim().toUpperCase()) */}
         <SelectInput
           name="group"
           optionList={groupList.map((g, gI) => ({

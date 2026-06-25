@@ -53,7 +53,7 @@ const ActiveFiltersBar: React.FC<ActiveFiltersProps> = ({
   }, [appliedFilter.group, groups]);
 
   const hasActiveFilters =
-    Boolean(appliedFilter.division) ||
+    Boolean(appliedFilter?.division) ||
     Boolean(appliedFilter.group) ||
     Boolean(appliedFilter.search);
 
@@ -76,8 +76,8 @@ const ActiveFiltersBar: React.FC<ActiveFiltersProps> = ({
             Active Filters:
           </span>
 
-          {appliedFilter.division && (
-            <FilterTag label={`Division: ${appliedFilter.division}`} />
+          {appliedFilter?.division && (
+            <FilterTag label={`Division: ${appliedFilter?.division}`} />
           )}
 
           {selectedGroup && (

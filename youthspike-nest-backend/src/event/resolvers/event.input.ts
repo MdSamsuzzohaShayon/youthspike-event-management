@@ -150,9 +150,21 @@ export class EventFilterInput {
 }
 
 @InputType()
+export class UpdateDivision{
+  @Field(() => String, {nullable: true})
+  prev?: string;
+
+  @Field(() => String, {nullable: true})
+  new?: string;
+}
+
+@InputType()
 export class UpdateEventInput extends PartialType(CreateEventInput) {
   @Field(() => [String], { nullable: true })
   newteams?: string[];
+
+  @Field(()=> [UpdateDivision], {nullable: true})
+  updatedivisions?: UpdateDivision[];
 }
 
 

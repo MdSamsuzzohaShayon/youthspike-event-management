@@ -61,8 +61,8 @@ export class TeamQueries {
       }
 
       // temp
-      const tempLimit = 5000;
-      const teams = await this.teamService.find(query, offset, tempLimit);
+      // const tempLimit = 5000;
+      const teams = await this.teamService.find(query, offset, limit);
 
       return {
         code: HttpStatus.OK,

@@ -257,8 +257,8 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
         name="group"
         className="mt-6"
         optionList={
-          teamState.division && teamState.division && teamState.division !== ''
-            ? groupList.filter((g) => teamState.division && g.division.trim().toUpperCase() === teamState.division.trim().toUpperCase()).map((g, gI) => ({ id: gI + 1, text: g.name, value: g._id }))
+          teamState?.division && teamState?.division && teamState?.division !== ''
+            ? groupList.filter((g) => teamState?.division && g?.division?.trim()?.toUpperCase() === teamState?.division?.trim()?.toUpperCase()).map((g, gI) => ({ id: gI + 1, text: g.name, value: g._id }))
             : groupList.map((g, gI) => ({ id: gI + 1, text: g.name, value: g._id }))
         }
       />

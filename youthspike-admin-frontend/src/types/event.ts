@@ -3,7 +3,7 @@ import React from 'react';
 import { ICommonMatchEvent, IMatch, IMatchExpRel } from './match';
 import { EAssignStrategies, IResponse } from './elements';
 import { IPlayer } from './player';
-import { ITeam } from './team';
+import { ITeam, ITeamRelatives } from './team';
 import { ILDO, ILDOItem } from './ldo';
 import { IGroup, IGroupExpRel } from './group';
 import { IPlayerStats, IProStats } from './playerStats';
@@ -34,6 +34,11 @@ export interface IEventSponsor {
   company: string;
   logo: string | Blob;
   event: string;
+}
+
+export interface IUpdatedivisions{
+  prev?: string;
+  new?: string;
 }
 
 
@@ -92,6 +97,10 @@ export interface IEventAdd extends IDefaultEventMatch {
   tieBreaking: ETieBreakingStrategy;
 }
 
+export type TUpdateEvent = Partial<IEventAdd> & {
+  updatedivisions?: IUpdatedivisions[];
+}
+
 export interface IAllStats{
   playerId: string;
   stats: IPlayerStats[]
@@ -100,7 +109,7 @@ export interface IAllStats{
 export interface IGetPlayerEventSettingsQuery extends IResponse {
   data: {
     event?: IEvent;
-    teams?: ITeam[];
+    teams?: ITeamRelatives[];
     ldo?: ILDO;
     sponsors?: IEventSponsor[];
     multiplayer?: IProStats;

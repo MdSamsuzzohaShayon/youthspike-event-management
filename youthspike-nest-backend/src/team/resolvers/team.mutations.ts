@@ -231,7 +231,7 @@ export class TeamMutations {
     }
 
     // ===== Groups =====
-    if (input.groups) {
+    if (input?.groups) {
       const { groupsToLeave, groupsToJoin } = this.computeGroupMembershipChanges(team.groups ?? [], input.groups);
 
       if (groupsToLeave.length > 0) {

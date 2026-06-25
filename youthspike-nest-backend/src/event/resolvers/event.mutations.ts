@@ -18,7 +18,7 @@ import { AppResponse } from 'src/shared/response';
 import { UserRole } from 'src/user/user.schema';
 import { tokenToUser } from 'src/utils/helper';
 import { CreateOrUpdateEventResponse, GetEventResponse } from './event.response';
-import { CreateEventBody, UpdateEventBody, UpdateEventInput } from './event.input';
+import { CreateEventBody, UpdateDivision, UpdateEventBody, UpdateEventInput } from './event.input';
 import { IEventMutations } from '../resolvers/event.types';
 import { Player } from 'src/player/player.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
@@ -215,7 +215,7 @@ export class EventMutations implements IEventMutations {
       const ldo = await this.ldoService.findByDirectorId(directorId);
 
       // ===== Arrange data and save to database =====
-      const eventData: Partial<Event & { newteams: string[] }> = {
+      const eventData: Partial<Event & { newteams: string[], updatedivisions: UpdateDivision[] }> = {
         ...updateInput,
         ldo: ldo._id,
         // sponsors: cloudinaryUrls,
@@ -293,44 +293,45 @@ export class EventMutations implements IEventMutations {
       }
 
       // ===== Update divisions =====
-      if (updateInput.divisions && updateInput.divisions !== '' && eventExist.divisions !== updateInput.divisions) {
-        // Check which item has been updated, Check previous division name
-        const prevDivList = eventExist.divisions.split(',');
-        const currDivList = updateInput.divisions.split(',');
-
+      if (updateInput.updatedivisions && updateInput.updatedivisions.length > 0) {
         const divisionPromises = [];
 
-        // Check deleted item
-        for (let i = 0; i < prevDivList.length; i++) {
-          const findItemIndex = currDivList.findIndex(
-            (d) => d.includes('_') || d.trim().toLowerCase() === prevDivList[i].trim().toLowerCase(),
-          );
-          if (findItemIndex === -1) {
-            // Create a regular expression for case-insensitive and trimmed search
-            const regex = new RegExp(`^${prevDivList[i].trim()}$`, 'i');
-            divisionPromises.push(this.teamService.updateOne({ division: { $regex: regex } }, { division: '' }));
+        const divisionList = eventExist.divisions.split(',');
+        for (const division of updateInput.updatedivisions) {
+          // Update division
+          if (division.new && division.prev) {
+            const divisionIndex = divisionList.findIndex((d) => d.trim().toLowerCase() === division.prev.trim().toLowerCase());
+            if (divisionIndex === -1) continue;
+            divisionList[divisionIndex] = division.new;
+
+            divisionPromises.push(this.teamService.updateMany({ events: eventId, division: { $regex: new RegExp(`^${division.prev.trim()}$`, 'i') } }, { division: division.new }));
+            divisionPromises.push(this.playerService.updateMany({ events: eventId, division: { $regex: new RegExp(`^${division.prev.trim()}$`, 'i') } }, { division: division.new }));
+            divisionPromises.push(this.groupService.updateMany({ events: eventId, division: { $regex: new RegExp(`^${division.prev.trim()}$`, 'i') } }, { division: division.new }));
           }
-        }
+          // Add new division
+          else if (division.new) {
+            const divisionIndex = divisionList.findIndex((d) => d.trim().toLowerCase() === division.new.trim().toLowerCase());
+            if (divisionIndex !== -1) continue;
+            divisionList.push(division.new);
+          }
+          // Delete division
+          else if (division.prev) {
+            const divisionIndex = divisionList.findIndex((d) => d.trim().toLowerCase() === division.prev.trim().toLowerCase());
+            if (divisionIndex === -1) continue;
+            divisionList.splice(divisionIndex, 1);
 
-        // Check updated Item
-        for (let i = 0; i < currDivList.length; i++) {
-          if (currDivList[i].includes('_')) {
-            const fl = currDivList[i].split('_');
-            if (fl.length > 0 && fl[fl.length - 1] === 'u') {
-              const oe = fl[0],
-                ne = fl[1];
-              currDivList[i] = ne;
+            divisionPromises.push(this.teamService.updateMany({ events: eventId, division: { $regex: new RegExp(`^${division.prev.trim()}$`, 'i') } }, { division: null }));
+            divisionPromises.push(this.playerService.updateMany({ events: eventId, division: { $regex: new RegExp(`^${division.prev.trim()}$`, 'i') } }, { division: null }));
+            divisionPromises.push(this.groupService.updateMany({ events: eventId, division: { $regex: new RegExp(`^${division.prev.trim()}$`, 'i') } }, { division: null }));
 
-              // Create a regular expression for case-insensitive and trimmed search
-              const regex = new RegExp(`^${oe.trim()}$`, 'i');
-              divisionPromises.push(this.teamService.updateOne({ division: { $regex: regex } }, { division: ne }));
-            }
           }
         }
 
         await Promise.all(divisionPromises);
-        eventData.divisions = currDivList.join(', ');
+        eventData.divisions = divisionList.join(', ');
       }
+      delete eventData?.updatedivisions;
+     
 
       // ===== Update Coach Password =====
       if (eventData.coachPassword) {

@@ -33,7 +33,7 @@ interface ITeamCommon{
   active: boolean;
   logo?: string | null;
   rankLock: boolean; // Not for add team
-  division: string;
+  division?: string | null;
   sendCredentials: boolean;
   num: number; // Not for add team
 }
@@ -61,7 +61,7 @@ export interface ITeamRelatives extends ITeamCommon{
 
 
 
-export type TAddTeam = Omit<ITeamRelatives, '_id' | 'num' | 'rankLock' | 'playerRankings'>;
+export type TAddTeam = Omit<ITeamRelatives, '_id' | 'num' | 'rankLock' | 'playerRankings' | 'createdAt' | 'updatedAt'>;
 export type TUpdateTeam = Omit<ITeamRelatives, '_id' | 'num' | 'rankLock' | 'playerRankings'>;
 
 export interface ITeamScore {

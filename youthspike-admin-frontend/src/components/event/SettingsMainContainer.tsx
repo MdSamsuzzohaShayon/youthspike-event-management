@@ -41,7 +41,7 @@ const SettingsMainContainer = ({ queryRef, eventId }: ISettingsMainContainerProp
 
       {!player && !eventObj && <p>No data found</p>}
       {user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain || user.info?.role === UserRole.player
-        ? player && <PlayerAdd  update prevPlayer={player} teams={teams || []} />
+        ? player && <PlayerAdd update prevPlayer={player} teams={teams || []} />
         : eventObj && <EventAddUpdate update previousEvent={eventObj} previousMultiplayer={multiplayer} previousWight={weight} previousSponsorList={sponsors} />}
     </div>
   );

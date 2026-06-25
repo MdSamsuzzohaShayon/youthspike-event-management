@@ -29,7 +29,7 @@ export default function PlayerTable({ players }: IPlayerTableProps) {
                 <h2 className="text-lg font-bold">
                   {p.firstName} {p.lastName}
                 </h2>
-                <p className="text-xs text-yellow-400">{p.division}</p>
+                {p?.division && <p className="text-xs text-yellow-400">{p?.division}</p>}
               </div>
             </div>
 

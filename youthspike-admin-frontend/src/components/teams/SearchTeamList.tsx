@@ -402,6 +402,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
           const updatedTeams: ITeam[] = [];
           for (const t of prev) {
             if (checkedTeamIds.includes(t._id)) {
+              // @ts-ignore
               updatedTeams.push({ ...t, group: inputElement.value });
             } else {
               updatedTeams.push(t);
@@ -511,7 +512,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
 
         setSelectedTeam(null);
 
-
+        window.location.reload();
 
       }
     } catch (error) {
@@ -551,8 +552,6 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
   // Memoized Values
   const divisionOptionsList = useMemo(() => {
     // selectedTeam
-    console.log(event.divisions);
-    
     return divisionsToOptionList(event?.divisions || '');
   }, [event]);
 
@@ -567,7 +566,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
         continue;
       }
 
-      if (group.division.toLowerCase() === teamUpdateInput.division.toLowerCase()) {
+      if (group?.division?.toLowerCase() === teamUpdateInput?.division?.toLowerCase()) {
         options.push({ id: i + 1, value: group._id, text: group.name });
       }
     }
