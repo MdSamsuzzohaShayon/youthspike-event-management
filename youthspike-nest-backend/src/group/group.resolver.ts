@@ -104,14 +104,14 @@ export class GroupResolver {
         );
 
         // 🔥 4.2 Remove old group references from teams
-        if(removeteams && removeteams.length > 0){
-          updateOperations.push(
-            this.teamService.updateMany(
-              { _id: { $in: removeteams } },
-              { $pull: { groups: groupId } }
-            )
-          );
-        }
+        // if (removeteams && removeteams.length > 0) {
+        //   updateOperations.push(
+        //     this.teamService.updateMany(
+        //       { _id: { $in: removeteams } },
+        //       { $pull: { groups: groupId } }
+        //     )
+        //   );
+        // }
 
         // 🔥 4.3 Add new group to teams
         updateOperations.push(
@@ -130,13 +130,34 @@ export class GroupResolver {
         );
       }
 
+      if (removeteams?.length) {
+
+        // 🔥 4.1 Remove teams from the group
+        updateOperations.push(
+          this.groupService.updateMany(
+            { _id: { $in: otherGroupIds } },
+            { $pull: { teams: { $in: removeteams } } }
+          )
+        );
+
+        // Remove group from the team
+        updateOperations.push(
+          this.teamService.updateMany(
+            { _id: { $in: removeteams } },
+            { $pull: { groups: groupId } }
+          )
+        );
+      }
+
       // ✅ Step 5: Update group fields
-      updateOperations.push(
-        this.groupService.updateOne(
-          { _id: groupId },
-          { $set: restUpdateData }
-        )
-      );
+      if (Object.entries(restUpdateData).length > 0) {
+        updateOperations.push(
+          this.groupService.updateOne(
+            { _id: groupId },
+            { $set: restUpdateData }
+          )
+        );
+      }
 
       // ✅ Execute all in parallel
       await Promise.all(updateOperations);

@@ -1,4 +1,4 @@
-import { EPlayerStatus, IGroup, IOption, ITeam } from '@/types';
+import { EPlayerStatus, IGroup, IOption, ITeam, TUpdateGroup } from '@/types';
 import Link from 'next/link';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CldImage } from 'next-cloudinary';
@@ -15,6 +15,7 @@ import { checkGroupIsWithinTheEvent } from '@/utils/helper';
 import routerService from '@/lib/router-service';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { CURRENT_EVENT } from '@/utils/constant';
+import { UPDATE_TEAM } from '@/graphql/teams';
 
 interface ITeamCardProps {
   team: ITeam;
@@ -33,6 +34,7 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
   // Hooks
   const { ldoIdUrl } = useLdoId();
   const [mutateGroup] = useMutation(UPDATE_GROUP);
+  const [mutateTeam] = useMutation(UPDATE_TEAM);
 
   // References
   const actionEl = useRef<null | HTMLUListElement>(null);
@@ -49,25 +51,45 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
   const onGroupChange = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     const inputEl = e.target as HTMLInputElement;
-    const newGroupId = inputEl.value;
+    let newGroupId = inputEl.value || null;
 
-    // ✅ Update UI immediately
-    setSelectedGroup(newGroupId);
+    const groupSetOfEvent = new Set(groupList.map(g => g._id));
+    const groupId = checkGroupIsWithinTheEvent(groupSetOfEvent, (team?.groups || []) as unknown as string[]);
+    if(!newGroupId){
+      // ✅ Update UI immediately
+      setSelectedGroup(null);
+      newGroupId = groupId;
+    }else{
+      setSelectedGroup(newGroupId);
+    }
+    
+
+
+    if(!newGroupId){
+      console.error("Not able to remove team from the group, because there are no group available");
+      
+      return;
+    }
 
     try {
+      const updateInput: TUpdateGroup = { _id: newGroupId, teams: [team._id] };
       // removeteams
+      if(!inputEl.value){
+        updateInput.removeteams = [team._id];
+        delete updateInput.teams;
+      }
       await mutateGroup({
         variables: {
-          updateInput: { _id: newGroupId, teams: [team._id] },
+          updateInput: updateInput,
           eventId,
         },
       });
+
     } catch (error) {
       console.error(error);
 
       // ❌ rollback on error
-      const groupSetOfEvent = new Set(groupList.map(g => g._id));
-      const groupId = checkGroupIsWithinTheEvent(groupSetOfEvent, (team?.groups || []) as unknown as string[]);
+
       setSelectedGroup(groupId);
     }
   };
@@ -89,9 +111,9 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
     setActionOpen(false);
   }
 
-  const onTeamRedirect=(e: React.SyntheticEvent)=>{
+  const onTeamRedirect = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    if(eventId){
+    if (eventId) {
       SessionStorageService.setItem(CURRENT_EVENT, eventId);
     }
     // {`/teams/${team._id}/roster/${ldoIdUrl}`}
@@ -238,7 +260,7 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
           />
         </button>
         <div className="flex justify-center items-start flex-col">
-        { team.division && <span className='uppercase'>{team.division.toUpperCase()}</span>}
+          {team.division && <span className='uppercase'>{team.division.toUpperCase()}</span>}
           {/* <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`}>
             <button className="btn-info">Preview</button>
           </Link> */}
