@@ -156,6 +156,22 @@ export class PlayerQueries implements IPlayerQueries {
         teams = await this.teamService.find({ _id: { $in: [...teamIds] }, ...teamQuery });
       }
 
+
+      // temp
+      const playerList = [];
+      const playerUpdatePromises = [];
+      // ensure username
+      for (const player of players) {
+        const playerObj = {...player};
+        if(!player?.username){
+          const newUsername = this.playerService.playerUsername(player.firstName);
+          playerObj.username = newUsername;
+          playerUpdatePromises.push(this.playerService.updateOne({_id: player._id}, {$set: {username: newUsername}}));
+        }
+        playerList.push(playerObj);
+      }
+      await Promise.all(playerUpdatePromises);
+
       return {
         code: HttpStatus.OK,
         success: true,
