@@ -167,7 +167,7 @@ function PlayerAdd({ update, prevPlayer, teams, events }: IPlayerAddProps) {
     e.preventDefault();
 
     if (update) {
-      if (Object.entries(playerUpdate).length === 0) {
+      if (Object.entries(playerUpdate).length === 0 && !uploadedProfile.current) {
         setMessage({ type: "warning", code: 200, message: "Nothing to update!" });
       } else {
         if (playerUpdate.password) {

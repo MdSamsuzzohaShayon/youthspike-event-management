@@ -53,7 +53,7 @@ export class PlayerResolver {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
+  @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain, UserRole.player)
   @Mutation(() => PlayerResponse)
   async updatePlayer(
     @Args('input') input: UpdatePlayerInput,
