@@ -553,9 +553,8 @@ n - Waco Bears
 
 
 
-Database Operations 
-
-const targetEvent = db.events.findOne({_id: ObjectId("6a39511182e440a1f21ae086")})
-const teamIds = targetEvent.teams
-const teamObjectIds = teamIds.map((id) => ObjectId(id))
+server -  Do
+serving partner - ch 
+receiver - am 
+receiving partner - ks
 

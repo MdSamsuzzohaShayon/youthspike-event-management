@@ -80,12 +80,4 @@ Nest is [MIT licensed](LICENSE).
 
 
 
-
-
-
-
-
-
-Hi,
-I want to to explain the current archetrecture little bit. 
-You have a team with 5 players
+St. Paul Sleepers Minor A

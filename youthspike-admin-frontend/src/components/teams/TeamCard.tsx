@@ -116,7 +116,6 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
     if (eventId) {
       SessionStorageService.setItem(CURRENT_EVENT, eventId);
     }
-    // {`/teams/${team._id}/roster/${ldoIdUrl}`}
     routerService.push(`/teams/${team._id}/roster/${ldoIdUrl}`);
   }
 
@@ -374,7 +373,7 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
         {/* Bottom Section */}
         <div className="w-full flex items-center justify-end gap-2">
           <span className='uppercase'>Division: {team.division}</span>
-          <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`}>
+          <Link href="#" onClick={onTeamRedirect}>
             <button className="btn-info">Preview</button>
           </Link>
           <div className="flex items-center text-sm text-gray-300">
