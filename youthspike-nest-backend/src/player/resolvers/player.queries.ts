@@ -8,7 +8,6 @@ import { UserService } from 'src/user/user.service';
 import { GroupService } from 'src/group/group.service';
 import { tokenToUser } from 'src/utils/helper';
 import { UserRole } from 'src/user/user.schema';
-import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { AppResponse } from 'src/shared/response';
 import { QueryFilter, QueryOptions } from 'mongoose';
 import { Player } from '../player.schema';

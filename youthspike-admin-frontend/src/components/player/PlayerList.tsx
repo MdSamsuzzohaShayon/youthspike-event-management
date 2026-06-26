@@ -19,9 +19,11 @@ import { useApolloClient, useMutation } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
 import { createTeamsMap } from '@/utils/helper';
 import { UPDATE_TEAM } from '@/graphql/teams';
-import { DELETE_A_PLAYER, UPDATE_PLAYER } from '@/graphql/players';
+import { DELETE_A_PLAYER, UPDATE_PLAYER, UPDATE_PLAYER_RAW } from '@/graphql/players';
 import updateTeam from '@/utils/request-handlers/updateTeam';
 import updatePlayer from '@/utils/request-handlers/updatePlayer';
+import { getCookie } from '@/utils/clientCookie';
+import { BACKEND_URL } from '@/utils/keys';
 
 interface IPlayerListProps {
   playerList: IPlayerExpRel[];
@@ -76,7 +78,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     const inputEl = e.target as HTMLInputElement;
     const newCheckedMatches: Map<string, boolean> = new Map(checkedPlayers);
     if (inputEl.checked) {
-      newCheckedMatches.set(matchId, true); 
+      newCheckedMatches.set(matchId, true);
     } else {
       newCheckedMatches.set(matchId, false);
     }
@@ -95,22 +97,22 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
 
   const startAutoScroll = useCallback(() => {
 
-  
+
     const scroll = (timestamp: number) => {
       if (!isDraggingRef.current) return;
-  
+
       // Delta-time compensation: scale speed by elapsed ms / 16ms baseline
       const delta = lastScrollTimeRef.current
         ? Math.min((timestamp - lastScrollTimeRef.current) / 16, 3) // cap multiplier at 3x
         : 1;
       lastScrollTimeRef.current = timestamp;
-  
+
       const pointerY = pointerYRef.current;
       const distanceFromTop = pointerY;
       const distanceFromBottom = window.innerHeight - pointerY;
-  
+
       let scrollAmount = 0;
-  
+
       if (distanceFromTop < EDGE_DISTANCE) {
         // Closer to edge = faster; linear interpolation
         const intensity = 1 - distanceFromTop / EDGE_DISTANCE;
@@ -119,14 +121,14 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
         const intensity = 1 - distanceFromBottom / EDGE_DISTANCE;
         scrollAmount = Math.round(MAX_SPEED * intensity * delta);
       }
-  
+
       if (scrollAmount !== 0) {
         window.scrollBy({ top: scrollAmount, behavior: 'instant' });
       }
-  
+
       animationFrameRef.current = requestAnimationFrame(scroll);
     };
-  
+
     // Cancel any existing loop before starting a new one
     if (animationFrameRef.current !== null) {
       cancelAnimationFrame(animationFrameRef.current);
@@ -134,16 +136,16 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     lastScrollTimeRef.current = 0;
     animationFrameRef.current = requestAnimationFrame(scroll);
   }, []);
-  
+
   const stopAutoScroll = useCallback(() => {
     isDraggingRef.current = false;
     lastScrollTimeRef.current = 0;
-  
+
     if (animationFrameRef.current !== null) {
       cancelAnimationFrame(animationFrameRef.current);
       animationFrameRef.current = null;
     }
-  
+
     window.removeEventListener('mousemove', updatePointerPosition);
     window.removeEventListener('touchmove', updatePointerPosition);
   }, [updatePointerPosition]);
@@ -226,6 +228,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
   }
 
 
+  /*
   const handleUpdatePlayer = (event: React.SyntheticEvent, updatePlayerState: Partial<TUpdatePlayer>, playerId: string) => {
     event.preventDefault();
     const player = players.find((p) => p._id === playerId);
@@ -236,6 +239,130 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     updatePlayer({ mutatePlayer, playerUpdate: updatePlayerState, prevPlayer: player as IPlayer, setIsLoading, setMessage, uploadedProfile: null })
     window.location.reload();
   }
+    */
+
+  const handleUpdatePlayer = async (
+    event: React.SyntheticEvent,
+    updatePlayerState: Partial<TUpdatePlayer>,
+    playerId: string,
+  ) => {
+    event.preventDefault();
+
+    const player = players.find((p) => p._id === playerId);
+
+    if (!player) {
+      console.error("Player not found:", playerId);
+
+      setMessage({
+        type: "error",
+        message: "Player not found.",
+      });
+
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      console.group("========== UPDATE PLAYER ==========");
+
+      console.log("Player ID:", playerId);
+      console.log("Previous Player:", player);
+      console.log("Update Payload:", updatePlayerState);
+
+      const token = getCookie("token");
+
+      const response = await fetch(BACKEND_URL, {
+        method: "POST",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+          "apollo-require-preflight": "true",
+        },
+        body: JSON.stringify({
+          query: UPDATE_PLAYER_RAW,
+          variables: {
+            playerId,
+            input: updatePlayerState,
+            profile: null,
+          },
+        }),
+      });
+
+      console.log("HTTP Status:", response.status);
+
+      const json = await response.json();
+
+      console.log("Raw Response:");
+      console.dir(json);
+
+      if (!response.ok) {
+        throw new Error(
+          `HTTP ${response.status}: ${response.statusText}`
+        );
+      }
+
+      if (json.errors?.length) {
+        console.error("GraphQL Errors:");
+        console.dir(json.errors);
+
+        throw new Error(
+          json.errors.map((e: any) => e.message).join("\n")
+        );
+      }
+
+      const result = json.data?.updatePlayer;
+
+      if (!result) {
+        throw new Error("No updatePlayer returned from server.");
+      }
+
+      console.log("Mutation Result:");
+      console.dir(result);
+
+      if (!result.success || result.code >= 300) {
+        throw new Error(result.message);
+      }
+
+      console.log("Updated Player:");
+      console.dir(result.data);
+
+      setMessage({
+        type: "success",
+        message: result.message,
+      });
+
+      // reload for now
+      window.location.reload();
+
+      console.groupEnd();
+    } catch (error) {
+      console.group("❌ UPDATE PLAYER ERROR");
+
+      console.error(error);
+
+      if (error instanceof Error) {
+        console.error("Message:", error.message);
+
+        setMessage({
+          type: "error",
+          message: error.message,
+        });
+      } else {
+        console.error("Unknown Error:", error);
+
+        setMessage({
+          type: "error",
+          message: "Something went wrong while updating the player.",
+        });
+      }
+
+      console.groupEnd();
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleContextMenu = (e: React.SyntheticEvent) => {
     e.preventDefault(); // Prevent the default context menu from showing
