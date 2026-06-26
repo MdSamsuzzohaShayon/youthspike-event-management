@@ -7,7 +7,9 @@ let FRONTEND_URL: string = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://aslsq
 let SOCKET_URL: string = process.env.NEXT_PUBLIC_SOCKET_URL || 'wss://api.aslsquads.com/websocket';
 
 
-const APP_NAME = process.env.NEXT_PUBLIC_ || 'Pro League 2025';
+const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'Pro League 2025';
+
+
 
 
 export { NODE_ENV, BACKEND_URL, ADMIN_URL, FRONTEND_URL, APP_NAME, SOCKET_URL };

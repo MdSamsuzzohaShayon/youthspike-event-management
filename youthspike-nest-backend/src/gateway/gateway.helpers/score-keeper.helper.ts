@@ -233,10 +233,10 @@ export class ScoreKeeperHelper {
   rotateServerReceiverEqualScoring(net: ServerReceiverOnNet, previousServerOfOtherTeam: string | null) {
     // Suffle server with serving partner and receiver with receiving partner for the first net, in the first net there will be no previousServerOfOtherTeam
     const prev: Omit<Rotation, 'serverPositionPair'> = {
-      server: previousServerOfOtherTeam ? String(net.server) : String(net.receivingPartner),
-      servingPartner: previousServerOfOtherTeam ? String(net.servingPartner) : String(net.receiver),
-      receiver: previousServerOfOtherTeam ? String(net.receiver) : String(net.servingPartner),
-      receivingPartner: previousServerOfOtherTeam ? String(net.receivingPartner) : String(net.server)
+      server: String(net.server),
+      servingPartner: String(net.servingPartner),
+      receiver: String(net.receiver),
+      receivingPartner: String(net.receivingPartner),
     };
 
     /**
@@ -254,6 +254,9 @@ export class ScoreKeeperHelper {
         receivingPartner: prev.servingPartner,
         serverPositionPair: EServerPositionPair.PAIR_B_BOTTOM
       },
+
+      // Initially the server will be on the top left side  / right side from the net
+      // So only for the first play, server receiver will be altered differently
       [EServerPositionPair.PAIR_A_LEFT]: {
         server: prev.receivingPartner,
         servingPartner: prev.receiver,
