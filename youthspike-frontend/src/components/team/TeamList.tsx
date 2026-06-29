@@ -107,6 +107,7 @@ function TeamList({
       const teamRecord: ITeamScore = {
         rank: 0,
         totalMatches: 0,
+        groupMatches: 0,
         overallWins: 0,
         overallLoses: 0,
         groupWins: 0,

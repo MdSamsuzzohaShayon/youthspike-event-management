@@ -66,11 +66,11 @@ function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
       </td>
       {selectedGroup && (
         <td className="py-3 px-2">
-          {hasScores ? `${teamScores.groupWins}-${teamScores.groupLoses}` : '0-0'}
+          {hasScores ? `${teamScores.groupWins}-${teamScores.totalMatches - (teamScores.groupWins + teamScores.groupLoses)}-${teamScores.groupLoses}` : '0-0'}
         </td>
       )}
       <td className="py-3 px-2">
-        {hasScores ? `${teamScores.overallWins}-${teamScores.overallLoses}` : '0-0'}
+        {hasScores ? `${teamScores.overallWins}-${teamScores.totalMatches - (teamScores.overallWins + teamScores.overallLoses)}-${teamScores.overallLoses}` : '0-0'}
       </td>
       <td className="py-3 px-2">
         {hasScores ? teamScores.matchAvgDiff.toFixed(2) : '0.00'}
