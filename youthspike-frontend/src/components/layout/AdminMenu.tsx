@@ -7,6 +7,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ADMIN_FRONTEND_URL } from "@/utils/keys";
 import LocalStorageService from "@/utils/LocalStorageService";
+import { CURRENT_EVENT_ID } from "@/utils/constant";
 
 interface IAdminMenuProps {
   user: IUserContext | null;
@@ -29,7 +30,7 @@ function AdminMenu({ user }: IAdminMenuProps) {
     e.preventDefault();
     removeCookie("token");
     removeCookie("user");
-    removeCookie("NEXT_PUBLIC_CURRENT_EVENT_ID");
+    removeCookie(CURRENT_EVENT_ID);
     return window.location.reload();
   };
 

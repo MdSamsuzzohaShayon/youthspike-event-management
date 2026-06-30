@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { EEventPeriod, IEventWMatch, IGetEventsResponse } from '@/types/event';
+import { EEventPeriod, IGetEventsResponse } from '@/types/event';
 import EventList from './EventList';
 import SelectInput from '../elements/SelectInput';
 import InputField from '../elements/InputField';
@@ -11,7 +11,8 @@ import { QueryRef, useReadQuery } from '@apollo/client/react';
 import { setCookie } from '@/utils/cookie';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useUser } from '@/lib/UserProvider';
-import { UserRole } from '@/types';
+import { IEvent, UserRole } from '@/types';
+import { CURRENT_EVENT_ID } from '@/utils/constant';
 
 interface IEventContainerProps {
   queryRef: QueryRef<{getEvents: IGetEventsResponse;}>
@@ -45,7 +46,7 @@ function EventContainer({queryRef}: IEventContainerProps) {
     search: initialSearch || undefined,
   });
   const [currentPage, setCurrentPage] = useState<number>(initialPage);
-  const [events, setEvents] = useState<IEventWMatch[]>([]);
+  const [events, setEvents] = useState<IEvent[]>([]);
 
   // Update URL query params whenever filters or page change
   const updateQueryParams = useCallback(() => {
@@ -86,7 +87,7 @@ function EventContainer({queryRef}: IEventContainerProps) {
 
       // Only admin can bypass this
       if(event?.defaulted && user.info?.role !== UserRole.admin){
-        setCookie("NEXT_PUBLIC_CURRENT_EVENT_ID", event._id, 7);
+        setCookie(CURRENT_EVENT_ID, event._id, 7);
         // Redirect to this page
         return router.push(`/events/${event._id}/matches/${ldoIdUrl}`);
       }

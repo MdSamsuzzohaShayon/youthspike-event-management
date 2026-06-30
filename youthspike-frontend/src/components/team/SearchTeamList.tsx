@@ -77,6 +77,8 @@ function SearchTeamList({ teamList, matchList, nets, rounds, selectedGroup }: IT
 
     for (const team of teamList) {
       const teamMatches = matchesByTeam.get(team._id) || [];
+      console.log({teamMatches});
+      
       const teamRecord: ITeamScore = {
         rank: 0,
         totalMatches: 0,
@@ -204,8 +206,8 @@ function SearchTeamList({ teamList, matchList, nets, rounds, selectedGroup }: IT
               <th className="py-3 px-2">Matches</th>
               <th className="py-3 px-2">Points</th>
 
-              {selectedGroup && <th className="py-3 px-2">Group Record</th>}
               <th className="py-3 px-2">Overall</th>
+              {selectedGroup && <th className="py-3 px-2">Group Record</th>}
               <th className="py-3 px-2">Match PT DIFF/AVG</th>
               <th className="py-3 px-2">GM PT DIFF/AVG</th>
             </tr>

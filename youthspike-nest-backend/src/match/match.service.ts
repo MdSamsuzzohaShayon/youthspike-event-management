@@ -25,7 +25,7 @@ export class MatchService {
     });
   }
 
-  async find(filter: QueryFilter<Match>, limit?: number, offset?: number) {
+  async find(filter: QueryFilter<Match>, offset?: number, limit?: number) {
     let query = this.matchModel.find(filter).sort({ date: -1 }); // always sort for stable pagination
 
     if (typeof offset === 'number') {
