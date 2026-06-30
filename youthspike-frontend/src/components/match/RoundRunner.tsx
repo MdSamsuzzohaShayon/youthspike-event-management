@@ -93,7 +93,7 @@ function RoundRunner({
 
     // Main round completed
     if (currentRound?.completed) {
-      return <CompletedBox completeDialogEl={completeDialogEl} />;
+      return <CompletedBox completeDialogRef={completeDialogEl} />;
     }
 
     switch (mtp) {
