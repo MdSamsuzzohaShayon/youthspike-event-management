@@ -517,11 +517,15 @@ export class TeamQueries {
 
       const matchIds = Array.from(matchIdSet);
       const captainIds = Array.from(captainIdSet);
+      const matchQuery: QueryFilter<Match> = { _id: { $in: matchIds } };
+      if (eventIds?.length) {
+        matchQuery.event = { $in: eventIds };
+      }
 
       // 🔹 Conditional queries (avoid empty DB hits)
       const [matches, nets, rounds, captains, events, groups] = await Promise.all([
         matchIds.length
-          ? this.matchService.find({ _id: { $in: matchIds } })
+          ? this.matchService.find(matchQuery)
           : [],
         matchIds.length
           ? this.netService.find({ match: { $in: matchIds } })
@@ -546,6 +550,7 @@ export class TeamQueries {
 
 
       // Make sure groups is not null and there are no null values in groups array
+      const matchesWithoutGroup = matches.filter((m)=> !m?.group || m?.group === null || m?.group === '');
 
 
       return {

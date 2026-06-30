@@ -7,6 +7,7 @@ import { IMatch, IMatchExpRel, IMatchRelatives } from './match';
 import { INetRelatives } from './net';
 import { IRoundRelatives } from './round';
 import { IResponse } from './elements';
+import { CURRENT_EVENT_ID } from '@/utils/constant';
 
 
 
@@ -45,6 +46,7 @@ export interface ITeamFilter {
   group: string;
   limit?: number;
   offset?: number;
+  // [CURRENT_EVENT_ID]?: string;
 }
 
 

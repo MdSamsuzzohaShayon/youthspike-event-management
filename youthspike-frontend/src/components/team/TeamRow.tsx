@@ -25,16 +25,16 @@ function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
 
   const teamPoints = useMemo(
     () => {
-      if(!teamScores) return 0;
+      if (!teamScores) return 0;
       // totalMatches: number, wins: number, loss: number
       const totalMatches = selectedGroup ? teamScores.groupMatches : teamScores.totalMatches;
       const wins = selectedGroup ? teamScores.groupWins : teamScores.overallWins;
       const loss = selectedGroup ? teamScores.groupLoses : teamScores.overallLoses;
-      
+
       const draws = Math.max(0, totalMatches - wins - loss);
-  
+
       const points = wins * 3 + draws;
-  
+
       return points;
     },
     [selectedGroup, teamScores]
@@ -64,14 +64,19 @@ function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
       <td className="py-3 px-2">
         {hasScores ? `${teamPoints}` : '0'}
       </td>
+
+      {/* Overall record  */}
+      <td className="py-3 px-2">
+        {hasScores ? `${teamScores.overallWins}-${teamScores.totalMatches - (teamScores.overallWins + teamScores.overallLoses)}-${teamScores.overallLoses}` : '0-0'}
+      </td>
+
+      {/* Group record  */}
       {selectedGroup && (
         <td className="py-3 px-2">
           {hasScores ? `${teamScores.groupWins}-${teamScores.totalMatches - (teamScores.groupWins + teamScores.groupLoses)}-${teamScores.groupLoses}` : '0-0'}
         </td>
       )}
-      <td className="py-3 px-2">
-        {hasScores ? `${teamScores.overallWins}-${teamScores.totalMatches - (teamScores.overallWins + teamScores.overallLoses)}-${teamScores.overallLoses}` : '0-0'}
-      </td>
+
       <td className="py-3 px-2">
         {hasScores ? teamScores.matchAvgDiff.toFixed(2) : '0.00'}
       </td>

@@ -11,7 +11,7 @@ import { removeTeamFromStore } from '@/utils/localStorage';
 import Link from 'next/link';
 import { getUserFromCookie, removeCookie } from '@/utils/clientCookie';
 import SessionStorageService from '@/utils/SessionStorageService';
-import { DIVISION } from '@/utils/constant';
+import { CURRENT_EVENT_ID, DIVISION } from '@/utils/constant';
 
 
 
@@ -32,7 +32,7 @@ const AdminMenu = () => {
     e.preventDefault();
     removeCookie('token');
     removeCookie('user');
-    removeCookie("NEXT_PUBLIC_CURRENT_EVENT_ID");
+    removeCookie(CURRENT_EVENT_ID);
     SessionStorageService.removeItem(DIVISION);
     removeTeamFromStore();
     return window.location.reload();

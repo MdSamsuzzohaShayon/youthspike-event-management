@@ -149,6 +149,11 @@ export interface ISearchLimitFilter extends ISearchFilter {
   offset: number;
 }
 
+export interface ISearchVariables{
+  filter: Partial<ISearchLimitFilter>;
+  eventIds?: string[];
+}
+
 
 export interface IUpdateMatchResponse {
   updateMatch: {

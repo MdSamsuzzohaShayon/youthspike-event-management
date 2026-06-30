@@ -1,66 +1,98 @@
 import { NextRequest, NextResponse } from "next/server";
 import { IUser, UserRole } from "./types/user";
+import { CURRENT_EVENT_ID } from "./utils/constant";
 
-/**
- * Proxy configuration
- * Matches all routes except:
- * - api
- * - static files
- * - _next internals
- * - files with extensions
- */
 export const config = {
-  matcher: [
-    "/((?!api|static|.*\\..*|_next).*)",
-  ],
+  matcher: ["/((?!api|static|.*\\..*|_next).*)"],
 };
 
 /**
- * Proxy function
- * Runs before request completion and can redirect/rewrite responses
+ * Creates a redirect URL and automatically adds the `cei`
+ * query parameter if it doesn't already exist.
  */
+function createRedirect(
+  request: NextRequest,
+  pathname: string,
+  currentEventId: string
+) {
+  const url = request.nextUrl.clone();
+
+  url.pathname = pathname;
+
+  // Preserve existing query params and only add cei if missing.
+  if (!url.searchParams.has(CURRENT_EVENT_ID)) {
+    url.searchParams.set(CURRENT_EVENT_ID, currentEventId);
+  }
+
+  return NextResponse.redirect(url);
+}
+
 export function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { nextUrl, cookies } = request;
+  const { pathname } = nextUrl;
 
-  // Read cookies
-  const token = request.cookies.get("token");
-  const user = request.cookies.get("user");
-
-  // const currentEventId = process.env.NEXT_PUBLIC_CURRENT_EVENT_ID;
-  const currentEventId = request.cookies.get("NEXT_PUBLIC_CURRENT_EVENT_ID")?.value || null;
-  
+  const token = cookies.get("token")?.value;
+  const userCookie = cookies.get("user")?.value;
+  const currentEventId =
+    cookies.get(CURRENT_EVENT_ID)?.value ?? null;
 
   /**
-   * Root route handling (/)
+   * Nothing to do if there is no current event.
    */
-  if (pathname === "/" && currentEventId) {
-    if (token?.value && user?.value) {
-      try {
-        const userObj: IUser = JSON.parse(user.value);
+  if (!currentEventId) {
+    return NextResponse.next();
+  }
 
-        // Allow admins to access root without redirect
-        if (userObj.role === UserRole.admin) {
+  /**
+   * Redirect:
+   * / -> /events/:id/matches?cei=:id
+   *
+   * Admins are allowed to stay on "/".
+   */
+  if (pathname === "/") {
+    if (token && userCookie) {
+      try {
+        const user: IUser = JSON.parse(userCookie);
+
+        if (user.role === UserRole.admin) {
           return NextResponse.next();
         }
-      } catch {
-        // Invalid cookie JSON → fallback redirect
+      } catch (error){
+        console.error(error);
+        
+        // Ignore invalid cookie and continue redirect.
       }
     }
 
-    return NextResponse.redirect(
-      new URL(`/events/${currentEventId}/matches`, request.url)
+    return createRedirect(
+      request,
+      `/events/${currentEventId}/matches`,
+      currentEventId
     );
   }
 
   /**
-   * Redirect /events/:id → /events/:id/matches
+   * Redirect:
+   * /events/:id -> /events/:id/matches?cei=:id
    */
-  if (currentEventId && pathname === `/events/${currentEventId}`) {
-    return NextResponse.redirect(
-      new URL(`/events/${currentEventId}/matches`, request.url)
+  if (pathname === `/events/${currentEventId}`) {
+    return createRedirect(
+      request,
+      `/events/${currentEventId}/matches`,
+      currentEventId
     );
   }
 
-  // Default: allow request to continue
+  /**
+   * For every other request, ensure `cei` exists.
+   * Existing values are preserved.
+   */
+  if (!nextUrl.searchParams.has(CURRENT_EVENT_ID)) {
+    const url = nextUrl.clone();
+    url.searchParams.set(CURRENT_EVENT_ID, currentEventId);
+
+    return NextResponse.redirect(url);
+  }
+
   return NextResponse.next();
 }

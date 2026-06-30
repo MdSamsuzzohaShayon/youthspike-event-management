@@ -230,8 +230,8 @@ export class MatchQueries {
        */
       let matches = await this.matchService.find(
         matchFilter,
-        limit,
         offset,
+        limit,
       );
 
       /**

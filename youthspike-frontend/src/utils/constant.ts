@@ -45,5 +45,8 @@ const MATCH = 'match';
 const TEAM = "team";
 const PLAY_STRATEGY = "play_strategy";
 
+// params
+const CURRENT_EVENT_ID = 'cei';
+
 // eslint-disable-next-line import/prefer-default-export
-export { screen, netSize, EXTRA_HEIGHT, MUSIC_TIME_PASSED, MATCHES_LS, imgW, eventPeriods, EVENT_ITEM, LDO_ID, APP_NAME, ACCESS_CODE, MATCH, TEAM, ASSIGN_CLOCK, PLAY_STRATEGY };
+export { screen, netSize, EXTRA_HEIGHT, MUSIC_TIME_PASSED, MATCHES_LS, imgW, eventPeriods, EVENT_ITEM, LDO_ID, APP_NAME, ACCESS_CODE, MATCH, TEAM, ASSIGN_CLOCK, PLAY_STRATEGY, CURRENT_EVENT_ID };
