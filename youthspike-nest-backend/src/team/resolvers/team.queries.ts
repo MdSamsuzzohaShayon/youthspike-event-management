@@ -550,7 +550,7 @@ export class TeamQueries {
 
 
       // Make sure groups is not null and there are no null values in groups array
-      const matchesWithoutGroup = matches.filter((m)=> !m?.group || m?.group === null || m?.group === '');
+      const matchesWithoutGroup = matches.filter((m)=> !m?.group || m?.group === null || m?.group === '').map((m)=> String(m._id));
 
 
       return {

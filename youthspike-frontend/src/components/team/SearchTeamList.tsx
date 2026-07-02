@@ -7,6 +7,7 @@ import { ETeam, ITeamScore } from '@/types/team';
 import TeamRow from './TeamRow';
 import { tableVariant } from '@/utils/animation';
 import { calcScore } from '@/utils/scoreCalc';
+import { MATCH_WIN_POINTS } from '@/utils/constant';
 
 
 interface ITeamStandingsProps {
@@ -77,8 +78,8 @@ function SearchTeamList({ teamList, matchList, nets, rounds, selectedGroup }: IT
 
     for (const team of teamList) {
       const teamMatches = matchesByTeam.get(team._id) || [];
-      console.log({teamMatches});
-      
+      console.log({ teamMatches });
+
       const teamRecord: ITeamScore = {
         rank: 0,
         totalMatches: 0,
@@ -151,6 +152,22 @@ function SearchTeamList({ teamList, matchList, nets, rounds, selectedGroup }: IT
       const scoreB = teamScores.get(teamB._id);
 
       if (!scoreA || !scoreB) return 0;
+
+      // Sort by points 
+      const teamAPoints = selectedGroup ? scoreA.groupWins * MATCH_WIN_POINTS : scoreA.overallWins * MATCH_WIN_POINTS;
+      const teamBPoints = selectedGroup ? scoreB.groupWins * MATCH_WIN_POINTS : scoreB.overallWins * MATCH_WIN_POINTS;
+      if (teamAPoints > teamBPoints) return -1;
+      if (teamAPoints < teamBPoints) return 1;
+
+
+      const teamAMatches = selectedGroup ? scoreA.groupMatches : scoreA.totalMatches;
+      const teamBMatches = selectedGroup ? scoreB.groupMatches : scoreB.totalMatches;
+      const teamADraws = Math.max(0, teamAMatches - scoreA.overallWins - scoreA.overallLoses);
+      const teamBDraws = Math.max(0, teamBMatches - scoreB.overallWins - scoreB.overallLoses);
+      if (teamADraws > teamBDraws) return -1;
+      if (teamADraws < teamBDraws) return 1;
+
+
 
       if (selectedGroup) {
         // Sorting by Group Wins first
