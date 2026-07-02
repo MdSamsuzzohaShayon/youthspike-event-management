@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ITeam, ITeamScore } from '@/types';
 import TextImg from '../elements/TextImg';
 import { CldImage } from 'next-cloudinary';
+import { MATCH_WIN_POINTS } from '@/utils/constant';
 
 interface ITeamRowProps {
   team: ITeam;
@@ -33,7 +34,7 @@ function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
 
       const draws = Math.max(0, totalMatches - wins - loss);
 
-      const points = wins * 3 + draws;
+      const points = wins * MATCH_WIN_POINTS + draws;
 
       return points;
     },
