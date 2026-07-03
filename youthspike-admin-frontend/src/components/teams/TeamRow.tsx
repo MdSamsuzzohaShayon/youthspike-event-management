@@ -1,9 +1,10 @@
 /* eslint-disable react/require-default-props */
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { ITeam, ITeamScore } from '@/types';
 import TextImg from '../elements/TextImg';
 import { CldImage } from 'next-cloudinary';
+import { MATCH_WIN_POINTS } from '@/utils/constant';
 
 interface ITeamRowProps {
   team: ITeam;
@@ -15,9 +16,24 @@ interface ITeamRowProps {
 function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
   // Handle case where teamScores might be undefined or null
   const hasScores = teamScores && typeof teamScores === 'object';
-  
-  
-  
+
+  const teamPoints = useMemo(
+    () => {
+      if (!teamScores) return 0;
+      // totalMatches: number, wins: number, loss: number
+      const totalMatches = selectedGroup ? teamScores.groupMatches : teamScores.totalMatches;
+      const wins = selectedGroup ? teamScores.groupWins : teamScores.overallWins;
+      const loss = selectedGroup ? teamScores.groupLoses : teamScores.overallLoses;
+
+      const draws = Math.max(0, totalMatches - wins - loss);
+
+      const points = wins * MATCH_WIN_POINTS + draws;
+
+      return points;
+    },
+    [selectedGroup, teamScores]
+  );
+
   return (
     <tr
       key={team._id}
@@ -36,14 +52,25 @@ function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
           {team.name}
         </Link>
       </td>
+      <td className="py-3 px-2">
+        {hasScores ? `${teamScores.totalMatches}` : '0'}
+      </td>
+      <td className="py-3 px-2">
+        {hasScores ? `${teamPoints}` : '0'}
+      </td>
+
+      {/* Overall record  */}
+      <td className="py-3 px-2">
+        {hasScores ? `${teamScores.overallWins}-${teamScores.totalMatches - (teamScores.overallWins + teamScores.overallLoses)}-${teamScores.overallLoses}` : '0-0'}
+      </td>
+
+      {/* Group record  */}
       {selectedGroup && (
         <td className="py-3 px-2">
-          {hasScores ? `${teamScores.groupWins}-${teamScores.groupLoses}` : '0-0'}
+          {hasScores ? `${teamScores.groupWins}-${teamScores.totalMatches - (teamScores.groupWins + teamScores.groupLoses)}-${teamScores.groupLoses}` : '0-0'}
         </td>
       )}
-      <td className="py-3 px-2">
-        {hasScores ? `${teamScores.overallWins}-${teamScores.overallLoses}` : '0-0'}
-      </td>
+
       <td className="py-3 px-2">
         {hasScores ? teamScores.matchAvgDiff.toFixed(2) : '0.00'}
       </td>

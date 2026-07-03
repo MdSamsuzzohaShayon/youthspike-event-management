@@ -36,10 +36,22 @@ export function proxy(request: NextRequest) {
   const currentEventId =
     cookies.get(CURRENT_EVENT_ID)?.value ?? null;
 
+  // Set default queryParams division to "p1-pro*"
+  const shouldSetDefaultDivision =
+    pathname.includes('/teams') ||
+    pathname.includes('/matches') ||
+    pathname.includes('/players');
+
   /**
    * Nothing to do if there is no current event.
    */
   if (!currentEventId) {
+    // Still set default division if applicable
+    if (shouldSetDefaultDivision && !nextUrl.searchParams.has('division')) {
+      const url = nextUrl.clone();
+      url.searchParams.set('division', 'p1-pro*');
+      return NextResponse.redirect(url);
+    }
     return NextResponse.next();
   }
 
@@ -57,9 +69,9 @@ export function proxy(request: NextRequest) {
         if (user.role === UserRole.admin) {
           return NextResponse.next();
         }
-      } catch (error){
+      } catch (error) {
         console.error(error);
-        
+
         // Ignore invalid cookie and continue redirect.
       }
     }
@@ -87,10 +99,21 @@ export function proxy(request: NextRequest) {
    * For every other request, ensure `cei` exists.
    * Existing values are preserved.
    */
-  if (!nextUrl.searchParams.has(CURRENT_EVENT_ID)) {
-    const url = nextUrl.clone();
-    url.searchParams.set(CURRENT_EVENT_ID, currentEventId);
+  let needsRedirect = false;
+  const url = nextUrl.clone();
 
+  if (!nextUrl.searchParams.has(CURRENT_EVENT_ID)) {
+    url.searchParams.set(CURRENT_EVENT_ID, currentEventId);
+    needsRedirect = true;
+  }
+
+  // Set default division if on relevant pages and no division param exists
+  if (shouldSetDefaultDivision && !nextUrl.searchParams.has('division')) {
+    url.searchParams.set('division', 'p1-pro*');
+    needsRedirect = true;
+  }
+
+  if (needsRedirect) {
     return NextResponse.redirect(url);
   }
 

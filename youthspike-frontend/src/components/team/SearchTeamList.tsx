@@ -1,14 +1,11 @@
-/* eslint-disable no-restricted-syntax */
-/* eslint-disable react/require-default-props */
 import { IMatch, IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, ITeam } from '@/types';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'motion/react';
-import { ETeam, ITeamScore } from '@/types/team';
+import { ITeamScore } from '@/types/team';
 import TeamRow from './TeamRow';
 import { tableVariant } from '@/utils/animation';
 import { calcScore } from '@/utils/scoreCalc';
 import { MATCH_WIN_POINTS } from '@/utils/constant';
-
 
 interface ITeamStandingsProps {
   nets?: INetRelatives[];
@@ -18,211 +15,209 @@ interface ITeamStandingsProps {
   selectedGroup?: string | null;
 }
 
+const EMPTY_TEAM_SCORE: ITeamScore = {
+  rank: 0,
+  totalMatches: 0,
+  groupMatches: 0,
+  overallWins: 0,
+  overallLoses: 0,
+  groupWins: 0,
+  groupLoses: 0,
+  matchAvgDiff: 0,
+  gameAvgDiff: 0,
+};
 
-function SearchTeamList({ teamList, matchList, nets, rounds, selectedGroup }: ITeamStandingsProps) {
-  const [teamScores, setTeamScores] = useState<Map<string, ITeamScore>>(new Map());
+/**
+ * Safely extracts an `_id` from a field that may be populated (object) or
+ * unpopulated (raw id string/ObjectId). Returns null instead of the
+ * string "undefined" when the field is missing.
+ */
+function getEntityId(entity?: string | { _id: string } | null): string | null {
+  if (!entity) return null;
+  return typeof entity === 'object' ? entity._id : String(entity);
+}
+
+function getMatchGroupId(match: IMatchExpRel): string | null {
+  return getEntityId(match.group as string | { _id: string } | undefined);
+}
+
+/**
+ * Groups completed matches by the team ids that played in them.
+ */
+function buildMatchesByTeam(matchList: IMatchExpRel[]): Map<string, IMatch[]> {
+  const map = new Map<string, IMatch[]>();
+
+  matchList.forEach((match) => {
+    if (!match.completed) return;
+
+    const teamAId = getEntityId(match.teamA);
+    const teamBId = getEntityId(match.teamB);
+
+    if (teamAId) {
+      if (!map.has(teamAId)) map.set(teamAId, []);
+      map.get(teamAId)!.push(match as IMatch);
+    }
+    if (teamBId) {
+      if (!map.has(teamBId)) map.set(teamBId, []);
+      map.get(teamBId)!.push(match as IMatch);
+    }
+  });
+
+  return map;
+}
+
+/**
+ * Generic grouping helper reused for both nets and rounds, since both
+ * shapes are keyed by `match`.
+ */
+function groupByMatchId<T extends { match: string }>(items: T[]): Map<string, T[]> {
+  const map = new Map<string, T[]>();
+
+  items.forEach((item) => {
+    if (!map.has(item.match)) map.set(item.match, []);
+    map.get(item.match)!.push(item);
+  });
+
+  return map;
+}
+
+/**
+ * Pure function: computes a single team's standings record from its
+ * completed matches. No side effects, easy to unit test in isolation.
+ */
+function computeTeamScore(
+  teamId: string,
+  teamMatches: IMatch[],
+  netsByMatch: Map<string, INetRelatives[]>,
+  roundsByMatch: Map<string, IRoundRelatives[]>,
+  selectedGroup?: string | null,
+): ITeamScore {
+  const score: ITeamScore = { ...EMPTY_TEAM_SCORE };
+
+  let totalMatchDiff = 0;
+  let totalGameDiff = 0;
+  let totalNets = 0;
+  let totalGroupMatches = 0;
+
+  teamMatches.forEach((match) => {
+    const isTeamA = getEntityId(match.teamA) === teamId;
+    const matchNets = netsByMatch.get(match._id) ?? [];
+    const matchRounds = roundsByMatch.get(match._id) ?? [];
+
+    const { matchScore } = calcScore(matchNets, matchRounds);
+    const matchGroupId = getMatchGroupId(match);
+
+    const teamScore = isTeamA ? matchScore.teamAMScore : matchScore.teamBMScore;
+    const opponentScore = isTeamA ? matchScore.teamBMScore : matchScore.teamAMScore;
+    const isSelectedGroupMatch = !selectedGroup || selectedGroup === matchGroupId;
+    const isGroupMatch = Boolean(matchGroupId) && matchGroupId === selectedGroup;
+
+    if (isSelectedGroupMatch) {
+      totalGroupMatches += 1;
+      totalMatchDiff += teamScore - opponentScore;
+      totalGameDiff += isTeamA ? matchScore.teamAMPlusMinus : matchScore.teamBMPlusMinus;
+      totalNets += match.nets?.length ?? 0;
+    }
+
+    if (teamScore > opponentScore) {
+      score.overallWins += 1;
+      if (isGroupMatch) score.groupWins += 1;
+    } else if (opponentScore > teamScore) {
+      score.overallLoses += 1;
+      if (isGroupMatch) score.groupLoses += 1;
+    }
+  });
+
+  score.totalMatches = teamMatches.length;
+  score.groupMatches = totalGroupMatches;
+  score.matchAvgDiff = totalGroupMatches > 0 ? totalMatchDiff / totalGroupMatches : 0;
+  // Guard against divide-by-zero -> NaN when a team has group matches but no recorded nets.
+  score.gameAvgDiff = totalNets > 0 ? totalGameDiff / totalNets : 0;
+
+  return score;
+}
+
+/**
+ * Pure comparator used to rank teams. Extracted so the multi-criteria
+ * tie-break logic isn't duplicated per selectedGroup branch.
+ */
+function compareTeams(
+  teamA: ITeam,
+  teamB: ITeam,
+  teamScores: Map<string, ITeamScore>,
+  selectedGroup?: string | null,
+): number {
+  const scoreA = teamScores.get(teamA._id);
+  const scoreB = teamScores.get(teamB._id);
+  if (!scoreA || !scoreB) return 0;
+
+  const pointsA = (selectedGroup ? scoreA.groupWins : scoreA.overallWins) * MATCH_WIN_POINTS;
+  const pointsB = (selectedGroup ? scoreB.groupWins : scoreB.overallWins) * MATCH_WIN_POINTS;
+  if (pointsA !== pointsB) return pointsB - pointsA;
+
+  const matchesA = selectedGroup ? scoreA.groupMatches : scoreA.totalMatches;
+  const matchesB = selectedGroup ? scoreB.groupMatches : scoreB.totalMatches;
+  const drawsA = Math.max(0, matchesA - scoreA.overallWins - scoreA.overallLoses);
+  const drawsB = Math.max(0, matchesB - scoreB.overallWins - scoreB.overallLoses);
+  if (drawsA !== drawsB) return drawsB - drawsA;
+
+  const lossesA = selectedGroup ? scoreA.groupLoses : scoreA.overallLoses;
+  const lossesB = selectedGroup ? scoreB.groupLoses : scoreB.overallLoses;
+  if (lossesA !== lossesB) return lossesA - lossesB;
+
+  if (scoreA.matchAvgDiff !== scoreB.matchAvgDiff) return scoreB.matchAvgDiff - scoreA.matchAvgDiff;
+  if (scoreA.gameAvgDiff !== scoreB.gameAvgDiff) return scoreB.gameAvgDiff - scoreA.gameAvgDiff;
+
+  return 0;
+}
+
+function TeamStandings({
+  teamList = [],
+  matchList = [],
+  nets = [],
+  rounds = [],
+  selectedGroup = null,
+}: ITeamStandingsProps) {
+  const matchesByTeam = useMemo(() => buildMatchesByTeam(matchList), [matchList]);
+  const netsByMatch = useMemo(() => groupByMatchId(nets), [nets]);
+  const roundsByMatch = useMemo(() => groupByMatchId(rounds), [rounds]);
 
   /**
-   * Memoized Map of Matches by Team ID
+   * Derived team scores. Previously this lived in useState + useEffect,
+   * which is unnecessary for a pure derivation from props and also
+   * dropped `selectedGroup` from its dependency list (stale-closure bug:
+   * scores wouldn't recompute when the selected group changed).
    */
-  const matchesByTeam = useMemo(() => {
-    const map = new Map<string, IMatch[]>();
+  const teamScores = useMemo<Map<string, ITeamScore>>(() => {
+    const scores = new Map<string, ITeamScore>();
 
-    if (matchList) {
-      for (const match of matchList) {
-        if (match.completed) {
-          if (match.teamA) {
-            const teamAId: string = typeof match.teamA === 'object' ? match.teamA._id : String(match.teamA);
-            if (!map.has(teamAId)) map.set(teamAId, []);
-            map.get(teamAId)?.push(match as IMatch);
-          }
-          if (match.teamB) {
-            const teamBId: string = typeof match.teamB === 'object' ? match.teamB._id : String(match.teamB);
-            if (!map.has(teamBId)) map.set(teamBId, []);
-            map.get(teamBId)?.push(match as IMatch);
-          }
-        }
-      }
-    }
-
-    return map;
-  }, [matchList]);
-
-  const netsByMatch = useMemo(() => {
-    const map = new Map<string, INetRelatives[]>();
-    if (!nets) return map;
-    for (const net of nets) {
-      if (!map.has(net.match)) map.set(net.match, []);
-      map.get(net.match)?.push(net);
-    }
-    return map;
-  }, [nets]);
-
-  const roundsByMatch = useMemo(() => {
-    const map = new Map<string, IRoundRelatives[]>();
-    if (!rounds) return map;
-    for (const round of rounds) {
-      if (!map.has(round.match)) map.set(round.match, []);
-      map.get(round.match)?.push(round);
-    }
-    return map;
-  }, [rounds]);
-
-  /**
-   * Calculate Team Scores
-   */
-  const calculateTeamScore = useCallback(() => {
-    if (!teamList || teamList.length === 0) return;
-
-    const newTeamScores = new Map<string, ITeamScore>();
-
-    for (const team of teamList) {
-      const teamMatches = matchesByTeam.get(team._id) || [];
-      console.log({ teamMatches });
-
-      const teamRecord: ITeamScore = {
-        rank: 0,
-        totalMatches: 0,
-        groupMatches: 0,
-        overallWins: 0,
-        overallLoses: 0,
-        groupWins: 0,
-        groupLoses: 0,
-        matchAvgDiff: 0,
-        gameAvgDiff: 0,
-      };
-
-      let totalMatchDiff = 0;
-      let totalGameDiff = 0;
-      let totalNets = 0;
-      let totalGroupMatches = 0;
-
-      for (const match of teamMatches) {
-        const teamAId: string = typeof match.teamA === 'object' ? match.teamA._id : String(match.teamA);
-        const isTeamA = teamAId === team._id;
-        // const { teamScore, oponentScore, teamPlusMinus } = calcMatchScore(match.rounds, match.nets, isTeamA ? ETeam.teamA : ETeam.teamB);
-        const nets = netsByMatch?.get(match._id) || [];
-        const rounds = roundsByMatch?.get(match._id) || [];
-
-        const { matchScore } = calcScore(nets, rounds);
-        const matchGroupId: string | null = match?.group?._id || String(match?.group) || null;
-
-        const teamScore = isTeamA ? matchScore.teamAMScore : matchScore.teamBMScore;
-        const oponentScore = isTeamA ? matchScore.teamBMScore : matchScore.teamAMScore;
-
-        if (!selectedGroup || (selectedGroup && selectedGroup === matchGroupId)) {
-          totalGroupMatches += 1;
-          totalMatchDiff += teamScore - oponentScore;
-          totalGameDiff += isTeamA ? matchScore.teamAMPlusMinus : matchScore.teamBMPlusMinus;
-          totalNets += match.nets.length;
-        }
-
-        if (teamScore > oponentScore) {
-          // It will not affect group
-          teamRecord.overallWins += 1;
-          if (matchGroupId && matchGroupId === selectedGroup) teamRecord.groupWins += 1;
-        } else if (oponentScore > teamScore) {
-          // It will not affect group
-          teamRecord.overallLoses += 1;
-          if (matchGroupId && matchGroupId === selectedGroup) teamRecord.groupLoses += 1;
-        }
-      }
-
-      teamRecord.totalMatches = teamMatches.length;
-      teamRecord.groupMatches = totalGroupMatches;
-
-      // Only for group records
-      teamRecord.matchAvgDiff = totalGroupMatches > 0 ? totalMatchDiff / totalGroupMatches : 0;
-      teamRecord.gameAvgDiff = totalGroupMatches > 0 ? totalGameDiff / totalNets : 0;
-
-      newTeamScores.set(team._id, teamRecord);
-    }
-
-    setTeamScores(newTeamScores);
-  }, [teamList, matchesByTeam, netsByMatch, roundsByMatch]);
-
-  /**
-   * Rank Teams
-   */
-  const sortedTeams = useMemo(() => {
-    if (!teamList || teamScores.size === 0) return [];
-
-    return [...teamList].sort((teamA, teamB) => {
-      const scoreA = teamScores.get(teamA._id);
-      const scoreB = teamScores.get(teamB._id);
-
-      if (!scoreA || !scoreB) return 0;
-
-      // Sort by points 
-      const teamAPoints = selectedGroup ? scoreA.groupWins * MATCH_WIN_POINTS : scoreA.overallWins * MATCH_WIN_POINTS;
-      const teamBPoints = selectedGroup ? scoreB.groupWins * MATCH_WIN_POINTS : scoreB.overallWins * MATCH_WIN_POINTS;
-      if (teamAPoints > teamBPoints) return -1;
-      if (teamAPoints < teamBPoints) return 1;
-
-
-      const teamAMatches = selectedGroup ? scoreA.groupMatches : scoreA.totalMatches;
-      const teamBMatches = selectedGroup ? scoreB.groupMatches : scoreB.totalMatches;
-      const teamADraws = Math.max(0, teamAMatches - scoreA.overallWins - scoreA.overallLoses);
-      const teamBDraws = Math.max(0, teamBMatches - scoreB.overallWins - scoreB.overallLoses);
-      if (teamADraws > teamBDraws) return -1;
-      if (teamADraws < teamBDraws) return 1;
-
-
-
-      if (selectedGroup) {
-        // Sorting by Group Wins first
-        // if (scoreA.groupWins !== scoreB.groupWins) {
-        //   return scoreB.groupWins - scoreA.groupWins;  // Higher group wins go up
-        // }
-        // If Group Wins are tied, sort by Group Losses (lower group losses go up)
-        if (scoreA.groupLoses !== scoreB.groupLoses) {
-          return scoreA.groupLoses - scoreB.groupLoses; // Lower group losses go up
-        }
-      } else {
-        // Sorting by Overall Wins first
-        // if (scoreA.overallWins !== scoreB.overallWins) {
-        //   return scoreB.overallWins - scoreA.overallWins;  // Higher overall wins go up
-        // }
-        // If Overall Wins are tied, sort by Overall Losses (lower overall losses go up)
-        if (scoreA.overallLoses !== scoreB.overallLoses) {
-          return scoreA.overallLoses - scoreB.overallLoses; // Lower overall losses go up
-        }
-      }
-
-      // If the above criteria are tied, sort by matchAvgDiff (higher matchAvgDiff goes up)
-      if (scoreA.matchAvgDiff !== scoreB.matchAvgDiff) {
-        return scoreB.matchAvgDiff - scoreA.matchAvgDiff;
-      }
-
-      // If the matchAvgDiff is also tied, sort by gameAvgDiff (higher gameAvgDiff goes up)
-      if (scoreA.gameAvgDiff !== scoreB.gameAvgDiff) {
-        return scoreB.gameAvgDiff - scoreA.gameAvgDiff;
-      }
-
-      return 0; // If all criteria are equal, retain the original order
+    teamList.forEach((team) => {
+      const teamMatches = matchesByTeam.get(team._id) ?? [];
+      scores.set(team._id, computeTeamScore(team._id, teamMatches, netsByMatch, roundsByMatch, selectedGroup));
     });
-  }, [teamList, teamScores, selectedGroup]); // Re-run when teamList, teamScores, or selectedGroup change
 
-  /**
-   * Trigger Calculations on Dependency Changes
-   */
-  useEffect(() => {
-    calculateTeamScore();
-  }, [calculateTeamScore]);
+    return scores;
+  }, [teamList, matchesByTeam, netsByMatch, roundsByMatch, selectedGroup]);
 
-
+  const sortedTeams = useMemo<ITeam[]>(() => {
+    if (teamScores.size === 0) return [];
+    return [...teamList].sort((teamA, teamB) => compareTeams(teamA, teamB, teamScores, selectedGroup));
+  }, [teamList, teamScores, selectedGroup]);
 
   return (
     <div className="teamList w-full flex flex-col rounded-lg shadow-lg">
       <div className="overflow-x-auto">
-        <motion.table className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden" variants={tableVariant} initial="hidden" animate="visible">
+        <motion.table
+          className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden"
+          variants={tableVariant}
+          initial="hidden"
+          animate="visible"
+        >
           <thead>
             <tr className="bg-yellow-logo text-black font-semibold">
               <th className="py-3 px-2">Team</th>
-
               <th className="py-3 px-2">Matches</th>
               <th className="py-3 px-2">Points</th>
-
               <th className="py-3 px-2">Overall</th>
               {selectedGroup && <th className="py-3 px-2">Group Record</th>}
               <th className="py-3 px-2">Match PT DIFF/AVG</th>
@@ -231,7 +226,13 @@ function SearchTeamList({ teamList, matchList, nets, rounds, selectedGroup }: IT
           </thead>
           <tbody>
             {sortedTeams.map((team, index) => (
-              <TeamRow selectedGroup={selectedGroup} key={team._id} team={team} teamScores={teamScores.get(team._id)} index={index} />
+              <TeamRow
+                selectedGroup={selectedGroup}
+                key={team._id}
+                team={team}
+                teamScores={teamScores.get(team._id) ?? EMPTY_TEAM_SCORE}
+                index={index}
+              />
             ))}
           </tbody>
         </motion.table>
@@ -240,4 +241,4 @@ function SearchTeamList({ teamList, matchList, nets, rounds, selectedGroup }: IT
   );
 }
 
-export default SearchTeamList;
+export default TeamStandings;

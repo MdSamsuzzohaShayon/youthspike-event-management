@@ -218,10 +218,11 @@ export default function TeamsContainer({
   return (
     <div className="animate-fade-in">
 
-      <EventWrapper event={event} />
+      {/* Event Wrapper Start  */}
+      {event && <EventWrapper event={event} />}
 
       {/* Tabs Navigation (Client Component) */}
-      <TabsNav eventId={event?._id || ""} />
+      {event && <TabsNav eventId={event?._id || ""} />}
 
       {/* Page Content */}
       <div className="flex flex-col lg:flex-row gap-4 md:gap-6 md:mt-6">

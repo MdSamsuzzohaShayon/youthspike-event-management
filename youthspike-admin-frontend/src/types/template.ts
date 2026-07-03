@@ -76,6 +76,10 @@ export interface IPlaceholderValidationResult {
 
 
 
-export interface ITemplateResponse extends IResponse {
+export interface IGetTemplatesResponse extends IResponse {
     data: ITemplate[]
+}
+
+export interface IGetTemplateResponse extends IResponse {
+    data: ITemplate
 }

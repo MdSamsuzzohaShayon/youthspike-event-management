@@ -2,6 +2,7 @@ import { EGroupRule, EGroupType, IGroup, ISearchFilter } from "@/types";
 import React, { useMemo } from "react";
 import SelectInput from "../elements/SelectInput";
 import InputField from "../elements/InputField";
+import { divisionsToOptionList } from "@/utils/helper";
 
 interface IFilterContentProps {
   divisions: string;
@@ -30,14 +31,9 @@ function FilterContent({
 }: IFilterContentProps) {
   const divisionList = useMemo(() => {
     if (!divisions) return [];
-    return [
-      ...divisions.split(",").map((div, i) => ({
-        id: i + 1,
-        value: div.trim(),
-        label: div.trim().toUpperCase(),
-      })),
-    ];
+    return divisionsToOptionList(divisions);
   }, [divisions]);
+  
 
   const filteredGroups = useMemo(() => {
     const newGroups = filter.division
@@ -74,6 +70,11 @@ function FilterContent({
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     updateFilter("search", e.target.value);
   };
+
+  console.log(filter.division);
+  console.log(divisionList);
+  
+  
 
   return (
     <form

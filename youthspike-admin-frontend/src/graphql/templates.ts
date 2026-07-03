@@ -22,6 +22,36 @@ query GetTemplates($eventId: String!) {
 `
 export const GET_TEMPLATES = gql`${GET_TEMPLATES_RAW}`;
 
+
+export const GET_TEMPLATE = gql`
+query GetTemplate($templateId: String!) {
+  getTemplate(templateId: $templateId) {
+    success
+    message
+    code
+    __typename
+    data {
+      _id
+      createdAt
+      updatedAt
+      name
+      default
+      type
+      subject
+      event{
+        _id
+        name
+        logo
+      }
+      placeholders
+      images
+      body
+      
+    }
+  }
+}
+`;
+
 // Mutation to save template
 export const SAVE_TEMPLATE_RAW = `
   mutation CreateTemplate($input: CreateTemplateInput!){
