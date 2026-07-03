@@ -2,7 +2,7 @@
 'use client';
 
 import { QueryRef, useMutation, useReadQuery } from '@apollo/client/react';
-import { IResponse, ITemplate, ITemplateResponse } from '@/types';
+import { IGetTemplatesResponse, IResponse, ITemplate } from '@/types';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useLdoId } from '@/lib/LdoProvider';
@@ -14,7 +14,7 @@ import { handleError } from '@/utils/handleError';
 import Image from 'next/image';
 
 interface TemplatesMainContainerProps {
-  queryRef: QueryRef<{ getTemplates: ITemplateResponse }>;
+  queryRef: QueryRef<{ getTemplates: IGetTemplatesResponse }>;
   eventId: string;
 }
 
@@ -64,7 +64,7 @@ export default function TemplatesMainContainer({ queryRef, eventId }: TemplatesM
 
           // ✅ Read existing cache
           const existing = cache.readQuery<{
-            getTemplates: ITemplateResponse;
+            getTemplates: IGetTemplatesResponse;
           }>({
             query: GET_TEMPLATES,
             variables: { eventId },
@@ -114,7 +114,7 @@ export default function TemplatesMainContainer({ queryRef, eventId }: TemplatesM
           if (!updatedTemplate) return;
 
           const existing = cache.readQuery<{
-            getTemplates: ITemplateResponse;
+            getTemplates: IGetTemplatesResponse;
           }>({
             query: GET_TEMPLATES,
             variables: { eventId },

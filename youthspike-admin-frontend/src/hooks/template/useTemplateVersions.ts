@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────
 
 import { useCallback, useState } from 'react';
-import { TemplateVersion } from '../types';
+import { TemplateVersion } from '../../types';
 import { generateVersionLabel } from '@/utils/templates';
 
 const MAX_VERSIONS = 20;

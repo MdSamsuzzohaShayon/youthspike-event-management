@@ -67,6 +67,7 @@ export type TUpdateTeam = Omit<ITeamRelatives, '_id' | 'num' | 'rankLock' | 'pla
 export interface ITeamScore {
   rank: number;
   totalMatches: number;
+  groupMatches: number;
   overallWins: number;
   overallLoses: number;
   groupWins: number;

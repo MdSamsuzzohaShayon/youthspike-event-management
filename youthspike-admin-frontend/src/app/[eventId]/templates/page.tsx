@@ -7,7 +7,7 @@ import { PreloadQuery } from "@/lib/client";
 import Loader from "@/components/elements/Loader";
 import { QueryRef } from "@apollo/client/react";
 
-import { ISearchFilter, ITemplateResponse } from "@/types";
+import { IGetTemplatesResponse, ISearchFilter } from "@/types";
 import { GET_TEMPLATES } from "@/graphql/templates";
 import TemplatesMainContainer from "@/components/template/TemplatesMainContainer";
 
@@ -40,7 +40,7 @@ export default async function TemplatesPage({
       {(queryRef) => (
         <Suspense fallback={<Loader />}>
           <TemplatesMainContainer
-            queryRef={queryRef as QueryRef<{ getTemplates: ITemplateResponse }>} // Replace with proper type
+            queryRef={queryRef as QueryRef<{ getTemplates: IGetTemplatesResponse }>} // Replace with proper type
             eventId={eventId}
           />
         </Suspense>

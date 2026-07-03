@@ -17,13 +17,6 @@ function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
   // Handle case where teamScores might be undefined or null
   const hasScores = teamScores && typeof teamScores === 'object';
 
-  /*
-  Points
-  3 for a win
-  1 For a draw
-  0 for loss
-  */
-
   const teamPoints = useMemo(
     () => {
       if (!teamScores) return 0;

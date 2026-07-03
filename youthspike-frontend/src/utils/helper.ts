@@ -103,17 +103,29 @@ export const divisionsOfEvents = (events: IEvent[]): string => {
 };
 
 
-export const divisionsToOptionList = (divisions: string) => {
-  const divs: IOption[] = [];
-  if (divisions && divisions.trim() !== '') {
-    const dl = divisions.split(',');
-    for (let i = 0; i < dl.length; i += 1) {
-      if (dl[i].trim() !== '') {
-        divs.push({ id: i+1, text: dl[i], value: dl[i].toLowerCase() });
-      }
-    }
+export const divisionsToOptionList = (divisions: string): IOption[] => {
+  if (!divisions || divisions.trim() === "") {
+    return [];
   }
-  return divs;
+
+  const divisionList = divisions.split(",");
+  const options: IOption[] = [];
+
+  for (let index = 0; index < divisionList.length; index++) {
+    const division = divisionList[index].trim();
+
+    if (division === "") {
+      continue;
+    }
+
+    options.push({
+      id: options.length + 1,
+      text: division,
+      value: division.toLowerCase(),
+    });
+  }
+
+  return options;
 };
 
 

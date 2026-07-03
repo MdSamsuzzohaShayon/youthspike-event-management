@@ -21,6 +21,7 @@ import ActiveFiltersBar from "../event/ActiveFiltersBar";
 import Link from "next/link";
 import { readDate } from "@/utils/datetime";
 import TabsNav from "../event/TabsNav";
+import EventWrapper from "../event/EventWrapper";
 
 interface MatchesContainerProps {
   queryRef: QueryRef<{ searchMatches: ISearchMatchResponse }>;
@@ -294,23 +295,10 @@ export default function MatchesContainer({
     <div className="animate-fade-in">
 
       {/* Event Wrapper Start  */}
-      <div className="text-center w-full flex flex-col items-center mb-6 animate-fade-in">
-        <Link href="/">
-          <img
-            alt="youthspike-logo"
-            width="100"
-            height="100"
-            className="w-48"
-            src="/free-logo.png"
-          />
-        </Link>
-        <h1 className="text-xl md:text-2xl font-bold mt-2 text-white">{event?.name || "2025 PRO LEAGUE"}</h1>
-        <p>{readDate(event?.startDate as string)} - {readDate(event?.endDate as string)}</p>
-        <p>{event?.description}</p>
-      </div>
+      {event && <EventWrapper event={event} />}
 
       {/* Tabs Navigation (Client Component) */}
-      <TabsNav eventId={event?._id || ""} />
+      {event && <TabsNav eventId={event?._id || ""} />}
 
       {/* Page Content */}
       <div className="flex flex-col gap-4 md:gap-6 md:mt-6">

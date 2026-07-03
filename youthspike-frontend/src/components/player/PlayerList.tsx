@@ -1,8 +1,8 @@
-import { IEvent, IEventRelatives, IPlayer } from '@/types';
-import React from 'react';
-import Link from 'next/link';
-import { CldImage } from 'next-cloudinary';
-import TextImg from '../elements/TextImg';
+import { IEventRelatives, IPlayer } from "@/types";
+import React from "react";
+import Link from "next/link";
+import { CldImage } from "next-cloudinary";
+import TextImg from "../elements/TextImg";
 
 interface PlayerWithRank extends IPlayer {
   rank?: number;
@@ -13,158 +13,117 @@ interface PlayerListProps {
   events: IEventRelatives[];
 }
 
-function PlayerList({ players, events }: PlayerListProps) {
+function PlayerList({ players }: PlayerListProps) {
   const hasRank = players.length > 0 && players[0].rank != null;
 
   return (
-    <div className="playerList w-full flex flex-col">
-      <div className="overflow-x-auto w-full">
-        <div className="min-w-[700px] w-full">
-          <div className="relative w-full">
-            <table className="w-full text-left text-sm text-gray-300 bg-gray-900">
-              
-              {/* HEADER */}
-              <thead>
-                <tr className="bg-yellow-logo text-black font-semibold">
-                  
-                  {hasRank && (
-                    <th className="py-3 px-3 sticky left-0 top-0 z-20 bg-yellow-logo min-w-[80px] max-w-[80px] text-center shadow-md">
-                      Rank
-                    </th>
-                  )}
+    <div className="w-full">
+      <div className="overflow-x-auto rounded-xl border border-gray-700 bg-gray-900 shadow-lg">
+        <table className="w-full min-w-[520px] lg:min-w-full table-auto text-left text-sm text-gray-200 border-collapse">
+          {/* Header */}
+          <thead className="sticky top-0 z-20">
+            <tr className="bg-yellow-logo text-black">
+              {hasRank && (
+                <th className="w-16 px-4 py-3 text-center font-semibold whitespace-nowrap">
+                  Rank
+                </th>
+              )}
 
-                  <th
-                    className={`py-3 px-3 ${
-                      !hasRank ? 'sticky left-0 top-0 z-20 bg-yellow-logo shadow-md' : ''
-                    } min-w-[220px] max-w-[220px]`}
-                  >
-                    Player
-                  </th>
+              <th
+                className={`px-4 py-3 font-semibold whitespace-nowrap ${
+                  !hasRank
+                    ? "sticky left-0 z-30 bg-yellow-logo lg:static"
+                    : ""
+                }`}
+              >
+                Player
+              </th>
 
-                  <th className="py-3 px-3 min-w-[220px]">Email</th>
-                  <th className="py-3 px-3 min-w-[150px]">Username</th>
-                  <th className="py-3 px-3 min-w-[200px]">Events</th>
-                </tr>
-              </thead>
+              <th className="w-40 px-4 py-3 font-semibold whitespace-nowrap">
+                Username
+              </th>
+            </tr>
+          </thead>
 
-              {/* BODY */}
-              <tbody>
-                {players.map((player, index) => (
-                  <tr
-                    key={player._id}
-                    className="odd:bg-gray-800 even:bg-gray-700 hover:bg-gray-600 transition-colors duration-150"
-                  >
-                    
-                    {/* Rank */}
-                    {hasRank && (
-                      <td className="py-3 px-3 text-center">
-                        <span className="text-lg font-semibold text-gray-300">
-                          {player.rank ?? index + 1}
-                        </span>
-                      </td>
+          {/* Body */}
+          <tbody>
+            {players.map((player, index) => (
+              <tr
+                key={player._id}
+                className="border-b border-gray-800 transition-colors hover:bg-gray-800/70"
+              >
+                {/* Rank */}
+                {hasRank && (
+                  <td className="px-4 py-3 text-center align-middle">
+                    <span className="font-semibold text-gray-300">
+                      {player.rank ?? index + 1}
+                    </span>
+                  </td>
+                )}
+
+                {/* Player */}
+                <td
+                  className={`px-4 py-3 ${
+                    !hasRank
+                      ? "sticky left-0 bg-gray-900 lg:static"
+                      : ""
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    {!hasRank && (
+                      <span className="w-5 flex-shrink-0 text-center text-xs font-medium text-gray-400">
+                        {index + 1}
+                      </span>
                     )}
 
-                    {/* Player */}
-                    <td
-                      className={`py-2 px-3 ${
-                        !hasRank ? 'sticky left-0 bg-inherit z-10' : ''
-                      } min-w-[220px] max-w-[220px]`}
+                    <Link
+                      href={`/players/${player._id}`}
+                      className="flex items-center gap-3 min-w-0 group w-full"
                     >
-                      <div className="flex items-start">
-                        {!hasRank && (
-                          <span className="w-5 text-center font-medium text-sm shrink-0 mt-1">
-                            {index + 1}
-                          </span>
-                        )}
-
-                        <div className="ml-2 flex flex-col w-full">
-                          <Link
-                            href={`/players/${player._id}`}
-                            className="flex items-center"
-                          >
-                            <div className="relative w-8 h-8 flex-shrink-0">
-                              {player.profile ? (
-                                <CldImage
-                                  alt={player.firstName}
-                                  width="32"
-                                  height="32"
-                                  className="w-8 h-8 rounded-lg object-cover"
-                                  crop="fit"
-                                  src={player.profile}
-                                />
-                              ) : (
-                                <TextImg
-                                  fullText={player.firstName + player.lastName}
-                                  className="w-8 h-8 rounded-lg"
-                                />
-                              )}
-                            </div>
-
-                            <div className="ml-2 min-w-0">
-                              <div className="text-xs font-medium hover:text-yellow-500 transition-colors break-words capitalize">
-                                <span className="block sm:inline">
-                                  {player.firstName}
-                                </span>
-                                {player.lastName && (
-                                  <span className="block sm:inline">
-                                    {" "}
-                                    {player.lastName}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </Link>
-                        </div>
-                      </div>
-                    </td>
-
-                    {/* Email */}
-                    <td className="py-3 px-3">
-                      <a
-                        href={`mailto:${player.email}`}
-                        className="text-sm text-gray-300 hover:text-yellow-500 transition-colors"
-                      >
-                        {player.email}
-                      </a>
-                    </td>
-
-                    {/* Username */}
-                    <td className="py-3 px-3">
-                      <span className="text-sm text-gray-300 font-mono">
-                        @{player.username}
-                      </span>
-                    </td>
-
-                    {/* Events */}
-                    <td className="py-3 px-3">
-                      <div className="flex flex-wrap gap-1.5">
-                        {events.length > 0 ? (
-                          events.map((event) => (
-                            <span
-                              key={event._id}
-                              className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium
-                                       bg-gray-700 text-gray-300 border border-gray-600
-                                       hover:bg-yellow-500 hover:text-black hover:border-yellow-500
-                                       transition-all duration-200"
-                            >
-                              {event.name}
-                            </span>
-                          ))
+                      <div className="flex-shrink-0">
+                        {player.profile ? (
+                          <CldImage
+                            alt={`${player.firstName} ${player.lastName ?? ""}`}
+                            width={40}
+                            height={40}
+                            crop="fill"
+                            className="h-9 w-9 rounded-lg object-cover sm:h-10 sm:w-10"
+                            src={player.profile}
+                          />
                         ) : (
-                          <span className="text-sm text-gray-500 italic">
-                            No events
-                          </span>
+                          <TextImg
+                            fullText={`${player.firstName} ${player.lastName ?? ""}`}
+                            className="h-9 w-9 rounded-lg sm:h-10 sm:w-10"
+                          />
                         )}
                       </div>
-                    </td>
 
-                  </tr>
-                ))}
-              </tbody>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium capitalize transition-colors group-hover:text-yellow-400">
+                          {player.firstName}{" "}
+                          {player.lastName && player.lastName}
+                        </p>
+                      </div>
+                    </Link>
+                  </div>
+                </td>
 
-            </table>
+                {/* Username */}
+                <td className="px-4 py-3">
+                  <span className="block truncate font-mono text-xs text-gray-400 sm:text-sm">
+                    @{player.username}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {players.length === 0 && (
+          <div className="py-10 text-center text-gray-400">
+            No players found.
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

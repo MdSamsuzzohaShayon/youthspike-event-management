@@ -1,5 +1,7 @@
 import { IEvent } from '@/types';
 import { readDate } from '@/utils/datetime';
+import { CldImage } from 'next-cloudinary';
+import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 
@@ -24,13 +26,17 @@ function EventWrapper({ event }: IEventWrapperProps) {
                         {/* Logo */}
                         <Link href="/" className="group shrink-0">
                             <div className="relative rounded-xl border border-yellow-400/20 bg-white/5 p-2 backdrop-blur-md transition-all duration-300 group-hover:border-yellow-300/40 group-hover:bg-white/10">
-                                <img
-                                    alt="YouthSpike Logo"
-                                    width="100"
-                                    height="100"
-                                    className="w-14 md:w-16 object-contain transition-transform duration-300 group-hover:scale-105"
-                                    src="/free-logo.png"
-                                />
+                                {event?.logo ?
+                                    (<CldImage src={event.logo} alt="YouthSpike Logo" width="100" height="100"
+                                        className="w-14 md:w-16 object-contain transition-transform duration-300 group-hover:scale-105" />)
+                                    : (<Image
+                                        alt="YouthSpike Logo"
+                                        width="100"
+                                        height="100"
+                                        className="w-14 md:w-16 object-contain transition-transform duration-300 group-hover:scale-105"
+                                        src="/free-logo.png"
+                                    />)}
+
                             </div>
                         </Link>
 
