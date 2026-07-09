@@ -66,4 +66,7 @@ export class NetService {
   async deleteMany(filter: QueryFilter<Net>) {
     return this.netModel.deleteMany(filter);
   }
+  async insertMany(nets: Net[]) {
+    return this.netModel.insertMany(nets);
+  }
 }

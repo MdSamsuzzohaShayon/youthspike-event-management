@@ -51,6 +51,9 @@ export class EventService {
   async delete(filter: QueryFilter<Event>) {
     return this.eventModel.deleteMany(filter);
   }
+  async deleteMany(filter: QueryFilter<Event>) {
+    return this.eventModel.deleteMany(filter);
+  }
 
   async deleteOne(filter: QueryFilter<Event>) {
     return this.eventModel.deleteOne(filter);

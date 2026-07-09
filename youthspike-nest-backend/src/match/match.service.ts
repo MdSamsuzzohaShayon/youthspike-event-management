@@ -58,6 +58,10 @@ export class MatchService {
     return null;
   }
 
+  async insertMany(matches: Match[]) {
+    return this.matchModel.insertMany(matches);
+  }
+  
   async updateMany(filter: QueryFilter<Match>, matchObj: UpdateQuery<Match>) {
     return this.matchModel.updateMany(filter, matchObj);
   }

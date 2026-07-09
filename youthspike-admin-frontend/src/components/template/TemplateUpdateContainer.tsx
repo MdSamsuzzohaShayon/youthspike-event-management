@@ -1,28 +1,22 @@
 'use client';
 
-import { QueryRef, useReadQuery } from '@apollo/client/react';
+import { QueryRef, useApolloClient, useReadQuery } from '@apollo/client/react';
 import { IGetTemplateResponse } from '@/types';
-import React from 'react';
-import { useMutation, useQuery } from '@apollo/client/react';
-import { notFound, useParams, useRouter } from 'next/navigation';
+import { useMutation } from '@apollo/client/react';
+import { notFound } from 'next/navigation';
 
-import { GET_TEMPLATE, UPDATE_TEMPLATE } from '@/graphql/templates';
+import { UPDATE_TEMPLATE } from '@/graphql/templates';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useMessage } from '@/lib/MessageProvider';
 import { IResponse, ITemplate, ITemplateCreate } from '@/types';
 import TemplateFormLayout from './TemplateFormLayout';
 import { TemplateSaveResult, useTemplateForm } from '@/hooks/template/useTemplateForm';
 import routerService from '@/lib/router-service';
-import useLdoUrl from '@/hooks/useLdoUrl';
+import { updateTemplate } from '@/utils/request-handlers/updateTemplate';
 
 interface IUpdateTemplateResponse extends IResponse {
   data: ITemplate;
 }
-type UpdateTemplateMutationData = { updateTemplate: IUpdateTemplateResponse };
-type UpdateTemplateMutationVars = { id: string; input: ITemplateCreate };
-
-type GetTemplateQueryData = { template: ITemplate };
-type GetTemplateQueryVars = { id: string };
 
 interface ITemplateUpdateContainerProps {
   queryRef: QueryRef<{ getTemplate: IGetTemplateResponse }>;
@@ -31,10 +25,11 @@ interface ITemplateUpdateContainerProps {
 }
 
 function TemplateUpdateContainer({ queryRef, eventId, templateId }: ITemplateUpdateContainerProps) {
-  const [updateTemplate] = useMutation<UpdateTemplateMutationData, UpdateTemplateMutationVars>(UPDATE_TEMPLATE);
+  const [mutateTemplate] = useMutation<{ updateTemplate: IGetTemplateResponse }>(UPDATE_TEMPLATE);
   const { data } = useReadQuery(queryRef);
   const { ldoIdUrl } = useLdoId();
   const { setMessage } = useMessage();
+  const apolloClient = useApolloClient();
 
   const template = data?.getTemplate?.data;
 
@@ -46,17 +41,8 @@ function TemplateUpdateContainer({ queryRef, eventId, templateId }: ITemplateUpd
 
 
   const handleUpdateTemplate = async (input: ITemplateCreate): Promise<TemplateSaveResult> => {
-    const response = await updateTemplate({ variables: { id: templateId, input } });
-    const result = response?.data?.updateTemplate;
-
-    if (result?.code === 200) {
-      routerService.push(`/${eventId}/templates/${ldoIdUrl}`);
-      return { success: true };
-    }
-
-    const message = result?.message || 'Internal Server Error';
-    setMessage({ code: result?.code, message, type: 'error' });
-    return { success: false, message };
+    return updateTemplate({mutateTemplate, apolloClient, eventId, input, setMessage, templateId});
+    // return { success: false, message };
   };
 
   const form = useTemplateForm({
@@ -76,7 +62,7 @@ function TemplateUpdateContainer({ queryRef, eventId, templateId }: ITemplateUpd
     <div>
       <TemplateFormLayout title="Edit Email Template" saveLabel="Update Template" form={form} />;
     </div>
-  )
+  );
 }
 
 export default TemplateUpdateContainer;

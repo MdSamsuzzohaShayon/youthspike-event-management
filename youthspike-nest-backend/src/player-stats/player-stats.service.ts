@@ -21,6 +21,10 @@ export class PlayerStatsService {
     return playerStats;
   }
 
+  async insertMany(playerStats: PlayerStats[]) {
+    return this.playerStats.insertMany(playerStats);
+  }
+
   async findById(playerStatsId: string) {
     return this.playerStats.findById(playerStatsId);
   }

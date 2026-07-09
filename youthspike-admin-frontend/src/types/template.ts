@@ -2,7 +2,9 @@
 // Email Template Editor – shared TypeScript types
 // ─────────────────────────────────────────────────────────────
 
+import { useMutation } from "@apollo/client/react";
 import { IEvent, IResponse } from ".";
+import { ApolloCache } from "@apollo/client";
 
 export enum ETemplateType {
     PLAYER = "PLAYER",
@@ -83,3 +85,13 @@ export interface IGetTemplatesResponse extends IResponse {
 export interface IGetTemplateResponse extends IResponse {
     data: ITemplate
 }
+
+export type TUpdateTemplateFunction = useMutation.MutationFunction<
+  {
+    updateTemplate: IGetTemplateResponse;
+  },
+  {
+    [x: string]: any;
+  },
+  ApolloCache
+>;

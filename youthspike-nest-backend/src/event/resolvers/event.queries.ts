@@ -14,6 +14,7 @@ import { UserRole } from 'src/user/user.schema';
 import { tokenToUser } from 'src/utils/helper';
 import { Event } from '../event.schema';
 import {
+  GetArchiveEventsResponse,
   GetEventResponse,
   GetEventsResponse, GetEventWithGroupsAndUnassignedPlayersResponse, GetPlayerEventSettingResponse
 } from './event.response';
@@ -25,6 +26,8 @@ import { Group } from 'src/group/group.schema';
 import { Player } from 'src/player/player.schema';
 import { CustomGroup } from 'src/match/resolvers/match.response';
 import { CustomPlayer } from 'src/player/resolvers/player.response';
+import { ArchiveEventService, ArchiveGroupService, ArchiveMatchService, ArchiveSponsorService, ArchiveTeamService } from 'src/archive/archive.service';
+import { ArchiveEvent } from 'src/archive/archive.schema';
 
 @Injectable()
 export class EventQueries implements IEventQueries {
@@ -38,6 +41,12 @@ export class EventQueries implements IEventQueries {
     private userService: UserService,
     private groupService: GroupService,
     private sponsorService: SponsorService,
+    
+    private archiveEventService: ArchiveEventService,
+    private archiveTeamService: ArchiveTeamService,
+    private archiveMatchService: ArchiveMatchService,
+    private archiveGroupService: ArchiveGroupService,
+    private archiveSponsorService: ArchiveSponsorService,
   ) { }
 
   async getEvents(context: any, directorId?: string): Promise<GetEventsResponse> {
@@ -86,6 +95,56 @@ export class EventQueries implements IEventQueries {
         success: true,
         message: "All events",
         data: events,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  async getArchivedEvents(
+    context: any, 
+    directorId?: string
+  ): Promise<GetArchiveEventsResponse> {
+    try {
+
+      
+      // Fetch archived events with pagination
+      const archivedEvents = await this.archiveEventService.find({});
+  
+      // Optionally include related data counts
+      const enrichedEvents = await Promise.all(
+        (archivedEvents as ArchiveEvent[]).map(async (event) => {
+          const originalId = event.originalId || event._id?.toString();
+          
+          const [
+            teamsCount,
+            matchesCount,
+            groupsCount,
+            sponsorsCount,
+          ] = await Promise.all([
+            this.archiveTeamService.count({ event: originalId }),
+            this.archiveMatchService.count({ event: originalId }),
+            this.archiveGroupService.count({ event: originalId }),
+            this.archiveSponsorService.count({ event: originalId }),
+          ]);
+  
+          return {
+            ...event,
+            relatedCounts: {
+              teams: teamsCount,
+              matches: matchesCount,
+              groups: groupsCount,
+              sponsors: sponsorsCount,
+            },
+          };
+        })
+      );
+  
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'Archived events fetched successfully',
+        data: enrichedEvents,
       };
     } catch (err) {
       return AppResponse.handleError(err);

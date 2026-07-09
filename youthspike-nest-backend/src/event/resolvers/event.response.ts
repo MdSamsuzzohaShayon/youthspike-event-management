@@ -8,6 +8,7 @@ import { ProStats } from 'src/player-stats/player-stats.schema';
 import { CustomPlayerStats } from 'src/player-stats/resolvers/player-stats.response';
 import { CustomGroup, EventMatches } from 'src/match/resolvers/match.response';
 import { CustomTeam } from 'src/team/resolvers/team.response';
+import { ArchiveEvent } from 'src/archive/archive.schema';
 
 @ObjectType()
 export class CreateOrUpdateEventResponse extends AppResponse<Event> {
@@ -26,6 +27,12 @@ export class GetEventResponse extends AppResponse<Event> {
   @Field((_type) => Event, { nullable: true })
   data?: Event | null;
 }
+
+export class GetArchiveEventsResponse extends AppResponse<ArchiveEvent[]>{
+  @Field((_type) => [ArchiveEvent], { nullable: true })
+  data?: ArchiveEvent[];
+}
+// ArchiveEvent[]
 
 
 @ObjectType()

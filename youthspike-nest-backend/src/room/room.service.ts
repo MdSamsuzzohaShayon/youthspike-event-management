@@ -30,4 +30,8 @@ export class RoomService {
   async deleteMany(filter: QueryFilter<Room>) {
     return this.roomModel.deleteMany(filter);
   }
+
+  async insertMany(rooms: Room[]) {
+    return this.roomModel.insertMany(rooms);
+  }
 }

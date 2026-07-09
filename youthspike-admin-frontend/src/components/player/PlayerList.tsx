@@ -225,6 +225,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     });
     // Remove player
     // Update cache and players state
+    window.location.reload();
   }
 
 
@@ -251,8 +252,6 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     const player = players.find((p) => p._id === playerId);
 
     if (!player) {
-      console.error("Player not found:", playerId);
-
       setMessage({
         type: "error",
         message: "Player not found.",
@@ -264,12 +263,6 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     setIsLoading(true);
 
     try {
-      console.group("========== UPDATE PLAYER ==========");
-
-      console.log("Player ID:", playerId);
-      console.log("Previous Player:", player);
-      console.log("Update Payload:", updatePlayerState);
-
       const token = getCookie("token");
 
       const response = await fetch(BACKEND_URL, {
@@ -290,12 +283,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
         }),
       });
 
-      console.log("HTTP Status:", response.status);
-
       const json = await response.json();
-
-      console.log("Raw Response:");
-      console.dir(json);
 
       if (!response.ok) {
         throw new Error(
@@ -304,8 +292,6 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
       }
 
       if (json.errors?.length) {
-        console.error("GraphQL Errors:");
-        console.dir(json.errors);
 
         throw new Error(
           json.errors.map((e: any) => e.message).join("\n")
@@ -318,16 +304,9 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
         throw new Error("No updatePlayer returned from server.");
       }
 
-      console.log("Mutation Result:");
-      console.dir(result);
-
       if (!result.success || result.code >= 300) {
         throw new Error(result.message);
       }
-
-      console.log("Updated Player:");
-      console.dir(result.data);
-
       setMessage({
         type: "success",
         message: result.message,
@@ -502,6 +481,9 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
 
 
 
+
+  console.log({sortedPlayerList});
+  
 
 
 

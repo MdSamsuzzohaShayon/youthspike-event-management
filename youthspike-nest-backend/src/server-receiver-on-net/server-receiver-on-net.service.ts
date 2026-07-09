@@ -57,11 +57,18 @@ export class ServerReceiverOnNetService {
     return this.serverReceiverOnNetModel.deleteMany(filter);
   }
 
+  async insertMany(serverReceivers: ServerReceiverOnNet[]) {
+    return this.serverReceiverOnNetModel.insertMany(serverReceivers);
+  }
+
 
   // Single Play
   async createSinglePlay(net: ServerReceiverSinglePlay): Promise<ServerReceiverSinglePlay> {
     const savedNet = await this.serverReceiverOnNetSinglePlayModel.create(net);
     return savedNet;
+  }
+  async insertManySinglePlay(nets: ServerReceiverSinglePlay[]) {
+    return this.serverReceiverOnNetSinglePlayModel.insertMany(nets);
   }
 
   async updateOneSinglePlay(filter: QueryFilter<ServerReceiverSinglePlay>, updateObj: UpdateQuery<ServerReceiverSinglePlay>) {

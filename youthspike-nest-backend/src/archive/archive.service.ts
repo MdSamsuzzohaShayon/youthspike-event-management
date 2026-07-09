@@ -20,7 +20,7 @@ import {
   ArchiveTemplate,
   ArchiveUser,
 } from './archive.schema';
-import { Document, Model, QueryFilter, Types, UpdateQuery } from 'mongoose';
+import { ApplyBasicCreateCasting, DeepPartial, Document, Model, QueryFilter, Require_id, Types, UpdateQuery } from 'mongoose';
 import { Event } from 'src/event/event.schema';
 import { Group } from 'src/group/group.schema';
 import { LDO } from 'src/ldo/ldo.schema';
@@ -43,7 +43,7 @@ interface IBaseService<T> {
   findOne(filter: QueryFilter<T>): Promise<T | null>;
   find(filter: QueryFilter<T>): Promise<T[]>;
   create(data: Partial<T>): Promise<T>;
-  createMany(data: Partial<T>[]): Promise<T[]>;
+  insertMany(data: Partial<T>[]): Promise<T[]>;
   updateById(id: string, updateData: UpdateQuery<T>): Promise<T | null>;
   updateOne(filter: QueryFilter<T>, updateData: UpdateQuery<T>): Promise<any>;
   updateMany(filter: QueryFilter<T>, updateData: UpdateQuery<T>): Promise<any>;
@@ -67,33 +67,35 @@ type LeanDocument<T> = T & IBaseDocument;
 export class BaseService<T> implements IBaseService<T> {
   constructor(
     protected readonly model: Model<T>,
-    protected readonly archivedModel?: Model<any>,
+    protected readonly archivedModel?: Model<T>,
   ) { }
 
   async findById(id: string): Promise<(T & { _id: Types.ObjectId }) | null> {
     if (!Types.ObjectId.isValid(id)) {
       return null;
     }
-    const doc = await this.model.findById(id).lean();
+    const doc = await this.archivedModel.findById(id).lean();
     return doc as (T & { _id: Types.ObjectId }) | null;
   }
 
   async findOne(filter: QueryFilter<T>): Promise<(T & { _id: Types.ObjectId }) | null> {
-    const doc = await this.model.findOne(filter).lean();
+    const doc = await this.archivedModel.findOne(filter).lean();
     return doc as (T & { _id: Types.ObjectId }) | null;
   }
 
+
+
   async find(filter: QueryFilter<T>): Promise<T[]> {
-    return this.model.find(filter).lean();
+    return this.archivedModel.find(filter).lean();
   }
 
   async create(data: T): Promise<T & { _id: Types.ObjectId }> {
-    const created = new this.model(data);
+    const created = new this.archivedModel(data);
     const saved = await created.save();
     return saved.toObject() as T & { _id: Types.ObjectId };
   }
 
-  async createMany(data: Partial<T>[]): Promise<T[]> {
+  async insertMany(data: Partial<T>[]): Promise<T[]> {
     if (!data?.length) {
       return [];
     }
@@ -116,7 +118,7 @@ export class BaseService<T> implements IBaseService<T> {
         }
       }
 
-      const created = await this.model.insertMany(serializedData) as unknown as (Document & T)[];
+      const created = await this.archivedModel.insertMany(serializedData) as unknown as (Document & T)[];
 
       // Reuse array for results
       const results = new Array(created.length);
@@ -137,31 +139,31 @@ export class BaseService<T> implements IBaseService<T> {
     if (!Types.ObjectId.isValid(id)) {
       return null;
     }
-    const doc = await this.model.findByIdAndUpdate(id, updateData, { new: true }).lean();
+    const doc = await this.archivedModel.findByIdAndUpdate(id, updateData, { new: true }).lean();
     return doc as (T & { _id: Types.ObjectId }) | null;
   }
 
 
   async updateOne(filter: QueryFilter<T>, updateData: UpdateQuery<T>): Promise<any> {
-    return this.model.updateOne(filter, updateData);
+    return this.archivedModel.updateOne(filter, updateData);
   }
 
   async updateMany(filter: QueryFilter<T>, updateData: UpdateQuery<T>): Promise<any> {
-    return this.model.updateMany(filter, updateData);
+    return this.archivedModel.updateMany(filter, updateData);
   }
 
   async deleteById(id: string): Promise<any> {
     if (!Types.ObjectId.isValid(id)) {
       return null;
     }
-    return this.model.deleteOne({ _id: id });
+    return this.archivedModel.deleteOne({ _id: id });
   }
 
   async delete(filter: QueryFilter<T>): Promise<any> {
-    return this.model.deleteMany(filter);
+    return this.archivedModel.deleteMany(filter);
   }
   async deleteMany(filter: QueryFilter<T>): Promise<any> {
-    return this.model.deleteMany(filter);
+    return this.archivedModel.deleteMany(filter);
   }
 
   async archive(id: string): Promise<T | null> {
@@ -178,7 +180,7 @@ export class BaseService<T> implements IBaseService<T> {
 
     try {
       // Fetch the document with explicit typing
-      const document = await this.model
+      const document = await this.archivedModel
         .findById(id)
         .lean()
         .exec() as LeanDocument<T> | null;
@@ -201,10 +203,10 @@ export class BaseService<T> implements IBaseService<T> {
       delete archiveData.id; // Remove if using virtual id
 
       // Create archive document
-      await this.archivedModel.create(archiveData);
+      await this.archivedModel.create(archiveData as DeepPartial<ApplyBasicCreateCasting<Require_id<T>>>);
 
       // Delete original document
-      const deleteResult = await this.model.deleteOne({ _id: id });
+      const deleteResult = await this.archivedModel.deleteOne({ _id: id });
 
       if (deleteResult.deletedCount === 0) {
         console.warn(`Failed to delete original document ${id}`);
@@ -226,39 +228,40 @@ export class BaseService<T> implements IBaseService<T> {
   }
 
   async restore(id: string): Promise<T | null> {
-    if (!Types.ObjectId.isValid(id) || !this.archivedModel) {
-      return null;
-    }
+    // if (!Types.ObjectId.isValid(id) || !this.archivedModel) {
+    //   return null;
+    // }
 
-    const archived = await this.archivedModel.findById(id).lean();
-    if (!archived) {
-      return null;
-    }
+    // const archived = await this.archivedModel.findById(id).lean();
+    // if (!archived) {
+    //   return null;
+    // }
 
-    // Restore original document
-    const restoreData = { ...archived };
-    delete restoreData._id;
-    delete restoreData.originalId;
-    delete restoreData.archivedAt;
-    delete restoreData.__v;
+    // // Restore original document
+    // const restoreData = { ...archived };
+    // delete restoreData._id;
+    // delete restoreData.originalId;
+    // delete restoreData.archivedAt;
+    // delete restoreData.__v;
 
-    const restored = await this.model.create({
-      ...restoreData,
-      _id: new Types.ObjectId(archived.originalId),
-    });
+    // const restored = await this.archivedModel.create({
+    //   ...restoreData,
+    //   _id: new Types.ObjectId(archived.originalId),
+    // });
 
-    // Delete archive
-    await this.archivedModel.deleteOne({ _id: id });
+    // // Delete archive
+    // await this.archivedModel.deleteOne({ _id: id });
 
-    return restored as T;
+    // return restored as T;
+    return null;
   }
 
   async count(filter: QueryFilter<T> = {}): Promise<number> {
-    return this.model.countDocuments(filter);
+    return this.archivedModel.countDocuments(filter);
   }
 
   async exists(filter: QueryFilter<T>): Promise<boolean> {
-    const count = await this.model.countDocuments(filter).limit(1);
+    const count = await this.archivedModel.countDocuments(filter).limit(1);
     return count > 0;
   }
 }
@@ -275,11 +278,11 @@ export class ArchiveEventService extends BaseService<Event> {
 
   async findByName(name: string): Promise<Event | null> {
     if (!name) return null;
-    return this.model.findOne({ name }).lean();
+    return this.archivedModel.findOne({ name }).lean();
   }
 
   async findByDateRange(startDate: Date, endDate: Date): Promise<Event[]> {
-    return this.model.find({
+    return this.archivedModel.find({
       date: {
         $gte: startDate,
         $lte: endDate,
@@ -299,7 +302,7 @@ export class ArchiveGroupService extends BaseService<Group> {
   }
 
   async findByEventId(eventId: string): Promise<Group[]> {
-    return this.model.find({ eventId }).lean();
+    return this.archivedModel.find({ eventId }).lean();
   }
 }
 

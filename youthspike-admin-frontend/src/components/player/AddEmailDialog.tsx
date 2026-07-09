@@ -5,16 +5,16 @@ import InputField from '../elements/forms/InputField';
 import { IPlayerRank } from '@/types';
 
 interface IAddEmailDialogProps {
-  dialogRef: React.RefObject<HTMLDialogElement | null>;
+  makeCaptainWithEmailRef: React.RefObject<HTMLDialogElement | null>;
   player: IPlayerRank;
   onClose: (e: React.SyntheticEvent) => void;
   onCaptainEmail: (e: React.SyntheticEvent) => Promise<void>;
   setNewEmail: React.Dispatch<React.SetStateAction<string>>;
 }
 
-function AddEmailDialog({ dialogRef, player, onClose, onCaptainEmail, setNewEmail }: IAddEmailDialogProps) {
+function AddEmailDialog({ makeCaptainWithEmailRef, player, onClose, onCaptainEmail, setNewEmail }: IAddEmailDialogProps) {
   return (
-    <dialog ref={dialogRef} className="modal-dialog">
+    <dialog ref={makeCaptainWithEmailRef} className="modal-dialog">
       <div className="p-4">
         <Image width={imgSize.logo} height={imgSize.logo} src="/icons/close.svg" role="presentation" className="svg-white" onClick={onClose} alt="close-icon" />
         <div className="w-full py-2">

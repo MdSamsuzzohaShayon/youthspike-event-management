@@ -12,9 +12,8 @@ export class RoundService {
     return newRound;
   }
 
-  async createMany(rounds: Round[]) {
-    const newRounds = await this.roundModel.insertMany(rounds);
-    return newRounds;
+  async insertMany(rounds: Round[]) {
+    return this.roundModel.insertMany(rounds);
   }
 
 

@@ -60,7 +60,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
   const deleteEl = useRef<HTMLDialogElement | null>(null);
 
   // Reference
-  const dialogEl = useRef<HTMLDialogElement | null>(null);
+  const makeCaptainWithEmailRef = useRef<HTMLDialogElement | null>(null);
   const dialogMoveRef = useRef<HTMLDialogElement | null>(null);
 
 
@@ -152,8 +152,8 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
 
 
   const closeModal = useCallback(() => {
-    if (dialogEl.current) {
-      dialogEl.current.close();
+    if (makeCaptainWithEmailRef.current) {
+      makeCaptainWithEmailRef.current.close();
       setNewPlayerRole(null);
       setNewEmail('');
     }
@@ -161,10 +161,10 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
 
   const handleOpenDialog = useCallback((e: React.SyntheticEvent, capOrCo: UserRole) => {
     e.preventDefault();
-    if (dialogEl.current) {
+    if (makeCaptainWithEmailRef.current) {
       setNewPlayerRole(capOrCo);
       setActionOpen((prev) => !prev);
-      dialogEl.current.showModal();
+      makeCaptainWithEmailRef.current.showModal();
     }
   }, []);
 
@@ -196,9 +196,9 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
 
   const handleEmailClose = (e: React.SyntheticEvent) => {
     e.preventDefault();
-    if (dialogEl.current) {
+    if (makeCaptainWithEmailRef.current) {
       setNewPlayerRole(null);
-      dialogEl.current.close();
+      makeCaptainWithEmailRef.current.close();
     }
   }
 
@@ -397,7 +397,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
       </div>
 
       {/* Add email operation start  */}
-      <AddEmailDialog player={player} dialogRef={dialogEl} onCaptainEmail={handleCaptainEmail} onClose={handleEmailClose} setNewEmail={setNewEmail} />
+      <AddEmailDialog player={player} makeCaptainWithEmailRef={makeCaptainWithEmailRef} onCaptainEmail={handleCaptainEmail} onClose={handleEmailClose} setNewEmail={setNewEmail} />
 
       {/* Add email operation end  */}
 
