@@ -22,13 +22,11 @@ function RosterWrapper({ events, team, players, unassignedPlayers, playerRanking
   const [playerIdsToAdd, setPlayerIdsToAdd] = useState<Set<string>>(new Set());
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [selectedEvent, setSelectedEvent] = useState<IEvent | null>(null);
+
 
   // Hooks
   const [mutateTeam] = useMutation(UPDATE_TEAM);
-  const { showMessage } = useMessage();
-
-
+  const { setMessage } = useMessage();
 
 
   // Event handlers
@@ -45,10 +43,10 @@ function RosterWrapper({ events, team, players, unassignedPlayers, playerRanking
         // Need to add cache later
         window.location.reload();
       } catch (error) {
-        showMessage({ type: 'error', message: (error as Error)?.message || 'An error occurred' });
+        setMessage({ type: 'error', message: (error as Error)?.message || 'An error occurred' });
       }
     },
-    [playerIdsToAdd, team, events, mutateTeam, showMessage],
+    [playerIdsToAdd, team, events, mutateTeam, setMessage],
   );
 
 
@@ -68,8 +66,8 @@ function RosterWrapper({ events, team, players, unassignedPlayers, playerRanking
       const p = { ...players[i] };
       p.teams = team ? [team._id] : [];
 
-      p.captainofteams = p.captainofteams?.length ? [String(team._id)] : [];
-      p.cocaptainofteams = p.cocaptainofteams?.length ? [team._id] : [];
+      p.captainofteams = p.captainofteams?.length ? p.captainofteams : [];
+      p.cocaptainofteams = p.cocaptainofteams?.length ? p.cocaptainofteams : [];
 
       const obj = { ...p } as IPlayerExpRel;
 
@@ -106,17 +104,20 @@ function RosterWrapper({ events, team, players, unassignedPlayers, playerRanking
   }, [events]);
 
 
+  const currentEvent = useMemo(() => {
+    const currentEventId = SessionStorageService.getItem(CURRENT_EVENT);
 
-
-  useEffect(() => {
-    const event = SessionStorageService.getItem(CURRENT_EVENT);
-    if (event) {
-      const eventExist = events.find((e) => e._id === event);
-      if (eventExist) {
-        setSelectedEvent(eventExist);
-      }
+    if (!currentEventId) {
+      return null;
     }
+
+    return events.find(({ _id }) => _id === currentEventId) ?? null;
   }, [events]);
+
+
+
+
+
 
 
   if (addPlayer) {

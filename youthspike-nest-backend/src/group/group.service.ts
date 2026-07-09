@@ -54,6 +54,10 @@ export class GroupService {
     return updateGroup;
   }
 
+  async insertMany(groups: Group[]) {
+    return this.groupModal.insertMany(groups);
+  }
+
   async deleteMany(filter: QueryFilter<Group>) {
     return this.groupModal.deleteMany(filter);
   }

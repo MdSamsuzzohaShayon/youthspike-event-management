@@ -33,6 +33,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
   const { team, players, rankings, events, playerRanking, unassignedPlayers } = data.getTeamRoster.data;
 
 
+
   const currentEvent = SessionStorageService.getItem(CURRENT_EVENT);
   const eventIds = currentEvent ? [currentEvent] : (events?.map(e => e._id) || undefined);
 

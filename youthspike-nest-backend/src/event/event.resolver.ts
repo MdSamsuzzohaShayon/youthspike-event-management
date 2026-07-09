@@ -108,10 +108,23 @@ export class EventResolver {
     return this.eventMutations.deleteEvent(context, eventId);
   }
 
+  
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((_returns) => GetEventResponse)
+  async restoreEvent(@Context() context: any, @Args({ name: 'eventId', type: () => String }) eventId: string) {
+    return this.eventMutations.restoreEvent(context, eventId);
+  }
+
   // Queries
   @Query((__returns) => GetEventsResponse)
   async getEvents(@Context() context: any, @Args('directorId', { nullable: true }) directorId?: string) {
     return this.eventQueries.getEvents(context, directorId);
+  }
+
+  @Query((__returns) => GetEventsResponse)
+  async getArchivedEvents(@Context() context: any, @Args('directorId', { nullable: true }) directorId?: string) {
+    return this.eventQueries.getArchivedEvents(context, directorId);
   }
 
   

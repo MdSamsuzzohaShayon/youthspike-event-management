@@ -33,8 +33,10 @@ export function proxy(request: NextRequest) {
 
   const token = cookies.get("token")?.value;
   const userCookie = cookies.get("user")?.value;
-  const currentEventId =
-    cookies.get(CURRENT_EVENT_ID)?.value ?? null;
+  // const currentEventId =
+  //   cookies.get(CURRENT_EVENT_ID)?.value ?? null;
+
+  const currentEventId = "6a3c355236b002d89afc4a49";
 
   // Set default queryParams division to "p1-pro*"
   const shouldSetDefaultDivision =
@@ -66,9 +68,9 @@ export function proxy(request: NextRequest) {
       try {
         const user: IUser = JSON.parse(userCookie);
 
-        if (user.role === UserRole.admin) {
-          return NextResponse.next();
-        }
+        // if (user.role === UserRole.admin) {
+        //   return NextResponse.next();
+        // }
       } catch (error) {
         console.error(error);
 

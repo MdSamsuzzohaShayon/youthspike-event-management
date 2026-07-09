@@ -5,10 +5,11 @@ import { ConfigModule } from '@nestjs/config';
 import { PlayerMutations } from './resolvers/player.mutations';
 import { PlayerQueries } from './resolvers/player.queries';
 import { PlayerFields } from './resolvers/player.fields';
+import PlayerHelper from './resolvers/player.helpers';
 
 @Module({
   imports: [SharedModule, ConfigModule.forRoot()],
 
-  providers: [PlayerResolver, PlayerMutations, PlayerQueries, PlayerFields],
+  providers: [PlayerResolver, PlayerMutations, PlayerHelper, PlayerQueries, PlayerFields],
 })
 export class PlayerModule {}

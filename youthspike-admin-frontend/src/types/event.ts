@@ -119,6 +119,14 @@ export interface IGetPlayerEventSettingsQuery extends IResponse {
   };
 }
 
+export interface IGetArchiveEvents extends IResponse{
+  data: IEventRelatives[];
+}
+
+export interface IGetArchiveEvent extends IResponse{
+  data: IEventRelatives;
+}
+
 
 
 export interface IEventWithMatchesResponse {
@@ -151,6 +159,17 @@ export interface ICreateEventResponse extends IResponse{
 export type TDeleteEventMutationFunction = useMutation.MutationFunction<
   {
     deleteEvent: IResponse;
+  },
+  {
+    [x: string]: any;
+  },
+  ApolloCache
+>;
+
+
+export type TArchiveMutationFunction = useMutation.MutationFunction<
+  {
+    restoreEvent: IGetArchiveEvents;
   },
   {
     [x: string]: any;

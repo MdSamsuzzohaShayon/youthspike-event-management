@@ -200,6 +200,16 @@ const AdminMenu = () => {
                   </Link>
                 </li>)}
 
+                <li className="text-lg capitalize">
+                  <Link onClick={() => setIsMenuOpen(false)}
+                    href={`/archive/${ldoIdUrl}`}
+                    className="flex items-center text-yellow hover:text-yellow-500 transition-all"
+                  >
+                    <Image height={20} width={20} src="/icons/archive.svg" alt="Tournament" className="w-6 mr-4 svg-white" />
+                    Archived Events
+                  </Link>
+                </li>
+
               </>
             )}
           </ul>

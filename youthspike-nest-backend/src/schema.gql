@@ -1438,6 +1438,7 @@ type Query {
   searchTemplates(eventId: String!, filter: TemplateSearchFilter): GetTemplateSearchResponse!
   getUser(userId: String!): UserResponse!
   getEvents(directorId: String): GetEventsResponse!
+  getArchivedEvents(directorId: String): GetEventsResponse!
   getEventWithGroupsAndUnassignedPlayers(ldoId: String): GetEventWithGroupsAndUnassignedPlayersResponse!
   getPlayerEventSetting(eventId: String): GetPlayerEventSettingResponse!
   getEvent(eventId: String!): GetEventResponse!
@@ -1543,6 +1544,7 @@ type Mutation {
   cloneEvent(eventId: String!, updateInput: UpdateEventInput!): CreateOrUpdateEventResponse!
   updateEventCache(eventId: String!): CreateOrUpdateEventResponse!
   deleteEvent(eventId: String!): GetEventResponse!
+  restoreEvent(eventId: String!): GetEventResponse!
   createTeam(input: CreateTeamInput!, logo: Upload): CreateOrUpdateTeamResponse!
   updateTeam(input: UpdateTeamInput!, teamId: String!, logo: Upload): CreateOrUpdateTeamResponse!
   updateTeams(input: UpdateTeamsInput!, eventId: String!, logo: Upload): CreateOrUpdateTeamsResponse!

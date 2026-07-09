@@ -26,7 +26,7 @@ export class NetResolver {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
-  @Mutation((_returns) => GetNetResponse)
+  @Mutation((__returns) => GetNetResponse)
   async updateNet(@Args('input') input: UpdateNetInput, @Args('netId') netId: string): Promise<GetNetResponse> {
     try {
       /**
@@ -57,58 +57,10 @@ export class NetResolver {
     }
   }
 
-  /*
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
-  @Mutation((returns) => GetNetResponse)
-  async updateNetWithStats(
-    @Args('input') input: UpdateNetInput,
-    @Args('netId') netId: string,
-  ): Promise<GetNetResponse> {
-    try {
-      const netExist = await this.netService.findOne({ _id: netId });
-      if (!netExist) return AppResponse.notFound('Net');
-      const match = await this.matchService.findById(netExist.match.toString());
-      const SR_CACHE_KEY = `sr:${netId}:${match.room.toString()}`; 
-
-
-      const netCache: Net | null = await this.redisService.get(SR_CACHE_KEY);
-      if(!netCache){
-        return AppResponse.handleError({code: 410, success: false, message: "No net found in the cache!"})
-      }
-      const updatePromises = [];
-
-      updatePromises.push(this.netService.updateOne({_id: netId}, {$set: {teamAScore: netCache.teamAScore}}));
-
-      const [teamAPlayerA, teamAPlayerB, teamBPlayerA, teamBPlayerB] = await Promise.all([
-        this.redisService.get(`player:${netCache.teamAPlayerA}`),
-        this.redisService.get(`player:${netCache.teamAPlayerB}`),
-        this.redisService.get(`player:${netCache.teamBPlayerA}`),
-        this.redisService.get(`player:${netCache.teamBPlayerB}`),
-      ]);
-
-      // Create or update
-      // updatePromises.push()
-      if(teamAPlayerA){
-        const playerStats = await this.playerStatsService.findOne({player: teamAPlayerA});
-      }
-
-
-      return {
-        data: netExist,
-        code: HttpStatus.ACCEPTED,
-        message: 'Net has been updated successfully!',
-        success: true,
-      };
-    } catch (err) {
-      return AppResponse.handleError(err);
-    }
-  }
-    */
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.admin, UserRole.director, UserRole.captain, UserRole.co_captain)
-  @Mutation((returns) => GetNetsResponse)
+  @Mutation((_returns) => GetNetsResponse)
   async updateNets(
     @Args('input', { type: () => [UpdateMultipleNetInput] }) netsInput: UpdateMultipleNetInput[],
   ): Promise<GetNetsResponse> {
@@ -153,7 +105,7 @@ export class NetResolver {
     await Promise.all(teamUpdates);
   }
 
-  @Query((returns) => GetNetsResponse)
+  @Query((_returns) => GetNetsResponse)
   async getNets(@Args('roundId') roundId: string) {
     try {
       return {
@@ -166,7 +118,7 @@ export class NetResolver {
     }
   }
 
-  @Query((returns) => Net)
+  @Query((_returns) => Net)
   async getNet(@Args('netId') netId: string) {
     try {
       return {
@@ -184,7 +136,7 @@ export class NetResolver {
    * ===============================================================================================
    */
 
-  @ResolveField((returns) => Round)
+  @ResolveField((_returns) => Round)
   async round(@Parent() net: Net) {
     try {
       return this.roundService.findById(net.round.toString());

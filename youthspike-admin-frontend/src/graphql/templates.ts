@@ -110,3 +110,26 @@ mutation DeleteMutation($templateId:String!){
 `;
 
 export const DELETE_TEMPLATE = gql`${DELETE_TEMPLATE_RAW}`
+
+
+export const TEMPLATE_FRAGMENT = gql`
+  fragment TemplateFragment on Template {
+    _id
+    __typename
+    createdAt
+    updatedAt
+    name
+    default
+    type
+    subject
+    placeholders
+    images
+    body
+
+    event {
+      _id
+      name
+      logo
+    }
+  }
+`;
