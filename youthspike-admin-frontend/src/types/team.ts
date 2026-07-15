@@ -20,6 +20,7 @@ import {
   IRoundRelatives,
   TMutationFunction,
   IMatchRelatives,
+  IEmailcontent,
 } from '.';
 // @ts-ignore
 import { ApolloCache } from '@apollo/client';
@@ -165,6 +166,7 @@ interface ISearchTeamData {
   rounds: IRoundRelatives[];
   teams: ITeam[];
   captains: IPlayer[];
+  emailcontents: IEmailcontent[];
 }
 
 export interface ISearchTeamResponse extends IResponse {

@@ -561,6 +561,15 @@ query SearchTeams($eventIds: [String!], $filter: TeamSearchFilter) {
         division
         players
         captain
+        sendCredentials
+      }
+      emailcontents{
+        _id
+        subject
+        player
+        team
+        emailsender
+        senttime
       }
     }
   }

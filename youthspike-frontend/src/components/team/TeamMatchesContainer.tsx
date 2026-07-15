@@ -56,65 +56,22 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900 pb-4">
+    <div className="min-h-screen">
       {/* Header Section */}
-      <div className="header bg-gray-800 rounded-xl mb-4">
-        {/* Compact Header */}
-        <div className="border-b border-yellow-500/30 px-3 py-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <TeamLogo team={team} />
-              <div className="min-w-0">
-                <h1 className="text-sm font-bold text-white truncate leading-tight">
-                  {team?.name || "Loading..."}
-                </h1>
-                {/* <p className="text-xs text-gray-400 truncate leading-tight">
-                  {event?.name || "Loading..."}
-                </p> */}
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <StatItem label="Matches" value={matches?.length || 0} />
-            </div>
-          </div>
-        </div>
-
+      <div className="header">
         {/* Navigation */}
         <TeamNavigation events={events} ldoIdUrl={ldoIdUrl} team={team} totalPlayers={team?.players?.length || 0} />
       </div>
 
       {/* Page Content */}
-      <div className="min-h-screen">
+      <div >
         <MatchList matchList={sortedMatches} nets={nets} rounds={rounds} />
       </div>
     </div>
   );
 }
 
-const TeamLogo = ({ team }: { team: ITeam }) =>
-  team?.logo ? (
-    <CldImage
-      alt={team.name}
-      width={32}
-      height={32}
-      src={team.logo}
-      className="w-8 h-8 rounded-lg border border-yellow-500/30 object-cover object-center flex-shrink-0"
-      crop="fit"
-    />
-  ) : (
-    <TextImg
-      className="w-8 h-8 rounded-lg border border-yellow-500/30 flex-shrink-0"
-      fullText={team?.name || ""}
-      txtCls="text-sm font-bold"
-    />
-  );
 
-const StatItem = ({ label, value }: { label: string; value: number }) => (
-  <div className="text-right">
-    <div className="text-xs text-gray-400">{label}</div>
-    <div className="text-white font-bold text-sm">{value}</div>
-  </div>
-);
 
 
 

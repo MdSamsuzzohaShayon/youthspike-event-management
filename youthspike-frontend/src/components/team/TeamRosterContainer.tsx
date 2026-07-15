@@ -33,7 +33,7 @@ function TeamRosterContainer({ queryRef, teamId }: ITeamRosterContainerProps) {
    * - Avoid unnecessary spreads unless needed
    */
   const playerList = useMemo(() => {
-    if (!players?.length || !rankings?.length) return [];
+    if (!players?.length || !rankings?.length) return {activePlayers: [], inactivePlayers: []};
 
     const rankingMap = new Map<string, true>();
 
@@ -41,21 +41,27 @@ function TeamRosterContainer({ queryRef, teamId }: ITeamRosterContainerProps) {
       rankingMap.set(String(rankings[i].player), true);
     }
 
-    const result: IPlayer[] = [];
+    const activePlayers: IPlayer[] = [];
+    const inactivePlayers: IPlayer[] = [];
 
     for (let i = 0; i < players.length; i++) {
       const p = players[i];
 
       if (rankingMap.has(p._id)) {
         // Only create new object if required
-        result.push({
+        activePlayers.push({
           ...p,
           teams: [team._id as unknown as string],
         });
+      }else{
+        inactivePlayers.push({
+          ...p,
+          teams: [team._id as unknown as string],
+        })
       }
     }
 
-    return result;
+    return {activePlayers, inactivePlayers};
   }, [players, rankings, team._id]);
 
   /**
@@ -91,14 +97,15 @@ function TeamRosterContainer({ queryRef, teamId }: ITeamRosterContainerProps) {
         events={events}
         ldoIdUrl={ldoIdUrl}
         team={team}
-        totalPlayers={playerList.length}
+        totalPlayers={playerList.activePlayers.length + playerList.inactivePlayers.length}
       />
 
       <div className="relative z-10">
         <div className="animate-fadeInUp">
           <RosterWrapper
             events={events.filter((event)=> (event?.teams || []).includes(team._id))}
-            players={playerList} // ✅ USE FILTERED LIST
+            inactivePlayers={playerList.inactivePlayers} // ✅ USE FILTERED LIST
+            activePlayers={playerList.activePlayers} // ✅ USE FILTERED LIST
             team={team}
             playerRanking={playerRankingData}
           />

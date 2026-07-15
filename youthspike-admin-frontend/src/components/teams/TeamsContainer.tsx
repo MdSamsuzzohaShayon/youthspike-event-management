@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QueryRef, useApolloClient, useReadQuery } from '@apollo/client/react';
 import { useRouter } from 'next/navigation';
-import { ITeam, IRoundRelatives, ISearchFilter, IGroup, INetRelatives, ISearchTeamResponse, ITeamFilter, IMatch, IEvent, EFilterPage, IPlayer } from '@/types';
+import { ITeam, IRoundRelatives, ISearchFilter, IGroup, INetRelatives, ISearchTeamResponse, ITeamFilter, IMatch, IEvent, EFilterPage, IPlayer, IEmailcontent } from '@/types';
 import FilterContent from '../event/FilterContent';
 import { SEARCH_TEAM_LIST_LIGHT } from '@/graphql/teams';
 import SearchTeamList from './SearchTeamList';
@@ -56,6 +56,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
   const [groups, setGroups] = useState<IGroup[]>([]);
   const [events, setEvents] = useState<IEvent[]>([]);
   const [playerMap, setPlayerMap] = useState<Map<string, IPlayer>>(new Map());
+  const [emailcontents, setEmailcontents] = useState<IEmailcontent[]>([]);
 
   // Loading states
   const [hasMore, setHasMore] = useState<boolean>(true);
@@ -93,7 +94,9 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
     setPlayerMap(map);
     setEvents(searchData.events || []);
     setHasMore((searchData.teams || []).length === PAGE_SIZE);
+    setEmailcontents(searchData?.emailcontents || []);
   }, []);
+
 
   // Execute GraphQL query
   const executeSearchQuery = useCallback(
@@ -184,7 +187,6 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
 
 
   const selectedEvent = useMemo(()=> {return eventId ? events.find((e)=> e._id === eventId) : null}, [events, eventId]);
-  // const divisions = useMemo(()=> divisionsOfEvents(events), [events]);
   const divivionList = useMemo(()=> selectedEvent ? divisionsToOptionList(selectedEvent?.divisions) : [], [selectedEvent]);
 
   
@@ -265,7 +267,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
         <div className="team-list w-full flex flex-col gap-y-4">
           <div className="grid gap-4">
             {teams.length > 0 ? (
-              <SearchTeamList teamList={teams as unknown as ITeam[]} groupList={groups} event={selectedEvent || null} captainMap={playerMap} />
+              <SearchTeamList teamList={teams as unknown as ITeam[]} groupList={groups} event={selectedEvent || null} captainMap={playerMap} emailcontents={emailcontents} />
             ) : (
               <div className="text-center py-8 text-gray-400">No teams found teaming your criteria.</div>
             )}

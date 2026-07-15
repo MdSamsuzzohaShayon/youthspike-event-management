@@ -23,6 +23,7 @@ export default async function MatchesPage({ params, searchParams }: IMatchesPage
     status,
   };
 
+
   return (
     <PreloadQuery query={SEARCH_MATCHES} variables={{ eventId, filter: initialFilter }}>
       {(queryRef) => <MatchesMainContainer queryRef={queryRef as QueryRef<{ searchMatches: ISearchMatchResponse }>} eventId={eventId} initialSearchParams={{ search, division, group, status }} />}

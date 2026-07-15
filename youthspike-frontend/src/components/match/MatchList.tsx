@@ -45,7 +45,7 @@ function MatchList({ matchList = [], nets, rounds }: IMatchListProps) {
   const netMapByMatch = useMemo(() => createNetMapByMatch(nets), [nets]);
 
 
-  
+
 
   // ✅ Compute filtered matches on demand
   const filteredMatchList = useMemo(() => {
@@ -78,7 +78,7 @@ function MatchList({ matchList = [], nets, rounds }: IMatchListProps) {
   }, [filteredMatchList, currentPage]);
 
 
-  
+
 
   // ✅ Stable event listener (doesn't reset on every list change)
   useEffect(() => {
@@ -88,14 +88,14 @@ function MatchList({ matchList = [], nets, rounds }: IMatchListProps) {
     const handleRoundUpdate = (actionData: IRoundUpdateData) =>
       eventListener.handleUpdateRoundAllPages({
         matchList: filteredMatchList,
-        setMatchList: () => {}, // ✅ no need to store filtered list in state
+        setMatchList: () => { }, // ✅ no need to store filtered list in state
         actionData,
       });
 
     const handleNetUpdate = (actionData: any) =>
       eventListener.handleUpdateNetAllPages({
         matchList: filteredMatchList,
-        setMatchList: () => {},
+        setMatchList: () => { },
         actionData,
       });
 
@@ -109,18 +109,22 @@ function MatchList({ matchList = [], nets, rounds }: IMatchListProps) {
   }, [socket, dispatch, filteredMatchList]);
 
   return (
-    <div className="matchList w-full flex flex-col gap-y-4">
-      <SelectInput
-        label="Match Filter"
-        name="matchFilter"
-        optionList={filterOptions.map((o, i) => ({
-          id: i + 1,
-          text: o.text.replace(/_/g, ' '),
-          value: o.text,
-        }))}
-        defaultValue={filterOptions[0].id}
-        handleSelect={(e) => setFilter((e.target as HTMLSelectElement).value)}
-      />
+    <div className="w-full flex flex-col gap-y-4">
+      {/* <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/20 via-yellow-400/10 to-transparent rounded-3xl blur-2xl opacity-50 animate-pulse" /> */}
+
+      <div className='bg-gray-800 rounded-lg shadow overflow-hidden border border-gray-600 p-2'>
+        <SelectInput
+          label="Match Filter"
+          name="matchFilter"
+          optionList={filterOptions.map((o, i) => ({
+            id: i + 1,
+            text: o.text.replace(/_/g, ' '),
+            value: o.text,
+          }))}
+          defaultValue={filterOptions[0].id}
+          handleSelect={(e) => setFilter((e.target as HTMLSelectElement).value)}
+        />
+      </div>
 
       {paginatedMatchList.map((match) => (
         <MatchCard

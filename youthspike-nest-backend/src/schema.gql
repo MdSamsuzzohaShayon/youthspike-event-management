@@ -186,29 +186,6 @@ enum ETieBreaker {
   TIE_BREAKER_NET
 }
 
-type Team {
-  _id: String
-  createdAt: String
-  updatedAt: String
-  name: String!
-  logo: String
-  active: Boolean!
-  division: String
-  sendCredentials: Boolean
-  num: Float
-  captain: Player
-  cocaptain: Player
-  matches: [Match!]
-  events: [Event!]
-  players: [Player!]
-  moved: [Player!]
-  playerRankings: [PlayerRanking!]
-  groups: [Group!]!
-  playerRanking: PlayerRanking
-  rankings: [PlayerRankingItem!]!
-  player: PlayerRankingItem!
-}
-
 type PlayerRankingItem {
   _id: String
   createdAt: String
@@ -289,6 +266,57 @@ type Group {
   event: Event!
 }
 
+type Team {
+  _id: String
+  createdAt: String
+  updatedAt: String
+  name: String!
+  logo: String
+  active: Boolean!
+  division: String
+  sendCredentials: Boolean
+  num: Float
+  captain: Player
+  cocaptain: Player
+  matches: [Match!]
+  emailcontents: [Emailcontent!]
+  events: [Event!]
+  players: [Player!]
+  moved: [Player!]
+  playerRankings: [PlayerRanking!]
+  groups: [Group!]!
+  playerRanking: PlayerRanking
+  rankings: [PlayerRankingItem!]!
+  player: PlayerRankingItem!
+}
+
+type Emailsender {
+  _id: String
+  createdAt: String
+  updatedAt: String
+  timestamp: String!
+  sentfor: EEmailsenderFor!
+  event: Event!
+  emailcontents: [Emailcontent!]
+}
+
+enum EEmailsenderFor {
+  TEAM
+  EVENT
+}
+
+type Emailcontent {
+  _id: String
+  createdAt: String
+  updatedAt: String
+  subject: String!
+  content: String!
+  player: Player!
+  team: Team!
+  emailsender: Emailsender!
+  senttime: String
+}
+
 type LDO {
   _id: String
   createdAt: String
@@ -351,7 +379,8 @@ type Event {
   sponsors: [Sponsor!]!
   multiplayer: ProStats
   weight: ProStats
-  templates: [Template!]!
+  templates: [Template!]
+  emailsenders: [Emailsender!]
   divisions: String!
   nets: Float!
   rounds: Float!
@@ -464,6 +493,18 @@ type UserResponse {
   data: User
 }
 
+type CustomEmailcontent {
+  _id: String
+  createdAt: String
+  updatedAt: String
+  subject: String!
+  content: String!
+  player: String!
+  team: String!
+  emailsender: String!
+  senttime: String
+}
+
 type CustomTeam {
   _id: String
   createdAt: String
@@ -477,6 +518,7 @@ type CustomTeam {
   captain: String
   cocaptain: String
   matches: [String!]
+  emailcontents: [Emailcontent!]
   events: [String!]
   players: [String!]
   moved: [Player!]
@@ -521,6 +563,7 @@ type TeamWithStringPlayers {
   captain: String
   cocaptain: Player
   matches: [Match!]
+  emailcontents: [Emailcontent!]
   events: [Event!]
   players: [String!]
   moved: [Player!]
@@ -800,6 +843,7 @@ type TeamSearch {
   rounds: [CustomRound!]
   matches: [CustomMatch!]
   captains: [CustomPlayer!]
+  emailcontents: [CustomEmailcontent!]
 }
 
 type GetTeamSearchResponse {
@@ -1125,6 +1169,68 @@ type GetEventResponse {
   data: Event
 }
 
+type RelatedCounts {
+  templates: Int!
+  matches: Int!
+  groups: Int!
+  sponsors: Int!
+}
+
+type ArchiveEventCounts {
+  _id: String
+  createdAt: String
+  updatedAt: String
+  name: String!
+  logo: String
+  startDate: String!
+  endDate: String!
+  active: Boolean!
+  sendCredentials: Boolean
+  playerLimit: Int!
+  fwango: String
+  defaulted: Boolean
+  ldo: LDO!
+  players: [Player!]!
+  teams: [Team!]!
+  matches: [Match!]!
+  groups: [Group!]!
+  sponsors: [Sponsor!]!
+  multiplayer: ProStats
+  weight: ProStats
+  templates: [Template!]
+  emailsenders: [Emailsender!]
+  divisions: String!
+  nets: Float!
+  rounds: Float!
+  netVariance: Float!
+  homeTeam: String!
+  autoAssign: Boolean!
+  autoAssignLogic: String!
+  rosterLock: String!
+  tieBreaking: String
+  timeout: Float!
+  coachPassword: String!
+  description: String
+  location: String
+  accessCode: String
+  defaultSponsor: Boolean
+  archivedAt: DateTime!
+  originalId: String!
+  relatedCounts: RelatedCounts!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type GetArchiveEventsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [ArchiveEventCounts!]
+}
+
 type CustomEvent {
   _id: String
   createdAt: String
@@ -1146,7 +1252,8 @@ type CustomEvent {
   sponsors: [Sponsor!]!
   multiplayer: ProStats
   weight: ProStats
-  templates: [Template!]!
+  templates: [Template!]
+  emailsenders: [Emailsender!]
   divisions: String!
   nets: Float!
   rounds: Float!
@@ -1438,7 +1545,7 @@ type Query {
   searchTemplates(eventId: String!, filter: TemplateSearchFilter): GetTemplateSearchResponse!
   getUser(userId: String!): UserResponse!
   getEvents(directorId: String): GetEventsResponse!
-  getArchivedEvents(directorId: String): GetEventsResponse!
+  getArchivedEvents(directorId: String): GetArchiveEventsResponse!
   getEventWithGroupsAndUnassignedPlayers(ldoId: String): GetEventWithGroupsAndUnassignedPlayersResponse!
   getPlayerEventSetting(eventId: String): GetPlayerEventSettingResponse!
   getEvent(eventId: String!): GetEventResponse!
@@ -1447,7 +1554,7 @@ type Query {
   getTeam(teamId: String!): GetTeamResponse!
   getStatsOfPlayers(teamId: String!): GetPlayerStatsResponse!
   getTeamRoster(teamId: String!): GetTeamRosterResponse!
-  getTeamMatches(teamId: String!): GetTeamMatchesResponse!
+  getTeamMatches(teamId: String!, eventIds: [String!]): GetTeamMatchesResponse!
   searchTeams(eventIds: [String!], filter: TeamSearchFilter): GetTeamSearchResponse!
   getTeamWithGroupsAndUnassignedPlayers(teamId: String!, ldoId: String): GetTeamWithGroupsAndUnAssignedPlayersResponse!
   getMatches(filter: FilterQueryInput): GetMatchesResponse!

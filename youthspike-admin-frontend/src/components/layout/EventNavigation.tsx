@@ -8,6 +8,7 @@ import { readDate } from '@/utils/datetime';
 import { useLdoId } from '@/lib/LdoProvider';
 import { IUserContext, UserRole } from '@/types/user';
 import { getUserFromCookie } from '@/utils/clientCookie';
+import { FRONTEND_URL } from '@/utils/keys';
 
 interface IProps {
   event: IEvent | null;
@@ -184,7 +185,7 @@ const NavigationBar = ({
     },
     {
       label: 'Team Standings',
-      href: `/${eventId}/teamstandings/${ldoIdUrl}`,
+      href: `${FRONTEND_URL}/events/${eventId}/teams/${ldoIdUrl}`,
       shouldShow: !isPlayer
     },
     {

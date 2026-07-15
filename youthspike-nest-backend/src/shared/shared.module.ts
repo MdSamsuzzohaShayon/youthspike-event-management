@@ -83,6 +83,7 @@ import {
   ArchiveServerReceiverOnNetService,
   ArchiveServerReceiverSinglePlayService,
 } from 'src/archive/archive.service';
+import { Emailcontent, EmailcontentSchemaFactory, Emailsender, EmailsenderSchemaFactory } from 'src/emailsender/emailsernder.schema';
 
 @Module({
   imports: [
@@ -178,6 +179,16 @@ import {
       {
         name: Template.name,
         useFactory: TemplateSchemaFactory,
+      },
+
+      {
+        name: Emailsender.name,
+        useFactory: EmailsenderSchemaFactory,
+      },
+
+      {
+        name: Emailcontent.name,
+        useFactory: EmailcontentSchemaFactory,
       },
 
 

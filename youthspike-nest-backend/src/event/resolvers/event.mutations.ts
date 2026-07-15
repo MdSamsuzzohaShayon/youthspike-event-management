@@ -141,7 +141,8 @@ export class EventMutations implements IEventMutations {
         teams: [],
         matches: [],
         groups: [],
-        templates: []
+        templates: [],
+        emailsenders: []
       };
 
       const savedEvent = await this.eventService.create(eventData);
@@ -579,8 +580,12 @@ export class EventMutations implements IEventMutations {
 
 
       // Update ldo, player 
-      promisesToUpdate.push(this.ldoService.updateOne({ events: eventId }, { $addToSet: { archivedEvents: eventId } }));
-      promisesToUpdate.push(this.playerService.updateMany({ events: eventId }, { $addToSet: { archivedEvents: eventId } }));
+      promisesToUpdate.push(this.ldoService.updateOne({ events: eventId }, { $addToSet: { archivedEvents: eventId }
+        // , $pull: {events: eventId} 
+      }));
+      promisesToUpdate.push(this.playerService.updateMany({ events: eventId }, { $addToSet: { archivedEvents: eventId }
+        // , $pull: {events: eventId} 
+      }));
 
       // net, player ranking, room, round, server receiver on net -> non related
       if (nets.length > 0) {

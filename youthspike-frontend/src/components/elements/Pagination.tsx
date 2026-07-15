@@ -45,7 +45,7 @@ function Pagination({
           width={20}
           className="mr-2 svg-white transform rotate-180"
           src="/icons/right-arrow.svg"
-        />{" "}
+        />
         Prev
       </button>
 
@@ -59,7 +59,7 @@ function Pagination({
         disabled={currentPage === totalPages}
         className="flex items-center px-6 py-3 rounded-full bg-yellow-400 text-black font-semibold transition-all duration-300 hover:bg-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Next{" "}
+        Next
         <Image
           alt="Right-arrow"
           height={20}

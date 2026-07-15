@@ -71,9 +71,6 @@ function FilterContent({
     updateFilter("search", e.target.value);
   };
 
-  console.log(filter.division);
-  console.log(divisionList);
-  
   
 
   return (

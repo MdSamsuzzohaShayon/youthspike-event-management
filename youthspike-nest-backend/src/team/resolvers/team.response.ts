@@ -10,6 +10,8 @@ import { Net } from 'src/net/net.schema';
 import { CustomPlayer, CustomPlayerRanking, CustomPlayerRankingItem } from 'src/player/resolvers/player.response';
 import { PlayerStatsEntry, CustomEvent } from 'src/event/resolvers/event.response';
 import { CustomGroup } from 'src/match/resolvers/match.response';
+import { Emailcontent } from 'src/emailsender/emailsernder.schema';
+import { CustomEmailcontent, CustomEmailsender } from 'src/emailsender/emailsender.response';
 
 
 @ObjectType()
@@ -318,6 +320,9 @@ export class TeamSearch {
 
   @Field((_type) => [CustomPlayer], { nullable: true })
   captains: CustomPlayer[];
+
+  @Field((_type) => [CustomEmailcontent], { nullable: true })
+  emailcontents: CustomEmailcontent[];
 }
 
 @ObjectType()

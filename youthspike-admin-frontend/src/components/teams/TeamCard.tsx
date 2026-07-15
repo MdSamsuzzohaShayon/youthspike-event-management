@@ -1,4 +1,4 @@
-import { EPlayerStatus, IGroup, IOption, ITeam, TUpdateGroup } from '@/types';
+import { EPlayerStatus, IEmailcontent, IGroup, IOption, ITeam, TUpdateGroup } from '@/types';
 import Link from 'next/link';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CldImage } from 'next-cloudinary';
@@ -11,17 +11,19 @@ import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
 import TextImg from '../elements/TextImg';
 import { useMutation } from '@apollo/client/react';
-import { checkGroupIsWithinTheEvent } from '@/utils/helper';
+import { checkGroupIsWithinTheEvent, getLatestEmailContent } from '@/utils/helper';
 import routerService from '@/lib/router-service';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { CURRENT_EVENT } from '@/utils/constant';
 import { UPDATE_TEAM } from '@/graphql/teams';
+import { formatEmailSentTime, readDate } from '@/utils/datetime';
 
 interface ITeamCardProps {
   team: ITeam;
   eventId: string;
   groupList: IGroup[];
   isChecked: boolean;
+  emailcontents?: IEmailcontent[];
   onCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
   onSendCredential: (e: React.SyntheticEvent, teamId: string) => void;
   onMoveTeamOpen: (e: React.SyntheticEvent, team: ITeam) => void;
@@ -30,7 +32,7 @@ interface ITeamCardProps {
 
 
 
-function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCredential, onMoveTeamOpen, onDeleteTeamOpen }: ITeamCardProps) {
+function TeamCard({ team, eventId, groupList, isChecked, emailcontents, onCheckedTeam, onSendCredential, onMoveTeamOpen, onDeleteTeamOpen }: ITeamCardProps) {
   // Hooks
   const { ldoIdUrl } = useLdoId();
   const [mutateGroup] = useMutation(UPDATE_GROUP);
@@ -45,6 +47,7 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
 
 
 
+
   const toggleActionMenu = () => setActionOpen((prev) => !prev);
 
 
@@ -55,26 +58,26 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
 
     const groupSetOfEvent = new Set(groupList.map(g => g._id));
     const groupId = checkGroupIsWithinTheEvent(groupSetOfEvent, (team?.groups || []) as unknown as string[]);
-    if(!newGroupId){
+    if (!newGroupId) {
       // ✅ Update UI immediately
       setSelectedGroup(null);
       newGroupId = groupId;
-    }else{
+    } else {
       setSelectedGroup(newGroupId);
     }
-    
 
 
-    if(!newGroupId){
+
+    if (!newGroupId) {
       console.error("Not able to remove team from the group, because there are no group available");
-      
+
       return;
     }
 
     try {
       const updateInput: TUpdateGroup = { _id: newGroupId, teams: [team._id] };
       // removeteams
-      if(!inputEl.value){
+      if (!inputEl.value) {
         updateInput.removeteams = [team._id];
         delete updateInput.teams;
       }
@@ -169,6 +172,8 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
       team.captain && <TextImg className="w-8 h-8 rounded-full bg-gray-600" fullText={team.captain.firstName + team.captain.lastName} />
     );
 
+
+
   const ActionMenu = () => {
     // href={`/teams/${team._id}/${ldoIdUrl}`}
     const handleEditRedirect = (e: React.SyntheticEvent) => {
@@ -210,7 +215,7 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
               }}
               className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer"
             >
-              <Image src="/icons/send-email.svg" alt={`${sendCredentialLabel} Credential`} width={16} height={16} className={team.sendCredentials ? 'svg-green' : 'svg-white'} />
+              <Image src={team.sendCredentials ? "/icons/sent-email.svg" : "/icons/send-email.svg"} alt={`${sendCredentialLabel} Credential`} width={16} height={16} className={team.sendCredentials ? 'svg-green' : 'svg-white'} />
               <span className="text-sm">{sendCredentialLabel} Credential</span>
             </li>
 
@@ -226,6 +231,29 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
         )}
       </AnimatePresence>
     );
+  }
+
+  const EmailControl = () => {
+    // Get time of last email send
+    const latest = getLatestEmailContent(emailcontents ?? []);
+    const formatted = latest?.senttime ? formatEmailSentTime(latest.senttime) : null;
+    return (<>
+      <button onClick={(e) => handleSendCredential(e, team._id)} className="p-1.5 rounded-lg hover:bg-gray-700 transition-colors" aria-label={`${sendCredentialLabel} Credential`}>
+        <Image
+          src="/icons/send-email.svg"
+          alt="Send Email"
+          width={18}
+          height={18}
+          className={`h-12 ${team.sendCredentials ? 'svg-green' : 'svg-white'} opacity-80 hover:opacity-100 transition-opacity`}
+        />
+        {latest && formatted && (
+          <span className='flex flex-col gap-y-0 text-[0.8rem]'>
+            <span>{formatted.date}</span>
+            <span>{formatted.time}</span>
+          </span>
+        )}
+      </button>
+    </>);
   }
 
   const HeaderSection = () => (
@@ -249,15 +277,8 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
 
       {/* Right: Actions and Preview */}
       <div className="flex items-center justify-end gap-3 flex-1">
-        <button onClick={(e) => handleSendCredential(e, team._id)} className="p-1.5 rounded-lg hover:bg-gray-700 transition-colors" aria-label={`${sendCredentialLabel} Credential`}>
-          <Image
-            src="/icons/send-email.svg"
-            alt="Send Email"
-            width={18}
-            height={18}
-            className={`h-12 ${team.sendCredentials ? 'svg-green' : 'svg-white'} opacity-80 hover:opacity-100 transition-opacity`}
-          />
-        </button>
+
+        <EmailControl />
         <div className="flex justify-center items-start flex-col">
           {team.division && <span className='uppercase'>{team.division.toUpperCase()}</span>}
           {/* <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`}>
@@ -383,14 +404,8 @@ function TeamCard({ team, eventId, groupList, isChecked, onCheckedTeam, onSendCr
               {activePlayers.length + inactivePlayers.length}
             </span>
           </div>
-          <Image
-            onClick={(e) => onSendCredential(e, team._id)}
-            src="/icons/send-email.svg"
-            alt="Send Email"
-            width={24}
-            height={24}
-            className={`cursor-pointer ${team.sendCredentials ? 'svg-green' : 'svg-white'} opacity-80 hover:opacity-100 transition-opacity`}
-          />
+
+           <EmailControl />
 
           <div className="relative">
             <button onClick={toggleActionMenu} className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600 transition-colors" aria-label="Options">

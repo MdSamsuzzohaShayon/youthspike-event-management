@@ -30,6 +30,8 @@ import { UserService } from 'src/user/user.service';
 import { UserRole } from 'src/user/user.schema';
 import { EPlayerStatus } from 'src/player/player.schema';
 import { PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
+import { EmailsenderService } from 'src/emailsender/emailsender.service';
+import { CustomEmailcontent, CustomEmailsender } from 'src/emailsender/emailsender.response';
 
 // ITeamQueries
 
@@ -48,6 +50,7 @@ export class TeamQueries {
     private playerService: PlayerService,
     private ldoService: LdoService,
     private userService: UserService,
+    private emailsenderService: EmailsenderService,
     private configService: ConfigService,
   ) { }
 
@@ -354,14 +357,32 @@ export class TeamQueries {
 
 
 
-  async getTeamMatches(teamId: string): Promise<GetTeamMatchesResponse> {
+  async getTeamMatches(teamId: string, eventIds?: string[]): Promise<GetTeamMatchesResponse> {
     try {
       const team = await this.teamService.findById(teamId);
+      const eventIdSet = new Set(team.events.map(e => String(e)));
+      const matchedEventSet = new Set<string>();
+      for (const eventId of (eventIds || [])) {
+        if (eventIdSet.has(eventId)) {
+          matchedEventSet.add(eventId);
+        }
+      }
+
+      if (eventIds && eventIds.length > 0 && matchedEventSet.size === 0) {
+        return AppResponse.handleError({
+          code: 406,
+          message: "None of the provided events are associated with this team.",
+        });
+      }
+      const matchQuery: QueryFilter<Match> = {
+        $or: [{ teamA: String(team._id) }, { teamB: String(team._id) }],
+      };
+      if (matchedEventSet && matchedEventSet.size > 0) {
+        matchQuery.event = { $in: [...matchedEventSet] };
+      }
       const [events, matches] = await Promise.all([
         this.eventService.find({ _id: { $in: team.events as string[] } }),
-        this.matchService.find({
-          $or: [{ teamA: team._id.toString() }, { teamB: team._id.toString() }],
-        }),
+        this.matchService.find(matchQuery),
       ]);
 
       // Attributes of matches
@@ -523,7 +544,7 @@ export class TeamQueries {
       }
 
       // 🔹 Conditional queries (avoid empty DB hits)
-      const [matches, nets, rounds, captains, events, groups] = await Promise.all([
+      const [matches, nets, rounds, captains, events, groups, emailcontents] = await Promise.all([
         matchIds.length
           ? this.matchService.find(matchQuery)
           : [],
@@ -546,11 +567,14 @@ export class TeamQueries {
         eventIds?.length
           ? this.groupService.find({ event: { $in: eventIds } })
           : this.groupService.find({ event: { $in: [...eventIdTeamsSet] } }),
+        this.emailsenderService.contentFind({ team: { $in: [...teams.map((t) => t._id)] } }),
       ]);
 
+      // const emailsenders = await this.emailsenderService.find({ _id: { $in: emailcontents.map((ec) => String(ec.emailsender)) } });
 
-      // Make sure groups is not null and there are no null values in groups array
-      const matchesWithoutGroup = matches.filter((m)=> !m?.group || m?.group === null || m?.group === '').map((m)=> String(m._id));
+
+      // // Make sure groups is not null and there are no null values in groups array
+      // const matchesWithoutGroup = matches.filter((m) => !m?.group || m?.group === null || m?.group === '').map((m) => String(m._id));
 
 
       return {
@@ -564,6 +588,8 @@ export class TeamQueries {
           rounds: rounds as CustomRound[],
           matches: matches as CustomMatch[],
           captains: captains as CustomPlayer[],
+          emailcontents: (emailcontents || []) as CustomEmailcontent[],
+          // emailsenders
         },
       };
     } catch (error) {
