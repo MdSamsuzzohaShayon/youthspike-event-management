@@ -25,6 +25,14 @@ import { formatDate, isISODateString, tokenToUser } from 'src/utils/helper';
 import { EEnv, NODE_ENV } from 'src/utils/keys';
 import { TemplateService } from 'src/template/template.service';
 import { ETemplateType } from 'src/template/template.schema';
+import { EEmailsenderFor, Emailcontent, Emailsender } from './emailsernder.schema';
+import e from 'express';
+
+interface IRecipient {
+  player: string;
+  team: string;
+
+}
 
 @Resolver()
 export class EmailsenderResolver {
@@ -37,7 +45,7 @@ export class EmailsenderResolver {
     private userService: UserService,
     private templateService: TemplateService,
     private configService: ConfigService,
-  ) {}
+  ) { }
 
   // ── Helpers ─────────────────────────────────────────────────
 
@@ -167,23 +175,31 @@ export class EmailsenderResolver {
       }
 
       // ── 5. Collect recipients ────────────────────────────
-      const recipients: string[] = [];
+      const recipients: IRecipient[] = [];
 
       if (teamIds && teamIds.length > 0) {
         const teams = await this.teamService.find({ _id: { $in: teamIds } });
         if (!teams || teams.length === 0) return AppResponse.notFound('Teams');
 
         for (const team of teams) {
-          if (team.captain) recipients.push(team.captain.toString());
-          if (team.cocaptain) recipients.push(team.cocaptain.toString());
+          if (team.captain) {
+            recipients.push({ player: String(team.captain), team: String(team._id) })
+          };
+          if (team.cocaptain) {
+            recipients.push({ player: String(team.cocaptain), team: String(team._id) })
+          };
         }
       } else {
         const teams = await this.teamService.find({
           _id: { $in: eventExist.teams.map((t) => String(t)) },
         });
         for (const team of teams) {
-          if (team.captain) recipients.push(team.captain.toString());
-          if (team.cocaptain) recipients.push(team.cocaptain.toString());
+          if (team.captain) {
+            recipients.push({ player: String(team.captain), team: String(team._id) })
+          };
+          if (team.cocaptain) {
+            recipients.push({ player: String(team.cocaptain), team: String(team._id) })
+          };
         }
       }
 
@@ -199,10 +215,20 @@ export class EmailsenderResolver {
         : eventExist.rosterLock;
 
       // ── 7. Send to each recipient ────────────────────────
-      const sendPromises: Promise<void>[] = [];
+      const emailsenderObj: Emailsender = {
+        emailcontents: [],
+        sentfor: teamIds && teamIds.length > 0 ? EEmailsenderFor.TEAM : EEmailsenderFor.EVENT,
+        timestamp: new Date().toISOString(),
+        event: eventExist._id,
+        // team: 
+      };
+      const emailsender = await this.emailSenderService.create(emailsenderObj);
 
-      for (const recipientId of recipients) {
-        const playerExist = await this.playerService.findById(recipientId);
+      const sendPromises: Promise<unknown>[] = [];
+      const emailcontents: Emailcontent[] = [];
+      for (const recipient of recipients) {
+        const { player, team } = recipient;
+        const playerExist = await this.playerService.findById(player);
         if (!playerExist) continue;
 
         const sendTo = [playerExist.email];
@@ -229,41 +255,62 @@ export class EmailsenderResolver {
           americanSpikersUrl: AMERICAN_SPIKERS_URL,
         });
 
+        let renderedHtml = null;
         if (templateHtml) {
           // ── New path: render DB template ──────────────
+          renderedHtml = await this.emailSenderService.sendTemplateEmail({
+            to: sendTo,
+            subject: emailSubject,
+            templateHtml,
+            values,
+          })
           sendPromises.push(
-            this.emailSenderService.sendTemplateEmail({
-              to: sendTo,
-              subject: emailSubject,
-              templateHtml,
-              values,
-            }),
           );
         } else {
           // ── Legacy fallback: HTML file on disk ────────
-          sendPromises.push(
-            this.emailSenderService.sendHtmlEmail({
-              to: sendTo,
-              subject: emailSubject,
-              htmlFileName: 'send-credentials.html',
-              values,
-            }),
-          );
+          renderedHtml = await this.emailSenderService.sendHtmlEmail({
+            to: sendTo,
+            subject: emailSubject,
+            htmlFileName: 'send-credentials.html',
+            values,
+          });
+        }
+        if (renderedHtml) {
+          emailcontents.push({
+            player,
+            subject: emailSubject,
+            content: renderedHtml,
+            emailsender: emailsender._id,
+            senttime: new Date().toISOString(),
+            team
+          });
         }
       }
+
+
+      let emailcontentIds = [];
+      if (emailcontents.length > 0) {
+        const newEmailcontents = await this.emailSenderService.contentInsertMany(emailcontents);
+        emailcontentIds = newEmailcontents.map(ec => ec._id);
+        sendPromises.push(this.emailSenderService.updateOne({ _id: emailsender._id }, { $set: { emailcontents: emailcontentIds } }))
+      }
+
 
       // ── 8. Mark credentials as sent ──────────────────────
       if (teamIds && teamIds.length > 0) {
         await this.teamService.updateMany(
           { _id: { $in: teamIds } },
-          { $set: { sendCredentials: true } },
+          { $set: { sendCredentials: true }, $addToSet: { emailcontents: emailcontentIds } },
         );
       } else {
         await this.eventService.updateOne(
           { _id: eventId },
-          { $set: { sendCredentials: true } },
+          { $set: { sendCredentials: true }, $addToSet: { emailsenders: emailsender._id } },
+
         );
       }
+
+
 
       await Promise.all(sendPromises);
 

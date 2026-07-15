@@ -12,6 +12,9 @@ import * as nodemailer from 'nodemailer';
 import * as fs from 'fs';
 import * as path from 'path';
 import { JSDOM } from 'jsdom';
+import { InjectModel } from '@nestjs/mongoose';
+import { Emailcontent, Emailsender } from './emailsernder.schema';
+import { Model, QueryFilter, UpdateQuery } from 'mongoose';
 
 // ── Types ─────────────────────────────────────────────────────
 
@@ -63,7 +66,7 @@ interface ITemplateInfoParams {
 export class EmailsenderService {
   private transporter: nodemailer.Transporter;
 
-  constructor(private configService: ConfigService) {
+  constructor(@InjectModel(Emailsender.name) private emailsenderModel: Model<Emailsender>, @InjectModel(Emailcontent.name) private emailcontentModel: Model<Emailcontent>, private configService: ConfigService) {
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -136,7 +139,7 @@ export class EmailsenderService {
    * Send an email using a compiled template HTML string from the database.
    * This is the primary method used by sendCredentials.
    */
-  async sendTemplateEmail({ to, subject, templateHtml, values }: ISendTemplateEmail): Promise<void> {
+  async sendTemplateEmail({ to, subject, templateHtml, values }: ISendTemplateEmail): Promise<string> {
     try {
       const renderedHtml = this.renderTemplate(templateHtml, values);
 
@@ -148,6 +151,7 @@ export class EmailsenderService {
       });
 
       console.log(`[EmailsenderService] Email sent to ${to.join(', ')}`);
+      return renderedHtml;
     } catch (error) {
       console.error('[EmailsenderService] Error sending template email:', error);
       throw new Error('Failed to send template email');
@@ -160,7 +164,7 @@ export class EmailsenderService {
    * Legacy method: reads an HTML file from disk and replaces {{key}} tokens.
    * Kept for backward compatibility with the old send-credentials.html flow.
    */
-  async sendHtmlEmail({ to, subject, htmlFileName, values }: ISendRawFileEmail): Promise<void> {
+  async sendHtmlEmail({ to, subject, htmlFileName, values }: ISendRawFileEmail): Promise<string> {
     try {
       const htmlFilePath = path.join(__dirname, '../../src/email/templates', htmlFileName);
       const htmlContent = await fs.promises.readFile(htmlFilePath, 'utf8');
@@ -174,6 +178,7 @@ export class EmailsenderService {
       });
 
       console.log('[EmailsenderService] HTML file email sent successfully');
+      return renderedHtml;
     } catch (error) {
       console.error('[EmailsenderService] Error sending HTML file email:', error);
       throw new Error('Failed to send HTML email');
@@ -200,6 +205,145 @@ export class EmailsenderService {
       console.error('[EmailsenderService] Error sending info email:', error);
       throw new Error('Failed to send HTML email');
     }
+  }
+
+
+
+  // ── Email sender ────────────────────────────────
+
+  async findById(teamId: string): Promise<Emailsender | null> {
+    return this.emailsenderModel.findById(teamId).lean();
+  }
+
+  async findByName(name: string) {
+    if (!name) return null;
+    return this.emailsenderModel.findOne({ name });
+  }
+
+  async findOne(filter: QueryFilter<Emailsender>) {
+    return this.emailsenderModel.findOne(filter).lean();
+  }
+
+
+
+
+
+  async find(filter: QueryFilter<Emailsender>, offset?: number, limit?: number) {
+    let query = this.emailsenderModel.find(filter).sort({ name: -1 }); // always sort for stable pagination
+
+    if (typeof offset === 'number') {
+      query = query.skip(offset);
+    }
+
+    if (typeof limit === 'number') {
+      query = query.limit(limit);
+    }
+
+    return query.lean().exec();
+  }
+
+  async create(team: Emailsender) {
+
+    return this.emailsenderModel.create(team);
+  }
+
+  async insertMany(teams: Emailsender[]) {
+    return this.emailsenderModel.insertMany(teams);
+  }
+
+
+  async updateMany(filter: QueryFilter<Emailsender>, emailsender: UpdateQuery<Emailsender>) {
+    return this.emailsenderModel.updateMany(filter, emailsender).lean();
+  }
+  async updateOne(filter: QueryFilter<Emailsender>, emailsender: UpdateQuery<Emailsender>) {
+    const updateTeam = await this.emailsenderModel.updateOne(filter, emailsender);
+    return updateTeam;
+  }
+
+  async delete(filter: QueryFilter<Emailsender>) {
+    return this.emailsenderModel.deleteMany(filter);
+  }
+
+  async deleteOne(filter: QueryFilter<Emailsender>) {
+    return this.emailsenderModel.deleteOne(filter);
+  }
+
+  async deleteMany(filter: QueryFilter<Emailsender>) {
+    return this.emailsenderModel.deleteMany(filter);
+  }
+
+  async countDocuments() {
+    return this.emailsenderModel.countDocuments();
+  }
+
+
+
+
+  // ── Email Content ────────────────────────────────
+
+  async contentFindById(teamId: string): Promise<Emailcontent | null> {
+    return this.emailcontentModel.findById(teamId).lean();
+  }
+
+  async contentFindByName(name: string) {
+    if (!name) return null;
+    return this.emailcontentModel.findOne({ name });
+  }
+
+  async contentFindOne(filter: QueryFilter<Emailcontent>) {
+    return this.emailcontentModel.findOne(filter).lean();
+  }
+
+
+
+
+
+  async contentFind(filter: QueryFilter<Emailcontent>, offset?: number, limit?: number) {
+    let query = this.emailcontentModel.find(filter).sort({ name: -1 }); // always sort for stable pagination
+
+    if (typeof offset === 'number') {
+      query = query.skip(offset);
+    }
+
+    if (typeof limit === 'number') {
+      query = query.limit(limit);
+    }
+
+    return query.lean().exec();
+  }
+
+  async contentCreate(team: Emailcontent) {
+
+    return this.emailcontentModel.create(team);
+  }
+
+  async contentInsertMany(teams: Emailcontent[]) {
+    return this.emailcontentModel.insertMany(teams);
+  }
+
+
+  async contentUpdateMany(filter: QueryFilter<Emailcontent>, emailsender: UpdateQuery<Emailcontent>) {
+    return this.emailcontentModel.updateMany(filter, emailsender).lean();
+  }
+  async contentUpdateOne(filter: QueryFilter<Emailcontent>, emailsender: UpdateQuery<Emailcontent>) {
+    const updateTeam = await this.emailcontentModel.updateOne(filter, emailsender);
+    return updateTeam;
+  }
+
+  async contentDelete(filter: QueryFilter<Emailcontent>) {
+    return this.emailcontentModel.deleteMany(filter);
+  }
+
+  async contentDeleteOne(filter: QueryFilter<Emailcontent>) {
+    return this.emailcontentModel.deleteOne(filter);
+  }
+
+  async contentDeleteMany(filter: QueryFilter<Emailcontent>) {
+    return this.emailcontentModel.deleteMany(filter);
+  }
+
+  async contentCountDocuments() {
+    return this.emailcontentModel.countDocuments();
   }
 
   // ── Helpers ───────────────────────────────────────────────

@@ -314,8 +314,8 @@ query SearchTeams($eventIds: [String!], $filter: TeamSearchFilter) {
 
 
 const GET_TEAM_MATCHES = gql`
-query GetTeamMatches($teamId: String!) {
-  getTeamMatches(teamId: $teamId) {
+query GetTeamMatches($teamId: String!, $eventIds: [String!]){
+  getTeamMatches(teamId: $teamId, eventIds:$eventIds) {
     code
     message
     success

@@ -26,7 +26,7 @@ import { Group } from 'src/group/group.schema';
 import { Player } from 'src/player/player.schema';
 import { CustomGroup } from 'src/match/resolvers/match.response';
 import { CustomPlayer } from 'src/player/resolvers/player.response';
-import { ArchiveEventService, ArchiveGroupService, ArchiveMatchService, ArchiveSponsorService, ArchiveTeamService } from 'src/archive/archive.service';
+import { ArchiveEventService, ArchiveGroupService, ArchiveMatchService, ArchiveSponsorService, ArchiveTeamService, ArchiveTemplateService } from 'src/archive/archive.service';
 import { ArchiveEvent } from 'src/archive/archive.schema';
 
 @Injectable()
@@ -41,9 +41,10 @@ export class EventQueries implements IEventQueries {
     private userService: UserService,
     private groupService: GroupService,
     private sponsorService: SponsorService,
-    
+
     private archiveEventService: ArchiveEventService,
     private archiveTeamService: ArchiveTeamService,
+    private archiveTemplateService: ArchiveTemplateService,
     private archiveMatchService: ArchiveMatchService,
     private archiveGroupService: ArchiveGroupService,
     private archiveSponsorService: ArchiveSponsorService,
@@ -102,36 +103,36 @@ export class EventQueries implements IEventQueries {
   }
 
   async getArchivedEvents(
-    context: any, 
+    context: any,
     directorId?: string
   ): Promise<GetArchiveEventsResponse> {
     try {
 
-      
+
       // Fetch archived events with pagination
       const archivedEvents = await this.archiveEventService.find({});
-  
+
       // Optionally include related data counts
       const enrichedEvents = await Promise.all(
         (archivedEvents as ArchiveEvent[]).map(async (event) => {
           const originalId = event.originalId || event._id?.toString();
-          
+
           const [
-            teamsCount,
+            templatesCount,
             matchesCount,
             groupsCount,
             sponsorsCount,
           ] = await Promise.all([
-            this.archiveTeamService.count({ event: originalId }),
+            this.archiveTemplateService.count({ event: originalId }),
             this.archiveMatchService.count({ event: originalId }),
             this.archiveGroupService.count({ event: originalId }),
             this.archiveSponsorService.count({ event: originalId }),
           ]);
-  
+
           return {
             ...event,
             relatedCounts: {
-              teams: teamsCount,
+              templates: templatesCount,
               matches: matchesCount,
               groups: groupsCount,
               sponsors: sponsorsCount,
@@ -139,7 +140,7 @@ export class EventQueries implements IEventQueries {
           };
         })
       );
-  
+
       return {
         code: HttpStatus.OK,
         success: true,
@@ -159,41 +160,41 @@ export class EventQueries implements IEventQueries {
   ): Promise<GetEventWithGroupsAndUnassignedPlayersResponse> {
     try {
       const secret = this.configService.get<string>('JWT_SECRET');
-  
+
       // Decode token
       const userPayload = tokenToUser(context, secret);
-  
+
       if (!userPayload?._id) {
         return AppResponse.unauthorized();
       }
-  
+
       // Only fetch fields we actually need
       const loggedUser = await this.userService.findOne(
         { _id: userPayload._id }
       );
-  
+
       if (!loggedUser) {
         return AppResponse.unauthorized();
       }
-  
-      let events = [];
-  
 
-  
+      let events = [];
+
+
+
       /**
        * CASE 1:
        * Admin requesting events from specific LDO
        */
       if (ldoId && loggedUser.role === UserRole.admin) {
         const ldo = await this.ldoService.findByDirectorId(ldoId);
-  
+
         if (ldo?.events?.length) {
           events = await this.eventService.find({
             _id: { $in: ldo.events as string[] },
           });
         }
       }
-  
+
       /**
        * CASE 2:
        * Director requesting own events
@@ -202,21 +203,21 @@ export class EventQueries implements IEventQueries {
         const ldo = await this.ldoService.findOne({
           director: loggedUser._id,
         });
-  
+
         if (ldo?.events?.length) {
           events = await this.eventService.find({
             _id: { $in: ldo.events as string[] },
           });
         }
       }
-  
+
       const resolvedEventIds = events.map((event) => event._id);
-  
+
       /**
        * Build queries
        */
       const groupQuery: QueryFilter<Group> = {};
-  
+
       const playerQuery: QueryFilter<Player> = {
         $or: [
           { teams: { $size: 0 } },
@@ -224,18 +225,18 @@ export class EventQueries implements IEventQueries {
           { teams: null },
         ],
       };
-  
+
       // Only add event filters when events exist
       if (resolvedEventIds.length > 0) {
         groupQuery.event = {
           $in: resolvedEventIds,
         };
-  
+
         playerQuery.events = {
           $in: resolvedEventIds,
         };
       }
-  
+
       /**
        * Parallel DB queries
        */
@@ -243,7 +244,7 @@ export class EventQueries implements IEventQueries {
         this.groupService.find(groupQuery),
         this.playerService.find(playerQuery),
       ]);
-  
+
       return {
         code: HttpStatus.OK,
         success: true,

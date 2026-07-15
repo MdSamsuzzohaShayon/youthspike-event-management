@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { IEvent, IGroup, IGroupRelatives, IOption, IPlayer, IPlayerExpRel, IResponse, ITeam } from '@/types';
+import { IEmailcontent, IEvent, IGroup, IGroupRelatives, IOption, IPlayer, IPlayerExpRel, IResponse, ITeam } from '@/types';
 import TeamCard from './TeamCard';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
@@ -21,6 +21,7 @@ interface ISearchTeamListProps {
   teamList: ITeam[];
   groupList: IGroup[];
   captainMap: Map<string, IPlayer>;
+  emailcontents: IEmailcontent[];
   refetchFunc?: () => void;
 }
 
@@ -261,7 +262,7 @@ type TUpdateTeams = Partial<Pick<ITeam, 'division' | 'groups'> & {
 
 
 // Main Component
-function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }: ISearchTeamListProps) {
+function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents, refetchFunc }: ISearchTeamListProps) {
   if (!event) {
     throw new Error('Event not found!');
   }
@@ -579,6 +580,18 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
     return selectedGroupIdFilter ? groupList.find((group) => group._id === selectedGroupIdFilter)?.name : 'Group';
   }, [selectedGroupIdFilter, groupList]);
 
+  const emailcontentsMapByTeam = useMemo(()=> {
+    const map = new Map<string, IEmailcontent[]>();
+    for (const emailcontent of emailcontents) {
+      if(map.has(emailcontent.team)){
+        map.get(emailcontent.team)?.push(emailcontent);
+      }else{
+        map.set(emailcontent.team, [emailcontent]);
+      }
+    }
+    return map;
+  }, [emailcontents]);
+
 
   useEffect(() => {
     if (!selectedGroupIdFilter) {
@@ -659,6 +672,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, refetchFunc }:
             eventId={event._id}
             groupList={groupList}
             isChecked={checkedTeamsMap.get(team._id) ?? false}
+            emailcontents={emailcontentsMapByTeam.get(team._id)}
             onSendCredential={handleSendSingleTeamCredential}
             onMoveTeamOpen={handleOpenMoveTeamDialog}
             onCheckedTeam={handleTeamCheckboxToggle}

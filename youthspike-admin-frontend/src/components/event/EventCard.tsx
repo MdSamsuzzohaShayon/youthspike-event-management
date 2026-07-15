@@ -25,19 +25,21 @@ interface ActionMenuItemProps {
   icon: string;
   label: string;
   onClick: (e: React.SyntheticEvent) => void;
+  className?: string; 
 }
 
 const ActionMenuItem: React.FC<ActionMenuItemProps> = ({
   icon,
   label,
   onClick,
+  className
 }) => (
   <button
     type="button"
     onClick={onClick}
-    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 
+    className={`${className || ""} w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 
                hover:text-yellow-500 hover:bg-yellow-500/10 rounded-lg 
-               transition-all duration-200 group/item"
+               transition-all duration-200 group/item`}
   >
     <Image
       width={20}
@@ -226,12 +228,13 @@ const EventCard: React.FC<IEventCardProps> = ({
               />
 
               <ActionMenuItem
-                icon="/icons/send-email.svg"
+                icon={event.sendCredentials ? '/icons/sent-email.svg' : '/icons/send-email.svg'}
                 label={
                   event.sendCredentials
                     ? 'Resend Credential'
                     : 'Send Credentials'
                 }
+                className={'svg-green'}
                 onClick={handleSend}
               />
 

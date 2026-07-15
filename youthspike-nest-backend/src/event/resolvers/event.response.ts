@@ -1,4 +1,4 @@
-import { Field, ObjectType } from '@nestjs/graphql';
+import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { CustomPlayer } from 'src/player/resolvers/player.response';
 import { AppResponse } from 'src/shared/response';
 import { Sponsor } from 'src/sponsor/sponsor.schema';
@@ -28,11 +28,32 @@ export class GetEventResponse extends AppResponse<Event> {
   data?: Event | null;
 }
 
-export class GetArchiveEventsResponse extends AppResponse<ArchiveEvent[]>{
-  @Field((_type) => [ArchiveEvent], { nullable: true })
-  data?: ArchiveEvent[];
+@ObjectType()
+class RelatedCounts{
+  @Field((_type) => Int, { nullable: false })
+  templates: number;
+
+  @Field((_type) => Int, { nullable: false })
+  matches: number;
+
+  @Field((_type) => Int, { nullable: false })
+  groups: number;
+
+  @Field((_type) => Int, { nullable: false })
+  sponsors: number;
 }
-// ArchiveEvent[]
+
+@ObjectType()
+class ArchiveEventCounts extends ArchiveEvent{
+  @Field((_type) => RelatedCounts, { nullable: false })
+  relatedCounts: RelatedCounts;
+}
+
+@ObjectType()
+export class GetArchiveEventsResponse extends AppResponse<ArchiveEventCounts[]>{
+  @Field((_type) => [ArchiveEventCounts], { nullable: true })
+  data?: ArchiveEventCounts[];
+}
 
 
 @ObjectType()

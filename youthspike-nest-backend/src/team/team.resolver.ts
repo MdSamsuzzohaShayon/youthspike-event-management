@@ -123,8 +123,8 @@ export class TeamResolver {
   }
 
   @Query((_returns) => GetTeamMatchesResponse)
-  async getTeamMatches(@Args('teamId') teamId: string) {
-    return this.teamQueris.getTeamMatches(teamId);
+  async getTeamMatches(@Args('teamId') teamId: string, @Args('eventIds', {type: ()=> [String], nullable: true}) eventIds?: string[]) {
+    return this.teamQueris.getTeamMatches(teamId, eventIds);
   }
 
   @Query((_returns) => GetTeamSearchResponse)

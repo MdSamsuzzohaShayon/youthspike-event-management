@@ -119,12 +119,20 @@ export interface IGetPlayerEventSettingsQuery extends IResponse {
   };
 }
 
+export interface IArchiveEventCount extends IEvent{
+  relatedCounts: {
+    templates: number;
+    matches: number;
+    groups: number;
+    sponsors: number;
+  }
+}
 export interface IGetArchiveEvents extends IResponse{
-  data: IEventRelatives[];
+  data: IArchiveEventCount[];
 }
 
 export interface IGetArchiveEvent extends IResponse{
-  data: IEventRelatives;
+  data: IArchiveEventCount;
 }
 
 

@@ -2,6 +2,7 @@
 import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
+import { Emailsender } from 'src/emailsender/emailsernder.schema';
 import { Group } from 'src/group/group.schema';
 import { LDO } from 'src/ldo/ldo.schema';
 import { Match } from 'src/match/match.schema';
@@ -130,9 +131,13 @@ export class Event extends AppDocument {
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: ProStats.name })
   weight?: string | ProStats;
 
-  @Field(() => [Template], { nullable: false })
-  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Template' }] })
+  @Field(() => [Template], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Template' }] })
   templates: Template[] | string[];
+
+  @Field(() => [Emailsender], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Emailsender' }] })
+  emailsenders: Emailsender[] | string[];
 
 
   /**

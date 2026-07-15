@@ -23,6 +23,7 @@ import {
 } from './resolvers/event.input';
 import {
   CreateOrUpdateEventResponse,
+  GetArchiveEventsResponse,
   GetEventDetailsResponse,
   GetEventResponse,
   GetEventsResponse,
@@ -122,7 +123,7 @@ export class EventResolver {
     return this.eventQueries.getEvents(context, directorId);
   }
 
-  @Query((__returns) => GetEventsResponse)
+  @Query((__returns) => GetArchiveEventsResponse)
   async getArchivedEvents(@Context() context: any, @Args('directorId', { nullable: true }) directorId?: string) {
     return this.eventQueries.getArchivedEvents(context, directorId);
   }

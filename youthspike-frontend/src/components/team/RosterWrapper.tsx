@@ -20,13 +20,15 @@ interface PlayerWithRank extends IPlayer {
 interface RosterWrapperProps {
   events: IEventRelatives[];
   team: ITeam;
-  players: IPlayer[];
+  inactivePlayers: IPlayer[];
+  activePlayers: IPlayer[];
   playerRanking: IPlayerRankingExpRel | null;
 }
 
 function RosterWrapper({
   events,
-  players,
+  activePlayers,
+  inactivePlayers,
   team,
   playerRanking,
 }: RosterWrapperProps) {
@@ -37,9 +39,8 @@ function RosterWrapper({
    * - O(n) pass
    * - O(n log n) only for active sorting
    */
-  const { activePlayers, inactivePlayers } = useMemo(() => {
+  const players = useMemo(() => {
     const active: PlayerWithRank[] = [];
-    const inactive: IPlayer[] = [];
 
     // Build ranking lookup only once
     const rankingMap = new Map<string, number>();
@@ -50,11 +51,10 @@ function RosterWrapper({
       }
     }
 
-    for (let i = 0; i < players.length; i++) {
-      const player = players[i];
+    for (let i = 0; i < activePlayers.length; i++) {
+      const player = activePlayers[i];
 
       if (player.status === EPlayerStatus.INACTIVE) {
-        inactive.push(player);
         continue;
       }
 
@@ -72,8 +72,8 @@ function RosterWrapper({
       return a.rank - b.rank;
     });
 
-    return { activePlayers: active, inactivePlayers: inactive };
-  }, [players, playerRanking]);
+    return active;;
+  }, [activePlayers, playerRanking]);
 
 
   const canRank = useMemo(()=>{

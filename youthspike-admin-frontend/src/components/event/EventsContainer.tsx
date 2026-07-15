@@ -21,7 +21,6 @@ import {
   IEvent,
   IGetEventDirectorQuery,
   IOption,
-  IPlayer,
   IResponse,
 } from '@/types';
 import { redirect, useRouter } from 'next/navigation';
@@ -54,7 +53,6 @@ const FILTER_OPTIONS: IOption[] = [
 /* ========================================================= */
 /* ===================== Sub Components ==================== */
 /* ========================================================= */
-
 interface FilterDialogProps {
   dialogRef: React.RefObject<HTMLDialogElement | null>;
   options: IOption[];
@@ -104,7 +102,7 @@ const EventsContainer: React.FC<EventsContainerProps> = ({
   const user = useUser();
   const router = useRouter();
   const { ldoIdUrl } = useLdoId();
-  const { setMessage, clearMessage } = useMessage();
+  const { setMessage } = useMessage();
 
   /* ---------------- State ---------------- */
 

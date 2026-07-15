@@ -1,3 +1,4 @@
+import { IEmailcontent } from '@/types';
 import { EEventPeriod } from '@/types/event';
 
 // Check - readDatetime, readTime, validateMatchDatetime
@@ -159,5 +160,25 @@ function getLocalDateTimeISO(): string {
   return `${year}-${month}-${day}T${hour}:${minute}:${second}${offset}`;
 }
 
+function formatEmailSentTime(
+ senttime: string,
+): { date: string; time: string } | undefined {
 
-export { validateMatchDatetime, defaultInputValue, readDate, formatUSPhoneNumber, getCurrentDate, readDateTemp, isISODateString, getLocalDateTimeISO, monthNamesShort, readTimestamp};
+  const date = new Date(senttime);
+
+  return {
+    date: new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "short",
+    }).format(date),
+
+    time: new Intl.DateTimeFormat("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    }).format(date).toLowerCase(),
+  };
+}
+
+
+export { validateMatchDatetime, formatEmailSentTime, defaultInputValue, readDate, formatUSPhoneNumber, getCurrentDate, readDateTemp, isISODateString, getLocalDateTimeISO, monthNamesShort, readTimestamp};

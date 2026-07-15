@@ -1,4 +1,4 @@
-import { IAggregatedStats, IDefaultEventMatch, IDefaultMatchProps, IEvent, IMenuItem, INetRelatives, IOption, IPlayerExpRel, IPlayerRank, IPlayerRankingItemExpRel, IPlayerStats, IRoundRelatives, ITeam, IUserContext } from "@/types";
+import { IAggregatedStats, IDefaultEventMatch, IDefaultMatchProps, IEmailcontent, IEvent, IMenuItem, INetRelatives, IOption, IPlayerExpRel, IPlayerRank, IPlayerRankingItemExpRel, IPlayerStats, IRoundRelatives, ITeam, IUserContext } from "@/types";
 import { eventPaths, initialUserMenuList } from "./staticData";
 import { UserRole } from "@/types/user";
 import { ETeam } from "@/types/team";
@@ -282,4 +282,24 @@ export const createTeamsMap =(teamList? : ITeam[]) => {
   }
 
   return map;
+}
+
+export function getLatestEmailContent(
+  emailContents: readonly IEmailcontent[],
+): IEmailcontent | undefined {
+  let latest: IEmailcontent | undefined;
+
+  for (const email of emailContents) {
+    if (!email.senttime) continue;
+
+    if (
+      !latest ||
+      !latest.senttime ||
+      email.senttime > latest.senttime // ISO 8601 strings are lexicographically sortable
+    ) {
+      latest = email;
+    }
+  }
+
+  return latest;
 }

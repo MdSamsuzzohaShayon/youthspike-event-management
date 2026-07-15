@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { getUserFromCookie, removeCookie } from '@/utils/clientCookie';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { CURRENT_EVENT_ID, DIVISION } from '@/utils/constant';
+import { FRONTEND_URL } from '@/utils/keys';
 
 
 
@@ -129,7 +130,7 @@ const AdminMenu = () => {
                 </li>
                 {user.info?.role !== UserRole.player && (
                   <li className="text-lg capitalize">
-                    <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/teamstandings/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                    <Link onClick={() => setIsMenuOpen(false)} href={`${FRONTEND_URL}/events/${eventId}/teams/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
                       <img src="/icons/teams.svg" alt="Settings" className="w-6 mr-4 svg-white" />
                       Team Standings
                     </Link>

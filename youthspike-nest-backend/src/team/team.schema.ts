@@ -3,6 +3,7 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
+import { Emailcontent } from 'src/emailsender/emailsernder.schema';
 import { Event } from 'src/event/event.schema';
 import { Group } from 'src/group/group.schema';
 import { Match } from 'src/match/match.schema';
@@ -51,9 +52,13 @@ export class Team extends AppDocument {
   @Field((_type) => Player, { nullable: true })
   cocaptain?: Player | string; // Make the captain field nullable
 
-  @Field((type) => [Match], { nullable: true })
+  @Field((_type) => [Match], { nullable: true })
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Match' }] })
   matches?: Match[] | string[]; // Make the captain field nullable
+
+  @Field((_type) => [Emailcontent], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Emailcontent' }] })
+  emailcontents?: Emailcontent[] | string[]; // Make the captain field nullable
 
   @Field((_type) => [Event], { nullable: true })
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Event' }] })

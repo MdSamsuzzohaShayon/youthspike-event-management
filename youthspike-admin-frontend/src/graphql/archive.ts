@@ -16,6 +16,12 @@ query GetArhivedEvents{
         description
         location
         netVariance
+        relatedCounts{
+          templates
+          matches
+          groups
+          sponsors
+        }
     }
   }
 }

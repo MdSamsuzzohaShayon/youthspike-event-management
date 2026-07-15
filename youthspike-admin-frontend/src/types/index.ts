@@ -13,3 +13,4 @@ export * from "./socket";
 export * from "./playerStats";
 export * from "./room";
 export * from "./template";
+export * from './emailsender';
