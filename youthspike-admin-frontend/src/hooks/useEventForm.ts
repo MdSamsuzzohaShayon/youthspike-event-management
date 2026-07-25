@@ -49,7 +49,7 @@ export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, pr
   const [weight, setWeight] = useState<IProStatsAdd>(prevWight || initialProStats);
 
   // Update
-  const [updateEvent, setUpdateEvent] = useState<Partial<IEventAdd>>({});
+  const [updateEventState, setUpdateEventState] = useState<Partial<IEventAdd>>({});
   const [updateMultiplayer, setUpdateMultiplayer] = useState<Partial<IProStatsAdd>>({});
   const [updateWeight, setUpdateWeight] = useState<Partial<IProStatsAdd>>({});
   const [updateStats, setUpdateStats] = useState<Partial<IProStatsAdd>>({});
@@ -90,7 +90,7 @@ export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, pr
 
   const updateFormState = (name: string, value: any) => {
     if (update) {
-      setUpdateEvent(prev => ({ ...prev, [name]: value }));
+      setUpdateEventState(prev => ({ ...prev, [name]: value }));
     } else {
       setEventState(prev => ({ ...prev, [name]: value }));
     }
@@ -127,7 +127,7 @@ export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, pr
     multiplayer,
     weight,
 
-    updateEvent,
+    updateEventState,
     updateMultiplayer,
     updateWeight,
     updateStats,
@@ -145,7 +145,7 @@ export function useEventForm(update: boolean, prevEvent?: IEventAdd | IEvent, pr
     handleLogoChange,
     handleSelectChange,
     setEventState,
-    setUpdateEvent,
+    setUpdateEventState,
     initialEvent,
     initialProStats,
   };

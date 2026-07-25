@@ -11,6 +11,7 @@ import { INetRelatives } from './net';
 import { IRoundRelatives } from './round';
 import { useMutation } from '@apollo/client/react';
 import { ApolloCache } from '@apollo/client';
+import { IBadge, TAddBadge } from './badge';
 
 export enum EEventPeriod {
   UPCOMING = 'UPCOMING',
@@ -95,6 +96,7 @@ export interface IEventAdd extends IDefaultEventMatch {
   coachPassword: string;
   defaultSponsor: boolean;
   tieBreaking: ETieBreakingStrategy;
+  badges?: TAddBadge[];
 }
 
 export type TUpdateEvent = Partial<IEventAdd> & {
@@ -112,6 +114,7 @@ export interface IGetPlayerEventSettingsQuery extends IResponse {
     teams?: ITeamRelatives[];
     ldo?: ILDO;
     sponsors?: IEventSponsor[];
+    badges: IBadge[];
     multiplayer?: IProStats;
     weight?: IProStats;
     stats?: IProStats;

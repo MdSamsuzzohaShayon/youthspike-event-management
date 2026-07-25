@@ -17,12 +17,16 @@ import {
   PlayerResponse,
   CustomPlayer,
   GetEventsWithTeamsResponse,
+  SearchPlayersResponse,
 } from './player.response';
 import { PlayerSearchFilter } from './player.input';
 import { Team } from 'src/team/team.schema';
 import { Event } from 'src/event/event.schema';
 import { LdoService } from 'src/ldo/ldo.service';
 import { CustomTeam } from 'src/team/resolvers/team.response';
+import { BadgeService } from 'src/badge/badge.service';
+import { CustomBadge } from 'src/badge/badge.response';
+import { CustomGroup } from 'src/match/resolvers/match.response';
 
 @Injectable()
 export class PlayerQueries implements IPlayerQueries {
@@ -34,6 +38,7 @@ export class PlayerQueries implements IPlayerQueries {
     private userService: UserService,
     private groupService: GroupService,
     private ldoService: LdoService,
+    private badgeService: BadgeService,
 
   ) { }
 
@@ -59,7 +64,7 @@ export class PlayerQueries implements IPlayerQueries {
     }
   }
 
-  async searchPlayers(context: any, eventId: string, filter: PlayerSearchFilter) {
+  async searchPlayers(context: any, eventId: string, filter: PlayerSearchFilter): Promise<SearchPlayersResponse> {
     try {
       const playerQuery: QueryFilter<Player> = {};
       const teamQuery: QueryFilter<Team> = { events: eventId };
@@ -140,7 +145,10 @@ export class PlayerQueries implements IPlayerQueries {
         playerQuery.teams = { $in: [...teamIds] };
       }
 
-      const players = await this.playerService.find(playerQuery, filter?.limit || 30, filter?.offset || 0);
+      const [players, badges] = await Promise.all([
+        this.playerService.find(playerQuery, filter?.limit || 30, filter?.offset || 0),
+        this.badgeService.find({event: event._id}),
+      ]);
 
       if (!filter?.group) {
         const teamIds = new Set<string>();
@@ -161,11 +169,11 @@ export class PlayerQueries implements IPlayerQueries {
       const playerUpdatePromises = [];
       // ensure username
       for (const player of players) {
-        const playerObj = {...player};
-        if(!player?.username){
+        const playerObj = { ...player };
+        if (!player?.username) {
           const newUsername = this.playerService.playerUsername(player.firstName);
           playerObj.username = newUsername;
-          playerUpdatePromises.push(this.playerService.updateOne({_id: player._id}, {$set: {username: newUsername}}));
+          playerUpdatePromises.push(this.playerService.updateOne({ _id: player._id }, { $set: { username: newUsername } }));
         }
         playerList.push(playerObj);
       }
@@ -175,7 +183,13 @@ export class PlayerQueries implements IPlayerQueries {
         code: HttpStatus.OK,
         success: true,
         message: 'List of players!',
-        data: { event, groups, players, teams },
+        data: {
+          event: event as Event,
+          groups: groups as CustomGroup[],
+          players: players as CustomPlayer[],
+          teams: teams as CustomTeam[],
+          badges: badges as CustomBadge[],
+        },
       };
     } catch (error) {
       return AppResponse.handleError(error);
@@ -306,7 +320,10 @@ export class PlayerQueries implements IPlayerQueries {
       };
 
 
-      const teams = await this.teamService.find(teamQuery);
+      const [teams, badges] = await Promise.all([
+        this.teamService.find(teamQuery),
+        this.badgeService.find({ event: { $in: resolvedEventIds } })
+      ]);
 
 
       const eventList = this.eventService.sanitizeEvents(events);
@@ -319,7 +336,8 @@ export class PlayerQueries implements IPlayerQueries {
         message: 'events, players, groups',
         data: {
           events: eventList,
-          teams: teams as CustomTeam[]
+          teams: teams as CustomTeam[],
+          badges: badges as CustomBadge[]
         },
       };
     } catch (err) {

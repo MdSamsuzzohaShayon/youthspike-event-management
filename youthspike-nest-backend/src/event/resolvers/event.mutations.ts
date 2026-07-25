@@ -27,6 +27,9 @@ import { TemplateService } from 'src/template/template.service';
 import { RoomService } from 'src/room/room.service';
 import { ServerReceiverOnNetService } from 'src/server-receiver-on-net/server-receiver-on-net.service';
 import { ArchiveEvent, ArchiveGroup, ArchiveMatch, ArchiveNet, ArchivePlayerStats, ArchiveRoom, ArchiveRound, ArchiveServerReceiverOnNet, ArchiveServerReceiverSinglePlay, ArchiveSponsor, ArchiveTeam, ArchiveTemplate } from 'src/archive/archive.schema';
+import { BadgeService } from 'src/badge/badge.service';
+import { Badge } from 'src/badge/badge.schema';
+import EventHelpers from './event.helpers';
 
 
 @Injectable()
@@ -49,6 +52,7 @@ export class EventMutations implements IEventMutations {
     private sponsorService: SponsorService,
     private templateService: TemplateService,
     private serverReceiverOnNetService: ServerReceiverOnNetService,
+    private badgeService: BadgeService,
 
     // Archive
     private archiveTeamService: ArchiveTeamService,
@@ -65,6 +69,8 @@ export class EventMutations implements IEventMutations {
     private archiveServerReceiverOnNetService: ArchiveServerReceiverOnNetService,
     private archiveServerReceiverSinglePlayService: ArchiveServerReceiverSinglePlayService,
     private archiveEventService: ArchiveEventService,
+
+    private eventHelpers: EventHelpers
   ) { }
 
   async createEvent({
@@ -114,17 +120,21 @@ export class EventMutations implements IEventMutations {
         });
 
       // Upload sponsors file to cloudinary
-      const uploadPromises = [];
+      const uploadSponsorPromises = [];
       for (let i = 0; i < sponsorsInput.length; i++) {
-        uploadPromises.push(this.cloudinaryService.uploadSponsors(sponsorsInput[i].logo, sponsorsInput[i].company));
+        uploadSponsorPromises.push(this.cloudinaryService.uploadSponsors(sponsorsInput[i].logo, sponsorsInput[i].company));
       }
-      const sponsorsFileList = await Promise.all(uploadPromises);
+
+      const sponsorsFileList = await Promise.all(uploadSponsorPromises);
+
 
       let sponsorsIds = [];
       if (sponsorsFileList && sponsorsFileList.length > 0) {
         const sponsors = await this.sponsorService.insertMany(sponsorsFileList);
         sponsorsIds = sponsors.map((s) => s._id);
       }
+
+
 
       // Upload image to cloudinary
       let logoUrl: string | null = null;
@@ -137,6 +147,7 @@ export class EventMutations implements IEventMutations {
         logo: logoUrl,
         sendCredentials: false,
         sponsors: sponsorsIds,
+        badges: [],
         players: [],
         teams: [],
         matches: [],
@@ -145,7 +156,13 @@ export class EventMutations implements IEventMutations {
         emailsenders: []
       };
 
+
       const savedEvent = await this.eventService.create(eventData);
+      let badgesIds = [];
+      if (input.badges && input.badges.length > 0) {
+        const badges = await this.badgeService.insertMany(input.badges.map((badge) => ({ ...badge, event: savedEvent._id })) as Badge[]);
+        badgesIds = badges.map((s) => s._id);
+      }
 
       const eventUpdateObj: Partial<Event> = {};
       if (multiplayerInput) {
@@ -160,6 +177,7 @@ export class EventMutations implements IEventMutations {
       await Promise.all([
         this.ldoService.update({ events: [savedEvent._id.toString()] }, findLdo._id.toString()),
         this.sponsorService.updateMany({ _id: { $in: sponsorsIds } }, { event: savedEvent._id }),
+        this.badgeService.updateMany({ _id: { $in: badgesIds } }, { event: savedEvent._id }),
         this.eventService.updateOne({ _id: savedEvent._id }, eventUpdateObj),
       ]);
 
@@ -214,15 +232,44 @@ export class EventMutations implements IEventMutations {
         directorId = eventExist.ldo;
       }
 
+
       const ldo = await this.ldoService.findByDirectorId(directorId);
 
       // ===== Arrange data and save to database =====
-      const eventData: Partial<Event & { newteams: string[], updatedivisions: UpdateDivision[] }> = {
-        ...updateInput,
+      // Omit badges: UpdateEventInput uses EventBadgeInput[], Event stores Badge IDs
+      const { badges, ...updateFields } = updateInput;
+      const eventData: Partial<Event & { newteams: string[]; updatedivisions: UpdateDivision[] }> = {
+        ...updateFields,
         ldo: ldo._id,
         // sponsors: cloudinaryUrls,
         divisions: eventExist.divisions,
       };
+
+      const previousBadges = await this.badgeService.find({ event: eventId });
+      const { badgesIds, badgesDelete, badgesInsert, badgesUpdate } = this.eventHelpers.diffBadges(previousBadges, badges);
+      if (badgesInsert.length > 0) {
+        const newBadges = await this.badgeService.insertMany(badgesInsert.map((badge) => ({ ...badge, event: eventId, teams: [], players: [] })));
+        for (const badge of newBadges) {
+          badgesIds.add(String(badge._id));
+        }
+      }
+      if (badgesDelete.size > 0) {
+        for (const badgeId of badgesDelete) {
+          badgesIds.delete(badgeId);
+        }
+        await this.badgeService.deleteMany({ _id: { $in: [...badgesDelete] } });
+      }
+
+      // Update
+      if (badgesUpdate.length > 0) {
+        const updatePromises = [];
+        for (const badge of badgesUpdate) {
+          const { _id, ...rest } = badge;
+          updatePromises.push(this.badgeService.updateOne({ _id }, { $set: rest }));
+        }
+      }
+
+      eventData.badges = [...badgesIds] as string[];
 
       // ===== Upload Sponsors =====
       if ((sponsorsInput && sponsorsInput.length > 0) || (sponsorsStringInput && sponsorsStringInput.length > 0)) {
@@ -427,12 +474,15 @@ export class EventMutations implements IEventMutations {
 
 
 
-      const newEventData = {
+      // Omit badges/newteams/updatedivisions: not Event document fields (or wrong shape)
+      const { badges: _badges, newteams: _newteams, updatedivisions: _updatedivisions, ...cloneUpdateFields } =
+        updateInput;
+      const newEventData: Event = {
         ...eventData,
-        ...updateInput,
+        ...cloneUpdateFields,
         matches: [],
         groups: [],
-        location: updateInput?.location || "USA",
+        location: updateInput?.location || 'USA',
       };
       const newEvent = await this.eventService.create(newEventData);
 
@@ -546,9 +596,9 @@ export class EventMutations implements IEventMutations {
         promisesToArchive.push(this.archiveTeamService.createMany(teams));
         promisesToDelete.push(this.teamService.deleteMany({ events: eventId }));
         */
-       for (const team of teams) {
-        teamSet.add(team._id)
-       }
+        for (const team of teams) {
+          teamSet.add(team._id)
+        }
       }
 
 
@@ -580,10 +630,12 @@ export class EventMutations implements IEventMutations {
 
 
       // Update ldo, player 
-      promisesToUpdate.push(this.ldoService.updateOne({ events: eventId }, { $addToSet: { archivedEvents: eventId }
+      promisesToUpdate.push(this.ldoService.updateOne({ events: eventId }, {
+        $addToSet: { archivedEvents: eventId }
         // , $pull: {events: eventId} 
       }));
-      promisesToUpdate.push(this.playerService.updateMany({ events: eventId }, { $addToSet: { archivedEvents: eventId }
+      promisesToUpdate.push(this.playerService.updateMany({ events: eventId }, {
+        $addToSet: { archivedEvents: eventId }
         // , $pull: {events: eventId} 
       }));
 
@@ -672,7 +724,7 @@ export class EventMutations implements IEventMutations {
       return AppResponse.handleError(err);
     }
   }
-  
+
   async restoreEvent(context: any, eventId: string): Promise<GetEventResponse> {
     try {
       // Find the archived event
@@ -680,14 +732,14 @@ export class EventMutations implements IEventMutations {
       if (!archivedEvent) {
         return AppResponse.notFound("Archived Event");
       }
-  
+
       const promisesToRestore: Promise<any>[] = [];
       const promisesToDeleteFromArchive: Promise<any>[] = [];
       const promisesToUpdate: Promise<any>[] = [];
-  
+
       // Get the original event ID
       const originalEventId = (archivedEvent as any).originalId || eventId;
-  
+
       // Restore related entities from archive
       const [
         archivedMatches,
@@ -704,7 +756,7 @@ export class EventMutations implements IEventMutations {
         this.archivePlayerStatsService.find({ event: originalEventId }),
         this.archiveNetService.find({ event: originalEventId }),
       ]);
-  
+
       // Restore matches
       if (archivedMatches.length > 0) {
         const matchesForRestore = archivedMatches.map(match => {
@@ -716,7 +768,7 @@ export class EventMutations implements IEventMutations {
           this.archiveMatchService.deleteMany({ event: originalEventId })
         );
       }
-  
+
       // Restore groups
       if (archivedGroups.length > 0) {
         const groupsForRestore = archivedGroups.map(group => {
@@ -728,7 +780,7 @@ export class EventMutations implements IEventMutations {
           this.archiveGroupService.deleteMany({ event: originalEventId })
         );
       }
-  
+
       // Restore sponsors
       if (archivedSponsors.length > 0) {
         const sponsorsForRestore = archivedSponsors.map(sponsor => {
@@ -740,7 +792,7 @@ export class EventMutations implements IEventMutations {
           this.archiveSponsorService.deleteMany({ event: originalEventId })
         );
       }
-  
+
       // Restore templates
       if (archivedTemplates.length > 0) {
         const templatesForRestore = archivedTemplates.map(template => {
@@ -752,7 +804,7 @@ export class EventMutations implements IEventMutations {
           this.archiveTemplateService.deleteMany({ event: originalEventId })
         );
       }
-  
+
       // Restore player stats
       if (archivedPlayerStats.length > 0) {
         const statsForRestore = archivedPlayerStats.map(stat => {
@@ -764,7 +816,7 @@ export class EventMutations implements IEventMutations {
           this.archivePlayerStatsService.deleteMany({ event: originalEventId })
         );
       }
-  
+
       // Restore nets
       if (archivedNets.length > 0) {
         const netsForRestore = archivedNets.map(net => {
@@ -776,16 +828,16 @@ export class EventMutations implements IEventMutations {
           this.archiveNetService.deleteMany({ event: originalEventId })
         );
       }
-  
+
       // Get match IDs for rooms and rounds restoration
       const matchIds = archivedMatches.map(m => (m as any).originalId || (m as any)._id);
-  
+
       // Restore rooms and rounds
       const [archivedRooms, archivedRounds] = await Promise.all([
         this.archiveRoomService.find({ match: { $in: matchIds } }),
         this.archiveRoundService.find({ match: { $in: matchIds } }),
       ]);
-  
+
       if (archivedRooms.length > 0) {
         const roomsForRestore = archivedRooms.map(room => {
           const { _id, originalId, archivedAt, ...rest } = room as any;
@@ -796,7 +848,7 @@ export class EventMutations implements IEventMutations {
           this.archiveRoomService.deleteMany({ match: { $in: matchIds } })
         );
       }
-  
+
       if (archivedRounds.length > 0) {
         const roundsForRestore = archivedRounds.map(round => {
           const { _id, originalId, archivedAt, ...rest } = round as any;
@@ -807,13 +859,13 @@ export class EventMutations implements IEventMutations {
           this.archiveRoundService.deleteMany({ match: { $in: matchIds } })
         );
       }
-  
+
       // Restore server receiver on net data
       const [archivedServerReceiverOnNets, archivedServerReceiverPlays] = await Promise.all([
         this.archiveServerReceiverOnNetService.find({ event: originalEventId }),
         this.archiveServerReceiverSinglePlayService.find({ event: originalEventId }),
       ]);
-  
+
       if (archivedServerReceiverOnNets.length > 0) {
         const dataForRestore = archivedServerReceiverOnNets.map(item => {
           const { _id, originalId, archivedAt, ...rest } = item as any;
@@ -826,7 +878,7 @@ export class EventMutations implements IEventMutations {
           this.archiveServerReceiverOnNetService.deleteMany({ event: originalEventId })
         );
       }
-  
+
       if (archivedServerReceiverPlays.length > 0) {
         const dataForRestore = archivedServerReceiverPlays.map(item => {
           const { _id, originalId, archivedAt, ...rest } = item as any;
@@ -839,7 +891,7 @@ export class EventMutations implements IEventMutations {
           this.archiveServerReceiverSinglePlayService.deleteMany({ event: originalEventId })
         );
       }
-  
+
       // Remove event from archivedEvents arrays in LDO and Player
       promisesToUpdate.push(
         this.ldoService.updateOne(
@@ -853,30 +905,30 @@ export class EventMutations implements IEventMutations {
           { $pull: { archivedEvents: originalEventId } }
         )
       );
-  
+
       // Restore the event itself
       const eventForRestore = { ...archivedEvent } as any;
       delete eventForRestore._id;
       delete eventForRestore.originalId;
       delete eventForRestore.archivedAt;
       delete eventForRestore.__v;
-      
+
       promisesToRestore.push(
         this.eventService.create({ ...eventForRestore, _id: originalEventId })
       );
-      
+
       // Delete from archive
       promisesToDeleteFromArchive.push(
         this.archiveEventService.deleteById(eventId)
       );
-  
+
       // Execute all operations
       await Promise.all(promisesToUpdate);
       await Promise.all(promisesToRestore);
       await Promise.all(promisesToDeleteFromArchive);
 
       const event = await this.eventService.findByName(originalEventId);
-  
+
       return {
         code: HttpStatus.OK,
         success: true,

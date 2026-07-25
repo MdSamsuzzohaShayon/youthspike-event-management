@@ -201,6 +201,7 @@ query GetTeamRoster($teamId: String!) {
         captainofteams
         cocaptainofteams
         division
+        badge
         email
         firstName
         lastName
@@ -214,6 +215,7 @@ query GetTeamRoster($teamId: String!) {
         active
         num
         name
+        badge
         logo
         sendCredentials
       }
@@ -228,6 +230,14 @@ query GetTeamRoster($teamId: String!) {
         player
         playerRanking
         rank
+      }
+      badges{
+        _id
+        name
+        icon
+        event
+        teams
+        players
       }
     }
   }
@@ -301,9 +311,18 @@ query SearchTeams($eventIds: [String!], $filter: TeamSearchFilter) {
         groups
         logo
         name
+        badge
         num
         matches
         division
+      }
+      badges{
+        _id
+        name
+        icon
+        event
+        teams
+        players
       }
     }
   }

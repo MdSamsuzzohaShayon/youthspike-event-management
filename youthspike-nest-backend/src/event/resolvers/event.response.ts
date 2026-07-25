@@ -9,6 +9,8 @@ import { CustomPlayerStats } from 'src/player-stats/resolvers/player-stats.respo
 import { CustomGroup, EventMatches } from 'src/match/resolvers/match.response';
 import { CustomTeam } from 'src/team/resolvers/team.response';
 import { ArchiveEvent } from 'src/archive/archive.schema';
+import { CustomBadge } from 'src/badge/badge.response';
+import { Badge } from 'src/badge/badge.schema';
 
 @ObjectType()
 export class CreateOrUpdateEventResponse extends AppResponse<Event> {
@@ -110,6 +112,10 @@ export class PlayerEventSetting{
   @Field((_type) => [Sponsor], { nullable: true })
   sponsors?: Sponsor[];
 
+  @Field((_type) => [CustomBadge], { nullable: true })
+  badges?: CustomBadge[];
+
+
   @Field((_type) => ProStats, { nullable: true })
   multiplayer?: ProStats;
 
@@ -140,6 +146,9 @@ export class GroupsAndUnassignedPlayers{
 
   @Field((_type) => [CustomGroup], { nullable: true })
   groups?: CustomGroup[];
+
+  @Field((_type) => [CustomBadge], { nullable: true })
+  badges?: CustomBadge[];
 }
 
 @ObjectType()

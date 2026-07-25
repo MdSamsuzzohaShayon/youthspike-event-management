@@ -236,6 +236,7 @@ query GetTeamRoster($teamId: String!) {
         events
         captain
         cocaptain
+        badge
       }
       playerRanking {
         _id
@@ -247,6 +248,14 @@ query GetTeamRoster($teamId: String!) {
         player
         playerRanking
         rank
+      }
+      badges{
+        _id
+        name
+        icon
+        event
+        teams
+        players
       }
     }
   }
@@ -562,6 +571,7 @@ query SearchTeams($eventIds: [String!], $filter: TeamSearchFilter) {
         players
         captain
         sendCredentials
+        badge
       }
       emailcontents{
         _id
@@ -570,6 +580,14 @@ query SearchTeams($eventIds: [String!], $filter: TeamSearchFilter) {
         team
         emailsender
         senttime
+      }
+      badges{
+        _id
+        name
+        icon
+        event
+        teams
+        players
       }
     }
   }
@@ -610,6 +628,7 @@ const TEAM_FRAGMENT = gql`
     _id
     name
     logo
+    badge
     division
     groups {
       _id
@@ -623,6 +642,12 @@ const TEAM_FRAGMENT = gql`
         name
       }
     }
+  }
+`;
+
+const TEAM_BADGE_FRAGMENT = gql`
+  fragment TeamBadge on Team {
+    badge
   }
 `;
 
@@ -715,5 +740,6 @@ export {
   SEARCH_TEAMS,
   SEARCH_TEAM_LIST_LIGHT,
   UPDATE_TEAMS,
-  TEAM_FRAGMENT
+  TEAM_FRAGMENT,
+  TEAM_BADGE_FRAGMENT
 };

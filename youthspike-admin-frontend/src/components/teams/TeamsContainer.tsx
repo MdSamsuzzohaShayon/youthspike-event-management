@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QueryRef, useApolloClient, useReadQuery } from '@apollo/client/react';
 import { useRouter } from 'next/navigation';
-import { ITeam, IRoundRelatives, ISearchFilter, IGroup, INetRelatives, ISearchTeamResponse, ITeamFilter, IMatch, IEvent, EFilterPage, IPlayer, IEmailcontent } from '@/types';
+import { ITeam, ISearchFilter, IGroup, ISearchTeamResponse, ITeamFilter, IEvent, EFilterPage, IPlayer, IEmailcontent, IBadge } from '@/types';
 import FilterContent from '../event/FilterContent';
 import { SEARCH_TEAM_LIST_LIGHT } from '@/graphql/teams';
 import SearchTeamList from './SearchTeamList';
@@ -11,7 +11,7 @@ import EventNavigation from '../layout/EventNavigation';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
 import MultiPlayerAddDialog from './MultiPlayerAddDialog';
-import { divisionsOfEvents, divisionsToOptionList } from '@/utils/helper';
+import { divisionsToOptionList } from '@/utils/helper';
 import ActiveFiltersBar from '../event/ActiveFiltersBar';
 
 interface ITeamsContainerProps {
@@ -32,15 +32,15 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
   const isInitial = useRef<boolean>(true);
   const router = useRouter();
   const { data: initialData } = useReadQuery(queryRef);
-  
 
-  if(!initialData?.searchTeams?.data?.events || initialData?.searchTeams?.data?.events?.length === 0){
+
+  if (!initialData?.searchTeams?.data?.events || initialData?.searchTeams?.data?.events?.length === 0) {
     const error = new Error(`${initialData?.searchTeams?.message || "There is an error fetching Event!"}`);
     error.name = "No event found!";
     throw error;
   }
 
-  
+
   const apolloClient = useApolloClient();
 
   // Filter states
@@ -57,6 +57,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
   const [events, setEvents] = useState<IEvent[]>([]);
   const [playerMap, setPlayerMap] = useState<Map<string, IPlayer>>(new Map());
   const [emailcontents, setEmailcontents] = useState<IEmailcontent[]>([]);
+  const [badges, setBadges] = useState<IBadge[]>([]);
 
   // Loading states
   const [hasMore, setHasMore] = useState<boolean>(true);
@@ -95,6 +96,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
     setEvents(searchData.events || []);
     setHasMore((searchData.teams || []).length === PAGE_SIZE);
     setEmailcontents(searchData?.emailcontents || []);
+    setBadges(searchData?.badges || []);
   }, []);
 
 
@@ -116,7 +118,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
     [apolloClient, buildQueryVariables],
   );
 
- 
+
 
   // Apply filters
   const handleApplyFilters = useCallback(async () => {
@@ -186,10 +188,10 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
   }, [teams.length, appliedFilter, executeSearchQuery]);
 
 
-  const selectedEvent = useMemo(()=> {return eventId ? events.find((e)=> e._id === eventId) : null}, [events, eventId]);
-  const divivionList = useMemo(()=> selectedEvent ? divisionsToOptionList(selectedEvent?.divisions) : [], [selectedEvent]);
+  const selectedEvent = useMemo(() => { return eventId ? events.find((e) => e._id === eventId) : null }, [events, eventId]);
+  const divivionList = useMemo(() => selectedEvent ? divisionsToOptionList(selectedEvent?.divisions) : [], [selectedEvent]);
 
-  
+
 
   // Initialize with preloaded data
   useEffect(() => {
@@ -199,10 +201,10 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
     }
   }, [initialData, updateAllData]);
 
-  useEffect(()=>{
+  useEffect(() => {
     const currDivision = SessionStorageService.getItem(DIVISION)
-    if(currDivision){
-      setLocalFilter((prev)=> ({...prev, division: String(currDivision)}));
+    if (currDivision) {
+      setLocalFilter((prev) => ({ ...prev, division: String(currDivision) }));
     }
   }, []);
 
@@ -216,7 +218,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
   const hasUnsavedChanges = JSON.stringify(localFilter) !== JSON.stringify(appliedFilter);
   const isLoading = isApplyingFilters || isLoadingMore;
   const showInitialLoading = isApplyingFilters && teams.length === 0;
-  
+
 
   return (
     <div className="animate-fade-in">
@@ -267,7 +269,14 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
         <div className="team-list w-full flex flex-col gap-y-4">
           <div className="grid gap-4">
             {teams.length > 0 ? (
-              <SearchTeamList teamList={teams as unknown as ITeam[]} groupList={groups} event={selectedEvent || null} captainMap={playerMap} emailcontents={emailcontents} />
+              <SearchTeamList
+                teamList={teams as unknown as ITeam[]}
+                groupList={groups}
+                event={selectedEvent || null}
+                captainMap={playerMap}
+                emailcontents={emailcontents}
+                badges={badges}
+              />
             ) : (
               <div className="text-center py-8 text-gray-400">No teams found teaming your criteria.</div>
             )}

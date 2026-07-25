@@ -7,9 +7,5 @@ interface INewTeamPageProps {
 
 // eventId, groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision, divisions
 export default async function NewTeamPage({ searchParams }: INewTeamPageProps) {
-
-
-  
-
   return <NewTeamComp searchParams={searchParams} />;
 }

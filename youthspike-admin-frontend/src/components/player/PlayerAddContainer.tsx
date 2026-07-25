@@ -19,7 +19,7 @@ function PlayerAddContainer({ queryRef }: IProps) {
     <div>
       <h1>Add New Player</h1>
 
-      <PlayerAdd events={eventsTeamsData?.events || []} teams={eventsTeamsData?.teams || []} />
+      <PlayerAdd events={eventsTeamsData?.events || []} teams={eventsTeamsData?.teams || []} badges={eventsTeamsData?.badges || []} />
     </div>
   );
 }

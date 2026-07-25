@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import {
+  IBadge,
   IEvent,
   IGetTeamResponse,
   IOption,
@@ -27,10 +28,12 @@ import { UPDATE_PLAYER_RANKING } from "@/graphql/player-ranking";
 import updateTeam from "@/utils/request-handlers/updateTeam";
 import { useMessage } from "@/lib/MessageProvider";
 import updatePlayer from "@/utils/request-handlers/updatePlayer";
+import { createBadgeMap } from "@/utils/badge/badge-helpers";
 
 interface IPlayerSearchListProps {
   events: IEvent[];
   playerList: IPlayer[];
+  badges: IBadge[];
   teamList: ITeam[];
   selectedEvent?: IEvent | null;
 }
@@ -38,6 +41,7 @@ interface IPlayerSearchListProps {
 function PlayerSearchList({
   events,
   playerList,
+  badges,
   teamList,
   selectedEvent
 }: IPlayerSearchListProps) {
@@ -56,7 +60,6 @@ function PlayerSearchList({
 
   const handleDelete = async (e: React.SyntheticEvent, playerId: string) => {
     const response = await deleteAPlayer({ variables: { playerId } });
-    // console.log(response);
     window.location.reload();
   }
 
@@ -77,14 +80,8 @@ function PlayerSearchList({
   }
 
 
-  // const handleUpdatePlayer = (e: React.SyntheticEvent, updatePlayerState: Partial<TUpdatePlayer>, playerId: string) => {
-  //   const player = playerList.find((p) => p._id === playerId);
-  //   updatePlayer({ mutatePlayer, playerUpdate: updatePlayerState, prevPlayer: player as IPlayer, setIsLoading, setMessage, uploadedProfile: null })
-  //   window.location.reload();
-  // }
-
-  const handleUpdatePlayer = (event: React.SyntheticEvent, updatePlayerState: Partial<TUpdatePlayer>, playerId: string) => {
-    event.preventDefault();
+  const handleUpdatePlayer = (e: React.SyntheticEvent, updatePlayerState: Partial<TUpdatePlayer>, playerId: string) => {
+    e.preventDefault();
     const player = playerList.find((p) => p._id === playerId);
     if (!player) {
       setMessage({type: 'error', message: `There are no player with this ID: ${playerId}`});
@@ -116,6 +113,9 @@ function PlayerSearchList({
     () => createTeamsMap(teamList),
     [teamList]
   );
+  const badgeMap = useMemo(()=>createBadgeMap(badges), [badges]);
+
+
 
   return (
     <div className="playerList">
@@ -142,6 +142,8 @@ function PlayerSearchList({
                 teamList={teamList}
                 isChecked={false}
                 onSelect={() => { }}
+                badge={player.badge ? badgeMap.get(String(player.badge)) : null}
+                badges={badges}
                 setIsLoading={setIsLoading}
                 selectedEvent={selectedEvent || null}
                 onUpdateTeam={handleUpdateTeam}

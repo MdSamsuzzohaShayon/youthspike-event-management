@@ -1,5 +1,5 @@
 import { ADD_EVENT_RAW, EVENT_FRAGMENT } from '@/graphql/event';
-import { ICreateEventResponse, IEventAdd, IEventSponsor, IMessage, IProStatsAdd } from '@/types';
+import { ICreateEventResponse, IEventAdd, IEventSponsor, IMessage, IProStatsAdd, TAddBadge } from '@/types';
 import { APP_NAME, BACKEND_URL } from '../keys';
 import { getCookie } from '../clientCookie';
 import { useMutation } from '@apollo/client/react';
@@ -24,6 +24,7 @@ interface ICreateEventProps {
     apolloClient: ApolloClient;
     eventState: IEventAdd;
     sponsors: Omit<IEventSponsor, '_id' | 'event'>[];
+    badges: TAddBadge[];
     eventLogo: Blob | null;
     directorId: string | null;
     multiplayer: IProStatsAdd;
@@ -44,6 +45,7 @@ export async function createEvent({
     apolloClient,
     eventState,
     sponsors,
+    badges,
     eventLogo,
     directorId,
     multiplayer,
@@ -53,7 +55,7 @@ export async function createEvent({
 }: ICreateEventProps) {
     try {
         let responseData: ICreateEventResponse | undefined;
-        const inputData = { ...eventState };
+        const inputData = { ...eventState, badges };
         inputData.ldo = directorId || 'auto_detect_from_server';
         inputData.startDate = new Date(inputData.startDate).toISOString();
         inputData.endDate = new Date(inputData.endDate).toISOString();

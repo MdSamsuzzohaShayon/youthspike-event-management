@@ -133,6 +133,11 @@ export class TeamFields {
     }
   }
 
+  async badge(team: Team) {
+    const groupExist = await this.groupService.find({ _id: team.badge});
+    return groupExist;
+  }
+
   async groups(team: Team) {
     const groupExist = await this.groupService.find({ _id: {$in: team.groups as string[]}});
     return groupExist;

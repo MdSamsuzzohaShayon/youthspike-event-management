@@ -3,6 +3,7 @@
 import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
+import { Badge } from 'src/badge/badge.schema';
 import { Emailcontent } from 'src/emailsender/emailsernder.schema';
 import { Event } from 'src/event/event.schema';
 import { Group } from 'src/group/group.schema';
@@ -81,6 +82,11 @@ export class Team extends AppDocument {
   @Field(() => [Group], { nullable: false })
   @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }] })
   groups: Group[] | string[];
+
+
+  @Field((_type) => Badge, { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Badge' })
+  badge?: Badge | string;
 }
 
 export const TeamSchema = SchemaFactory.createForClass(Team);

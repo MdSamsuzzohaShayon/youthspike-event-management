@@ -203,6 +203,14 @@ const GET_PLAYER_EVENT_SETTINGS = gql`
           profile
           username
         }
+        badges{
+          _id
+          name
+          icon
+          event
+          teams
+          players
+        }
       }
     }
   }
@@ -319,6 +327,14 @@ const GET_EVENT_WITH_GROUPS_AND_UNASSIGNED_PLAYERS = gql`
           division
           active
         }
+        badges{
+          _id
+          name
+          icon
+          event
+          teams
+          players
+      }
       }
     }
   }

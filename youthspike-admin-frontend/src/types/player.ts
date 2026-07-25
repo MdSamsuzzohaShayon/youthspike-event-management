@@ -1,5 +1,5 @@
 import { useMutation } from "@apollo/client/react";
-import { IAllStats, IEvent, IGroup, IMatch, IPlayerRanking, IPlayerRankingItem, IResponse, ITeam, ITeamRelatives } from ".";
+import { IAllStats, IBadge, IEvent, IGroup, IMatch, IPlayerRanking, IPlayerRankingItem, IResponse, ITeam, ITeamRelatives } from ".";
 import { IDocument } from "./document";
 import { ApolloCache } from "@apollo/client";
 
@@ -33,6 +33,7 @@ export interface IPlayer extends IDocument {
   events?: string[];
   teams?: ITeam[] | string[];
 
+  badge?: IBadge | string;
   status: EPlayerStatus,
   profile: string | null;
   captainofteams: ITeam[] | string[] | null;
@@ -57,6 +58,7 @@ export interface IPlayerExpRel extends IDocument {
   email?: string;
   status: EPlayerStatus,
   events?: IEvent[];
+  badge?: IBadge;
   teams?: ITeam[];
   captainofteams: ITeam[] | null;
   cocaptainofteams: ITeam[] | null;
@@ -97,6 +99,7 @@ export interface ISearchPlayerResponse extends IResponse {
     groups: IGroup[];
     players: IPlayer[];
     teams: ITeam[];
+    badges: IBadge[];
   };
 }
 
@@ -104,6 +107,7 @@ export interface IGetEventsWithTeamsResponse extends IResponse {
   data: {
     events: IEvent[];
     teams: ITeamRelatives[];
+    badges: IBadge[];
   };
 }
 

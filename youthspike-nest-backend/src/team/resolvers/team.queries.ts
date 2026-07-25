@@ -32,6 +32,9 @@ import { EPlayerStatus } from 'src/player/player.schema';
 import { PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
 import { EmailsenderService } from 'src/emailsender/emailsender.service';
 import { CustomEmailcontent, CustomEmailsender } from 'src/emailsender/emailsender.response';
+import { BadgeService } from 'src/badge/badge.service';
+import { CustomBadge } from 'src/badge/badge.response';
+import { Badge } from 'src/badge/badge.schema';
 
 // ITeamQueries
 
@@ -51,6 +54,7 @@ export class TeamQueries {
     private ldoService: LdoService,
     private userService: UserService,
     private emailsenderService: EmailsenderService,
+    private badgeService: BadgeService,
     private configService: ConfigService,
   ) { }
 
@@ -255,7 +259,7 @@ export class TeamQueries {
     try {
       const team = await this.teamService.findById(teamId);
       if (!team) return AppResponse.notFound("Team");
-      let [players, playerRanking, events, unassignedPlayers] = await Promise.all([
+      let [players, playerRanking, events, badges, unassignedPlayers] = await Promise.all([
         this.playerService.find({ events: { $in: team.events }, teams: { $in: [team._id] } }),
         this.playerRankingService.findOne({
           team: teamId,
@@ -265,6 +269,7 @@ export class TeamQueries {
           ],
         }),
         this.eventService.find({ _id: { $in: team.events as string[] } }),
+        this.badgeService.find({event: {$in: team.events}}),
 
         // Get all unassigned players
         this.playerService.find({
@@ -348,6 +353,7 @@ export class TeamQueries {
           playerRanking: playerRanking as CustomPlayerRanking,
           rankings: rankings as CustomPlayerRankingItem[],
           unassignedPlayers: unassignedPlayers as CustomPlayer[],
+          badges: badges as CustomBadge[],
         },
       };
     } catch (err) {
@@ -544,7 +550,7 @@ export class TeamQueries {
       }
 
       // 🔹 Conditional queries (avoid empty DB hits)
-      const [matches, nets, rounds, captains, events, groups, emailcontents] = await Promise.all([
+      const [matches, nets, rounds, captains, events, groups, emailcontents, badges] = await Promise.all([
         matchIds.length
           ? this.matchService.find(matchQuery)
           : [],
@@ -568,6 +574,7 @@ export class TeamQueries {
           ? this.groupService.find({ event: { $in: eventIds } })
           : this.groupService.find({ event: { $in: [...eventIdTeamsSet] } }),
         this.emailsenderService.contentFind({ team: { $in: [...teams.map((t) => t._id)] } }),
+        this.badgeService.find({event: {$in: eventIds}})
       ]);
 
       // const emailsenders = await this.emailsenderService.find({ _id: { $in: emailcontents.map((ec) => String(ec.emailsender)) } });
@@ -583,6 +590,7 @@ export class TeamQueries {
         data: {
           events: events as CustomEvent[],
           teams: this.teamService.normalizeTeams(teams as CustomTeam[]) as CustomTeam[],
+          badges: badges as CustomBadge[],
           groups: groups as CustomGroup[],
           nets: nets as CustomNet[],
           rounds: rounds as CustomRound[],

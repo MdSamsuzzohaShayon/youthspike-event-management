@@ -2,6 +2,7 @@
 import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
+import { Badge } from 'src/badge/badge.schema';
 import { Emailsender } from 'src/emailsender/emailsernder.schema';
 import { Group } from 'src/group/group.schema';
 import { LDO } from 'src/ldo/ldo.schema';
@@ -138,6 +139,10 @@ export class Event extends AppDocument {
   @Field(() => [Emailsender], { nullable: true })
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Emailsender' }] })
   emailsenders: Emailsender[] | string[];
+
+  @Field(() => [Badge], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Badge' }] })
+  badges?: Badge[] | string[];
 
 
   /**

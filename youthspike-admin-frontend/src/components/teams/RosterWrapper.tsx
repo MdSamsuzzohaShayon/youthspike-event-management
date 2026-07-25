@@ -1,6 +1,6 @@
 import { UPDATE_TEAM } from '@/graphql/teams';
 import { useMessage } from '@/lib/MessageProvider';
-import { EPlayerStatus, IEvent, IOption, IPlayer, IPlayerExpRel, IPlayerRankingExpRel, ITeam } from '@/types';
+import { EPlayerStatus, IBadge, IEvent, IOption, IPlayer, IPlayerExpRel, IPlayerRankingExpRel, ITeam } from '@/types';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PlayerSelectInput from '../elements/forms/PlayerSelectInput';
 import PlayerList from '../player/PlayerList';
@@ -16,8 +16,9 @@ interface IRosterWrapperProps {
   unassignedPlayers: IPlayer[];
   playerRanking: IPlayerRankingExpRel;
   teamList: ITeam[];
+  badges: IBadge[];
 }
-function RosterWrapper({ events, team, players, unassignedPlayers, playerRanking, teamList }: IRosterWrapperProps) {
+function RosterWrapper({ events, team, players, unassignedPlayers, playerRanking, teamList, badges }: IRosterWrapperProps) {
   // Local State
   const [playerIdsToAdd, setPlayerIdsToAdd] = useState<Set<string>>(new Set());
   const [addPlayer, setAddPlayer] = useState<boolean>(false);
@@ -166,6 +167,7 @@ function RosterWrapper({ events, team, players, unassignedPlayers, playerRanking
 
       <div className="space-y-2">
         <PlayerList
+          badges={badges}
           playerList={activePlayers}
           setIsLoading={setIsLoading}
           rankControls
@@ -185,6 +187,7 @@ function RosterWrapper({ events, team, players, unassignedPlayers, playerRanking
             <span className="text-xs text-gray-500 bg-gray-700 px-2 py-1 rounded-full">{inactivePlayers.length}</span>
           </div>
           <PlayerList
+            badges={badges}
             playerList={inactivePlayers}
             events={events}
             setIsLoading={setIsLoading}

@@ -27,6 +27,9 @@ import { CustomPlayer } from 'src/player/resolvers/player.response';
 import { CustomGroup } from 'src/match/resolvers/match.response';
 import { CustomMatch, CustomNet, CustomRound, CustomTeam } from 'src/team/resolvers/team.response';
 import { CustomEvent } from 'src/event/resolvers/event.response';
+import { CustomBadge } from 'src/badge/badge.response';
+import { BadgeService } from 'src/badge/badge.service';
+import { Badge } from 'src/badge/badge.schema';
 
 
 @Injectable()
@@ -44,6 +47,7 @@ export class PlayerStatsQueries {
     private readonly matchesService: MatchService,
     private readonly configService: ConfigService,
     private readonly userService: UserService,
+    private readonly badgeService: BadgeService,
   ) { }
 
   async getPlayerStats(playerId: string) {
@@ -81,6 +85,7 @@ export class PlayerStatsQueries {
 
       // 2️⃣ Declare variables
       let team: Team | null = null;
+      let badge: Badge | null = null;
       let matches: Match[] = [];
       let nets: Net[] = [];
       let rounds: Round[] = [];
@@ -94,6 +99,11 @@ export class PlayerStatsQueries {
       // 3️⃣ Fetch event + pro stats concurrently
       const events = await this.eventService.find({ _id: { $in: player.events.map(e => String(e)) } });
       if (!events) return AppResponse.notFound('Event');
+      
+      if(player.badge){
+        badge = await this.badgeService.findOne({_id: player.badge});
+      }
+
 
       const multiplayerIds = new Set<string>(),
         weightIds = new Set<string>(),
@@ -175,7 +185,7 @@ export class PlayerStatsQueries {
                 { teamBPlayerB: playerId },
               ],
             }),
-            this.roundService.find({ match: { $in: matchIds } }),
+            this.roundService.find({ match: { $in: matchIds } })
           ]);
 
           // 4.4️⃣ Process nets once
@@ -271,17 +281,17 @@ export class PlayerStatsQueries {
             if (g) groupIds.add(String(g));
           }
           oponentObj.groups = [...groupIds];
-        }else{
+        } else {
           oponentObj.groups = [];
 
         }
         normalizeOponents.push(oponentObj);
       }
 
-      const normalizeTeam = {...team};
+      const normalizeTeam = { ...team };
       const groupIdSet = new Set<string>();
       for (const group of (team?.groups || [])) {
-        if(!group)continue;
+        if (!group) continue;
         groupIdSet.add(group as string)
       }
       normalizeTeam.groups = [...groupIdSet];
@@ -291,11 +301,12 @@ export class PlayerStatsQueries {
         success: true,
         data: {
           player: player as CustomPlayer,
-          team: normalizeTeam as CustomTeam,
+          team: team ? normalizeTeam as CustomTeam : null,
           playerstats,
           matches: matches as CustomMatch[],
           rounds: rounds as CustomRound[],
           nets: nets as CustomNet[],
+          badge: badge as CustomBadge,
           multiplayers: multiplayers,
           weights,
           oponents: normalizeOponents as CustomTeam[],

@@ -6,6 +6,7 @@ import { CustomMatch, CustomNet, CustomRound, CustomTeam } from "src/team/resolv
 import { PlayerStats, ProStats } from "../player-stats.schema";
 import { PlayerStatsEntry, CustomEvent } from "src/event/resolvers/event.response";
 import { Event } from 'src/event/event.schema';
+import { CustomBadge } from "src/badge/badge.response";
 
 @ObjectType()
 export class PlayerStatsResponse extends AppResponse<PlayerStats[]> {
@@ -47,6 +48,9 @@ export class PlayerStatsDetails {
 
   @Field((_type) => CustomTeam, { nullable: true })
   team?: CustomTeam;
+
+  @Field((_type) => CustomBadge, { nullable: true })
+  badge?: CustomBadge;
 
   @Field((_type) => [CustomTeam], { nullable: true })
   oponents?: CustomTeam[];

@@ -11,6 +11,7 @@ import DateTimeInput from '../elements/forms/DateTimeInput';
 import TextareaInput from '../elements/forms/TextareaInput';
 import ShowDivisions from './ShowDivisions';
 import ProStatsInput from './ProStatsInput';
+import BadgeInput from '../elements/forms/BadgeInput';
 
 interface EventFormSectionsProps {
   update: boolean;
@@ -81,6 +82,8 @@ const EventFormSections: React.FC<EventFormSectionsProps> = ({
 
         {<ShowDivisions divisions={eventState?.divisions || ''} onInputChange={onInputChange} updatedivisions={updateEvent?.updatedivisions} />}
       </div>
+
+   
 
       <SelectInput name="homeTeam" label="How is home team decided?" handleSelect={onSelectChange} optionList={homeTeamStrategy} defaultValue={eventState.homeTeam} />
 

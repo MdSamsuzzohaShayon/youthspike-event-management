@@ -52,6 +52,7 @@ function PlayerStatsContainer({ queryRef }: IPlayerStatsContainerProps) {
     weight,
     stats,
     groups,
+    badge
   } = data.getPlayerWithStats.data;
 
   const { filter, handleInputChange, clearAllFilters } = useFilterState();
@@ -93,7 +94,7 @@ function PlayerStatsContainer({ queryRef }: IPlayerStatsContainerProps) {
   const safePlayers = players || [];
 
 
-  
+
 
   const {
     matchOptions,
@@ -138,7 +139,7 @@ function PlayerStatsContainer({ queryRef }: IPlayerStatsContainerProps) {
       team
     );
   }, [playerstats, filter, player._id, safeMatches, safeNets, netMap]);
-  
+
 
   let totalServe = 0;
   for (const ps of safePlayerstats) {
@@ -207,64 +208,98 @@ function PlayerStatsContainer({ queryRef }: IPlayerStatsContainerProps) {
       )}
 
       {/* <!-- Player Profile Header --> */}
-      <div className="flex flex-col-reverse md:flex-row items-center justify-between gap-8 mb-12">
-        <div className="w-full">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-            {player.firstName} {player.lastName}
-          </h1>
-          <p className="text-yellow-logo font-medium mt-2">
-            {player.status} | {player.division}
-          </p>
-          <div className="flex justify-start gap-x-2 items-stretch mt-2">
-            {/* Team Box */}
-            {team?._id && (
-            <Link
-              href={`/teams/${team._id}/roster`}
-              className="bg-gray-800 px-4 py-2 rounded-lg underline decoration-yellow-400 flex gap-x-2 items-center"
-            >
-              {team?.logo && (
+      <div className="relative mb-12 overflow-hidden rounded-2xl border border-gray-800 bg-gray-900/60 p-6 md:p-10">
+        {/* Decorative ambient glow */}
+        <div className="pointer-events-none absolute -top-24 -right-24 h-64 w-64 rounded-full bg-yellow-400/10 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-yellow-400/5 blur-3xl" />
+
+        <div className="relative flex flex-col-reverse items-center gap-8 md:flex-row md:items-center md:justify-between">
+          {/* Identity block */}
+          <div className="w-full text-center md:text-left">
+            <h1 className="bg-gradient-to-r from-white via-white to-yellow-200 bg-clip-text text-3xl font-bold tracking-tight text-transparent md:text-5xl">
+              {player.firstName} {player.lastName}
+            </h1>
+
+            <p className="mt-2 flex items-center justify-center gap-2 text-sm font-medium tracking-wide text-yellow-logo md:justify-start">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-yellow-400" />
+              {player.status} &nbsp;•&nbsp; {player.division}
+            </p>
+
+            <div className="mt-4 flex flex-wrap items-stretch justify-center gap-3 md:justify-start">
+              {/* Team Card */}
+              {team?._id && (
+                <Link
+                  href={`/teams/${team._id}/roster`}
+                  className="group flex items-center gap-3 rounded-xl border border-gray-700/60 bg-gray-800/60 px-4 py-2 backdrop-blur-sm transition-all duration-300 hover:border-yellow-400/60 hover:bg-gray-800"
+                >
+                  {team?.logo && (
+                    <CldImage
+                      height={100}
+                      width={100}
+                      src={team.logo}
+                      alt={team.name}
+                      className="h-10 w-10 rounded-lg object-cover ring-1 ring-gray-700 transition-transform duration-300 group-hover:scale-105"
+                    />
+                  )}
+                  <div className="flex flex-col justify-center text-left">
+                    <p className="text-[10px] uppercase tracking-wider text-gray-400">
+                      Team
+                    </p>
+                    <p className="font-medium text-white underline decoration-yellow-400 decoration-2 underline-offset-2">
+                      {team?.name || ""}
+                    </p>
+                  </div>
+                </Link>
+              )}
+
+              {/* Username Card */}
+              {player.username && (
+                <div className="flex flex-col justify-center rounded-xl border border-gray-700/60 bg-gray-800/60 px-4 py-2 backdrop-blur-sm">
+                  <p className="text-[10px] uppercase tracking-wider text-gray-400">
+                    Username
+                  </p>
+                  <p className="font-medium text-white">{player.username}</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Avatar block */}
+          <div className="relative shrink-0">
+            {/* Gradient glow ring */}
+            <div className="absolute -inset-1 rounded-2xl bg-gradient-to-tr from-yellow-400 via-yellow-200 to-white opacity-70 blur-md transition-opacity duration-500 animate-pulse" />
+
+            <div className="relative">
+              {player.profile ? (
                 <CldImage
-                  height={100}
-                  width={100}
-                  src={team.logo}
-                  alt={team.name}
-                  className="w-12 h-12 object-cover"
+                  alt={`${player.firstName} ${player.lastName}`}
+                  src={player.profile}
+                  height={140}
+                  width={140}
+                  crop="fit"
+                  className="h-32 w-32 rounded-2xl border-2 border-gray-900 object-cover shadow-xl md:h-36 md:w-36"
+                />
+              ) : (
+                <TextImg
+                  className="h-32 w-32 rounded-2xl border-2 border-gray-900 shadow-xl md:h-36 md:w-36"
+                  fullText={`${player.firstName}${player.lastName}`}
                 />
               )}
-              <div className="flex flex-col justify-center">
-                <p className="text-xs text-gray-400 uppercase">Team</p>
-                <p className="font-medium">{team?.name || ""}</p>
-              </div>
-            </Link>
-            )}
 
-            {/* Username Box */}
-            {player.username && (
-              <div className="bg-gray-800 px-4 py-2 rounded-lg flex flex-col justify-center">
-                <p className="text-xs text-gray-400 uppercase">Username</p>
-                <p className="font-medium">{player.username}</p>
-              </div>
-            )}
-          </div>
-        </div>
-        <div className="relative">
-          {player.profile ? (
-            <CldImage
-              alt=""
-              src={player.profile}
-              height={100}
-              width={100}
-              crop="fit"
-              className="w-32 rounded-lg"
-            />
-          ) : (
-            <TextImg
-              className="w-32 h-32 rounded-lg"
-              fullText={`${player.firstName}${player.lastName}`}
-            />
-          )}
-          <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-black px-3 py-1 text-xs font-bold rounded-full shadow-md uppercase">
-            {player.division}
+              {/* Badge */}
+              {badge && (
+                <div className="absolute -bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-300 px-3 py-1 text-xs font-bold uppercase text-black shadow-md ring-1 ring-black/10 transition-transform duration-300 hover:scale-105">
+                  <CldImage
+                    src={badge.icon}
+                    width={20}
+                    height={20}
+                    alt=""
+                    className="h-4 w-4"
+                  />
+                  <span className="whitespace-nowrap">{badge.name}</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

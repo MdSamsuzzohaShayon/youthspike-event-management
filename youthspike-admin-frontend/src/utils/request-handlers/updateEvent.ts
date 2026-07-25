@@ -1,8 +1,15 @@
 import { UPDATE_EVENT_RAW } from '@/graphql/event';
-import { IEventAdd, IEventSponsor, IMessage, IProStats, IProStatsAdd } from '@/types';
+import { ICreateEventResponse, IEventAdd, IEventSponsor, IMessage, IProStats, IProStatsAdd, IResponse, TAddBadge } from '@/types';
 import { APP_NAME, BACKEND_URL } from '../keys';
 import { getCookie } from '../clientCookie';
 import { handleResponseCheck } from './playerHelpers';
+import { useMutation } from '@apollo/client/react';
+import { ApolloCache } from '@apollo/client';
+import { handleApiResult } from '../handleError';
+import SessionStorageService from '../SessionStorageService';
+import { DIVISION } from '../constant';
+import { removeTeamFromStore } from '../localStorage';
+import routerService from '@/lib/router-service';
 
 interface IUpdateEventVariables {
   eventId: string;
@@ -76,74 +83,156 @@ function processSponsorsForUpdate(sponsorImgList: Omit<IEventSponsor, '_id' | 'e
   return { sponsorsInput, sponsorFileList, sponsorsStringInput };
 }
 
+type TMutationFunction = useMutation.MutationFunction<
+  { updateEvent: IResponse },
+  {
+    [x: string]: any;
+  },
+  ApolloCache
+>;
 
-export async function updateEventWithFiles({
+interface IUpdateEventParams {
+  eventId: string;
+  mutateEvent: TMutationFunction,
+  updateEventState: Partial<IEventAdd>;
+  sponsors: Omit<IEventSponsor, '_id' | 'event'>[];
+  badges: TAddBadge[];
+  eventLogo: Blob | null;
+  updateMultiplayer: Partial<IProStatsAdd>;
+  updateWeight: Partial<IProStatsAdd>;
+  updateStats: Partial<IProStatsAdd>;
+  setMessage: (message: Omit<IMessage, "id">) => void
+}
+
+
+export async function updateEvent({
   eventId,
-  updateEvent,
+  mutateEvent, // GraphQL Query
+  updateEventState,
   sponsors,
+  badges,
   eventLogo,
   updateMultiplayer,
   updateStats,
   updateWeight,
   setMessage,
-}: {
-  eventId: string;
-  updateEvent: Partial<IEventAdd>;
-  sponsors: Omit<IEventSponsor, '_id' | 'event'>[];
-  eventLogo: Blob | null;
-  updateMultiplayer: Partial<IProStatsAdd>;
-  updateWeight: Partial<IProStatsAdd>;
-  updateStats: Partial<IProStatsAdd>;
-  setMessage?: (message: Omit<IMessage, "id">) => void
-}) {
-  const inputData = { ...updateEvent };
-  if (inputData.startDate) inputData.startDate = new Date(inputData.startDate).toISOString();
-  if (inputData.endDate) inputData.endDate = new Date(inputData.endDate).toISOString();
-  if(inputData.divisions) delete inputData.divisions;
+}: IUpdateEventParams): Promise<IResponse> {
+  try {
+    const updateInput = { ...updateEventState, badges: (badges || []).map((badge)=> ({name: badge.name, icon: badge.icon})) };
+    if (updateInput.startDate) updateInput.startDate = new Date(updateInput.startDate).toISOString();
+    if (updateInput.endDate) updateInput.endDate = new Date(updateInput.endDate).toISOString();
+    if (updateInput.divisions) delete updateInput.divisions;
 
-  const { sponsorsInput, sponsorFileList, sponsorsStringInput } = processSponsorsForUpdate(sponsors);
+    const { sponsorsInput, sponsorFileList, sponsorsStringInput } = processSponsorsForUpdate(sponsors);
 
-  const formData = new FormData();
-  const variables: IUpdateEventVariables = {
-    eventId,
-    updateInput: inputData,
-    sponsorsInput,
-    sponsorsStringInput,
-    multiplayerInput: updateMultiplayer,
-    weightInput: updateWeight,
-    statsInput: updateStats,
-    logo: null,
-  };
+    let responseData: IResponse | undefined;
+    const variables: IUpdateEventVariables = {
+      eventId,
+      updateInput,
+      sponsorsInput,
+      sponsorsStringInput,
+      multiplayerInput: updateMultiplayer,
+      weightInput: updateWeight,
+      statsInput: updateStats,
+      logo: null,
+    };
 
-  formData.set(
-    'operations',
-    JSON.stringify({
-      query: UPDATE_EVENT_RAW,
-      variables,
-    }),
-  );
+    if (sponsors.length > 0 || eventLogo) {
+      const formData = new FormData();
+      formData.set(
+        'operations',
+        JSON.stringify({
+          query: UPDATE_EVENT_RAW,
+          variables,
+        }),
+      );
 
-  const mapObj = createFileMap(sponsorFileList, !!eventLogo);
-  formData.set('map', JSON.stringify(mapObj));
+      const mapObj = createFileMap(sponsorFileList, !!eventLogo);
+      formData.set('map', JSON.stringify(mapObj));
+      addFilesToFormData(formData, sponsorFileList, eventLogo);
 
-  addFilesToFormData(formData, sponsorFileList, eventLogo);
-
-  const token = getCookie('token');
-  const response = await fetch(BACKEND_URL, {
-    method: 'POST',
-    body: formData,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'apollo-require-preflight': 'true',
-    },
-  });
+      const token = getCookie('token');
+      const response = await fetch(BACKEND_URL, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'apollo-require-preflight': 'true',
+        },
+      });
 
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! Status: ${response.status}`);
+      // 🔴 Handle HTTP errors
+      if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+      }
+
+      const json = await response.json();
+
+      // 🔴 Handle GraphQL errors
+      if (json.errors?.length) {
+        throw new Error(json.errors[0].message || 'GraphQL Error');
+      }
+
+      responseData = json.data?.createEvent;
+    } else {
+      const result = await mutateEvent({ variables });
+      // 🔴 GraphQL errors (Apollo)
+      if (result.error) {
+        console.error(result.error);
+
+        throw new Error(result.error?.message);
+      }
+
+      responseData = result.data?.updateEvent;
+    }
+
+    // 🔴 No response safety
+    if (!responseData) {
+      throw new Error('No response received from server');
+    }
+
+    // ✅ Success handling
+    const result = handleApiResult({ response: responseData });
+
+    if (result?.code > 299) {
+      throw new Error(result.message);
+    }
+
+    setMessage({
+      type: 'success',
+      message: result?.message || 'Player updated successfully',
+    });
+
+
+    return responseData;
+
+  } catch (error: unknown) {
+    console.error(error);
+
+    // 🧠 Smart error extraction
+    let message = 'Something went wrong';
+
+    if (error instanceof Error) {
+      message = error.message;
+    }
+
+    setMessage({
+      type: 'error',
+      message,
+    });
+
+
+    SessionStorageService.removeItem(DIVISION);
+    removeTeamFromStore();
+    await fetch('/api/logout', { method: 'GET' });
+    routerService.push('/login');
+
+
+    throw new Error(message);
   }
 
-  const responseData = await response.json();
-  const eventRes = responseData?.data?.updateEvent;
-  return handleResponseCheck(eventRes, setMessage);
+
+
+
 }

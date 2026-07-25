@@ -1,9 +1,9 @@
 // app/teams/[teamId]/roster/page.tsx
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import { PreloadQuery } from "@/lib/client";
 import { QueryRef } from "@apollo/client/react";
 import Loader from "@/components/elements/Loader";
-import { IGetTeamRosterResponse, ITeam } from "@/types";
+import { IGetTeamRosterResponse } from "@/types";
 import TeamRosterContainer from "@/components/teams/TeamRosterContainer";
 import { GET_TEAM_ROSTER } from "@/graphql/teams";
 

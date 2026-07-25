@@ -1,4 +1,4 @@
-import { EPlayerStatus, IEmailcontent, IGroup, IOption, ITeam, TUpdateGroup } from '@/types';
+import { EPlayerStatus, IBadge, IEmailcontent, IGroup, IOption, ITeam, TUpdateGroup, TUpdateTeam } from '@/types';
 import Link from 'next/link';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CldImage } from 'next-cloudinary';
@@ -17,6 +17,12 @@ import SessionStorageService from '@/utils/SessionStorageService';
 import { CURRENT_EVENT } from '@/utils/constant';
 import { UPDATE_TEAM } from '@/graphql/teams';
 import { formatEmailSentTime, readDate } from '@/utils/datetime';
+import BadgeSelect from '../elements/forms/BadgeSelect';
+import TeamCardHeaderSection from './TeamCardHeaderSection';
+import TeamInfoSection from './TeamInfoSection';
+import TeamCardCaptainSection from './TeamCardCaptainSection';
+import EmailControl from './EmailControl';
+import ActionMenu from './ActionMenu';
 
 interface ITeamCardProps {
   team: ITeam;
@@ -24,15 +30,18 @@ interface ITeamCardProps {
   groupList: IGroup[];
   isChecked: boolean;
   emailcontents?: IEmailcontent[];
-  onCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
+  badge?: IBadge | null;
+  badges: IBadge[];
   onSendCredential: (e: React.SyntheticEvent, teamId: string) => void;
+  onUpdateTeam: (e: React.SyntheticEvent, update: Partial<TUpdateTeam>, teamId: string) => void;
+  onCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
   onMoveTeamOpen: (e: React.SyntheticEvent, team: ITeam) => void;
   onDeleteTeamOpen: (e: React.SyntheticEvent, team: ITeam) => void;
 }
 
 
 
-function TeamCard({ team, eventId, groupList, isChecked, emailcontents, onCheckedTeam, onSendCredential, onMoveTeamOpen, onDeleteTeamOpen }: ITeamCardProps) {
+function TeamCard({ team, eventId, groupList, isChecked, emailcontents, badge, badges, onCheckedTeam, onSendCredential, onUpdateTeam, onMoveTeamOpen, onDeleteTeamOpen }: ITeamCardProps) {
   // Hooks
   const { ldoIdUrl } = useLdoId();
   const [mutateGroup] = useMutation(UPDATE_GROUP);
@@ -45,11 +54,7 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, onChecke
   // Local State
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
 
-
-
-
   const toggleActionMenu = () => setActionOpen((prev) => !prev);
-
 
   const onGroupChange = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -65,8 +70,6 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, onChecke
     } else {
       setSelectedGroup(newGroupId);
     }
-
-
 
     if (!newGroupId) {
       console.error("Not able to remove team from the group, because there are no group available");
@@ -122,6 +125,11 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, onChecke
     routerService.push(`/teams/${team._id}/roster/${ldoIdUrl}`);
   }
 
+  const handleBadgeChange = (e: React.SyntheticEvent) => {
+    const inputEl = e.target as HTMLInputElement;
+    onUpdateTeam(e, {badge: inputEl.value}, team._id);
+  }
+
 
   // Memoization
   const { activePlayers, inactivePlayers } = useMemo(() => {
@@ -138,12 +146,6 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, onChecke
     return { activePlayers: active, inactivePlayers: inactive };
   }, [team]);
 
-
-
-
-
-
-
   const groupOptions = useMemo(() => {
     return groupList.filter((g) => g?.division?.trim()?.toLowerCase() === team?.division?.trim()?.toLowerCase()).map((g, i) => ({ id: i + 1, text: g.name, value: g._id }));
   }, [groupList, team])
@@ -156,188 +158,44 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, onChecke
     setSelectedGroup(groupId);
   }, [team.groups]);
 
-
-  // Reusable components
-  const TeamLogo = () =>
-    team.logo ? (
-      <CldImage crop="fit" width={64} height={64} src={team.logo} alt={team.name} className="w-8 h-8 object-cover rounded-lg" />
-    ) : (
-      <TextImg className="w-8 h-8 rounded-lg bg-yellow-logo" fullText={team.name} />
-    );
-
-  const CaptainAvatar = () =>
-    team.captain?.profile ? (
-      <CldImage crop="fit" width={40} height={40} src={team.captain.profile} alt={team.captain.firstName} className="w-8 h-8 rounded-full object-cover" />
-    ) : (
-      team.captain && <TextImg className="w-8 h-8 rounded-full bg-gray-600" fullText={team.captain.firstName + team.captain.lastName} />
-    );
-
-
-
-  const ActionMenu = () => {
-    // href={`/teams/${team._id}/${ldoIdUrl}`}
-    const handleEditRedirect = (e: React.SyntheticEvent) => {
-      e.preventDefault();
-      SessionStorageService.setItem(CURRENT_EVENT, eventId);
-      routerService.push(`/teams/${team._id}/update/${ldoIdUrl}`)
-    }
-    return (
-      <AnimatePresence>
-        {actionOpen && (
-          <motion.ul
-            ref={actionEl}
-            className="absolute z-20 right-0 top-10 w-48 bg-gray-700 rounded-md shadow-lg overflow-hidden"
-            variants={menuVariants}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-            transition={{ duration: 0.2 }}
-          >
-            <li>
-              <button onClick={handleEditRedirect} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer">
-                <Image src="/icons/edit.svg" alt="Edit" width={16} height={16} className="svg-white" />
-                <span className="text-sm">Edit</span>
-              </button>
-            </li>
-
-            <li
-              onClick={(e) => handleMoveTeamOpen(e, team)}
-              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer"
-            >
-              <Image src="/icons/move.svg" alt="Move Team" width={16} height={16} className="svg-white" />
-              <span className="text-sm">Move Team</span>
-            </li>
-
-            <li
-              onClick={(e) => {
-                setActionOpen(false);
-                onSendCredential(e, team._id);
-              }}
-              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer"
-            >
-              <Image src={team.sendCredentials ? "/icons/sent-email.svg" : "/icons/send-email.svg"} alt={`${sendCredentialLabel} Credential`} width={16} height={16} className={team.sendCredentials ? 'svg-green' : 'svg-white'} />
-              <span className="text-sm">{sendCredentialLabel} Credential</span>
-            </li>
-
-            <li
-              onClick={(e) => handleDeleteTeamOpen(e, team)}
-              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer text-red-500 hover:text-red-400"
-              role="presentation"
-            >
-              <Image src="/icons/delete.svg" alt="Delete" width={16} height={16} className="svg-white" />
-              <span className="text-sm">Delete</span>
-            </li>
-          </motion.ul>
-        )}
-      </AnimatePresence>
-    );
-  }
-
-  const EmailControl = () => {
-    // Get time of last email send
-    const latest = getLatestEmailContent(emailcontents ?? []);
-    const formatted = latest?.senttime ? formatEmailSentTime(latest.senttime) : null;
-    return (<>
-      <button onClick={(e) => handleSendCredential(e, team._id)} className="p-1.5 rounded-lg hover:bg-gray-700 transition-colors" aria-label={`${sendCredentialLabel} Credential`}>
-        <Image
-          src="/icons/send-email.svg"
-          alt="Send Email"
-          width={18}
-          height={18}
-          className={`h-12 ${team.sendCredentials ? 'svg-green' : 'svg-white'} opacity-80 hover:opacity-100 transition-opacity`}
-        />
-        {latest && formatted && (
-          <span className='flex flex-col gap-y-0 text-[0.8rem]'>
-            <span>{formatted.date}</span>
-            <span>{formatted.time}</span>
-          </span>
-        )}
-      </button>
-    </>);
-  }
-
-  const HeaderSection = () => (
-    <div className="flex items-center justify-between mb-2 min-h-[2.5rem]">
-      {/* Left: Checkbox and Team Number */}
-      <div className="flex items-center gap-3 flex-1">
-        <CheckboxInput _id={team._id} name="team-select" defaultValue={isChecked} handleInputChange={handleCheckedTeam} />
-        <span className="bg-yellow-logo text-black text-xs font-bold rounded-full h-8 w-8 flex items-center justify-center">{team.num}</span>
-      </div>
-
-      {/* Center: Players Count */}
-      <div className="flex items-center justify-center flex-1">
-        <div className="flex flex-col md:flew-row items-center justify-center text-sm text-gray-300 bg-gray-700 px-3 py-1.5 rounded-lg">
-          <span className="mr-2">Players:</span>
-          <span className="font-medium">
-            {/* {activePlayers.length} / {activePlayers.length + inactivePlayers.length} */}
-            {activePlayers.length + inactivePlayers.length}
-          </span>
-        </div>
-      </div>
-
-      {/* Right: Actions and Preview */}
-      <div className="flex items-center justify-end gap-3 flex-1">
-
-        <EmailControl />
-        <div className="flex justify-center items-start flex-col">
-          {team.division && <span className='uppercase'>{team.division.toUpperCase()}</span>}
-          {/* <Link href={`/teams/${team._id}/roster/${ldoIdUrl}`}>
-            <button className="btn-info">Preview</button>
-          </Link> */}
-          <Link href="#" className="btn-info" type='button' onClick={onTeamRedirect}>PREVIEW</Link>
-        </div>
-
-
-        <div className="relative">
-          <button onClick={toggleActionMenu} className="w-8 h-8 flex items-center justify-center bg-gray-700 rounded-lg hover:bg-gray-600 transition-colors" aria-label="Team options">
-            <Image width={16} height={16} src="/icons/dots-vertical.svg" alt="Options" className="svg-white" />
-          </button>
-          <ActionMenu />
-        </div>
-      </div>
-    </div>
-  );
-
-  const TeamInfoSection = () => (
-    <div className="flex items-center gap-4 mb-2">
-      <TeamLogo />
-      <div className="flex-1 min-w-0">
-        <h3 className="text-xs font-semibold text-white truncate">{team.name}</h3>
-        <div className="mt-1">
-          <SelectInput name="group" optionList={groupOptions} handleSelect={onGroupChange} value={selectedGroup} />
-        </div>
-      </div>
-    </div>
-  );
-
-  const CaptainSection = () =>
-    team.captain && (
-      <div className="flex items-center gap-3">
-        <CaptainAvatar />
-        <div className="flex-1 min-w-0">
-          <h4 className="text-xs font-semibold text-white truncate">
-            {team.captain.firstName} {team.captain.lastName}
-          </h4>
-          <div className="w-full flex items-center gap-x-2 flex-wrap">
-            <p className="text-xs text-gray-400 truncate">@{team.captain.username}</p>
-            <div className="border border-l border-yellow-logo h-6"></div>
-            {team?.captain?.email && <p className="text-xs text-gray-400 truncate">{team.captain.email}</p>}
-          </div>
-        </div>
-      </div>
-    );
-
-
-
-
+  const playerCount = activePlayers.length + inactivePlayers.length;
 
   return (
     <div className="team-card w-full bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-700">
       {/* Mobile Layout */}
       <div className="md:hidden p-2">
-        <HeaderSection />
-        <TeamInfoSection />
-        <CaptainSection />
+        <TeamCardHeaderSection
+          team={team}
+          eventId={eventId}
+          ldoIdUrl={ldoIdUrl}
+          isChecked={isChecked}
+          playerCount={playerCount}
+          actionOpen={actionOpen}
+          actionEl={actionEl}
+          emailcontents={emailcontents}
+          sendCredentialLabel={sendCredentialLabel}
+          onCheckedTeam={handleCheckedTeam}
+          onSendCredential={handleSendCredential}
+          onMoveTeamOpen={handleMoveTeamOpen}
+          onDeleteTeamOpen={handleDeleteTeamOpen}
+          onToggleActionMenu={toggleActionMenu}
+          onCloseActionMenu={() => setActionOpen(false)}
+          onTeamRedirect={onTeamRedirect}
+        />
+        <TeamInfoSection
+          team={team}
+          groupOptions={groupOptions}
+          selectedGroup={selectedGroup}
+          onGroupChange={onGroupChange}
+        />
+        {team.captain && <TeamCardCaptainSection captain={team.captain} />}
+        <BadgeSelect
+          name="badge"
+          className='w-48'
+          value={badge?._id}
+          badges={badges || []}
+          onChange={handleBadgeChange}
+        />
       </div>
 
       {/* Desktop Layout */}
@@ -368,6 +226,7 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, onChecke
           {/* Right Section */}
           {team?.captain && (
             <div className="flex items-center gap-x-2">
+
               {team.captain.profile ? (
                 <div className="w-12 h-12 rounded-full border border-yellow-400 overflow-hidden flex-shrink-0">
                   <CldImage crop="fit" width={48} height={48} src={team.captain.profile} alt={team.captain.firstName} className="w-full h-full object-cover" />
@@ -393,6 +252,13 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, onChecke
 
         {/* Bottom Section */}
         <div className="w-full flex items-center justify-end gap-2">
+          <BadgeSelect
+            name="badge"
+            className='w-full md:w-48'
+            value={badge?._id}
+            badges={badges || []}
+            onChange={handleBadgeChange}
+          />
           <span className='uppercase'>Division: {team.division}</span>
           <Link href="#" onClick={onTeamRedirect}>
             <button className="btn-info">Preview</button>
@@ -400,18 +266,33 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, onChecke
           <div className="flex items-center text-sm text-gray-300">
             <span className="mr-2">Players:</span>
             <span className="bg-gray-700 px-3 py-1 rounded-lg font-medium">
-              {/* {activePlayers.length} / {activePlayers.length + inactivePlayers.length} */}
-              {activePlayers.length + inactivePlayers.length}
+              {playerCount}
             </span>
           </div>
 
-           <EmailControl />
+          <EmailControl
+            team={team}
+            emailcontents={emailcontents}
+            sendCredentialLabel={sendCredentialLabel}
+            onSendCredential={handleSendCredential}
+          />
 
           <div className="relative">
             <button onClick={toggleActionMenu} className="w-10 h-10 flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600 transition-colors" aria-label="Options">
               <Image width={20} height={20} src="/icons/dots-vertical.svg" alt="options" className="svg-white" />
             </button>
-            <ActionMenu />
+            <ActionMenu
+              team={team}
+              eventId={eventId}
+              ldoIdUrl={ldoIdUrl}
+              actionOpen={actionOpen}
+              actionEl={actionEl}
+              sendCredentialLabel={sendCredentialLabel}
+              onClose={() => setActionOpen(false)}
+              onSendCredential={onSendCredential}
+              onMoveTeamOpen={handleMoveTeamOpen}
+              onDeleteTeamOpen={handleDeleteTeamOpen}
+            />
           </div>
         </div>
       </div>

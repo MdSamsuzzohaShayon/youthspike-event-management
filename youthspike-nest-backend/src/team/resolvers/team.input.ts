@@ -39,8 +39,8 @@ export class CreateTeamInput{
   @Field({ nullable: true })
   sendCredentials: boolean;
 
-  // @Field({ nullable: true })
-  // num?: number;
+  @Field({ nullable: true })
+  badge: string;
 
   @Field((_type) => String, { nullable: true })
   captain?: string; // Make the captain field nullable

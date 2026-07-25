@@ -1,3 +1,5 @@
+import { UserRoleFlags } from "@/types";
+
 const LDO_ID = "ldoId";
 const UNAUTHORIZED = "Unauthorized";
 const PLAYER_PAGE = "PlayerPage";
@@ -11,6 +13,16 @@ const CURRENT_EVENT = 'current_event'; // Not event of the ldo, it is the event 
 const CURRENT_EVENT_ID = 'cei';
 const MATCH_WIN_POINTS = 3;
 
+// Constants
+const USER_ROLE_DEFAULTS: UserRoleFlags = {
+    isAdmin: false,
+    isDirector: false,
+    isPlayer: false,
+    isAdminOrDirector: false,
+    isCaptain: false,
+    isCoCaptain: false,
+};
+
 export {
     LDO_ID,
     UNAUTHORIZED,
@@ -22,5 +34,6 @@ export {
     DEFAULT_SPONSOR,
     CURRENT_EVENT,
     CURRENT_EVENT_ID,
-    MATCH_WIN_POINTS
+    MATCH_WIN_POINTS,
+    USER_ROLE_DEFAULTS
 };

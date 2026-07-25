@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { IOption, IPlayer, IGroup, ITeam, IGetTeamResponse, IEvent, TAddTeam } from '@/types';
+import { IOption, IPlayer, IGroup, ITeam, IGetTeamResponse, IEvent, TAddTeam, IBadge } from '@/types';
 import { ADD_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import SelectInput from '../elements/forms/SelectInput';
 import { useLdoId } from '@/lib/LdoProvider';
@@ -16,6 +16,7 @@ import GenericMultiSelect from '../elements/forms/GenericMultiSelect';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { CURRENT_EVENT } from '@/utils/constant';
 import validateTeam from '@/utils/validateTeam';
+import BadgeSelect from '../elements/forms/BadgeSelect';
 
 
 
@@ -24,6 +25,7 @@ interface ITeamAddProps {
   groupList: IGroup[];
   handleClose: (e: React.SyntheticEvent) => void;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  badges: IBadge[];
   currDivision?: string;
   update?: boolean;
   prevTeam?: ITeam;
@@ -43,13 +45,14 @@ const initialTeamState: TAddTeam = {
   sendCredentials: false,
 };
 
-function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision, events }: ITeamAddProps) {
+function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision, events, badges }: ITeamAddProps) {
   const { ldoIdUrl } = useLdoId();
   const { setMessage } = useMessage();
   const router = useRouter();
   const apolloClient = useApolloClient();
 
   const [teamState, setTeamState] = useState<TAddTeam>(initialTeamState);
+  const [badgeList, setBadgeList] = useState<IBadge[]>(badges);
   const [updateTeamState, setUpdateTeamState] = useState<Partial<TAddTeam>>({});
   const [availableAddition, setAvailableAdition] = useState(false);
 
@@ -225,8 +228,9 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
     const currentEvent = SessionStorageService.getItem(CURRENT_EVENT);
     if (currentEvent) {
       setTeamState((prev) => ({ ...prev, events: [...new Set([...(prev?.events || []) as string[], currentEvent])] as string[] }));
+      setBadgeList((prevBadges)=> [...prevBadges].filter((badge)=> badge?.event === currentEvent));
     }
-  }, []);
+  }, [badges]);
 
 
 
@@ -271,6 +275,14 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
             : groupList.map((g, gI) => ({ id: gI + 1, text: g.name, value: g._id }))
         }
       />
+      <BadgeSelect
+        name="badge"
+        className='mt-6'
+        value={teamState.badge as string}
+        badges={badgeList || []}
+        onChange={handleInputChange}
+      />
+
       <div className="w-full flex justify-start items-center flex-wrap gap-x-4">
         {events.map((event) => (
           <Link key={event._id} className="underline underline-offset-1 hover:text-yellow-400" href={`/${event._id}/groups/new/${ldoIdUrl}`}>

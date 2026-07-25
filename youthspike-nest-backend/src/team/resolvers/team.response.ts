@@ -12,6 +12,7 @@ import { PlayerStatsEntry, CustomEvent } from 'src/event/resolvers/event.respons
 import { CustomGroup } from 'src/match/resolvers/match.response';
 import { Emailcontent } from 'src/emailsender/emailsernder.schema';
 import { CustomEmailcontent, CustomEmailsender } from 'src/emailsender/emailsender.response';
+import { CustomBadge } from 'src/badge/badge.response';
 
 
 @ObjectType()
@@ -33,6 +34,9 @@ export class CustomTeam extends Team {
 
   @Field((_type) => [String], { nullable: true })
   events: string[];
+
+  @Field((_type) => String, { nullable: true })
+  badge: string;
 }
 
 
@@ -228,6 +232,9 @@ export class TeamRoster {
   @Field((_type) => [CustomPlayer], { nullable: true })
   unassignedPlayers: CustomPlayer[];
 
+  @Field((_type) => [CustomBadge], { nullable: true })
+  badges: CustomBadge[];
+
 }
 
 @ObjectType()
@@ -316,6 +323,9 @@ export class TeamSearch {
 
   @Field((_type) => [CustomMatch], { nullable: true })
   matches: CustomMatch[];
+  
+  @Field((_type) => [CustomBadge], { nullable: true })
+  badges: CustomBadge[];
   
 
   @Field((_type) => [CustomPlayer], { nullable: true })

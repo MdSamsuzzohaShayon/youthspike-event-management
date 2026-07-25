@@ -1,17 +1,15 @@
 'use client'
 
-import { EFilterPage, IEvent, IEventRelatives, IGetTeamsResponse, IGroup, IPlayer, ISearchFilter, ISearchTeamResponse, ITeam, ITeamFilter } from '@/types';
+import { EFilterPage, IEvent, IEventRelatives, IGroup, IPlayer, ISearchFilter, ISearchTeamResponse, ITeam, ITeamFilter } from '@/types';
 import { QueryRef, useApolloClient, useReadQuery } from '@apollo/client/react';
 import TeamTable from './TeamTable';
-import { notFound, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { GET_TEAMS_MIN, SEARCH_TEAM_LIST_LIGHT } from '@/graphql/teams';
-import Link from 'next/link';
+import { SEARCH_TEAM_LIST_LIGHT } from '@/graphql/teams';
 import { useLdoId } from '@/lib/LdoProvider';
-import Image from 'next/image';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { DIVISION } from '@/utils/constant';
-import { divisionsOfEvents, divisionsToOptionList } from '@/utils/helper';
+import { divisionsOfEvents } from '@/utils/helper';
 import FilterContent from '../event/FilterContent';
 import ActiveFiltersBar from '../event/ActiveFiltersBar';
 

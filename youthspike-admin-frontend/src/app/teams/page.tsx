@@ -4,7 +4,6 @@ import Loader from '@/components/elements/Loader';
 import { QueryRef } from '@apollo/client/react';
 import { ISearchLimitFilter, ISearchTeamResponse, ITeamFilter } from '@/types';
 import { SEARCH_TEAM_LIST_LIGHT } from '@/graphql/teams';
-import TeamsContainer from '@/components/teams/TeamsContainer';
 import AdminTeamsContainer from '@/components/teams/AdminTeamsContainer';
 
 
@@ -36,7 +35,6 @@ async function TeamsPage({ searchParams }: ITeamsPageProps) {
       {(queryRef) => (
         <Suspense fallback={<Loader />}>
           <AdminTeamsContainer queryRef={queryRef as QueryRef<{ searchTeams: ISearchTeamResponse }>} initialSearchParams={{ search, division, group }} />
-          {/* <TeamsContainer queryRef={queryRef as QueryRef<{ searchTeams: ISearchTeamResponse }>} initialSearchParams={{ search, division, group }} /> */}
         </Suspense>
       )}
     </PreloadQuery>
