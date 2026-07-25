@@ -1,14 +1,38 @@
 // components/team/TeamNavigation.tsx
+
 'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { } from 'lucide-react';
 import { CldImage } from 'next-cloudinary';
-import { IEvent, ITeam } from '@/types';
+import { IEvent, ITeam, UserRole, UserRoleFlags } from '@/types';
 import TextImg from '../elements/TextImg';
-import { Trophy, Users, Calendar, ExternalLink, BarChart3, CalendarDays } from 'lucide-react';
+import {
+  Trophy,
+  Users,
+  ExternalLink,
+  BarChart3,
+  CalendarDays,
+  Settings,
+  Users2,
+  LayoutGrid,
+  Medal,
+  Mail,
+  Swords,
+  Shield,
+  ChevronDown,
+  Star,
+  Menu,
+  X
+} from 'lucide-react';
+import React, { useMemo, useRef, useState, useCallback } from 'react';
+import SessionStorageService from '@/utils/SessionStorageService';
+import { CURRENT_EVENT, USER_ROLE_DEFAULTS } from '@/utils/constant';
+import { useUser } from '@/lib/UserProvider';
+import { FRONTEND_URL } from '@/utils/keys';
+import EventNavigationLink from '../event/EventNavigationLink';
 
+// Types
 interface ITeamNavigationProps {
   team: ITeam;
   events: IEvent[];
@@ -16,169 +40,394 @@ interface ITeamNavigationProps {
   totalPlayers: number;
 }
 
-const TeamNavigation = ({ team, events, ldoIdUrl, totalPlayers }: ITeamNavigationProps) => {
-  const pathname = usePathname();
+interface TeamNavItem {
+  name: string;
+  href: string;
+  icon: React.ReactNode;
+}
 
-  const teamId = team._id;
 
-  const navItems = [
-    {
-      name: 'Stats',
-      href: `/teams/${teamId}/stats/${ldoIdUrl}`,
-      icon: <BarChart3 className="w-4 h-4" />,
-    },
-    {
-      name: 'Roster',
-      href: `/teams/${teamId}/roster/${ldoIdUrl}`,
-      icon: <Users className="w-4 h-4" />,
-    },
-    {
-      name: 'Matches',
-      href: `/teams/${teamId}/matches/${ldoIdUrl}`,
-      icon: <CalendarDays className="w-4 h-4" />,
-    },
-  ];
+const TEAM_NAV_ITEMS: TeamNavItem[] = [
+  {
+    name: 'Stats',
+    href: '',
+    icon: <BarChart3 className="w-3.5 h-3.5" />,
+  },
+  {
+    name: 'Roster',
+    href: '',
+    icon: <Users className="w-3.5 h-3.5" />,
+  },
+  {
+    name: 'Matches',
+    href: '',
+    icon: <CalendarDays className="w-3.5 h-3.5" />,
+  },
+];
 
-  const isActive = (href: string) => pathname === href;
+// Helper Functions
 
-  {/* Header Section - Modern Glass Card */ }
+const getSelectedEvent = (events: IEvent[]): IEvent | null => {
+  const eventId = SessionStorageService.getItem(CURRENT_EVENT);
+  if (!eventId) return null;
+  return events.find((event) => event._id === eventId) ?? null;
+};
+
+const generateTeamNavItems = (teamId: string, ldoIdUrl: string): TeamNavItem[] => {
+  return TEAM_NAV_ITEMS.map((item) => ({
+    ...item,
+    href: `/teams/${teamId}/${item.name.toLowerCase()}/${ldoIdUrl}`,
+  }));
+};
+
+const getUserRoleFlags = (userRole: UserRole | undefined): UserRoleFlags => {
+  if (!userRole) return USER_ROLE_DEFAULTS;
+
+  const isAdmin = userRole === UserRole.admin;
+  const isDirector = userRole === UserRole.director;
+
+  return {
+    isAdmin,
+    isDirector,
+    isPlayer: userRole === UserRole.player,
+    isAdminOrDirector: isAdmin || isDirector,
+    isCaptain: userRole === UserRole.captain,
+    isCoCaptain: userRole === UserRole.co_captain,
+  };
+};
+
+
+
+// Sub-components
+
+
+const TeamLogo: React.FC<{ team: ITeam }> = ({ team }) => {
+  if (!team?.name) {
+    return (
+      <div className="relative w-10 h-10 sm:w-12 sm:h-12 bg-gray-800 rounded-lg border border-gray-700 flex items-center justify-center">
+        <span className="text-xs text-gray-500">N/A</span>
+      </div>
+    );
+  }
+
+  if (team.logo) {
+    return (
+      <div className="relative w-10 h-10 sm:w-12 sm:h-12">
+        <CldImage
+          alt={team.name}
+          width={48}
+          height={48}
+          src={team.logo}
+          className="w-full h-full rounded-lg border border-yellow-500/20 object-cover shadow-lg"
+          crop="fit"
+        />
+      </div>
+    );
+  }
+
   return (
-    <div className="backdrop-blur-xl bg-gray-900/80 rounded-2xl border border-gray-800 shadow-2xl overflow-hidden mb-6 transition-all duration-300 hover:shadow-yellow-500/5">
-      {/* Gradient Accent Line */}
-      <div className="h-1 bg-gradient-to-r from-yellow-500 via-yellow-400 to-transparent" />
+    <div className="relative w-10 h-10 sm:w-12 sm:h-12">
+      <TextImg
+        className="w-full h-full rounded-lg border border-yellow-500/20 shadow-lg"
+        fullText={team.name}
+        txtCls="text-sm font-bold"
+      />
+    </div>
+  );
+};
 
-      {/* Compact Header */}
-      <div className="p-4 md:p-5">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          {/* Left Section - Team Info */}
-          <div className="flex items-center gap-4 flex-1 min-w-0">
-            <div className="relative group">
-              <div className="absolute inset-0 bg-yellow-500/20 rounded-xl blur-md group-hover:blur-xl transition-all duration-300" />
-              <TeamLogo team={team} />
-            </div>
-            <div className="min-w-0">
-              <h1 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent truncate leading-tight">
-                {team?.name || 'Loading...'}
-              </h1>
-              <div className="flex items-center gap-3 mt-1">
-                <span className="inline-flex items-center gap-1 text-xs text-gray-400">
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                  Active Roster
-                </span>
+const TeamStats: React.FC<{ totalPlayers: number; eventsCount: number }> = ({
+  totalPlayers,
+  eventsCount
+}) => (
+  <div className="flex items-center gap-3 mt-1">
+    <span className="flex items-center gap-1 text-[11px] text-gray-400">
+      <Users className="w-3 h-3 text-gray-500" />
+      {totalPlayers}
+    </span>
+    <span className="flex items-center gap-1 text-[11px] text-gray-400">
+      <Trophy className="w-3 h-3 text-gray-500" />
+      {eventsCount} events
+    </span>
+    <span className="flex items-center gap-1">
+      <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+      <span className="text-[11px] text-gray-500">Active</span>
+    </span>
+  </div>
+);
+
+const EventSelector: React.FC<{
+  selectedEvent: IEvent | null;
+  events: IEvent[];
+  ldoIdUrl: string;
+  onOpenModal: () => void;
+}> = ({ selectedEvent, events, ldoIdUrl, onOpenModal }) => {
+  if (selectedEvent) {
+    return (
+      <button
+        onClick={onOpenModal}
+        className="flex items-center gap-2 px-3 py-1.5 bg-yellow-500/10 border border-yellow-500/20 rounded-lg hover:border-yellow-500/40 transition-all"
+      >
+        <Trophy className="w-3.5 h-3.5 text-yellow-400" />
+        <span className="text-xs font-medium text-white hidden sm:block">
+          {selectedEvent.name}
+        </span>
+        <ChevronDown className="w-3 h-3 text-gray-400" />
+      </button>
+    );
+  }
+
+  if (events.length > 0) {
+    return (
+      <Link
+        href={`/${events[0]._id}/${ldoIdUrl}`}
+        className="px-3 py-1.5 bg-yellow-500 text-black rounded-lg text-xs font-semibold hover:bg-yellow-400 transition-colors"
+      >
+        View Event
+      </Link>
+    );
+  }
+
+  return null;
+};
+
+const MobileMenuButton: React.FC<{
+  isOpen: boolean;
+  onClick: () => void;
+}> = ({ isOpen, onClick }) => (
+  <button
+    onClick={onClick}
+    className="sm:hidden p-1.5 rounded-lg bg-gray-800 text-gray-400 hover:text-white transition-colors"
+    aria-label={isOpen ? 'Close menu' : 'Open menu'}
+  >
+    {isOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+  </button>
+);
+
+const EventModal: React.FC<{
+  events: IEvent[];
+  ldoIdUrl: string;
+  modalRef: React.RefObject<HTMLDialogElement | null>;
+}> = ({ events, ldoIdUrl, modalRef }) => {
+  const handleClose = useCallback(() => {
+    modalRef.current?.close();
+  }, [modalRef]);
+
+  const handleEventClick = useCallback(() => {
+    modalRef.current?.close();
+  }, [modalRef]);
+
+  if (events.length === 0) {
+    return (
+      <dialog ref={modalRef} className="modal-dialog">
+        <div className="p-4 text-center">
+          <p className="text-gray-400">No events available</p>
+          <button
+            onClick={handleClose}
+            className="mt-2 text-sm text-yellow-400 hover:text-yellow-300"
+          >
+            Close
+          </button>
+        </div>
+      </dialog>
+    );
+  }
+
+  return (
+    <dialog ref={modalRef} className="modal-dialog">
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-base font-bold text-white flex items-center gap-2">
+            <Trophy className="w-4 h-4 text-yellow-400" />
+            Select Event
+          </h3>
+          <button
+            onClick={handleClose}
+            className="w-7 h-7 rounded-lg bg-gray-800 flex items-center justify-center text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+            aria-label="Close modal"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        </div>
+        <div className="grid gap-2 max-h-64 overflow-y-auto">
+          {events.map((event) => (
+            <Link
+              key={event._id}
+              href={`/${event._id}/${ldoIdUrl}`}
+              onClick={handleEventClick}
+              className="flex items-center gap-3 p-3 rounded-lg bg-gray-800/50 border border-gray-700/30 hover:border-yellow-500/30 transition-all"
+            >
+              <div className="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center flex-shrink-0">
+                <Trophy className="w-4 h-4 text-yellow-400" />
               </div>
-            </div>
-          </div>
-
-          {/* Center Section - Stats */}
-          <div className="flex items-center gap-6">
-            <StatItem label="Total Players" value={totalPlayers} icon={<Users className="w-4 h-4" />} />
-            <StatItem label="Events" value={events?.length || 0} icon={<Calendar className="w-4 h-4" />} />
-          </div>
-
-          {/* Right Section - Events */}
-          {events && events.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex items-center gap-1">
-                <Trophy className="w-3 h-3" /> Featured Events
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {events.map((event) => (
-                  <Link
-                    href={`/${event._id}/${ldoIdUrl}`}
-                    className="group inline-flex items-center gap-1.5 px-3 py-1.5 bg-yellow-logo text-black rounded-lg text-sm font-medium transition-all duration-200 hover:shadow-lg hover:shadow-yellow-500/25 hover:scale-105"
-                    key={event._id}
-                  >
-                    {event.name}
-                    <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+              <span className="text-sm font-medium text-white truncate">
+                {event.name}
+              </span>
+              <ExternalLink className="w-3.5 h-3.5 text-gray-600 ml-auto flex-shrink-0" />
+            </Link>
+          ))}
         </div>
       </div>
+    </dialog>
+  );
+};
 
-      {/* Navigation */}
 
-      <div className="border-t border-gray-800/50 bg-gray-900/30">
-        <nav className="flex flex-wrap items-center gap-1 p-1.5">
-          {navItems.map((item) => (
+const TeamNavTabs: React.FC<{
+  navItems: TeamNavItem[];
+  currentPath: string;
+}> = ({ navItems, currentPath }) => {
+  const isActive = useCallback(
+    (href: string) => currentPath === href,
+    [currentPath]
+  );
+
+  return (
+    <div className="p-1.5">
+      <nav className="flex gap-1">
+        {navItems.map((item) => {
+          const active = isActive(item.href);
+          return (
             <Link
               key={item.name}
               href={item.href}
               className={`
-              relative group flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium
-              transition-all duration-200 ease-out
-              ${isActive(item.href)
-                  ? 'text-yellow-400 bg-gradient-to-r from-yellow-500/10 to-transparent'
-                  : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-sm font-medium
+                transition-all duration-200
+                ${active
+                  ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
+                  : 'text-gray-400 hover:text-white hover:bg-gray-800/50 border border-transparent'
                 }
-            `}
+              `}
             >
-              {/* Active Indicator */}
-              {isActive(item.href) && (
-                <span className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-yellow-500 to-yellow-400 rounded-full" />
-              )}
-
-              {/* Icon with hover animation */}
-              <span className={`
-              transition-transform duration-200
-              ${isActive(item.href) ? 'text-yellow-400' : 'text-gray-500 group-hover:scale-110'}
-            `}>
+              <span className={active ? 'text-yellow-400' : 'text-gray-500'}>
                 {item.icon}
               </span>
-
-              {/* Label */}
-              <span>{item.name}</span>
-
-              {/* Hover Background Effect */}
-              <span className="absolute inset-0 rounded-xl bg-white/0 group-hover:bg-white/5 transition-colors -z-10" />
+              <span className="hidden sm:inline">{item.name}</span>
             </Link>
-          ))}
-        </nav>
+          );
+        })}
+      </nav>
+    </div>
+  );
+};
+
+// Main Component
+const TeamNavigation: React.FC<ITeamNavigationProps> = ({
+  team,
+  events,
+  ldoIdUrl,
+  totalPlayers
+}) => {
+  const pathname = usePathname();
+  const user = useUser();
+  const eventsRef = useRef<HTMLDialogElement | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const userRoleFlags = useMemo(
+    () => getUserRoleFlags(user?.info?.role),
+    [user?.info?.role]
+  );
+
+  const selectedEvent = useMemo(
+    () => getSelectedEvent(events),
+    [events]
+  );
+
+  const teamNavItems = useMemo(
+    () => generateTeamNavItems(team._id, ldoIdUrl),
+    [team._id, ldoIdUrl]
+  );
+
+  const handleOpenModal = useCallback(() => {
+    eventsRef.current?.showModal();
+  }, []);
+
+  const handleToggleMobileMenu = useCallback(() => {
+    setMobileMenuOpen(prev => !prev);
+  }, []);
+
+  if (!team?._id) {
+    return (
+      <div className="relative mb-4 p-4 bg-gray-900/80 rounded-2xl border border-gray-800 text-center">
+        <p className="text-gray-400">Team information not available</p>
       </div>
+    );
+  }
 
+  return (
+    <div className="relative mb-4">
+      <div className="relative bg-gray-900/80 backdrop-blur-xl rounded-2xl border border-gray-800 shadow-xl overflow-hidden">
+        <div className="h-0.5 bg-gradient-to-r from-yellow-500 via-yellow-400 to-transparent" />
+
+        <div className="p-3 sm:p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 min-w-0 flex-1">
+              <div className="relative flex-shrink-0">
+                <div className="absolute -inset-1 bg-yellow-500/20 rounded-xl blur-md" />
+                <TeamLogo team={team} />
+              </div>
+
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-lg sm:text-xl font-bold text-white truncate">
+                    {team.name}
+                  </h1>
+                  {userRoleFlags.isCaptain && (
+                    <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-500/10 rounded-full border border-yellow-500/20">
+                      <Star className="w-2.5 h-2.5 text-yellow-400" />
+                      <span className="text-[10px] text-yellow-400 font-medium">Captain</span>
+                    </span>
+                  )}
+                </div>
+
+                <TeamStats
+                  totalPlayers={totalPlayers}
+                  eventsCount={events?.length ?? 0}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <EventSelector
+                selectedEvent={selectedEvent}
+                events={events}
+                ldoIdUrl={ldoIdUrl}
+                onOpenModal={handleOpenModal}
+              />
+
+              <MobileMenuButton
+                isOpen={mobileMenuOpen}
+                onClick={handleToggleMobileMenu}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className={`border-t border-gray-800/50 bg-gray-900/30 ${mobileMenuOpen ? 'block' : 'hidden sm:block'}`}>
+          <EventNavigationLink
+            eventId={selectedEvent?._id ?? ""}
+            ldoIdUrl={ldoIdUrl}
+            teamId={team._id}
+            userRoleFlags={userRoleFlags}
+          />
+        </div>
+
+        <div className="border-t border-gray-800/50 bg-gray-900/20">
+          <TeamNavTabs
+            navItems={teamNavItems}
+            currentPath={pathname}
+          />
+        </div>
+
+        <EventModal
+          events={events}
+          ldoIdUrl={ldoIdUrl}
+          modalRef={eventsRef}
+        />
+      </div>
     </div>
   );
-
-
-}
-
-
-const TeamLogo = ({ team }: { team: ITeam }) =>
-  team?.logo ? (
-    <div className="relative w-14 h-14 md:w-16 md:h-16">
-      <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/30 to-transparent rounded-xl blur-md" />
-      <CldImage
-        alt={team.name}
-        width={64}
-        height={64}
-        src={team.logo}
-        className="relative w-full h-full rounded-xl border-2 border-yellow-500/40 object-cover object-center shadow-lg transition-transform duration-300 group-hover:scale-105"
-        crop="fit"
-      />
-    </div>
-  ) : (
-    <div className="relative w-14 h-14 md:w-16 md:h-16">
-      <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/30 to-transparent rounded-xl blur-md" />
-      <TextImg
-        className="relative w-full h-full rounded-xl border-2 border-yellow-500/40 shadow-lg transition-transform duration-300 group-hover:scale-105"
-        fullText={team?.name || ''}
-        txtCls="text-base md:text-lg font-bold"
-      />
-    </div>
-  );
-
-const StatItem = ({ label, value, icon }: { label: string; value: number; icon?: React.ReactNode }) => (
-  <div className="text-center md:text-left group">
-    <div className="flex items-center gap-1.5 text-xs text-gray-400 mb-0.5">
-      {icon && <span className="text-yellow-logo">{icon}</span>}
-      <span>{label}</span>
-    </div>
-    <div className="text-xl md:text-2xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-      {value}
-    </div>
-  </div>
-);
+};
 
 export default TeamNavigation;

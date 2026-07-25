@@ -9,6 +9,7 @@ import TeamNavigation from './TeamNavigation';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { TEAM } from '@/utils/constant';
 import RosterWrapper from './RosterWrapper';
+import { createBadgeMap } from '@/utils/badge/badge-helpers';
 
 interface ITeamRosterContainerProps {
   queryRef: QueryRef<{ getTeamRoster: IGetTeamRosterResponse }>;
@@ -22,7 +23,7 @@ function TeamRosterContainer({ queryRef, teamId }: ITeamRosterContainerProps) {
   const rosterData = data?.getTeamRoster?.data;
   if (!rosterData) notFound();
 
-  const { team, players, rankings, events, playerRanking } = rosterData;
+  const { team, players, rankings, events, playerRanking, badges } = rosterData;
 
   if (!team) notFound();
 
@@ -64,6 +65,10 @@ function TeamRosterContainer({ queryRef, teamId }: ITeamRosterContainerProps) {
     return {activePlayers, inactivePlayers};
   }, [players, rankings, team._id]);
 
+
+  const badgeMap = useMemo(()=> createBadgeMap(badges), [badges]);
+  
+
   /**
    * ✅ Avoid unnecessary object recreation
    */
@@ -97,6 +102,7 @@ function TeamRosterContainer({ queryRef, teamId }: ITeamRosterContainerProps) {
         events={events}
         ldoIdUrl={ldoIdUrl}
         team={team}
+        badge={team.badge ? badgeMap.get(String(team.badge)) : null}
         totalPlayers={playerList.activePlayers.length + playerList.inactivePlayers.length}
       />
 
@@ -107,6 +113,7 @@ function TeamRosterContainer({ queryRef, teamId }: ITeamRosterContainerProps) {
             inactivePlayers={playerList.inactivePlayers} // ✅ USE FILTERED LIST
             activePlayers={playerList.activePlayers} // ✅ USE FILTERED LIST
             team={team}
+            badgeMap={badgeMap}
             playerRanking={playerRankingData}
           />
         </div>

@@ -14,8 +14,6 @@ import { useUser } from '@/lib/UserProvider';
 import { readDate, readTimestamp } from '@/utils/datetime';
 import Image from 'next/image';
 import SelectInput from '../elements/forms/SelectInput';
-import { divisionsToOptionList } from '@/utils/helper';
-import { updateEventWithFiles } from '@/utils/request-handlers/updateEvent';
 import { useMutation } from '@apollo/client/react';
 import { UPDATE_EVENT } from '@/graphql/event';
 

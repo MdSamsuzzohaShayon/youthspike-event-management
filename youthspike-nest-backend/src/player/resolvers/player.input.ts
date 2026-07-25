@@ -24,6 +24,9 @@ export class CreatePlayerInput {
   @Field({ nullable: true })
   phone: string;
 
+  @Field({ nullable: true })
+  badge: string;
+
 
   @Field(() => [String], { nullable: true })
   teams: string[];

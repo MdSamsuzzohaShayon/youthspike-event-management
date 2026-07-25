@@ -1,5 +1,5 @@
 import { useMutation } from '@apollo/client/react';
-import { EGroupType, IGroup, IGroupExpRel, IGroupRelatives, ILDO, INetRelatives, IPlayer, IResponse, IRoundRelatives, ITeam } from '.';
+import { EGroupType, IBadge, IGroup, IGroupExpRel, IGroupRelatives, ILDO, INetRelatives, IPlayer, IResponse, IRoundRelatives, ITeam } from '.';
 import { ETieBreakingStrategy, IEvent, IEventExpRel } from './event';
 import { ApolloCache } from '@apollo/client';
 
@@ -112,6 +112,7 @@ export interface IGetEventWithGroupsAndUnassignedPlayersResponse extends IRespon
     events: IEvent[],
     groups: IGroup[];
     players: IPlayer[];
+    badges: IBadge[];
   }
 }
 

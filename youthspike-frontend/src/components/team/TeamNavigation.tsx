@@ -5,20 +5,22 @@
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { CldImage } from 'next-cloudinary';
-import { IEvent, IEventRelatives, ITeam } from '@/types';
+import { IBadge, IEvent, IEventRelatives, ITeam } from '@/types';
 import TextImg from '../elements/TextImg';
 import { Trophy, Users, Calendar, ExternalLink, BarChart3, CalendarDays, Star, Activity, ChevronRight } from 'lucide-react';
 import { useMemo } from 'react';
 import { CURRENT_EVENT_ID } from '@/utils/constant';
+import LogoWithBadge from '../badge/LogoWithBadge';
 
 interface ITeamNavigationProps {
   team: ITeam;
   events: IEventRelatives[];
   ldoIdUrl: string;
   totalPlayers: number;
+  badge?: IBadge | null;
 }
 
-const TeamNavigation = ({ team, events, ldoIdUrl, totalPlayers }: ITeamNavigationProps) => {
+const TeamNavigation = ({ team, events, ldoIdUrl, totalPlayers, badge }: ITeamNavigationProps) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
@@ -77,7 +79,8 @@ const TeamNavigation = ({ team, events, ldoIdUrl, totalPlayers }: ITeamNavigatio
               <div className="relative flex-shrink-0">
                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 to-yellow-400 rounded-2xl blur-xl opacity-20 animate-pulse" />
                 <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/30 via-yellow-400/20 to-transparent rounded-2xl rotate-45 animate-spin-slow" />
-                <TeamLogo team={team} />
+                {/* <TeamLogo team={team} /> */}
+                <LogoWithBadge teamName={team.name} badge={badge} logo={team.logo} size='w-18'  />
               </div>
               
               <div className="min-w-0 flex-1">

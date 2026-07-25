@@ -9,6 +9,7 @@ import { useLdoId } from '@/lib/LdoProvider';
 import { IUserContext, UserRole } from '@/types/user';
 import { getUserFromCookie } from '@/utils/clientCookie';
 import { FRONTEND_URL } from '@/utils/keys';
+import EventNavigationLink from '../event/EventNavigationLink';
 
 interface IProps {
   event: IEvent | null;
@@ -153,87 +154,7 @@ const QuickInfoBar = ({ event }: { event: IEvent }) => (
   </div>
 );
 
-// Sub-component: NavigationBar
-const NavigationBar = ({
-  eventId,
-  ldoIdUrl,
-  userRoleFlags,
-  teamId
-}: {
-  eventId: string;
-  ldoIdUrl: string;
-  userRoleFlags: UserRoleFlags;
-  teamId: string | null
-}) => {
-  const { isPlayer, isAdmin, isCaptain, isCoCaptain, isAdminOrDirector, isDirector } = userRoleFlags;
 
-  const navigationItems: NavigationItem[] = [
-    {
-      label: 'Settings',
-      href: `/${eventId}/settings/${ldoIdUrl}`,
-      shouldShow: true // Always show for all users
-    },
-    {
-      label: 'Teams',
-      href: `/${eventId}/teams/${ldoIdUrl}`,
-      shouldShow: !isPlayer && !isCaptain && !isCoCaptain
-    },
-    {
-      label: 'Groups',
-      href: `/${eventId}/groups/${ldoIdUrl}`,
-      shouldShow: !isPlayer && !isCaptain && !isCoCaptain
-    },
-    {
-      label: 'Team Standings',
-      href: `${FRONTEND_URL}/events/${eventId}/teams/${ldoIdUrl}`,
-      shouldShow: !isPlayer
-    },
-    {
-      label: 'Roster',
-      href: (isCaptain || isCoCaptain) && teamId ? `/teams/${teamId}/roster/${ldoIdUrl}` : `/${eventId}/players/${ldoIdUrl}`,
-      shouldShow: true // Always show for all users
-    },
-    {
-      label: 'Account',
-      href: `/account`,
-      shouldShow: isDirector // Always show for all users
-    },
-    {
-      label: 'Email Template',
-      href: `/${eventId}/templates/${ldoIdUrl}`,
-      shouldShow: isAdminOrDirector // Always show for all users
-    },
-    {
-      label: 'Matches',
-      href: `/${eventId}/matches/${ldoIdUrl}`,
-      shouldShow: true // Always show for all users
-    },
-    // {
-    //   label: 'Admin',
-    //   href: `/admin`,
-    //   shouldShow: isAdmin
-    // },
-    {
-      label: 'LDOs',
-      href: `/admin/directors`,
-      shouldShow: isAdmin
-    }
-  ];
-
-  return (
-    <nav className="px-2 py-1">
-      <ul className="flex items-center overflow-x-auto overflow-y-hidden -mx-2 scrollbar-hide">
-        {navigationItems.map((item) => (
-          item.shouldShow && (
-            <li key={item.label} className="flex-shrink-0 px-2">
-              <NavigationLink href={item.href} label={item.label} />
-            </li>
-          )
-        ))}
-      </ul>
-    </nav>
-  );
-};
 
 function EventNavigation({ event }: IProps) {
   const [user, setUser] = useState<IUserContext | null>(null);
@@ -286,12 +207,8 @@ function EventNavigation({ event }: IProps) {
     <div className="min-h-fit border-b border-yellow-500/20 shadow-2xl">
       <EventHeader event={event} />
       <QuickInfoBar event={event} />
-      <NavigationBar
-        eventId={event._id}
-        ldoIdUrl={ldoIdUrl}
-        userRoleFlags={userRoleFlags}
-        teamId={user?.info?.teamId || null}
-      />
+
+      <EventNavigationLink eventId={event._id} ldoIdUrl={ldoIdUrl} teamId={user?.info?.teamId || null} userRoleFlags={userRoleFlags} />
 
       <div className="sm:hidden px-4 py-1 flex justify-center">
         <div className="w-8 h-[2px]"></div>

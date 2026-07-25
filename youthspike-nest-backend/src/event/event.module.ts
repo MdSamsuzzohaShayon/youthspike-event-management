@@ -5,10 +5,11 @@ import { ConfigModule } from '@nestjs/config';
 import { EventMutations } from './resolvers/event.mutations';
 import { EventQueries } from './resolvers/event.queries';
 import { EventFields } from './resolvers/event.fields';
+import EventHelpers from './resolvers/event.helpers';
 
 @Module({
   imports: [SharedModule, ConfigModule.forRoot()],
 
-  providers: [EventResolver, EventMutations, EventQueries, EventFields],
+  providers: [EventResolver, EventMutations, EventQueries, EventFields, EventHelpers],
 })
-export class EventModule {}
+export class EventModule { }

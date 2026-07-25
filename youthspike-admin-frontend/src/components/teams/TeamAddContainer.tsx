@@ -80,6 +80,7 @@ function TeamAddContainer({ queryRef }: TeamAddContainerProps) {
         groupList={filteredGroups}
         setIsLoading={setIsLoading}
         handleClose={handleClose}
+        badges={eventData?.badges || []}
       />
     </div>
   );

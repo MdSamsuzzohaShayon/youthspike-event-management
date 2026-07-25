@@ -7,12 +7,10 @@ import { unlink } from 'fs/promises';
 import { ConfigService } from '@nestjs/config';
 import { FileUpload } from 'graphql-upload/processRequest.mjs';
 import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
+import { EventBadgeInput, EventSponsorInput } from 'src/event/resolvers/event.input';
 const GraphQLUpload = GraphQLUploadModule.default;
 
-type SponsorType = {
-  company: string;
-  logo: string;
-};
+
 
 @Injectable()
 export class CloudinaryService {
@@ -58,7 +56,7 @@ export class CloudinaryService {
     }
   }
 
-  async uploadSponsors(files: Promise<FileUpload>, company: string, w = 300, h = 300): Promise<SponsorType | null> {
+  async uploadSponsors(files: Promise<FileUpload>, company: string, w = 300, h = 300): Promise<EventSponsorInput | null> {
     const { createReadStream, filename, mimetype } = await files;
     try {
       const stream = createReadStream();
@@ -85,6 +83,38 @@ export class CloudinaryService {
       });
 
       return { company, logo: result.public_id };
+    } catch (error) {
+      return null;
+    }
+  }
+
+  async uploadBadges(files: Promise<FileUpload>, name: string, w = 300, h = 300): Promise<EventBadgeInput | null> {
+    const { createReadStream, filename, mimetype } = await files;
+    try {
+      const stream = createReadStream();
+
+
+      // Upload the file to Cloudinary
+      const result = await new Promise<any>((resolve, reject) => {
+        const uploadStream = cloudinary.uploader.upload_stream(
+          {
+            folder: this.configService.get('CLOUDINARY_API_FOLDER'),
+            transformation: [
+              { width: w, height: h, crop: 'limit' },
+              { quality: 'auto:good' },
+              { fetch_format: 'auto' },
+            ],
+          },
+          (error, result) => {
+            if (error) return reject(error);
+            resolve(result);
+          },
+        );
+
+        stream.pipe(uploadStream); // 👈 direct pipe (BEST)
+      });
+
+      return { name, icon: result.public_id };
     } catch (error) {
       return null;
     }

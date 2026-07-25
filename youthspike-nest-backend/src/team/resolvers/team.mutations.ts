@@ -20,6 +20,7 @@ import { QueryFilter, Types, UpdateQuery } from 'mongoose';
 import { CustomTeam } from 'src/team/resolvers/team.response';
 import { ConfigService } from '@nestjs/config';
 import TeamHelpers from './team.helpers';
+import { BadgeService } from 'src/badge/badge.service';
 const GraphQLUpload = GraphQLUploadModule.default;
 
 type ObjectIdLike = Types.ObjectId | string;
@@ -36,6 +37,7 @@ export class TeamMutations {
     private groupService: GroupService,
     private playerService: PlayerService,
     private playerRankingService: PlayerRankingService,
+    private badgeService: BadgeService,
 
     private readonly teamHelpers: TeamHelpers
   ) { }
@@ -61,15 +63,21 @@ export class TeamMutations {
       }
 
       const newTeam = await this.teamService.create({ ...input, logo: logoUrl });
+      const postCreateTasks = [];
+      
+      if (input.badge) {
+        postCreateTasks.push(
+          this.badgeService.updateOne({ _id: input.badge }, { $addToSet: { teams: newTeam._id } }),
+        );
+      }
 
       // ===== Captain - User - Player - Team Relationship update =====
-      const promiseOperations = [];
-      promiseOperations.push(this.eventService.updateMany({ _id: { $in: input.events } }, { $addToSet: { teams: newTeam._id } }));
+      postCreateTasks.push(this.eventService.updateMany({ _id: { $in: input.events } }, { $addToSet: { teams: newTeam._id } }));
 
       // Create player ranking when creating match
       const playerRankings = [];
       for (let i = 0; i < players.length; i += 1) {
-        promiseOperations.push(this.playerService.updateOne({ _id: players[i] }, { $push: { teams: newTeam._id } }));
+        postCreateTasks.push(this.playerService.updateOne({ _id: players[i] }, { $push: { teams: newTeam._id } }));
         // Create player ranking when creating team
         playerRankings.push({ rank: i + 1, player: players[i] });
       }
@@ -78,7 +86,7 @@ export class TeamMutations {
         rankLock: false,
         team: newTeam._id,
       });
-      promiseOperations.push(
+      postCreateTasks.push(
         this.teamService.updateOne({ _id: newTeam._id }, { $addToSet: { playerRankings: teamPlayerRanking._id } }),
       );
 
@@ -87,7 +95,7 @@ export class TeamMutations {
         const findPlayer = await this.playerService.findById(input.captain.toString());
         // const username = findPlayer.firstName.toLowerCase() + newTeam.num.toString();
         const username = findPlayer?.username ?? this.playerService.playerUsername(findPlayer.username);
-        promiseOperations.push(this.playerService.updateOne({ _id: input.captain.toString() }, { $set: { username } }));
+        postCreateTasks.push(this.playerService.updateOne({ _id: input.captain.toString() }, { $set: { username } }));
         const rawPassword = this.configService.get('DEFAULT_CAPTAIN_PASSWORD')
         const captainUser = await this.userService.create({
           firstName: findPlayer.firstName,
@@ -98,7 +106,7 @@ export class TeamMutations {
           email: username,
           password: rawPassword,
         });
-        promiseOperations.push(
+        postCreateTasks.push(
           this.playerService.updateOne(
             { _id: input.captain },
             {
@@ -110,14 +118,14 @@ export class TeamMutations {
       }
 
       if (input.groups) {
-        promiseOperations.push(
+        postCreateTasks.push(
           this.groupService.updateMany({ _id: { $in: input.groups } }, { $addToSet: { teams: newTeam._id } }),
         );
       }
 
       const [createdTeam, ...promises] = await Promise.all([
         this.teamService.findOne({ _id: newTeam._id }),
-        ...promiseOperations
+        ...postCreateTasks
       ]);
 
 
@@ -143,6 +151,20 @@ export class TeamMutations {
 
       const teamEvents = await this.eventService.find({ _id: { $in: existingTeam.events as string[] } });
       if (!teamEvents || teamEvents.length === 0) return AppResponse.notFound('Event');
+
+      const preUpdateTasks = [];
+      if (input.badge) {
+        if (!existingTeam.badge) {
+          preUpdateTasks.push(this.badgeService.updateOne({ _id: input.badge }, { $addToSet: { teams: teamId } }));
+        } else {
+          if (String(existingTeam.badge) !== input.badge) {
+            preUpdateTasks.push(this.badgeService.updateOne({ _id: existingTeam.badge }, { $pull: { teams: teamId } }));
+            preUpdateTasks.push(this.badgeService.updateOne({ _id: input.badge }, { $addToSet: { teams: teamId } }));
+          }
+        }
+      }
+
+      await Promise.all(preUpdateTasks);
 
       const updatedTeam = await this.teamHelpers.singleTeamUpdate(input, existingTeam, teamEvents, logo);
       if (!updatedTeam) return AppResponse.notFound('Team');

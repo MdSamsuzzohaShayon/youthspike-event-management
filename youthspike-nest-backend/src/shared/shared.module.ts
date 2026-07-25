@@ -84,6 +84,8 @@ import {
   ArchiveServerReceiverSinglePlayService,
 } from 'src/archive/archive.service';
 import { Emailcontent, EmailcontentSchemaFactory, Emailsender, EmailsenderSchemaFactory } from 'src/emailsender/emailsernder.schema';
+import { BadgeService } from 'src/badge/badge.service';
+import { Badge, BadgeSchemaFactory } from 'src/badge/badge.schema';
 
 @Module({
   imports: [
@@ -191,6 +193,11 @@ import { Emailcontent, EmailcontentSchemaFactory, Emailsender, EmailsenderSchema
         useFactory: EmailcontentSchemaFactory,
       },
 
+      {
+        name: Badge.name,
+        useFactory: BadgeSchemaFactory,
+      },
+
 
       // Archive 
       {
@@ -296,6 +303,7 @@ import { Emailcontent, EmailcontentSchemaFactory, Emailsender, EmailsenderSchema
     RedisService,
     PlayerStatsService,
     ServerReceiverOnNetService,
+    BadgeService,
 
 
     // Archive
@@ -338,6 +346,7 @@ import { Emailcontent, EmailcontentSchemaFactory, Emailsender, EmailsenderSchema
     GroupService,
     RedisService,
     PlayerStatsService,
+    BadgeService,
 
     // Archive
     ArchiveTemplateService,

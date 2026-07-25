@@ -8,6 +8,7 @@ import { INetRelatives } from './net';
 import { IRoundRelatives } from './round';
 import { IResponse } from './elements';
 import { CURRENT_EVENT_ID } from '@/utils/constant';
+import { IBadge } from './badge';
 
 
 
@@ -22,6 +23,7 @@ export interface ITeam {
   matches: IMatchExpRel[];
   players: IPlayer[];
   moved?: IPlayer[];
+  badge?: IBadge | null;
   captain: IPlayer | null;
   cocaptain: IPlayer | null;
   playerRanking: IPlayerRanking;
@@ -57,6 +59,7 @@ interface ISearchTeamData {
   nets: INetRelatives[];
   rounds: IRoundRelatives[];
   teams: ITeam[];
+  badges: IBadge[];
 }
 
 
@@ -83,6 +86,7 @@ export interface IGetPlayerStatsResponse extends IResponse{
 interface ITeamRoster {
   events: IEventRelatives[];
   players: IPlayer[];
+  badges: IBadge[];
   groups: IGroupRelatives[];
   team: ITeam;
   rankings: IPlayerRankingItemExpRel[];

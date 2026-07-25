@@ -1,20 +1,27 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { IEmailcontent, IEvent, IGroup, IGroupRelatives, IOption, IPlayer, IPlayerExpRel, IResponse, ITeam } from '@/types';
+import { IBadge, IEmailcontent, IEvent, IGetTeamResponse, IGroup, IGroupRelatives, IOption, IPlayer, IPlayerExpRel, IResponse, ITeam, TUpdateTeam } from '@/types';
 import TeamCard from './TeamCard';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
 import { handleError } from '@/utils/handleError';
-import { DELETE_MULTIPLE_TEAMS, DELETE_TEAM, UPDATE_TEAM, UPDATE_TEAMS } from '@/graphql/teams';
+import { DELETE_MULTIPLE_TEAMS, DELETE_TEAM, TEAM_BADGE_FRAGMENT, UPDATE_TEAM, UPDATE_TEAMS } from '@/graphql/teams';
 import { SEND_CREDENTIALS } from '@/graphql/event';
 import SelectInput from '../elements/forms/SelectInput';
 import { UPDATE_GROUP } from '@/graphql/group';
 import { AnimatePresence, motion } from 'motion/react';
 import { menuVariants } from '@/utils/animation';
 import { useMessage } from '@/lib/MessageProvider';
-import { useMutation } from '@apollo/client/react';
+import { useApolloClient, useMutation } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
 import { divisionsToOptionList } from '@/utils/helper';
 import Loader from '../elements/Loader';
+import { createBadgeMap } from '@/utils/badge/badge-helpers';
+import BulkActionMenu from './BulkActionMenu';
+import GroupFilterMenu from './GroupFilterMenu';
+import DeleteConfirmDialog from './DeleteConfirmDialog';
+import MoveTeamDialog from './MoveTeamDialog';
+import ChangeGroupDialog from './ChangeGroupDialog';
+import updateTeam from '@/utils/request-handlers/updateTeam';
 
 interface ISearchTeamListProps {
   event: IEvent | null;
@@ -22,6 +29,7 @@ interface ISearchTeamListProps {
   groupList: IGroup[];
   captainMap: Map<string, IPlayer>;
   emailcontents: IEmailcontent[];
+  badges: IBadge[];
   refetchFunc?: () => void;
 }
 
@@ -32,228 +40,6 @@ interface ITeamsUpdateResponse extends IResponse {
   data: ITeam[];
 }
 
-// Sub-component: Bulk Action Menu
-interface BulkActionMenuProps {
-  isVisible: boolean;
-  onBulkCredentials: (e: React.SyntheticEvent) => void;
-  onShowChangeGroup: (e: React.SyntheticEvent) => void;
-  onBulkTeamOpen: (e: React.SyntheticEvent) => void;
-}
-
-const BulkActionMenu: React.FC<BulkActionMenuProps> = ({
-  isVisible,
-  onBulkCredentials,
-  onShowChangeGroup,
-  onBulkTeamOpen,
-}) => {
-  if (!isVisible) return null;
-
-  return (
-    <AnimatePresence>
-      <motion.ul
-        className="absolute z-10 left-12 top-6 w-48 bg-gray-700 text-gray-300 rounded-md shadow-lg overflow-hidden"
-        variants={menuVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        transition={{ duration: 0.2 }}
-      >
-        <li
-          role="presentation"
-          className="capitalize px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
-          onClick={onBulkCredentials}
-        >
-          <Image src="/icons/send-email.svg" alt="Send" width={16} height={16} />
-          Send Credentials
-        </li>
-        <li
-          role="presentation"
-          className="capitalize px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
-          onClick={onShowChangeGroup}
-        >
-          <Image src="/icons/share.svg" className="svg-white" alt="Send" width={16} height={16} />
-          Change Group
-        </li>
-        {/* // temp  - make sure singleTeamUpdate function in the backend works properly when moving multiple teams, currently it is giving me an error*/}
-        {/* <li
-          role="presentation"
-          className="capitalize px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer flex justify-start gap-x-2 items-center"
-          onClick={onBulkTeamOpen}
-        >
-          <Image className="svg-white" src="/icons/move.svg" alt="Move" width={16} height={16} />
-          Move team
-        </li> */}
-      </motion.ul>
-    </AnimatePresence>
-  );
-};
-
-// Sub-component: Group Filter Menu
-interface GroupFilterMenuProps {
-  isVisible: boolean;
-  groupList: IGroup[];
-  selectedGroupId: string | null;
-  onGroupFilter: (e: React.SyntheticEvent, groupId: string | null) => void;
-}
-
-const GroupFilterMenu: React.FC<GroupFilterMenuProps> = ({
-  isVisible,
-  groupList,
-  selectedGroupId,
-  onGroupFilter,
-}) => {
-  if (!isVisible) return null;
-
-  return (
-    <AnimatePresence>
-      <motion.ul
-        className="absolute z-10 top-7 right-3 w-48 bg-gray-100 bg-gray-900 text-gray-800 text-gray-200 rounded-md shadow-lg overflow-hidden"
-        variants={menuVariants}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        transition={{ duration: 0.2 }}
-      >
-        <li
-          key="all"
-          role="presentation"
-          className="capitalize px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer"
-          onClick={(e) => onGroupFilter(e, null)}
-        >
-          All
-        </li>
-        {groupList.map((group, index) => (
-          <li
-            key={index}
-            role="presentation"
-            className="capitalize px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer"
-            onClick={(e) => onGroupFilter(e, group._id)}
-          >
-            {group.name}
-          </li>
-        ))}
-      </motion.ul>
-    </AnimatePresence>
-  );
-};
-
-// Sub-component: Move Team Dialog
-interface IMoveTeamDialogProps {
-  dialogRef: React.RefObject<HTMLDialogElement | null>;
-  selectedTeam: ITeam | null;
-  divisionOptions: IOption[];
-  groupOptions: IOption[];
-  onTeamUpdateChange: (e: React.SyntheticEvent) => void;
-  onMoveTeam: (e: React.SyntheticEvent) => void;
-  onClose: () => void;
-}
-
-
-
-const MoveTeamDialog: React.FC<IMoveTeamDialogProps> = ({
-  dialogRef,
-  selectedTeam,
-  divisionOptions,
-  groupOptions,
-  onTeamUpdateChange,
-  onMoveTeam,
-  onClose,
-}) => {
-  return (
-    <dialog ref={dialogRef} className="modal-dialog">
-      <div className="p-4">
-        <button
-          type="button"
-          className="text-gray-400 hover:text-white transition-colors"
-          onClick={onClose}
-        >
-          <Image width={20} height={20} src="/icons/close.svg" alt="close-button" className="svg-white" />
-        </button>
-        <h4 className="text-lg font-semibold text-white">Move Team - {selectedTeam?.name}</h4>
-        <form className="flex flex-col gap-2" onSubmit={onMoveTeam}>
-          <SelectInput
-            handleSelect={onTeamUpdateChange}
-            name="division"
-            optionList={divisionOptions}
-          // defaultValue={selectedTeam?.division}
-          />
-          <SelectInput
-            name="groups"
-            optionList={groupOptions}
-            handleSelect={onTeamUpdateChange}
-          // defaultValue={typeof selectedTeam?.group === 'object' ? selectedTeam?.group?._id : selectedTeam?.group}
-          />
-          <div className="actions flex gap-x-2 w-full justify-start items-center">
-            <button className="btn-info" type="submit">
-              Move Team
-            </button>
-            <button className="btn-danger" type="button" onClick={onClose}>
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    </dialog>
-  );
-};
-
-// Sub-component: Change Group Dialog
-interface IChangeGroupDialogProps {
-  dialogRef: React.RefObject<HTMLDialogElement | null>;
-  groupList: IGroup[];
-  onBulkGroupChange: (e: React.SyntheticEvent) => void;
-}
-
-const ChangeGroupDialog: React.FC<IChangeGroupDialogProps> = ({
-  dialogRef,
-  groupList,
-  onBulkGroupChange,
-}) => {
-  const groupOptions = useMemo(
-    () =>
-      groupList.map((group, index) => ({
-        id: index + 1,
-        value: group._id,
-        text: group.name,
-      })),
-    [groupList]
-  );
-
-  return (
-    <dialog ref={dialogRef} className="modal-dialog">
-      <div className="p-4">
-        <h3>Change Group</h3>
-        <SelectInput name="group" optionList={groupOptions} handleSelect={onBulkGroupChange} />
-      </div>
-    </dialog>
-  );
-};
-
-interface IDeleteConfirmDialogProps {
-  deleteDialogRef: React.RefObject<HTMLDialogElement | null>;
-  selectedTeam: ITeam | null;
-  handleDeleteTeam: (e: React.SyntheticEvent, teamId: string) => void;
-}
-
-const DeleteConfirmDialog: React.FC<IDeleteConfirmDialogProps> = ({ deleteDialogRef, selectedTeam, handleDeleteTeam }) => {
-  return (
-    <dialog ref={deleteDialogRef} className="modal-dialog p-4">
-      <div className="flex flex-col gap-y-2">
-        <h4>Delete Team</h4>
-        <p className="text-yellow-100/90">Are your sure you want to delete the team?</p>
-        <p>Team: {selectedTeam?.name}</p>
-        <div className="buttons flex w-full justify-start gap-x-2 items-center">
-          <div className="btn-info" onClick={(e) => handleDeleteTeam(e, selectedTeam?._id || "")}>
-            Confirm
-          </div>
-          <div className="btn-danger" onClick={(e) => deleteDialogRef.current?.close()}>
-            Cancel
-          </div>
-        </div>
-      </div>
-    </dialog>
-  );
-};
 
 
 type TUpdateTeams = Partial<Pick<ITeam, 'division' | 'groups'> & {
@@ -262,13 +48,14 @@ type TUpdateTeams = Partial<Pick<ITeam, 'division' | 'groups'> & {
 
 
 // Main Component
-function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents, refetchFunc }: ISearchTeamListProps) {
+function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents, badges, refetchFunc }: ISearchTeamListProps) {
   if (!event) {
     throw new Error('Event not found!');
   }
 
   // Hooks
   const { setMessage } = useMessage();
+  const apolloClient = useApolloClient();
 
   // References
   const changeGroupDialogRef = useRef<HTMLDialogElement | null>(null);
@@ -290,9 +77,10 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
   const [sendCredentialsMutation, { data, error }] = useMutation(SEND_CREDENTIALS);
   const [deleteMultipleTeamsMutation] = useMutation<{ deleteTeams: IResponse }>(DELETE_MULTIPLE_TEAMS);
   const [updateGroupMutation] = useMutation<{ updateGroup: IResponse }>(UPDATE_GROUP);
-  const [moveTeamMutation] = useMutation<{ updateTeam: ITeamUpdateResponse }>(UPDATE_TEAM);
+  const [mutateTeam] = useMutation<{ updateTeam: IGetTeamResponse }>(UPDATE_TEAM);
   const [moveTeamsMutation] = useMutation<{ updateTeams: ITeamsUpdateResponse }>(UPDATE_TEAMS);
   const [deleteTeam] = useMutation<{ deleteTeam: ITeamUpdateResponse }>(DELETE_TEAM);
+
 
   // Utility: Extract checked team IDs
   const getCheckedTeamIds = (): string[] => {
@@ -499,7 +287,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
       const checkedTeamIds = getCheckedTeamIds();
 
 
-      const variables = { input: {...teamUpdateInput, teamIds: checkedTeamIds}, eventId: event._id };
+      const variables = { input: { ...teamUpdateInput, teamIds: checkedTeamIds }, eventId: event._id };
 
       const response = await moveTeamsMutation({
         variables,
@@ -550,6 +338,52 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
     // Implementation pending
   };
 
+  const handleUpdateTeam = async (e: React.SyntheticEvent, update: Partial<TUpdateTeam>, teamId: string) => {
+    const prevTeam = teamList.find((team) => team._id === teamId);
+    if (!prevTeam) {
+      setMessage({ type: 'error', message: "There are not previous team found!" })
+      return;
+    }
+    await updateTeam({
+      prevTeam,
+      updateTeamState: update,
+      setMessage,
+      setIsLoading,
+      apolloClient,
+      mutateTeam,
+      events: prevTeam ? (prevTeam?.events.map((e: string | IEvent) => typeof e === "object" ? e._id : e) ?? []) : [],
+    });
+    // Update cache here, set team.badge to update.badge if update.badge exist
+    if (update.badge) {
+      apolloClient.writeFragment({
+        id: apolloClient.cache.identify({
+          __typename: "Team",
+          _id: teamId,
+        }),
+        fragment: TEAM_BADGE_FRAGMENT,
+        data: {
+          __typename: "Team",
+          badge: update.badge,
+        },
+      });
+      // Update React state
+      setFilteredTeamList((prev) => {
+        const index = prev.findIndex((team) => team._id === teamId);
+
+        if (index === -1) return prev;
+
+        const next = [...prev];
+        next[index] = {
+          ...next[index],
+          // @ts-ignore
+          badge: update.badge,
+        };
+
+        return next;
+      });
+    }
+  }
+
   // Memoized Values
   const divisionOptionsList = useMemo(() => {
     // selectedTeam
@@ -580,12 +414,14 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
     return selectedGroupIdFilter ? groupList.find((group) => group._id === selectedGroupIdFilter)?.name : 'Group';
   }, [selectedGroupIdFilter, groupList]);
 
-  const emailcontentsMapByTeam = useMemo(()=> {
+  const badgeMap = useMemo(() => createBadgeMap(badges), [badges]);
+
+  const emailcontentsMapByTeam = useMemo(() => {
     const map = new Map<string, IEmailcontent[]>();
     for (const emailcontent of emailcontents) {
-      if(map.has(emailcontent.team)){
+      if (map.has(emailcontent.team)) {
         map.get(emailcontent.team)?.push(emailcontent);
-      }else{
+      } else {
         map.set(emailcontent.team, [emailcontent]);
       }
     }
@@ -657,7 +493,6 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
           <GroupFilterMenu
             isVisible={isFilterMenuVisible}
             groupList={groupList}
-            selectedGroupId={selectedGroupIdFilter}
             onGroupFilter={handleGroupFilterSelection}
           />
         </div>
@@ -673,7 +508,10 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
             groupList={groupList}
             isChecked={checkedTeamsMap.get(team._id) ?? false}
             emailcontents={emailcontentsMapByTeam.get(team._id)}
+            badge={team.badge ? badgeMap.get(String(team.badge)) : null}
+            badges={badges}
             onSendCredential={handleSendSingleTeamCredential}
+            onUpdateTeam={handleUpdateTeam}
             onMoveTeamOpen={handleOpenMoveTeamDialog}
             onCheckedTeam={handleTeamCheckboxToggle}
             onDeleteTeamOpen={handleDeleteTeamOpen}

@@ -154,6 +154,14 @@ query GetPlayerWithStats($playerId: String!) {
         servingPercentage
         settingPercentage
       }
+      badge{
+        _id
+        name
+        icon
+        event
+        teams
+        players
+      }
     }
   }
 }`;

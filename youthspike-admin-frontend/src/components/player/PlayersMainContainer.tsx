@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { QueryRef, useReadQuery, useApolloClient, useQuery } from '@apollo/client/react';
 import { useRouter } from 'next/navigation';
 import FilterContent from '../event/FilterContent';
-import { ISearchFilter, ISearchPlayerResponse, IPlayer, ITeam, IEvent, EGroupType, EFilterPage, IGroup, IGetTeamsResponse } from '@/types';
+import { ISearchFilter, ISearchPlayerResponse, IPlayer, ITeam, IEvent, EGroupType, EFilterPage, IGroup, IGetTeamsResponse, IBadge } from '@/types';
 import { SEARCH_PLAYERS } from '@/graphql/players';
 import PlayerSearchList from './PlayerSearchList';
 import EventNavigation from '../layout/EventNavigation';
@@ -47,6 +47,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
   // Server data state
   const [serverData, setServerData] = useState<ISearchPlayerResponse['data'] | null>(null);
   const [allPlayers, setAllPlayers] = useState<IPlayer[]>([]);
+  const [badges, setBadges] = useState<IBadge[]>([]);
   // const [teamList, setTeamList] = useState<ITeam[]>([]);
   const [groupList, setGroupList] = useState<IGroup[]>([]);
   const [event, setEvent] = useState<IEvent | null>(null);
@@ -104,6 +105,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
       setAllPlayers(searchData.players || []);
       // setTeamList(searchData.teams || []);
       setGroupList(searchData.groups || []);
+      setBadges(searchData?.badges || []);
       setEvent(searchData.event);
       setServerData(searchData);
 
@@ -185,6 +187,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
 
         // setTeamList(response.data.teams || []);
         setGroupList(response.data.groups || []);
+        setBadges(response?.data?.badges || []);
 
         // Check if there are more players
         setHasMorePlayers(newPlayers.length === (appliedFilter.limit || DEFAULT_FILTER_STATE.limit!));
@@ -294,7 +297,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
       {/* Players List */}
       {!isApplyingFilters && (
         <div className="w-full player-standings">
-          <PlayerSearchList playerList={displayedPlayers} teamList={teamList} events={event ? [event] : []} selectedEvent={event} />
+          <PlayerSearchList playerList={displayedPlayers} teamList={teamList} events={event ? [event] : []} badges={badges} selectedEvent={event} />
 
         </div>
       )}

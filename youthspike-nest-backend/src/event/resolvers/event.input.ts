@@ -1,8 +1,9 @@
 // events.dto.ts
-import { Field, Float, InputType, Int, ObjectType, PartialType } from '@nestjs/graphql';
+import { Field, Float, InputType, Int, ObjectType, OmitType, PartialType } from '@nestjs/graphql';
 import { EEventItem } from '../event.schema';
 import { FileUpload } from 'graphql-upload/processRequest.mjs';
 import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
+import { Badge } from 'src/badge/badge.schema';
 const GraphQLUpload = GraphQLUploadModule.default;
 
 @InputType()
@@ -15,6 +16,21 @@ export class EventSponsorInput {
 }
 
 @InputType()
+export class EventBadgeInput {
+  @Field()
+  name: string;
+
+  @Field(() => String)
+  icon: string;
+}
+
+@InputType()
+export class UpdateBadgeInput extends PartialType(EventBadgeInput) {
+  @Field(() => String, { nullable: true })
+  _id?: string;
+}
+
+@InputType()
 export class EventSponsorStringInput {
   @Field()
   company: string;
@@ -22,6 +38,8 @@ export class EventSponsorStringInput {
   @Field(() => String,{nullable: true})
   logo: string;
 }
+
+
 
 
 @InputType()
@@ -61,6 +79,8 @@ export class CreateEventInput {
   endDate: string;
 
 
+  @Field(()=> [EventBadgeInput])
+  badges?: EventBadgeInput[];
 
   @Field()
   active: boolean;
@@ -159,12 +179,17 @@ export class UpdateDivision{
 }
 
 @InputType()
-export class UpdateEventInput extends PartialType(CreateEventInput) {
+export class UpdateEventInput extends PartialType(
+  OmitType(CreateEventInput, ['badges'] as const),
+) {
   @Field(() => [String], { nullable: true })
   newteams?: string[];
 
   @Field(()=> [UpdateDivision], {nullable: true})
   updatedivisions?: UpdateDivision[];
+
+  @Field(()=> [UpdateBadgeInput], {nullable: true})
+  badges?: UpdateBadgeInput[];
 }
 
 
@@ -172,6 +197,7 @@ export class UpdateEventInput extends PartialType(CreateEventInput) {
 export class CreateEventBody {
   @Field(() => [EventSponsorInput], { nullable: true })
   sponsorsInput?: EventSponsorInput[];
+
 
   @Field(() => CreateEventInput)
   input: CreateEventInput;

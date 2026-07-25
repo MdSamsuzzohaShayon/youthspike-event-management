@@ -30,7 +30,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
     notFound();
   }
 
-  const { team, players, rankings, events, playerRanking, unassignedPlayers } = data.getTeamRoster.data;
+  const { team, players, rankings, events, playerRanking, unassignedPlayers, badges } = data.getTeamRoster.data;
 
 
 
@@ -110,6 +110,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
           <RosterWrapper
             events={events}
             players={players}
+            badges={badges}
             unassignedPlayers={unassignedPlayers}
             team={team}
             playerRanking={playerRankingData}

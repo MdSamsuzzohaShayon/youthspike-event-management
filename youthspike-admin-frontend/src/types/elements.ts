@@ -147,6 +147,17 @@ export interface ITextCommon {
 }
 */
 
+
+export interface UserRoleFlags {
+  isAdmin: boolean;
+  isDirector: boolean;
+  isPlayer: boolean;
+  isAdminOrDirector: boolean;
+  isCaptain: boolean;
+  isCoCaptain: boolean;
+}
+
+
 export interface IPlayerPage {
   eventId: string;
   date: string;

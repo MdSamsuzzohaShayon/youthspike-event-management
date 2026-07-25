@@ -198,12 +198,21 @@ query SearchPlayers($eventId: String!, $filter: PlayerSearchFilter!) {
         profile
         division
         teams
+        badge
       }
       teams {
         _id
         name
         logo
         division
+        players
+      }
+      badges{
+        _id
+        name
+        icon
+        event
+        teams
         players
       }
     }
@@ -230,6 +239,14 @@ query GetEventsWithTeams($ldoId: String) {
         name
         division
         events
+      }
+      badges{
+        _id
+        name
+        icon
+        event
+        teams
+        players
       }
     }
   }

@@ -1,6 +1,7 @@
 import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
+import { Badge } from 'src/badge/badge.schema';
 import { Event } from 'src/event/event.schema';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
 import {
@@ -110,6 +111,10 @@ export class Player extends AppDocument {
   @Field((_type) => [ServerReceiverSinglePlay], { nullable: true })
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ServerReceiverSinglePlay' }] })
   serverReceiverSinglePlay?: ServerReceiverSinglePlay[] | string[];
+
+  @Field((_type) => Badge, { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Badge' })
+  badge?: Badge | string;
 }
 
 export const PlayerSchema = SchemaFactory.createForClass(Player);

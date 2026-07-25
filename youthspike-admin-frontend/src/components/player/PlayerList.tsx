@@ -6,7 +6,7 @@ import './PlayerList.css';
 import useScreenWidth from '../../hooks/useScreenWidth';
 import PlayerCard from './PlayerCard';
 
-import { IPlayerExpRel, IPlayerRankingExpRel, IEvent, IOption, ITeam, IPlayerRank, IUpdatePlayerRankingRes, IPlayer, IGetTeamResponse, IUpdatePlayerResponse, IResponse, TUpdateTeam, TAddTeam, TUpdatePlayer } from '@/types';
+import { IPlayerExpRel, IPlayerRankingExpRel, IEvent, IOption, ITeam, IPlayerRank, IUpdatePlayerRankingRes, IPlayer, IGetTeamResponse, IUpdatePlayerResponse, IResponse, TUpdateTeam, TAddTeam, TUpdatePlayer, IBadge } from '@/types';
 import Image from 'next/image';
 import { itemVariants } from '@/utils/animation';
 import { UPDATE_PLAYER_RANKING } from '@/graphql/player-ranking';
@@ -24,6 +24,7 @@ import updateTeam from '@/utils/request-handlers/updateTeam';
 import updatePlayer from '@/utils/request-handlers/updatePlayer';
 import { getCookie } from '@/utils/clientCookie';
 import { BACKEND_URL } from '@/utils/keys';
+import { createBadgeMap } from '@/utils/badge/badge-helpers';
 
 interface IPlayerListProps {
   playerList: IPlayerExpRel[];
@@ -36,6 +37,7 @@ interface IPlayerListProps {
   rankControls?: boolean;
   teamId?: string | null;
   playerRanking?: IPlayerRankingExpRel | null;
+  badges: IBadge[];
   inactive?: boolean;
 }
 
@@ -49,7 +51,7 @@ const MAX_SPEED = 20;       // max px per frame
 // const EDGE_DISTANCE = 120;
 // const MAX_SPEED = 20; // px per 16ms frame (cap)
 
-function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank, divisionList, teamId, playerRanking, events, inactive }: IPlayerListProps) {
+function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank, divisionList, teamId, playerRanking, events, badges, inactive }: IPlayerListProps) {
   const listRef = useRef<HTMLUListElement>(null);
   const isMounted = useRef<boolean>(false);
   const screenWidth = useScreenWidth();
@@ -469,6 +471,11 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     return () => sortableList.destroy();
   }, [handleSortEnd, rankControls, screenWidth, user, events]);
 
+  console.log({badges});
+  
+
+  const badgeMap = useMemo(()=>createBadgeMap(badges), [badges]);
+
 
   /** Derived State: Sorted Players */
   const sortedPlayerList: IPlayerRank[] = useMemo(() => {
@@ -478,13 +485,6 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     // If ranking is allowed then sort them or keep it as it is
     return showRank && rankControls ? [...players].sort((a, b) => (a.rank ?? 0) - (b.rank ?? 0)) : players;
   }, [players, showRank, rankControls, playerRanking]);
-
-
-
-
-  console.log({sortedPlayerList});
-  
-
 
 
   /** Render List **/
@@ -523,6 +523,8 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
             onUpdateTeam={handleUpdateTeam}
             onDelete={handleDelete}
             onUpdatePlayer={handleUpdatePlayer}
+            badge={player.badge ? badgeMap.get(String(player.badge)) : null}
+            badges={badges}
           />
         </motion.li>
       ))}

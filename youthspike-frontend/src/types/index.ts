@@ -14,3 +14,4 @@ export * from './animation';
 export * from './group';
 export * from './playerStats';
 export * from './serverReceiverOnNet';
+export * from './badge';

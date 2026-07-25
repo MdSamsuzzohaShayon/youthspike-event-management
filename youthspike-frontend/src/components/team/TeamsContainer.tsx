@@ -20,6 +20,7 @@ import {
   ITeamFilter,
   IMatch,
   IEvent,
+  IBadge,
 } from "@/types";
 import FilterContent from "../event/FilterContent";
 import { SEARCH_TEAMS } from "@/graphql/team";
@@ -68,6 +69,7 @@ export default function TeamsContainer({
   const [matches, setMatches] = useState<IMatch[]>([]);
   const [rounds, setRounds] = useState<IRoundRelatives[]>([]);
   const [groups, setGroups] = useState<IGroup[]>([]);
+  const [badges, setBadges] = useState<IBadge[]>([]);
   const [event, setEvent] = useState<IEvent | null>(null);
 
   // Loading states
@@ -101,7 +103,8 @@ export default function TeamsContainer({
       setMatches(searchData.matches || []);
       setRounds(searchData.rounds || []);
       setGroups(searchData.groups || []);
-      // searchData.event || null
+      setBadges(searchData.badges || []);
+
       const eventExist = searchData.events.find((e) => e._id === eventId);
       setEvent(eventExist || null);
       setHasMore((searchData.teams || []).length === PAGE_SIZE);
@@ -258,7 +261,7 @@ export default function TeamsContainer({
             <div className="team-list w-full flex flex-col gap-y-4">
               <div className="grid gap-4">
                 {teams.length > 0 ? (
-                  <SearchTeamList matchList={matches} selectedGroup={appliedFilter?.group} teamList={teams as unknown as ITeam[]} nets={nets} rounds={rounds} />
+                  <SearchTeamList matchList={matches} selectedGroup={appliedFilter?.group} teamList={teams as unknown as ITeam[]} nets={nets} rounds={rounds} badges={badges} />
                 ) : (
                   <div className="text-center py-8 text-gray-400">
                     No teams found teaming your criteria.

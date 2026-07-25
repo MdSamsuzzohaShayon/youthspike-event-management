@@ -1,4 +1,4 @@
-import { IEvent, IEventWMatch, IOption } from ".";
+import { IBadge, IEvent, IEventRelatives, IOption } from ".";
 import { IGroupRelatives } from "./group";
 import { IMatch, IMatchRelatives } from "./match";
 import { INetRelatives } from "./net";
@@ -69,7 +69,7 @@ export interface IProStats extends IProStatsCommon {
 }
 
 export interface IGetPlayerStats {
-  events: IEventWMatch[];
+  events: IEvent[];
   player: IPlayer;
   players: IPlayer[];
   team: ITeam;
@@ -82,6 +82,7 @@ export interface IGetPlayerStats {
   weight: IProStats;
   stats: IProStats;
   groups: IGroupRelatives[];
+  badge?: IBadge | null;
 }
 
 // Keys (To make url clean)

@@ -6,6 +6,7 @@ import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-rank
 import { CustomGroup } from 'src/match/resolvers/match.response';
 import { CustomTeam } from 'src/team/resolvers/team.response';
 import { CustomEvent } from 'src/event/resolvers/event.response';
+import { CustomBadge } from 'src/badge/badge.response';
 
 @ObjectType()
 export class PlayerResponse extends AppResponse<Player> {
@@ -20,7 +21,7 @@ export class PlayersResponse extends AppResponse<Player[]> {
 }
 
 @ObjectType()
-export class SearchPlayers extends Player {
+export class SearchPlayers {
   @Field((_type) => Event, { nullable: false })
   event: Event;
 
@@ -29,6 +30,9 @@ export class SearchPlayers extends Player {
 
   @Field((_type) => [CustomTeam], { nullable: false })
   teams: CustomTeam[];
+
+  @Field((_type) => [CustomBadge], { nullable: false })
+  badges: CustomBadge[];
 
   @Field((_type) => [CustomPlayer], { nullable: false })
   players: CustomPlayer[];
@@ -48,6 +52,9 @@ export class EventsWithTeams {
 
   @Field((_type) => [CustomTeam], { nullable: false })
   teams: CustomTeam[];
+
+  @Field((_type) => [CustomBadge], { nullable: false })
+  badges: CustomBadge[];
 }
 
 @ObjectType()
@@ -66,6 +73,9 @@ export class CustomPlayer extends Player {
 
   @Field((_type) => [String], { nullable: true })
   cocaptainofteams: string[];
+
+  @Field((_type) => String, { nullable: true })
+  badge?: string;
 }
 
 @ObjectType()

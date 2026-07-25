@@ -25,14 +25,12 @@ export default async function Teams({ division, eventId, group, search }: ITeams
     division,
     group,
   };
-  
+
 
   return (
     <PreloadQuery query={SEARCH_TEAM_LIST_LIGHT} variables={{ eventIds: [eventId], filter: initialFilter }}>
       {(queryRef) => (
-        <Suspense fallback={<Loader />}>
-          <TeamsContainer queryRef={queryRef as QueryRef<{ searchTeams: ISearchTeamResponse }>} eventId={eventId} initialSearchParams={{ search, division, group }} />
-        </Suspense>
+        <TeamsContainer queryRef={queryRef as QueryRef<{ searchTeams: ISearchTeamResponse }>} eventId={eventId} initialSearchParams={{ search, division, group }} />
       )}
     </PreloadQuery>
   );

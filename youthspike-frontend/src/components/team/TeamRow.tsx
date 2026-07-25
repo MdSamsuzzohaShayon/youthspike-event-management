@@ -1,19 +1,22 @@
 /* eslint-disable react/require-default-props */
 import React, { useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import { ITeam, ITeamScore } from '@/types';
+import { IBadge, ITeam, ITeamScore } from '@/types';
 import TextImg from '../elements/TextImg';
 import { CldImage } from 'next-cloudinary';
 import { MATCH_WIN_POINTS } from '@/utils/constant';
+import LogoBadge from '../badge/LogoWithBadge';
+import LogoWithBadge from '../badge/LogoWithBadge';
 
 interface ITeamRowProps {
   team: ITeam;
   index: number;
   teamScores?: ITeamScore | null;
   selectedGroup?: string | null;
+  badge?: IBadge | null;
 }
 
-function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
+function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProps) {
   // Handle case where teamScores might be undefined or null
   const hasScores = teamScores && typeof teamScores === 'object';
 
@@ -34,6 +37,10 @@ function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
     [selectedGroup, teamScores]
   );
 
+  if (badge) {
+    console.log('Badge:', badge);
+    console.log('Badge icon:', badge?.icon);
+  }
   return (
     <tr
       key={team._id}
@@ -41,15 +48,26 @@ function TeamRow({ team, teamScores, index, selectedGroup }: ITeamRowProps) {
     >
       <td className="py-3 px-2 flex justify-start items-center md:text-start gap-x-2 text-center">
         <span>{index + 1}</span>
+          <LogoBadge
+            logo={team.logo}
+            teamName={team.name}
+            badge={badge}
+            size="w-14 h-14"
+            badgeSize="w-6 h-6"
+          />
         <Link href={`/teams/${team._id}/roster`} className="flex flex-col md:flex-row justify-center md:justify-start items-center gap-2">
-          <span>
-            {team?.logo ? (
-              <CldImage alt={team.name} width="200" height="200" className="w-14 h-14 object-center object-cover" src={team.logo} crop="fit" />
-            ) : (
-              <TextImg fullText={team?.name} className="w-14 h-14 object-fit object-cover" />
-            )}
+
+
+          <span
+            className="
+          font-medium
+          text-white
+          transition-colors
+          group-hover:text-yellow-300
+        "
+          >
+            {team.name}
           </span>
-          {team.name}
         </Link>
       </td>
       <td className="py-3 px-2">

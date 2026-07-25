@@ -192,6 +192,11 @@ export class TeamResolver {
   }
 
   @ResolveField()
+  async badge(@Parent() team: Team) {
+    return this.teamFields.badge(team);
+  }
+
+  @ResolveField()
   async groups(@Parent() team: Team) {
     return this.teamFields.groups(team);
   }

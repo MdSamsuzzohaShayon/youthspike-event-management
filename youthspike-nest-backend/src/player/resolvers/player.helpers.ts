@@ -14,8 +14,9 @@ import { UpdateQuery } from "mongoose";
 import { PlayerRanking, PlayerRankingItem } from "src/player-ranking/player-ranking.schema";
 import { Team } from "src/team/team.schema";
 import * as bcrypt from 'bcrypt';
-import { UpdatePlayerBody } from "./player.input";
+import { CreatePlayerBody, CreatePlayerInput, UpdatePlayerBody } from "./player.input";
 import { Match } from "src/match/match.schema";
+import { FileUpload } from "graphql-upload/processRequest.mjs";
 
 @Injectable()
 export default class PlayerHelper {
@@ -31,9 +32,120 @@ export default class PlayerHelper {
     ) { }
 
 
+  // ─── Pure helpers (no I/O, easy to unit test) ────────────────────────────────
+buildPlayerFullName(firstName: string, lastName: string): string {
+  return `${firstName}_${lastName}`;
+}
+
+removeEmptyStringFields<T extends object>(
+  doc: T,
+  fields: (keyof T)[],
+): T {
+  const result = { ...doc };
+  for (const field of fields) {
+    if (result[field] === '') delete result[field];
+  }
+  return result;
+}
+
+/**
+ * Given the players who should be in a ranking and the ranking items that
+ * already exist, returns only the ranking items that need to be inserted
+ * for players who aren't ranked yet.
+ * O(n) via Set lookup instead of O(n * m) via Array.find inside a loop.
+ */
+buildMissingRankingItems(
+  playerIdsInTeam: string[],
+  existingItems: PlayerRankingItem[],
+  playerRankingId: string,
+): PlayerRankingItem[] {
+  const alreadyRankedPlayerIds = new Set(
+    existingItems.map((item) => item.player?.toString()).filter(Boolean),
+  );
+  const highestRank = existingItems.length === 0
+    ? 0
+    : Math.max(...existingItems.map((item) => item.rank));
+
+  const missingItems: PlayerRankingItem[] = [];
+  let increment = 0;
+  for (const rawId of playerIdsInTeam) {
+    const playerId = rawId.toString();
+    if (!alreadyRankedPlayerIds.has(playerId)) {
+      increment += 1;
+      missingItems.push({ player: playerId, rank: highestRank + increment, playerRanking: playerRankingId });
+    }
+  }
+  return missingItems;
+}
 
 
-  // ─── Pure helpers (no side-effects, fully testable) ───────────────────────────
+  // ── createPlayer helpers ──────────────────────────────────────────────
+
+  /** Builds the document to persist: uploads the profile image, derives the
+   *  username fallback, and strips empty-string optional fields. */
+  async buildNewPlayerDocument(
+    input: CreatePlayerInput,
+    profile: Promise<FileUpload>,
+    name: string,
+  ): Promise<CreatePlayerInput> {
+    const profileUrl = profile ? await this.cloudinaryService.uploadFiles(profile) : null;
+
+    const username = input.username?.trim()
+      ? input.username
+      : this.playerService.playerUsername(input.firstName);
+
+    const document: CreatePlayerInput & {profile: string, name: string} = {
+      ...input,
+      profile: profileUrl as string,
+      name,
+      username,
+    };
+
+    return this.removeEmptyStringFields(document, ['email', 'phone']);
+  }
+
+  /** Adds the new player to each team's roster and rebuilds any open
+   *  (non-locked) player rankings for that team. Teams are processed in
+   *  parallel since they're independent of one another. */
+  async assignPlayerToTeams(newPlayerId: string, teamIds: string[]): Promise<void> {
+    const teams = await this.teamService.find({ _id: { $in: teamIds } });
+
+    await Promise.all(
+      teams.map(async (team) => {
+        await this.updateTeamPlayerRankings(team, newPlayerId);
+        // BUG FIX: was `{ _id: team }` (the whole team object) — now the id.
+        await this.teamService.updateOne(
+          { _id: team._id },
+          { $addToSet: { players: newPlayerId } },
+        );
+      }),
+    );
+  }
+
+  /** Rebuilds every open ranking for a single team so the new player is
+   *  represented, without disturbing existing rank order. */
+  private async updateTeamPlayerRankings(team: Team, newPlayerId: string): Promise<void> {
+    const openRankings = await this.playerRankingService.find({ team: team._id, rankLock: false });
+    if (!openRankings?.length) return;
+
+    const playerIdsInTeam = [...team.players, newPlayerId].map(String);
+
+    await Promise.all(
+      openRankings
+        .filter((ranking) => !(ranking.rankLock && ranking.match))
+        .map(async (ranking) => {
+          const existingItems = await this.playerRankingService.findItems({ playerRanking: ranking._id });
+          const itemsToInsert = this.buildMissingRankingItems(playerIdsInTeam, existingItems, String(ranking._id));
+          if (itemsToInsert.length === 0) return;
+
+          const insertedItems = await this.playerRankingService.insertManyItems(itemsToInsert);
+          await this.playerRankingService.updateOne(
+            { _id: ranking._id },
+            { $addToSet: { rankings: { $each: insertedItems.map((item) => item._id) } } },
+          );
+        }),
+    );
+  }
 
 
   // ─── handleTeamUpdate ─────────────────────────────────────────────────────────

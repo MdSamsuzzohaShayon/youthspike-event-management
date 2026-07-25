@@ -1,6 +1,6 @@
 import { ITeam } from "./team";
 import { IDocument } from "./document";
-import { IAllStats, IEvent, IGroup, IMatch, IResponse } from ".";
+import { IAllStats, IBadge, IEvent, IGroup, IMatch, IResponse } from ".";
 
 /**
  * Player Status
@@ -29,6 +29,7 @@ export interface IPlayer extends IDocument {
   division: string;
   status: EPlayerStatus,
   event?: string;
+  badge?: IBadge | null;
   teams?: ITeam[] | string[];
   captainofteams: ITeam[] | string[];
   cocaptainofteams: ITeam[] | string[];

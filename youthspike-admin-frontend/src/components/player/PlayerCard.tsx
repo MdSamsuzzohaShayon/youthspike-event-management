@@ -2,7 +2,7 @@ import { EPlayerStatus } from '@/types/player';
 import { CldImage } from 'next-cloudinary';
 import Link from 'next/link';
 import React, { useMemo, useRef, useState, useCallback } from 'react';
-import { IEvent, IOption, IPlayerRank, ITeam, TUpdatePlayer, TUpdateTeam } from '@/types';
+import { IBadge, IEvent, IOption, IPlayerRank, ITeam, TUpdatePlayer, TUpdateTeam } from '@/types';
 import { UserRole } from '@/types/user';
 import { useUser } from '@/lib/UserProvider';
 import Image from 'next/image';
@@ -20,6 +20,8 @@ import { useApolloClient } from '@apollo/client/react';
 import routerService from '@/lib/router-service';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { CURRENT_EVENT } from '@/utils/constant';
+import BadgeInput from '../elements/forms/BadgeInput';
+import BadgeSelect from '../elements/forms/BadgeSelect';
 
 
 interface IPlayerCardProps {
@@ -35,6 +37,8 @@ interface IPlayerCardProps {
   rankControls?: boolean;
   divisionList?: IOption[];
   rank?: number | null;
+  badge: IBadge | null | undefined; // Selected badge
+  badges: IBadge[];
 
   // New 
   onUpdateTeam: (e: React.SyntheticEvent, update: Partial<TUpdateTeam>, teamId: string) => void;
@@ -44,7 +48,7 @@ interface IPlayerCardProps {
 
 
 
-export default function PlayerCard({ player, isChecked, onSelect, teams, teamList, setIsLoading, showRank, rank, divisionList, rankControls, selectedTeam, selectedEvent,
+export default function PlayerCard({ player, isChecked, onSelect, teams, teamList, badge, badges, setIsLoading, showRank, rank, divisionList, rankControls, selectedTeam, selectedEvent,
   onUpdateTeam, onUpdatePlayer, onDelete }: IPlayerCardProps) {
 
 
@@ -72,10 +76,10 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
   const apolloClient = useApolloClient();
 
 
-  const handleRedirectTeam=(e:React.SyntheticEvent, teamId: string)=>{
+  const handleRedirectTeam = (e: React.SyntheticEvent, teamId: string) => {
     e.preventDefault();
     // `/teams/${team._id}/roster/${ldoIdUrl}`
-    if(selectedEvent){
+    if (selectedEvent) {
       SessionStorageService.setItem(CURRENT_EVENT, selectedEvent._id);
     }
     routerService.push(`/teams/${teamId}/roster/${ldoIdUrl}`)
@@ -159,6 +163,11 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
     }
   }, []);
 
+  const handleBadgeChange = (e: React.SyntheticEvent) => {
+    const inputEl = e.target as HTMLInputElement;
+    onUpdatePlayer(e, {badge: inputEl.value}, player._id);
+  }
+
   const handleOpenDialog = useCallback((e: React.SyntheticEvent, capOrCo: UserRole) => {
     e.preventDefault();
     if (makeCaptainWithEmailRef.current) {
@@ -168,7 +177,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
     }
   }, []);
 
-  const handleCaptainEmail = 
+  const handleCaptainEmail =
     async (e: React.SyntheticEvent) => {
       e.preventDefault();
       if (!newEmail.trim()) return;
@@ -181,10 +190,10 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
       }
 
       try {
-        await onUpdatePlayer(e, {email: newEmail}, player._id)
+        await onUpdatePlayer(e, { email: newEmail }, player._id)
         if (updateObj.email) {
           delete updateObj.email;
-          if(selectedTeam?._id){
+          if (selectedTeam?._id) {
             await onUpdateTeam(e, updateObj, selectedTeam?._id as string)
           }
         }
@@ -363,6 +372,8 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
     ],
   );
 
+
+  
   return (
     <>
       {/* ✅ Desktop Layout */}
@@ -370,6 +381,13 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
         <div className="flex items-center gap-4 w-full">
           {PlayerImage}
           {PlayerInfo}
+          <BadgeSelect
+            name="badge"
+            className='w-48'
+            value={badge?._id}
+            badges={badges || []}
+            onChange={handleBadgeChange}
+          />
         </div>
 
         <div className="player-role mr-4">{PlayerRole}</div>
@@ -393,6 +411,13 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
           <div>{PlayerRole}</div>
           {OptionsButton}
         </div>
+        <BadgeSelect
+          name="badge"
+          className='w-full my-2'
+          value={badge?._id}
+          badges={badges || []}
+          onChange={handleBadgeChange}
+        />
         {PlayerInfo}
       </div>
 

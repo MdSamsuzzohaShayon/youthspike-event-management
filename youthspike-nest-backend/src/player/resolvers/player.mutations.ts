@@ -15,6 +15,7 @@ import { MatchService } from 'src/match/match.service';
 import { Match } from 'src/match/match.schema';
 import { Team } from 'src/team/team.schema';
 import PlayerHelper from './player.helpers';
+import { BadgeService } from 'src/badge/badge.service';
 
 @Injectable()
 export class PlayerMutations implements IPlayerMutations {
@@ -26,6 +27,7 @@ export class PlayerMutations implements IPlayerMutations {
     private playerService: PlayerService,
     private userService: UserService,
     private playerRankingService: PlayerRankingService,
+    private badgeService: BadgeService,
 
     // Helpers
     private readonly playerHelpers: PlayerHelper
@@ -34,90 +36,49 @@ export class PlayerMutations implements IPlayerMutations {
 
 
 
+  // ── createPlayer ──────────────────────────────────────────────────────
   async createPlayer({ input, profile }: CreatePlayerBody): Promise<PlayerResponse> {
     try {
-      // Upload image to cloudinary
-      let profileUrl: string | null = null;
-      const ensurePromises = [];
-      if (profile) profileUrl = await this.cloudinaryService.uploadFiles(profile);
+      const playerName = this.playerHelpers.buildPlayerFullName(input.firstName, input.lastName);
 
-      const playerObj = {
-        ...input,
-        profile: profileUrl,
-        // events: input.events,
-        // teams: ,
-        name: `${input.firstName}_${input.lastName}`,
-      };
-      const playerExist = await this.playerService.findOne({ name: playerObj.name, events: { $in: input.events } });
-      if (playerExist) {
+      const duplicatePlayerExists = await this.playerService.findOne({
+        name: playerName,
+        events: { $in: input.events },
+      });
+      if (duplicatePlayerExists) {
         return AppResponse.handleError({
           code: 404,
           success: false,
           message: 'There is already a player exist with this name in this event!',
         });
       }
-      if (playerObj.email === '') delete playerObj.email;
-      if (playerObj.phone === '') delete playerObj.phone;
-      if (input.teams) playerObj.teams = input.teams;
-      if (!playerObj.username || playerObj.username === '') {
-        playerObj.username = this.playerService.playerUsername(playerObj.firstName);
+
+      const newPlayerDocument = await this.playerHelpers.buildNewPlayerDocument(input, profile, playerName);
+      const newPlayer = await this.playerService.create(newPlayerDocument);
+
+      const postCreateTasks: Promise<unknown>[] = [];
+
+      if (input.badge) {
+        postCreateTasks.push(
+          this.badgeService.updateOne({ _id: input.badge }, { $addToSet: { players: newPlayer._id } }),
+        );
       }
-      // if (playerObj.teams) delete playerObj.teams;
-      // delete playerObj.event;
 
-      const newPlayer = await this.playerService.create(playerObj);
-
-      if (input.teams) {
-        // ===== Update Player Ranking =====
-        const teams = await this.teamService.find({ _id: { $in: input.teams } });
-        for (const team of teams) {
-          const playerRankings = await this.playerRankingService.find({ team: team._id, rankLock: false });
-          if (playerRankings && playerRankings.length > 0) {
-            // Looping all player rankings of a team
-            for (const pr of playerRankings) {
-              // If ranking is locked, then add that player only to one team player ranking (not in the ranking that has specific match)
-              if (pr.rankLock && pr.match) continue;
-
-              const rankings = await this.playerRankingService.findItems({ playerRanking: pr._id });
-              const highestRank = rankings.length === 0 ? 0 : Math.max(...rankings.map((p) => p.rank));
-
-              // Insert that ranking iteam
-              const itemsToInsert = [];
-              const playerIds = [...team.players, newPlayer._id];
-              let rankIncrement = 0;
-              for (let i = 0; i < playerIds.length; i += 1) {
-                // If there is no player then add them
-                const findRank = rankings.find((r) => r.player?.toString() === playerIds[i].toString());
-                if (!findRank) {
-                  itemsToInsert.push({
-                    player: playerIds[i],
-                    rank: highestRank + rankIncrement + 1,
-                    playerRanking: pr._id,
-                  });
-                  rankIncrement += 1;
-                }
-              }
-              // Create new ranking item
-              const rankingItems = await this.playerRankingService.insertManyItems(itemsToInsert);
-              // Add those item to relational playerRanking
-              ensurePromises.push(
-                this.playerRankingService.updateOne(
-                  { _id: pr._id },
-                  { $addToSet: { rankings: { $each: rankingItems.map((ri) => ri._id) } } },
-                ),
-              );
-            }
-          }
-          ensurePromises.push(this.teamService.updateOne({ _id: team }, { $addToSet: { players: newPlayer._id } }));
-        }
+      if (input.teams?.length) {
+        postCreateTasks.push(this.playerHelpers.assignPlayerToTeams(String(newPlayer._id), input.teams));
       }
-      ensurePromises.push(
-        this.eventService.updateOne(
-          { _id: { $in: input.teams } },
-          { $addToSet: { players: newPlayer._id } },
-        ),
-      );
-      await Promise.all(ensurePromises);
+
+      if (input.events?.length) {
+        // BUG FIX: was querying eventService with input.teams; events are matched by input.events.
+        postCreateTasks.push(
+          this.eventService.updateOne(
+            { _id: { $in: input.events } },
+            { $addToSet: { players: newPlayer._id } },
+          ),
+        );
+      }
+
+      await Promise.all(postCreateTasks);
 
       return {
         code: HttpStatus.CREATED,
@@ -386,6 +347,18 @@ export class PlayerMutations implements IPlayerMutations {
       // ── Profile image ──────────────────────────────────────────────────────
       if (profile) {
         playerUpdate.profile = await this.cloudinaryService.uploadFiles(profile);
+      }
+
+      if (input.badge) {
+        // && playerExist.badge && input.badge !== String(playerExist.badge)
+        if (!playerExist.badge) {
+          updatePromises.push(this.badgeService.updateOne({ _id: input.badge }, { $addToSet: { players: playerId } }));
+        } else {
+          if (String(playerExist.badge) !== input.badge) {
+            updatePromises.push(this.badgeService.updateOne({ _id: playerExist.badge }, { $pull: { players: playerId } }));
+            updatePromises.push(this.badgeService.updateOne({ _id: input.badge }, { $addToSet: { players: playerId } }));
+          }
+        }
       }
 
       // ── Username uniqueness + linked user email sync ───────────────────────

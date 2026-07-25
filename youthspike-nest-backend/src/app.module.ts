@@ -27,6 +27,7 @@ import { EEnv, NODE_ENV } from './utils/keys';
 import { PlayerStatsModule } from './player-stats/player-stats.module';
 import { ServerReceiverOnNetModule } from './server-receiver-on-net/server-receiver-on-net.module';
 import { TemplateModule } from './template/template.module';
+import { BadgeModule } from './badge/badge.module';
 
 @Module({
   imports: [
@@ -90,6 +91,8 @@ import { TemplateModule } from './template/template.module';
     PlayerStatsModule,
 
     ServerReceiverOnNetModule,
+
+    BadgeModule,
 
 
   ],

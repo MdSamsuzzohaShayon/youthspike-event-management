@@ -28,6 +28,8 @@ import { CustomGroup } from 'src/match/resolvers/match.response';
 import { CustomPlayer } from 'src/player/resolvers/player.response';
 import { ArchiveEventService, ArchiveGroupService, ArchiveMatchService, ArchiveSponsorService, ArchiveTeamService, ArchiveTemplateService } from 'src/archive/archive.service';
 import { ArchiveEvent } from 'src/archive/archive.schema';
+import { BadgeService } from 'src/badge/badge.service';
+import { CustomBadge } from 'src/badge/badge.response';
 
 @Injectable()
 export class EventQueries implements IEventQueries {
@@ -41,6 +43,7 @@ export class EventQueries implements IEventQueries {
     private userService: UserService,
     private groupService: GroupService,
     private sponsorService: SponsorService,
+    private badgeService: BadgeService,
 
     private archiveEventService: ArchiveEventService,
     private archiveTeamService: ArchiveTeamService,
@@ -240,9 +243,10 @@ export class EventQueries implements IEventQueries {
       /**
        * Parallel DB queries
        */
-      const [groups, players] = await Promise.all([
+      const [groups, players, badges] = await Promise.all([
         this.groupService.find(groupQuery),
         this.playerService.find(playerQuery),
+        this.badgeService.find({event: {$in: resolvedEventIds}})
       ]);
 
       return {
@@ -253,6 +257,7 @@ export class EventQueries implements IEventQueries {
           events,
           groups: groups as CustomGroup[],
           players: players as CustomPlayer[],
+          badges: badges as CustomBadge[],
         },
       };
     } catch (err) {
@@ -288,6 +293,7 @@ export class EventQueries implements IEventQueries {
           data: {
             player: {
               ...playerExist,
+              badge: String(playerExist.badge) as string,
               teams: playerExist.teams?.map((t) => (typeof t === 'object' ? t._id : t)) || [],
               captainofteams:
                 playerExist.captainofteams?.map((t: any) =>
@@ -310,9 +316,10 @@ export class EventQueries implements IEventQueries {
         this.sponsorService.find({ event: eventId }),
       ]);
 
-      const [multiplayer, weight] = await Promise.all([
+      const [multiplayer, weight, badges] = await Promise.all([
         this.playerStatsService.proStatFindOne({ _id: event.multiplayer }),
         this.playerStatsService.proStatFindOne({ _id: event.weight }),
+        this.badgeService.find({event: eventId})
       ]);
 
       return {
@@ -324,6 +331,7 @@ export class EventQueries implements IEventQueries {
           teams: teams as CustomTeam[],
           ldo,
           sponsors,
+          badges: badges as CustomBadge[],
           multiplayer,
           weight,
         },

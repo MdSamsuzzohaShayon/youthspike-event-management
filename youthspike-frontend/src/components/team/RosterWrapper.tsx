@@ -1,7 +1,9 @@
 import {
   EPlayerStatus,
+  IBadge,
   IEventRelatives,
   IPlayer,
+  IPlayerRank,
   IPlayerRankingExpRel,
   ITeam,
   UserRole,
@@ -13,13 +15,12 @@ import Link from 'next/link';
 import { useLdoId } from '@/lib/LdoProvider';
 import { useUser } from '@/lib/UserProvider';
 
-interface PlayerWithRank extends IPlayer {
-  rank?: number;
-}
+
 
 interface RosterWrapperProps {
   events: IEventRelatives[];
   team: ITeam;
+  badgeMap: Map<string, IBadge>;
   inactivePlayers: IPlayer[];
   activePlayers: IPlayer[];
   playerRanking: IPlayerRankingExpRel | null;
@@ -30,17 +31,19 @@ function RosterWrapper({
   activePlayers,
   inactivePlayers,
   team,
+  badgeMap,
   playerRanking,
 }: RosterWrapperProps) {
   const { ldoIdUrl } = useLdoId();
   const user = useUser();
+
   /**
    * ✅ Single computation
    * - O(n) pass
    * - O(n log n) only for active sorting
    */
   const players = useMemo(() => {
-    const active: PlayerWithRank[] = [];
+    const active: IPlayerRank[] = [];
 
     // Build ranking lookup only once
     const rankingMap = new Map<string, number>();
@@ -61,7 +64,7 @@ function RosterWrapper({
       // ACTIVE player
       active.push({
         ...player,
-        rank: rankingMap.get(player._id),
+        rank: rankingMap.get(player._id) as number,
       });
     }
 
@@ -109,7 +112,7 @@ function RosterWrapper({
       </div>
 
       <div className="space-y-2">
-        <PlayerList players={activePlayers} events={events} />
+        <PlayerList players={players} events={events} badgeMap={badgeMap} />
       </div>
 
       {inactivePlayers.length > 0 && (
@@ -123,7 +126,7 @@ function RosterWrapper({
             </span>
           </div>
 
-          <PlayerList players={inactivePlayers} events={events} />
+          <PlayerList players={inactivePlayers} events={events} badgeMap={badgeMap} />
         </div>
       )}
     </div>

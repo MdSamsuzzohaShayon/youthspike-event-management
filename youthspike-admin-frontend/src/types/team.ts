@@ -21,6 +21,7 @@ import {
   TMutationFunction,
   IMatchRelatives,
   IEmailcontent,
+  IBadge,
 } from '.';
 // @ts-ignore
 import { ApolloCache } from '@apollo/client';
@@ -46,10 +47,12 @@ export interface ITeam extends ITeamCommon{
   groups?: IGroupRelatives[];
   captain: IPlayerExpRel | null;
   cocaptain: IPlayerExpRel | null;
+  badge?: IBadge | null;
   playerRanking: IPlayerRankingExpRel | string;
 }
 
 export interface ITeamRelatives extends ITeamCommon{
+  badge?: string;
   events?: string[];
   matches?: string[]; // Make the captain field nullable
   players?: string[]; // Update the type of players to allow null values
@@ -90,6 +93,7 @@ interface ITeamRoster {
   team: ITeam;
   rankings: IPlayerRankingItemExpRel[];
   playerRanking: IPlayerRankingExpRel;
+  badges: IBadge[];
 }
 
 interface ITeamStats {
@@ -162,6 +166,7 @@ interface ISearchTeamData {
   events: IEvent[];
   groups: IGroupRelatives[];
   matches: IMatch[];
+  badges: IBadge[];
   nets: INetRelatives[];
   rounds: IRoundRelatives[];
   teams: ITeam[];
