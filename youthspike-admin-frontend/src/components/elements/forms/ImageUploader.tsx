@@ -5,6 +5,7 @@
 // ---------------------------------------------------------------------------
 
 import { isFileTooLarge, isValidImageFile } from "@/utils/badge/badge-helpers";
+import { MAX_FILE_SIZE_BYTES } from "@/utils/constant";
 import uploadImageToCloudinary from "@/utils/request-handlers/uploadImageToCloudinary";
 import { Loader2, Upload } from "lucide-react";
 import { ChangeEvent, useCallback, useRef } from "react";
@@ -47,7 +48,7 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
                 return;
             }
             if (isFileTooLarge(file)) {
-                onError("Image size should be less than 5MB.");
+                onError(`Image size should be less than 200KB.`);
                 resetFileInput();
                 return;
             }

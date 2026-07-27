@@ -206,6 +206,7 @@ const GET_PLAYER_EVENT_SETTINGS = gql`
         badges{
           _id
           name
+          description
           icon
           event
           teams
@@ -330,6 +331,7 @@ const GET_EVENT_WITH_GROUPS_AND_UNASSIGNED_PLAYERS = gql`
         badges{
           _id
           name
+          description
           icon
           event
           teams

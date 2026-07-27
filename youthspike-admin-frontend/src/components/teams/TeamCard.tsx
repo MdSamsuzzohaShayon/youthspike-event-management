@@ -56,6 +56,7 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, badge, b
 
   const toggleActionMenu = () => setActionOpen((prev) => !prev);
 
+
   const onGroupChange = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     const inputEl = e.target as HTMLInputElement;

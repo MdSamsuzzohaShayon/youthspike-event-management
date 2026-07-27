@@ -210,6 +210,7 @@ query SearchPlayers($eventId: String!, $filter: PlayerSearchFilter!) {
       badges{
         _id
         name
+        description
         icon
         event
         teams
@@ -243,6 +244,7 @@ query GetEventsWithTeams($ldoId: String) {
       badges{
         _id
         name
+        description
         icon
         event
         teams

@@ -471,8 +471,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     return () => sortableList.destroy();
   }, [handleSortEnd, rankControls, screenWidth, user, events]);
 
-  console.log({badges});
-  
+
 
   const badgeMap = useMemo(()=>createBadgeMap(badges), [badges]);
 

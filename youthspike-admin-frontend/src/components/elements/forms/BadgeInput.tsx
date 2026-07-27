@@ -41,7 +41,9 @@ export default function BadgeInput({
   onChange,
   folder,
 }: BadgeInputProps) {
-  const [draftName, setDraftName] = useState("");
+  const [draftName, setDraftName] = useState<string>("");
+  const [draftDescription, setDraftDescription] = useState<string>("");
+
   const [draftIcon, setDraftIcon] = useState<string>(""); // Cloudinary public_id
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -58,14 +60,15 @@ export default function BadgeInput({
   );
 
   const isDraftValid = useMemo(() => {
-    if (!normalizedDraftName || !draftIcon) return false;
+    if (!normalizedDraftName || !draftIcon || !draftDescription) return false;
     return !isNameTaken(existingLowerCaseNames, normalizedDraftName);
-  }, [normalizedDraftName, draftIcon, existingLowerCaseNames]);
+  }, [normalizedDraftName, draftIcon, draftDescription, existingLowerCaseNames]);
 
   useOrphanDraftImageCleanup(draftIcon, badges);
 
   const resetEditor = useCallback(() => {
     setDraftName("");
+    setDraftDescription("");
     setDraftIcon("");
     setEditingIndex(null);
     setFormError(null);
@@ -76,8 +79,8 @@ export default function BadgeInput({
   }, []);
 
   const handleSubmitBadge = useCallback(() => {
-    if (!normalizedDraftName || !draftIcon) {
-      setFormError("Badge name and image are both required.");
+    if (!normalizedDraftName || !draftIcon || !draftDescription) {
+      setFormError("Badge name, description, and image are both required.");
       return;
     }
     if (isNameTaken(existingLowerCaseNames, normalizedDraftName)) {
@@ -85,7 +88,7 @@ export default function BadgeInput({
       return;
     }
 
-    const nextBadge: TAddBadge = { name: normalizedDraftName, icon: draftIcon };
+    const nextBadge: TAddBadge = { name: normalizedDraftName, description: draftDescription, icon: draftIcon };
     const updatedBadges =
       isEditing && editingIndex !== null
         ? badges.map((badge, index) => (index === editingIndex ? nextBadge : badge))
@@ -96,6 +99,7 @@ export default function BadgeInput({
     focusNameInput();
   }, [
     normalizedDraftName,
+    draftDescription,
     draftIcon,
     existingLowerCaseNames,
     isEditing,
@@ -111,6 +115,7 @@ export default function BadgeInput({
       const badge = badges[index];
       if (!badge) return;
       setDraftName(badge.name);
+      setDraftDescription(badge.description);
       // Only reuse the icon if it's already a Cloudinary public_id.
       // If it's somehow still a raw File, force a re-upload.
       setDraftIcon(getBadgePublicId(badge.icon));
@@ -125,7 +130,8 @@ export default function BadgeInput({
     async (index: number) => {
       const badgeToDelete = badges.find((_, i)=> i === index);
       if(!badgeToDelete) return;
-      await deleteDraftImage(badgeToDelete.icon);
+      // This function is not deleting image unnecessary therefore, I have disabled it for now
+      // await deleteDraftImage(badgeToDelete.icon); // temp
       onChange(badges.filter((_, i) => i !== index));
       if (editingIndex === index) {
         resetEditor();
@@ -140,6 +146,19 @@ export default function BadgeInput({
   }, [resetEditor, focusNameInput]);
 
   const handleNameFieldKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLInputElement>) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        handleSubmitBadge();
+      } else if (event.key === "Escape" && isEditing) {
+        event.preventDefault();
+        handleCancelEdit();
+      }
+    },
+    [handleSubmitBadge, handleCancelEdit, isEditing]
+  );
+
+  const handleDescriptionFieldKeyDown = useCallback(
     (event: KeyboardEvent<HTMLInputElement>) => {
       if (event.key === "Enter") {
         event.preventDefault();
@@ -192,12 +211,15 @@ export default function BadgeInput({
         isUploading={isUploading}
         isDraftValid={isDraftValid}
         draftName={draftName}
+        draftDescription={draftDescription}
         draftIcon={draftIcon}
         formError={formError}
         folder={folder}
         nameInputRef={nameInputRef}
         onDraftNameChange={setDraftName}
+        onDraftDescriptionChange={setDraftDescription}
         onNameFieldKeyDown={handleNameFieldKeyDown}
+        onDescriptionFieldKeyDown={handleDescriptionFieldKeyDown}
         onDraftIconChange={setDraftIcon}
         onUploadStart={handleUploadStart}
         onUploadEnd={handleUploadEnd}

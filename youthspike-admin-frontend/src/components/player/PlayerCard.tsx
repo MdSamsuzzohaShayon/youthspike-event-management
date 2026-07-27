@@ -68,7 +68,6 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
   const dialogMoveRef = useRef<HTMLDialogElement | null>(null);
 
 
-
   // Hooks
   const { setMessage } = useMessage();
   const user = useUser();
