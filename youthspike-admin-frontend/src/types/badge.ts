@@ -1,6 +1,7 @@
 export interface IBadge {
     _id: string;
     name: string;
+    description: string;
     /** Uploaded image URL returned from the server / Cloudinary. */
     icon: string;
     event: string;

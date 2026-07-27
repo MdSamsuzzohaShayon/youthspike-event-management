@@ -65,7 +65,7 @@ export async function safelyDeleteDraftImage(publicId: string): Promise<void> {
 }
 
 // const badgeMap = useMemo(, [badges]);
-export const createBadgeMap =(badges: IBadge[])=>{
+export const createBadgeMap =(badges: IBadge[]): Map<string, IBadge>=>{
     const map = new Map<string, IBadge>();
     for (const badge of badges) {
       map.set(badge._id, badge);

@@ -14,6 +14,7 @@ import Loader from '../elements/Loader';
 import { GET_TEAMS } from '@/graphql/teams';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { CURRENT_EVENT } from '@/utils/constant';
+import BadgeTable from '../badge/BadgeTable';
 
 interface PlayersMainContainerProps {
   queryRef: QueryRef<{ searchPlayers: ISearchPlayerResponse }>;
@@ -70,9 +71,9 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
 
   const eventId = initialData?.searchPlayers?.data?.event?._id || null;
 
-  const eventIds = eventId ? [eventId] :  undefined;
+  const eventIds = eventId ? [eventId] : undefined;
   const { data: teamsData, loading, error } = useQuery<{ getTeams: IGetTeamsResponse }>(GET_TEAMS, {
-    variables: { eventIds, limit:  TEAM_LIMIT},
+    variables: { eventIds, limit: TEAM_LIMIT },
     fetchPolicy: "cache-first",
   });
 
@@ -324,6 +325,12 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
 
       {/* End of results */}
       {!hasMorePlayers && displayedPlayers.length > 0 && <div className="text-center py-4 text-gray-500 text-sm">No more players to load.</div>}
+
+
+      <div className="w-full mt-6">
+        <h2>Badges</h2>
+        <BadgeTable badges={badges} />
+      </div>
     </div>
   );
 }

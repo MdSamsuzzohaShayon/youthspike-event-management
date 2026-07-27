@@ -22,6 +22,9 @@ export class EventBadgeInput {
 
   @Field(() => String)
   icon: string;
+
+  @Field(() => String)
+  description: string;
 }
 
 @InputType()

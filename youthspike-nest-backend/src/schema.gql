@@ -406,6 +406,7 @@ type Badge {
   updatedAt: String
   name: String!
   icon: String!
+  description: String
   event: Event!
   teams: [Team!]
   players: [Player!]
@@ -525,6 +526,7 @@ type CustomBadge {
   updatedAt: String
   name: String!
   icon: String!
+  description: String
   event: String!
   teams: [String!]
   players: [String!]
@@ -1526,6 +1528,7 @@ input CreateEventInput {
 input EventBadgeInput {
   name: String!
   icon: String!
+  description: String!
 }
 
 input UpdateEventInput {
@@ -1567,6 +1570,7 @@ input UpdateDivision {
 input UpdateBadgeInput {
   name: String
   icon: String
+  description: String
   _id: String
 }
 

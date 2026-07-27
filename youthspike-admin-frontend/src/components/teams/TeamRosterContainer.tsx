@@ -12,6 +12,7 @@ import TeamNavigation from './TeamNavigation';
 import { GET_TEAMS } from '@/graphql/teams';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { CURRENT_EVENT, TEAM } from '@/utils/constant';
+import BadgeTable from '../badge/BadgeTable';
 
 
 interface TeamRosterContainerProps {
@@ -38,7 +39,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
   const eventIds = currentEvent ? [currentEvent] : (events?.map(e => e._id) || undefined);
 
   const { data: teamsData, loading, error } = useQuery<{ getTeams: IGetTeamsResponse }>(GET_TEAMS, {
-    variables: { eventIds, limit:  TEAM_LIMIT},
+    variables: { eventIds, limit: TEAM_LIMIT },
     fetchPolicy: "cache-first",
   });
 
@@ -117,6 +118,12 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
             teamList={teamList}
           />
         </div>
+
+        <div className="w-full mt-6">
+          <h2>Badges</h2>
+          <BadgeTable badges={badges} />
+        </div>
+
       </div>
     </div>
   );

@@ -207,6 +207,7 @@ query GetTeamRoster($teamId: String!) {
         email
         firstName
         lastName
+        badge
         phone
         profile
         status
@@ -252,6 +253,7 @@ query GetTeamRoster($teamId: String!) {
       badges{
         _id
         name
+        description
         icon
         event
         teams
@@ -584,6 +586,7 @@ query SearchTeams($eventIds: [String!], $filter: TeamSearchFilter) {
       badges{
         _id
         name
+        description
         icon
         event
         teams

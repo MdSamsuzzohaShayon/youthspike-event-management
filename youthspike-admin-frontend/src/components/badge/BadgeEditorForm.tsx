@@ -17,12 +17,15 @@ interface BadgeEditorFormProps {
     isUploading: boolean;
     isDraftValid: boolean;
     draftName: string;
+    draftDescription: string,
     draftIcon: string;
     formError: string | null;
     folder?: string;
     nameInputRef: RefObject<HTMLInputElement | null>;
     onDraftNameChange: (value: string) => void;
+    onDraftDescriptionChange: (value: string) => void;
     onNameFieldKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
+    onDescriptionFieldKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
     onDraftIconChange: (publicId: string) => void;
     onUploadStart: () => void;
     onUploadEnd: () => void;
@@ -39,12 +42,15 @@ const BadgeEditorForm: React.FC<BadgeEditorFormProps> = ({
     isUploading,
     isDraftValid,
     draftName,
+    draftDescription,
     draftIcon,
     formError,
     folder,
     nameInputRef,
     onDraftNameChange,
+    onDraftDescriptionChange,
     onNameFieldKeyDown,
+    onDescriptionFieldKeyDown,
     onDraftIconChange,
     onUploadStart,
     onUploadEnd,
@@ -73,6 +79,25 @@ const BadgeEditorForm: React.FC<BadgeEditorFormProps> = ({
                     onChange={(event) => onDraftNameChange(event.target.value)}
                     onKeyDown={onNameFieldKeyDown}
                     placeholder="e.g. Champion"
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-300 placeholder:text-gray-500 transition-colors duration-150 focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50"
+                />
+            </div>
+
+            <div className="flex flex-1 flex-col gap-1">
+                <label
+                    htmlFor={`${fieldName}-badge-description`}
+                    className="text-xs uppercase tracking-wide text-gray-400"
+                >
+                    Badge Description
+                </label>
+                <input
+                    id={`${fieldName}-badge-description`}
+                    ref={nameInputRef}
+                    type="text"
+                    value={draftDescription}
+                    onChange={(event) => onDraftDescriptionChange(event.target.value)}
+                    onKeyDown={onDescriptionFieldKeyDown}
+                    placeholder="e.g. A champion team"
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-300 placeholder:text-gray-500 transition-colors duration-150 focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50"
                 />
             </div>

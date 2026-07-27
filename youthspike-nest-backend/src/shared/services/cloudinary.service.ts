@@ -88,7 +88,7 @@ export class CloudinaryService {
     }
   }
 
-  async uploadBadges(files: Promise<FileUpload>, name: string, w = 300, h = 300): Promise<EventBadgeInput | null> {
+  async uploadBadges(files: Promise<FileUpload>, name: string, description: string, w = 300, h = 300): Promise<EventBadgeInput | null> {
     const { createReadStream, filename, mimetype } = await files;
     try {
       const stream = createReadStream();
@@ -114,7 +114,7 @@ export class CloudinaryService {
         stream.pipe(uploadStream); // 👈 direct pipe (BEST)
       });
 
-      return { name, icon: result.public_id };
+      return { name, description, icon: result.public_id };
     } catch (error) {
       return null;
     }

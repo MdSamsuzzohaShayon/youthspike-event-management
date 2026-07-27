@@ -13,6 +13,11 @@ import { DIVISION } from '@/utils/constant';
 import MultiPlayerAddDialog from './MultiPlayerAddDialog';
 import { divisionsToOptionList } from '@/utils/helper';
 import ActiveFiltersBar from '../event/ActiveFiltersBar';
+import Image from 'next/image';
+import TeamRow from './TeamRow';
+import Link from 'next/link';
+import { CldImage } from 'next-cloudinary';
+import BadgeTable from '../badge/BadgeTable';
 
 interface ITeamsContainerProps {
   queryRef: QueryRef<{ searchTeams: ISearchTeamResponse }>;
@@ -306,6 +311,11 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
           {!hasMore && teams.length > 0 && <div className="text-center py-4 text-gray-400 text-sm">No more teams to load</div>}
         </div>
       )}
+
+      <div className="w-full mt-6">
+        <h2>Badges</h2>
+        <BadgeTable badges={badges} />
+      </div>
 
       {eventId && <MultiPlayerAddDialog divisionList={divivionList} eventId={eventId} importerRef={importerRef} setIsLoading={() => { }} />}
     </div>

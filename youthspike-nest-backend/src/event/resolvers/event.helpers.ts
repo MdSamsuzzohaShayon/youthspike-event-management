@@ -70,8 +70,8 @@ class EventHelpers {
         inserts: EventBadgeInput[],
         updates: UpdateBadgeInput[],
     ) {
-        const { name, icon } = badge;
-        if (!name || !icon) {
+        const { name, icon, description } = badge;
+        if (!name || !icon || !description) {
             if (badge._id) {
                 updates.push(badge);
             }
@@ -81,7 +81,7 @@ class EventHelpers {
         const match = byName.get(name) ?? byIcon.get(icon);
 
         if (!match) {
-            inserts.push({ name, icon });
+            inserts.push({ name, description, icon });
             return;
         }
 

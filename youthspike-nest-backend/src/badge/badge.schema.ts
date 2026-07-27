@@ -19,6 +19,10 @@ export class Badge extends AppDocument {
   @Prop({ required: true })
   icon: string;
 
+  @Field((_type) => String, {nullable: true})
+  @Prop({ required: false })
+  description?: string;
+
   @Field((_type) => Event, { nullable: false })
   @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Event' })
   event: string | Event;
