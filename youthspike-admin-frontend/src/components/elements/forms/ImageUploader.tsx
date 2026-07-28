@@ -55,8 +55,12 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
 
             onUploadStart();
             try {
-                const publicId = await uploadImageToCloudinary(file, folder);
-                onChange(publicId);
+                const result = await uploadImageToCloudinary({file, folder});
+                if(result?.public_id){
+                    onChange(result.public_id);
+                }else{
+                    throw new Error(`Can not upload image properly!`)
+                }
             } catch (error) {
                 console.error("Badge image upload failed:", error);
                 onError(
