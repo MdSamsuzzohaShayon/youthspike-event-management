@@ -393,6 +393,7 @@ query GetTeamWithGroupsAndUnassignedPlayers($teamId: String!, $ldoId: String){
       team{
         _id
         name
+        badge
         logo
         division
         groups
@@ -407,6 +408,15 @@ query GetTeamWithGroupsAndUnassignedPlayers($teamId: String!, $ldoId: String){
         firstName
         lastName
         username
+      }
+      badges{
+        _id
+        name
+        description
+        icon
+        event
+        teams
+        players
       }
     }
   }

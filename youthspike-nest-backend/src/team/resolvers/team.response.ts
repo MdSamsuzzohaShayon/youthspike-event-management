@@ -356,6 +356,9 @@ class TeamWithGroupsAndUnAssignedPlayers{
 
   @Field((_type) => [CustomPlayer], { nullable: true })
   players: CustomPlayer[];
+
+  @Field((_type) => [CustomBadge], { nullable: true })
+  badges: CustomBadge[];
 }
 
 @ObjectType()

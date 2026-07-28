@@ -172,9 +172,6 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
   }
 
 
-  console.log({ availablePlayers });
-  console.log({ tp: teamState.players });
-
 
 
   // Memoization
@@ -210,6 +207,7 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
     if (prevTeam) {
       const normalizeTeam: TAddTeam = {
         ...prevTeam,
+        badge: prevTeam.badge ? String(prevTeam.badge) : undefined,
         events: prevTeam.events?.map((e) => typeof e === 'object' ? e._id : String(e)),
         matches: prevTeam.matches?.map((e) => typeof e === 'object' ? e._id : String(e)),
         players: prevTeam.players?.map((e) => typeof e === 'object' ? e._id : String(e)),
@@ -223,7 +221,6 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
 
 
 
-
   useEffect(() => {
     const currentEvent = SessionStorageService.getItem(CURRENT_EVENT);
     if (currentEvent) {
@@ -233,6 +230,10 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
   }, [badges]);
 
 
+
+  console.log({badge: teamState.badge, badges});
+
+  
 
 
 
@@ -275,13 +276,17 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
             : groupList.map((g, gI) => ({ id: gI + 1, text: g.name, value: g._id }))
         }
       />
+
+      <div className='w-full mt-6'>
+        <label htmlFor="badge" className="text-xs font-medium text-gray-300 uppercase">Badge</label>
       <BadgeSelect
         name="badge"
-        className='mt-6'
+        className=''
         value={teamState.badge as string}
         badges={badgeList || []}
         onChange={handleInputChange}
       />
+      </div>
 
       <div className="w-full flex justify-start items-center flex-wrap gap-x-4">
         {events.map((event) => (

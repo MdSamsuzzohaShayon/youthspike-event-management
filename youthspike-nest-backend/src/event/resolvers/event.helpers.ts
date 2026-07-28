@@ -18,7 +18,7 @@ class EventHelpers {
         previousBadges: Badge[],
         updateBadges: UpdateBadgeInput[],
     ): IBadgeDiff {
-        const badgesIds = new Set(previousBadges.map((b) => b._id));
+        const badgesIds = new Set(previousBadges.map((b) => String(b._id)));
         const badgesInsert: EventBadgeInput[] = [];
         const badgesUpdate: UpdateBadgeInput[] = [];
         const badgesDelete = new Set<string>();
