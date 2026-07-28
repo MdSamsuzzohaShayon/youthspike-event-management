@@ -20,7 +20,7 @@ import { QueryFilter } from 'mongoose';
 import { Team } from '../team.schema';
 import { MatchService } from 'src/match/match.service';
 import { Match } from 'src/match/match.schema';
-import { CustomMatch, CustomNet, CustomRound, GetTeamSearchResponse, GetTeamRosterResponse, GetTeamMatchesResponse, GetPlayerStatsResponse, CustomTeam } from './team.response';
+import { CustomMatch, CustomNet, CustomRound, GetTeamSearchResponse, GetTeamRosterResponse, GetTeamMatchesResponse, GetPlayerStatsResponse, CustomTeam, GetTeamWithGroupsAndUnAssignedPlayersResponse } from './team.response';
 import { CustomEvent } from 'src/event/resolvers/event.response';
 import { CustomGroup } from 'src/match/resolvers/match.response';
 import { CustomPlayer, CustomPlayerRanking, CustomPlayerRankingItem } from 'src/player/resolvers/player.response';
@@ -269,7 +269,7 @@ export class TeamQueries {
           ],
         }),
         this.eventService.find({ _id: { $in: team.events as string[] } }),
-        this.badgeService.find({event: {$in: team.events}}),
+        this.badgeService.find({ event: { $in: team.events } }),
 
         // Get all unassigned players
         this.playerService.find({
@@ -420,7 +420,7 @@ export class TeamQueries {
     context: any,
     teamId: string,
     ldoId: string
-  ) {
+  ): Promise<GetTeamWithGroupsAndUnAssignedPlayersResponse> {
     try {
 
       const team = await this.teamService.findOne({ _id: teamId });
@@ -484,9 +484,10 @@ export class TeamQueries {
 
 
 
-      const [groups, players] = await Promise.all([
+      const [groups, players, badges] = await Promise.all([
         this.groupService.find({ event: { $in: resolvedEventIds } }),
         this.playerService.find({ events: { $in: resolvedEventIds }, $or: [{ teams: { $size: 0 } }, { teams: { $exists: false } }, { teams: null }] }),
+        this.badgeService.find({event: {$in: resolvedEventIds}})
       ]);
 
 
@@ -495,7 +496,13 @@ export class TeamQueries {
         code: HttpStatus.OK,
         success: true,
         message: "Getting event and team details",
-        data: { events, groups, players, team }
+        data: {
+          events,
+          groups: groups as CustomGroup[],
+          players: players as CustomPlayer[],
+          team: team as CustomTeam,
+          badges: badges as CustomBadge[]
+        }
       };
     } catch (err) {
       return AppResponse.handleError(err);
@@ -574,7 +581,7 @@ export class TeamQueries {
           ? this.groupService.find({ event: { $in: eventIds } })
           : this.groupService.find({ event: { $in: [...eventIdTeamsSet] } }),
         this.emailsenderService.contentFind({ team: { $in: [...teams.map((t) => t._id)] } }),
-        this.badgeService.find({event: {$in: eventIds}})
+        this.badgeService.find({ event: { $in: eventIds } })
       ]);
 
       // const emailsenders = await this.emailsenderService.find({ _id: { $in: emailcontents.map((ec) => String(ec.emailsender)) } });

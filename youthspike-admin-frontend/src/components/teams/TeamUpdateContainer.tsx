@@ -19,7 +19,7 @@ function TeamUpdateContainer({ eventId, queryRef }: TeamUpdateContainerProps) {
   const teamResponse = data?.getTeamWithGroupsAndUnassignedPlayers?.data;
   if (!teamResponse) return <p>Team not found</p>;
 
-  const { events, team, groups, players } = teamResponse;
+  const { events, team, groups, players, badges } = teamResponse;
   
 
   // --------------------------
@@ -45,6 +45,7 @@ function TeamUpdateContainer({ eventId, queryRef }: TeamUpdateContainerProps) {
         players={players}
         handleClose={() => {}}
         events={events}
+        badges={badges}
       />
     </div>
   );

@@ -118,7 +118,7 @@ export async function updateEvent({
   setMessage,
 }: IUpdateEventParams): Promise<IResponse> {
   try {
-    const updateInput = { ...updateEventState, badges: (badges || []).map((badge)=> ({name: badge.name, icon: badge.icon})) };
+    const updateInput = { ...updateEventState, badges: (badges || []).map((badge)=> ({name: badge.name, icon: badge.icon, description: badge.description})) };
     if (updateInput.startDate) updateInput.startDate = new Date(updateInput.startDate).toISOString();
     if (updateInput.endDate) updateInput.endDate = new Date(updateInput.endDate).toISOString();
     if (updateInput.divisions) delete updateInput.divisions;

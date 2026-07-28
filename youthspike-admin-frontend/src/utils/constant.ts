@@ -12,6 +12,7 @@ const CURRENT_EVENT = 'current_event'; // Not event of the ldo, it is the event 
 // const DEFAULT_CURRENT_EVENT_ID = "NEXT_PUBLIC_CURRENT_EVENT_ID";
 const CURRENT_EVENT_ID = 'cei';
 const MATCH_WIN_POINTS = 3;
+const BADGE_IMAGE_SIZE = 44;
 
 // Constants
 const USER_ROLE_DEFAULTS: UserRoleFlags = {
@@ -35,5 +36,6 @@ export {
     CURRENT_EVENT,
     CURRENT_EVENT_ID,
     MATCH_WIN_POINTS,
-    USER_ROLE_DEFAULTS
+    USER_ROLE_DEFAULTS,
+    BADGE_IMAGE_SIZE
 };

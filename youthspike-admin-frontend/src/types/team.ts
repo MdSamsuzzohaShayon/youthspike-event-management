@@ -188,6 +188,7 @@ export interface IGetTeamWithGroupsAndUnassignedPlayersResponse extends IRespons
     events: IEvent[];
     players: IPlayer[];
     groups: IGroup[];
+    badges: IBadge[];
   }
 }
 

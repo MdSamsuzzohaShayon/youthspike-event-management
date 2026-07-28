@@ -893,6 +893,7 @@ type TeamWithGroupsAndUnAssignedPlayers {
   team: CustomTeam
   groups: [CustomGroup!]
   players: [CustomPlayer!]
+  badges: [CustomBadge!]
 }
 
 type GetTeamWithGroupsAndUnAssignedPlayersResponse {

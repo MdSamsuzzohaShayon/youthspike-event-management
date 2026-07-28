@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { CldImage } from 'next-cloudinary';
+import { BADGE_IMAGE_SIZE } from '@/utils/constant';
 
 interface Badge {
   _id: string;
@@ -86,8 +87,8 @@ export default function BadgeSelect({
                 <CldImage
                   src={selectedBadge.icon}
                   alt={selectedBadge.name}
-                  width={44}
-                  height={44}
+                  width={BADGE_IMAGE_SIZE}
+                  height={BADGE_IMAGE_SIZE}
                   className="h-6 w-6 object-cover transition-transform duration-300 group-hover:scale-105"
                 />
               </div>
@@ -142,8 +143,8 @@ export default function BadgeSelect({
                 <CldImage
                   src={badge.icon}
                   alt={badge.name}
-                  width={48}
-                  height={48}
+                  width={BADGE_IMAGE_SIZE}
+                  height={BADGE_IMAGE_SIZE}
                   className="h-12 w-12 object-cover transition-transform duration-300 group-hover:scale-110"
                 />
               </div>
