@@ -48,6 +48,11 @@ export interface IPlayerRecord extends IPlayer{
   rank?: number | null;
 }
 
+export interface IPlayerPartition {
+  activePlayers: IPlayer[];
+  inactivePlayers: IPlayer[];
+}
+
 
 interface ISearchPlayerData {
   event: IEvent;

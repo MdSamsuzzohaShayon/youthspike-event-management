@@ -51,7 +51,7 @@ export function proxy(request: NextRequest) {
     // Still set default division if applicable
     if (shouldSetDefaultDivision && !nextUrl.searchParams.has('division')) {
       const url = nextUrl.clone();
-      url.searchParams.set('division', 'p1-pro*');
+      // url.searchParams.set('division', 'p1-pro*');
       return NextResponse.redirect(url);
     }
     return NextResponse.next();
@@ -110,10 +110,10 @@ export function proxy(request: NextRequest) {
   }
 
   // Set default division if on relevant pages and no division param exists
-  if (shouldSetDefaultDivision && !nextUrl.searchParams.has('division')) {
-    url.searchParams.set('division', 'p1-pro*');
-    needsRedirect = true;
-  }
+  // if (shouldSetDefaultDivision && !nextUrl.searchParams.has('division')) {
+  //   // url.searchParams.set('division', 'p1-pro*');
+  //   needsRedirect = true;
+  // }
 
   if (needsRedirect) {
     return NextResponse.redirect(url);
