@@ -16,15 +16,6 @@ export class GetTemplatesResponse extends AppResponse<Template[]> {
 }
 
 
-
-@ObjectType()
-export class GetTemplateResponse extends AppResponse<Template> {
-  @Field((_type) => Template, { nullable: true })
-  data?: Template;
-}
-
-
-
 @ObjectType()
 export class TemplateSearch {
   @Field((_type) => Event, { nullable: true })
@@ -34,6 +25,26 @@ export class TemplateSearch {
   templates: Template[];
 
 }
+
+
+@ObjectType()
+export class GetTemplatesWithEventResponse  extends AppResponse<TemplateSearch>{
+
+  @Field((_type) => TemplateSearch, { nullable: true })
+  data?: TemplateSearch;
+  
+}
+
+
+
+@ObjectType()
+export class GetTemplateResponse extends AppResponse<Template> {
+  @Field((_type) => Template, { nullable: true })
+  data?: Template;
+}
+
+
+
 
 @ObjectType()
 export class GetTemplateSearchResponse extends AppResponse<TemplateSearch> {

@@ -172,6 +172,9 @@ export class EmailsenderResolver {
       if (eventTemplate) {
         templateHtml = eventTemplate.body; // compiled email-safe HTML from editor
         emailSubject = eventTemplate.subject || emailSubject;
+        if(emailSubject.includes("event_name")){
+          emailSubject = emailSubject.replace(/\{\{\s*event_name\s*\}\}/g, eventExist.name);
+        }
       }
 
       // ── 5. Collect recipients ────────────────────────────

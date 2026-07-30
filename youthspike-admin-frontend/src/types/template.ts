@@ -82,6 +82,14 @@ export interface IGetTemplatesResponse extends IResponse {
     data: ITemplate[]
 }
 
+// getTemplatesWithEvent
+export interface IGetTemplatesWithEventResponse extends IResponse {
+    data: {
+        event: IEvent;
+        templates: ITemplate[]
+    }
+}
+
 export interface IGetTemplateResponse extends IResponse {
     data: ITemplate
 }

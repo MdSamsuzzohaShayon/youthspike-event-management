@@ -1447,16 +1447,23 @@ type GetTemplatesResponse {
   data: [Template!]
 }
 
+type TemplateSearch {
+  event: Event
+  templates: [Template!]
+}
+
+type GetTemplatesWithEventResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: TemplateSearch
+}
+
 type GetTemplateResponse {
   code: Int!
   success: Boolean!
   message: String
   data: Template
-}
-
-type TemplateSearch {
-  event: Event
-  templates: [Template!]
 }
 
 type GetTemplateSearchResponse {
@@ -1578,6 +1585,7 @@ input UpdateBadgeInput {
 type Query {
   getAbout: AppAbout!
   getTemplates(eventId: String): GetTemplatesResponse!
+  getTemplatesWithEvent(eventId: String): GetTemplatesWithEventResponse!
   getTemplate(templateId: String!): GetTemplateResponse!
   searchTemplates(eventId: String!, filter: TemplateSearchFilter): GetTemplateSearchResponse!
   getUser(userId: String!): UserResponse!

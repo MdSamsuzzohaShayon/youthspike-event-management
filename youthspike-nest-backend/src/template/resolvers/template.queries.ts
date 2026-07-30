@@ -6,6 +6,7 @@ import { EventService } from 'src/event/event.service';
 import { TemplateSearchFilter } from './template.input';
 import { QueryFilter } from 'mongoose';
 import { Template } from '../template.schema';
+import { GetTemplatesWithEventResponse } from './template.response';
 
 
 @Injectable()
@@ -26,6 +27,29 @@ export class TemplateQueries {
         success: true,
         message: 'List of templates!',
         data: templates,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  async getTemplatesWithEvent(eventId: string): Promise<GetTemplatesWithEventResponse>{
+    try {
+      const query: Record<string, any> = {};
+      const event = await this.eventService.findOne({_id: eventId});
+      if(!event){
+        return AppResponse.notFound('Event');
+      }
+      if (eventId) query.event = eventId;
+      const templates = await this.templateService.find(query);
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'List of templates!',
+        data: {
+          event,
+          templates
+        },
       };
     } catch (err) {
       return AppResponse.handleError(err);

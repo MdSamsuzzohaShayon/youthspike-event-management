@@ -12,6 +12,7 @@ import {
   GetTemplateResponse,
   GetTemplateSearchResponse,
   GetTemplatesResponse,
+  GetTemplatesWithEventResponse,
 } from './resolvers/template.response';
 import { TemplateFields } from './resolvers/template.fields';
 import { TemplateQueries } from './resolvers/template.queries';
@@ -65,7 +66,13 @@ export class TemplateResolver {
     return this.templateQueris.getTemplates(eventId);
   }
 
-  @Query((returns) => GetTemplateResponse)
+  @Query((_returns) => GetTemplatesWithEventResponse)
+  async getTemplatesWithEvent(@Args('eventId', { nullable: true }) eventId: string) {
+    return this.templateQueris.getTemplatesWithEvent(eventId);
+  }
+
+
+  @Query((_returns) => GetTemplateResponse)
   async getTemplate(@Args('templateId') templateId: string) {
     return this.templateQueris.getTemplate(templateId);
   }

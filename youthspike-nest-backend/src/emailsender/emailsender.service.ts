@@ -139,9 +139,14 @@ export class EmailsenderService {
    * Send an email using a compiled template HTML string from the database.
    * This is the primary method used by sendCredentials.
    */
+  // Update sendTemplateEmail method:
   async sendTemplateEmail({ to, subject, templateHtml, values }: ISendTemplateEmail): Promise<string> {
     try {
-      const renderedHtml = this.renderTemplate(templateHtml, values);
+      // Clean the template HTML first
+      const cleanedHtml = this.cleanEmailTemplate(templateHtml);
+
+      // Then render with values
+      const renderedHtml = this.renderTemplate(cleanedHtml, values);
 
       await this.transporter.sendMail({
         from: `${this.configService.get<string>('LEAGUE_NAME')} <${this.configService.get<string>('EMAIL_USER')}>`,
@@ -356,4 +361,67 @@ export class EmailsenderService {
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
   }
+
+  private cleanEmailTemplate(html: string): string {
+    if (!html) return '';
+
+    let cleaned = html;
+
+    // Remove ALL border styles from table cells
+    cleaned = cleaned.replace(/border\s*:\s*1px\s+solid\s+#[a-fA-F0-9]+;?/gi, '');
+
+    // Remove min-width styles
+    cleaned = cleaned.replace(/min-width\s*:\s*\d+px;?/gi, '');
+
+    // Remove colgroup elements
+    cleaned = cleaned.replace(/<colgroup>[\s\S]*?<\/colgroup>/g, '');
+
+    // Remove colspan="1" and rowspan="1"
+    cleaned = cleaned.replace(/\s*colspan="1"/g, '');
+    cleaned = cleaned.replace(/\s*rowspan="1"/g, '');
+
+    // Remove TipTap default colors
+    cleaned = cleaned.replace(/color\s*:\s*#374151;?/gi, '');
+    cleaned = cleaned.replace(/font-size\s*:\s*14px;?/gi, '');
+    cleaned = cleaned.replace(/text-align\s*:\s*left;?/gi, '');
+    cleaned = cleaned.replace(/vertical-align\s*:\s*top;?/gi, '');
+
+    // Clean empty style attributes
+    cleaned = cleaned.replace(/\s*style="\s*;?\s*"/g, '');
+    cleaned = cleaned.replace(/\s*style=""/g, '');
+
+    // Clean up style attributes
+    cleaned = cleaned.replace(/style="([^"]*)"/g, (match, styles) => {
+      const cleanedStyles = styles
+        .replace(/;;+/g, ';')
+        .replace(/^;/, '')
+        .replace(/;$/, '')
+        .trim();
+      return cleanedStyles ? `style="${cleanedStyles}"` : '';
+    });
+
+    // Add CSS reset to remove any remaining borders
+    const emailStyles = `
+      <style type="text/css">
+        /* Reset all table borders in email content */
+        table, td, th {
+          border: none !important;
+        }
+        /* Allow hr borders */
+        hr {
+          border-top: 1px solid #e2e8f0 !important;
+        }
+        /* Proper table styling */
+        td, th {
+          padding: 8px !important;
+        }
+      </style>
+    `;
+
+    // Insert styles before </head>
+    cleaned = cleaned.replace('</head>', `${emailStyles}</head>`);
+
+    return cleaned;
+  }
+
 }

@@ -22,6 +22,34 @@ query GetTemplates($eventId: String!) {
 `
 export const GET_TEMPLATES = gql`${GET_TEMPLATES_RAW}`;
 
+export const GET_TEMPLATES_WITH_EVENT = gql`
+query GetTemplatesWithEvent($eventId: String!){
+  getTemplatesWithEvent(eventId:$eventId){
+    code
+    success
+    message
+    data{
+      event{
+        _id
+        name
+        logo
+        active
+        startDate
+      }
+      templates{
+        _id
+        name
+        default
+        type
+        subject
+        body
+        images
+        placeholders
+      }
+    }
+  }
+}
+`;
 
 export const GET_TEMPLATE = gql`
 query GetTemplate($templateId: String!) {

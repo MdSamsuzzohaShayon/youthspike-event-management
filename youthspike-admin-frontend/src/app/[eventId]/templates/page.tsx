@@ -7,8 +7,8 @@ import { PreloadQuery } from "@/lib/client";
 import Loader from "@/components/elements/Loader";
 import { QueryRef } from "@apollo/client/react";
 
-import { IGetTemplatesResponse, ISearchFilter } from "@/types";
-import { GET_TEMPLATES } from "@/graphql/templates";
+import { IGetTemplatesResponse, IGetTemplatesWithEventResponse, ISearchFilter } from "@/types";
+import { GET_TEMPLATES, GET_TEMPLATES_WITH_EVENT } from "@/graphql/templates";
 import TemplatesMainContainer from "@/components/template/TemplatesMainContainer";
 
 
@@ -34,13 +34,13 @@ export default async function TemplatesPage({
 
   return (
     <PreloadQuery
-      query={GET_TEMPLATES}
+      query={GET_TEMPLATES_WITH_EVENT}
       variables={{ eventId: eventId, filter: initialFilter }}
     >
       {(queryRef) => (
         <Suspense fallback={<Loader />}>
           <TemplatesMainContainer
-            queryRef={queryRef as QueryRef<{ getTemplates: IGetTemplatesResponse }>} // Replace with proper type
+            queryRef={queryRef as QueryRef<{ getTemplatesWithEvent: IGetTemplatesWithEventResponse }>} // Replace with proper type
             eventId={eventId}
           />
         </Suspense>
