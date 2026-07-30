@@ -1,11 +1,5 @@
 // ─────────────────────────────────────────────────────────────
 // components/template/RichEditor.tsx
-// Enhanced TipTap editor with:
-//  - Debounced onChange (300ms)
-//  - Lazy loading via dynamic import
-//  - Placeholder Node extension
-//  - Removed: Images, CodeBlock, Subscript, Superscript, Highlight
-//  - Working: BulletList, OrderedList, Color, Text styles
 // ─────────────────────────────────────────────────────────────
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { EditorContent, useEditor } from '@tiptap/react';
@@ -25,7 +19,7 @@ import Italic from '@tiptap/extension-italic';
 import Underline from '@tiptap/extension-underline';
 import Strike from '@tiptap/extension-strike';
 
-// Text style & colour — BOTH required for Color to work
+// Text style & colour
 import { TextStyle } from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 
@@ -34,7 +28,7 @@ import Heading from '@tiptap/extension-heading';
 import Blockquote from '@tiptap/extension-blockquote';
 import HorizontalRule from '@tiptap/extension-horizontal-rule';
 
-// Lists (ListItem must be before BulletList/OrderedList)
+// Lists
 import ListItem from '@tiptap/extension-list-item';
 import BulletList from '@tiptap/extension-bullet-list';
 import OrderedList from '@tiptap/extension-ordered-list';
@@ -54,7 +48,7 @@ import TableCell from '@tiptap/extension-table-cell';
 // Placeholder hint
 import Placeholder from '@tiptap/extension-placeholder';
 
-
+// FIX: Correct the import path
 import styles from './emailEditor.module.scss';
 import EditorToolbar from './EditorToolbar';
 import { PlaceholderNodeWithCommands } from './PlaceholderNode';
@@ -65,108 +59,163 @@ interface Props {
   missingPlaceholderKeys?: string[];
 }
 
+// Add this cleaning function
+function cleanEditorHTML(html: string): string {
+  if (!html) return '';
+  
+  return html
+    // Remove ALL border styles from table cells
+    .replace(/border\s*:\s*1px\s+solid\s+#[a-fA-F0-9]+;?/gi, '')
+    // Remove min-width from tables and cols
+    .replace(/min-width\s*:\s*\d+px;?/gi, '')
+    // Remove TipTap default text colors
+    .replace(/color\s*:\s*#374151;?/gi, '')
+    // Remove default font sizes
+    .replace(/font-size\s*:\s*14px;?/gi, '')
+    // Remove colgroup elements entirely
+    .replace(/<colgroup>[\s\S]*?<\/colgroup>/g, '')
+    // Remove colspan="1" and rowspan="1"
+    .replace(/\s*colspan="1"/g, '')
+    .replace(/\s*rowspan="1"/g, '')
+    // Remove text-align:left (browser default)
+    .replace(/text-align\s*:\s*left;?/gi, '')
+    // Remove vertical-align:top
+    .replace(/vertical-align\s*:\s*top;?/gi, '')
+    // Clean up empty style attributes
+    .replace(/\s*style="\s*;?\s*"/g, '')
+    .replace(/\s*style=""/g, '')
+    // Clean up multiple semicolons
+    .replace(/;;+/g, ';')
+    // Remove trailing semicolons in style
+    .replace(/style="([^"]*);"/g, 'style="$1"');
+}
+
+
 export default function RichEditor({ content, onChange, missingPlaceholderKeys = [] }: Props) {
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
+  const editorRef = useRef<any>(null);
 
-  // Lazy mount — avoids SSR issues
-  useEffect(() => {
-    setIsMounted(true);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, []);
-
+  // FIX: Remove lazy mount state, use immediate rendering
   const handleChange = useCallback(
     (html: string) => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
       debounceRef.current = setTimeout(() => {
-        onChange(html);
+        // Clean HTML before sending to parent
+        const cleanedHtml = cleanEditorHTML(html);
+        onChange(cleanedHtml);
       }, 300);
     },
     [onChange],
   );
 
-  const editor = useEditor(
-    {
-      extensions: [
-        // ── Core ────────────────────────────────────────
-        Document,
-        Paragraph,
-        Text,
-        HardBreak,
-        History,
-        Dropcursor,
-        Gapcursor,
-
-        // ── Marks ───────────────────────────────────────
-        Bold,
-        Italic,
-        Underline,
-        Strike,
-
-        // ── Text style + color (Color requires TextStyle) ──
-        TextStyle,
-        Color,
-
-        // ── Headings & blocks ───────────────────────────
-        Heading.configure({ levels: [1, 2, 3] }),
-        Blockquote,
-        HorizontalRule,
-
-        // ── Lists ───────────────────────────────────────
-        ListItem,
-        BulletList.configure({ keepMarks: true, keepAttributes: true }),
-        OrderedList.configure({ keepMarks: true, keepAttributes: true }),
-
-        // ── Alignment ───────────────────────────────────
-        TextAlign.configure({ types: ['heading', 'paragraph'] }),
-
-        // ── Link ────────────────────────────────────────
-        Link.configure({
-          openOnClick: false,
-          HTMLAttributes: {
-            class: 'tiptap-link',
-            target: '_blank',
-            rel: 'noopener noreferrer',
-          },
-        }),
-
-        // ── Table ────────────────────────────────────────
-        Table.configure({ resizable: true }),
-        TableRow,
-        TableHeader,
-        TableCell,
-
-        // ── Placeholder hint ────────────────────────────
-        Placeholder.configure({
-          placeholder: 'Start typing… use the Placeholders panel to insert {{tokens}}.',
-        }),
-
-        // ── Custom Placeholder Node ─────────────────────
-        PlaceholderNodeWithCommands,
-      ],
-      content,
-      onUpdate: ({ editor }) => {
-        handleChange(editor.getHTML());
-      },
-      immediatelyRender: false,
-      editorProps: {
-        attributes: {
-          class: 'focus:outline-none',
+  const editor = useEditor({
+    extensions: [
+      Document,
+      Paragraph,
+      Text,
+      HardBreak,
+      History,
+      Dropcursor,
+      Gapcursor,
+      Bold,
+      Italic,
+      Underline,
+      Strike,
+      TextStyle,
+      Color,
+      Heading.configure({ levels: [1, 2, 3] }),
+      Blockquote,
+      HorizontalRule,
+      ListItem,
+      BulletList.configure({
+        keepMarks: true,
+        keepAttributes: true,
+        HTMLAttributes: {
+          class: 'email-list'
+        }
+      }),
+      OrderedList.configure({
+        keepMarks: true,
+        keepAttributes: true,
+        HTMLAttributes: {
+          class: 'email-list'
+        }
+      }),
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'tiptap-link',
+          target: '_blank',
+          rel: 'noopener noreferrer',
         },
+      }),
+      /*
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: 'email-table'
+        }
+      }),
+      TableRow,
+      TableHeader.configure({
+        HTMLAttributes: {
+          class: 'email-table-header'
+        }
+      }),
+      TableCell.configure({
+        HTMLAttributes: {
+          class: 'email-table-cell'
+        }
+      }),
+      */
+      // IMPORTANT: Configure Table without default borders
+      Table.configure({ 
+        resizable: true,
+        HTMLAttributes: {
+          style: 'border-collapse:collapse;',
+        }
+      }),
+      TableRow,
+      TableHeader.configure({
+        HTMLAttributes: {
+          style: 'padding:8px;',
+        }
+      }),
+      TableCell.configure({
+        HTMLAttributes: {
+          style: 'padding:8px;',
+        }
+      }),
+      Placeholder.configure({
+        placeholder: 'Start typing… use the Placeholders panel to insert {{tokens}}.',
+      }),
+      PlaceholderNodeWithCommands,
+    ],
+    content,
+    onUpdate: ({ editor }) => {
+      handleChange(editor.getHTML());
+    },
+    // FIX: Enable immediate rendering for better content sync
+    immediatelyRender: true,
+    editorProps: {
+      attributes: {
+        class: 'prose-editor focus:outline-none',
       },
     },
-    [isMounted], // recreate editor after mount
-  );
+  });
 
-  // Sync external content (e.g. version restore)
-  const lastSyncedContent = useRef(content);
+  // Store editor reference
+  editorRef.current = editor;
+
+  // FIX: Better content synchronization
   useEffect(() => {
-    if (!editor || content === lastSyncedContent.current) return;
-    if (content !== editor.getHTML()) {
+    if (!editor) return;
+
+    const currentContent = editor.getHTML();
+    if (content !== currentContent) {
+      // Only update if content actually changed externally
       editor.commands.setContent(content, { emitUpdate: false });
-      lastSyncedContent.current = content;
     }
   }, [content, editor]);
 
@@ -177,19 +226,31 @@ export default function RichEditor({ content, onChange, missingPlaceholderKeys =
     editor.view.dispatch(editor.state.tr);
   }, [missingPlaceholderKeys, editor]);
 
-  if (!isMounted) {
+  // FIX: Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+      editor?.destroy();
+    };
+  }, [editor]);
+
+  if (!editor) {
     return (
-      <div className={`bg-gray-800 rounded-lg overflow-hidden ${styles.tiptapWrapper} p-4`}>
-        <div className="h-12 bg-gray-700 animate-pulse" />
-        <div style={{ minHeight: 420, background: '#fff' }} className="flex items-center justify-center text-gray-400 text-sm">
-          Loading editor…
+      <div className={`bg-gray-800 rounded-lg overflow-hidden ${styles.tiptapWrapper}`}>
+        <div className="p-4">
+          <div className="h-12 bg-gray-700 animate-pulse rounded mb-2" />
+          <div style={{ minHeight: 420, background: '#fff' }} className="flex items-center justify-center text-gray-400 text-sm rounded">
+            Loading editor…
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`bg-gray-800 rounded-lg overflow-hidden ${styles.tiptapWrapper} p-4`}>
+    <div className={`bg-gray-800 rounded-lg overflow-hidden ${styles.tiptapWrapper}`}>
       <EditorToolbar editor={editor} />
       <div className="overflow-y-auto max-h-[600px]">
         <EditorContent editor={editor} />

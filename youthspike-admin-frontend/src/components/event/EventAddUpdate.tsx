@@ -124,7 +124,11 @@ const EventAddUpdate = ({ update, previousEvent, previousMultiplayer, previousWi
 
       // Reset form and navigate
       setEventState(initialEvent);
-      router.push(`/${ldoIdUrl}`);
+      if(eventId){
+        router.push(`/${eventId}/${ldoIdUrl}`);
+      }else{
+        router.push(`/${ldoIdUrl}`);
+      }
     } catch (error) {
       setMessage({
         message: error instanceof Error ? error.message : String(error),

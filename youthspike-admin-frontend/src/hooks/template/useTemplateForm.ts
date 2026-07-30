@@ -94,11 +94,21 @@ export function useTemplateForm({ eventId, initialValues, onSave }: UseTemplateF
     setIsSaving(true);
     setSaveError(null);
 
+     // Clean the body HTML before saving
+     const cleanedBody = body
+     .replace(/border\s*:\s*1px\s+solid\s+#[a-fA-F0-9]+;?/gi, '')
+     .replace(/min-width\s*:\s*\d+px;?/gi, '')
+     .replace(/<colgroup>[\s\S]*?<\/colgroup>/g, '')
+     .replace(/\s*colspan="1"/g, '')
+     .replace(/\s*rowspan="1"/g, '')
+     .replace(/color\s*:\s*#374151;?/gi, '')
+     .replace(/font-size\s*:\s*14px;?/gi, '');
+
     try {
       const payload = buildTemplateSavePayload({
         name,
         subject,
-        body,
+        body: cleanedBody,
         eventId,
         templateType,
         isDefault: isDefaultTemplate,

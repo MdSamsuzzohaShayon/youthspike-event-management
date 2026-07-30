@@ -2,7 +2,7 @@
 'use client';
 
 import { QueryRef, useMutation, useReadQuery } from '@apollo/client/react';
-import { IGetTemplatesResponse, IResponse, ITemplate } from '@/types';
+import { IGetTemplatesResponse, IGetTemplatesWithEventResponse, IResponse, ITemplate } from '@/types';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useLdoId } from '@/lib/LdoProvider';
@@ -12,9 +12,10 @@ import Loader from '../elements/Loader';
 import { useMessage } from '@/lib/MessageProvider';
 import { handleError } from '@/utils/handleError';
 import Image from 'next/image';
+import EventNavigation from '../layout/EventNavigation';
 
 interface TemplatesMainContainerProps {
-  queryRef: QueryRef<{ getTemplates: IGetTemplatesResponse }>;
+  queryRef: QueryRef<{ getTemplatesWithEvent: IGetTemplatesWithEventResponse }>;
   eventId: string;
 }
 
@@ -38,16 +39,21 @@ export default function TemplatesMainContainer({ queryRef, eventId }: TemplatesM
 
   // Memoization
   const templates = useMemo(() => {
-    return data?.getTemplates?.data || [];
+    return data?.getTemplatesWithEvent?.data.templates || [];
   }, [data]);
 
   // Filter templates based on search
   const filteredTemplates = useMemo(() => {
-    return templates.filter(template =>
+    return (data?.getTemplatesWithEvent?.data.templates || []).filter(template =>
       template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       template.subject?.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [templates, searchTerm]);
+  }, [data?.getTemplatesWithEvent?.data , searchTerm]);
+
+  const selectedEvent = useMemo(() => {
+    return data?.getTemplatesWithEvent?.data.event;
+  }, [data?.getTemplatesWithEvent?.data , searchTerm]);
+  
 
   const handleDelete = async (
     e: React.SyntheticEvent,
@@ -160,9 +166,9 @@ export default function TemplatesMainContainer({ queryRef, eventId }: TemplatesM
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 p-6 animate-fadeIn">
+    <div className="min-h-screen p-6 animate-fadeIn">
       {/* Header Section with Gradient */}
-      <div className="max-w-7xl mx-auto">
+      <div className="">
         <div className="relative mb-8 rounded-2xl bg-gradient-to-r from-yellow-500/20 via-yellow-400/10 to-transparent p-8">
           <div className="absolute inset-0 bg-grid-white/5 [mask-image:radial-gradient(ellipse_at_center,white,transparent)]" />
           <div className="relative">
@@ -172,6 +178,9 @@ export default function TemplatesMainContainer({ queryRef, eventId }: TemplatesM
             <p className="text-gray-400 text-lg max-w-2xl">
               Manage and customize your event templates with our intuitive template builder
             </p>
+          </div>
+          <div className="navigation my-8">
+            <EventNavigation event={selectedEvent} />
           </div>
         </div>
 
