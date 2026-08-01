@@ -1,5 +1,7 @@
 import { UserRole, UserRoleFlags } from "@/types";
+import { CURRENT_EVENT } from "@/utils/constant";
 import { FRONTEND_URL } from "@/utils/keys";
+import SessionStorageService from "@/utils/SessionStorageService";
 import { LayoutGrid, Mail, Medal, Settings, Shield, Star, Swords, Users, Users2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -18,7 +20,7 @@ interface NavigationItem {
 
 
 const getNavigationItems = (
-    eventId: string,
+    eventId: string | null,
     ldoIdUrl: string,
     userRoleFlags: UserRoleFlags,
     teamId: string | null
@@ -111,9 +113,16 @@ const EventNavigationLink: React.FC<{
     userRoleFlags: UserRoleFlags;
     teamId: string | null;
 }> = ({ eventId, ldoIdUrl, userRoleFlags, teamId }) => {
+
+    const newEventId = useMemo(() => {
+        let id: string | null = eventId || SessionStorageService.getItem(CURRENT_EVENT);
+        return id;
+    }, [eventId]);
+
+
     const navigationItems = useMemo(
-        () => getNavigationItems(eventId, ldoIdUrl, userRoleFlags, teamId),
-        [eventId, ldoIdUrl, userRoleFlags, teamId]
+        () => getNavigationItems(newEventId, ldoIdUrl, userRoleFlags, teamId),
+        [newEventId, ldoIdUrl, userRoleFlags, teamId]
     );
 
     const visibleItems = useMemo(
@@ -125,8 +134,7 @@ const EventNavigationLink: React.FC<{
         return null;
     }
 
-    console.log({eventId});
-    
+
 
     return (
         <nav className="px-2 py-1">
