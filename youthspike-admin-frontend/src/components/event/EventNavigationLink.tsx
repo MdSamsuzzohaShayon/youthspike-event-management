@@ -125,6 +125,9 @@ const EventNavigationLink: React.FC<{
         return null;
     }
 
+    console.log({eventId});
+    
+
     return (
         <nav className="px-2 py-1">
             <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-hide">

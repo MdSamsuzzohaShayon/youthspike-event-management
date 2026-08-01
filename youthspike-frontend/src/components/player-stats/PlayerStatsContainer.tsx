@@ -18,6 +18,7 @@ import Link from "next/link";
 import Image from "next/image";
 import ActiveFilters from "./ActiveFilters";
 import useStatsFilterData from "@/hooks/player-stats/useStatsFilterData";
+import BadgeIcon from "../badge/BadgeIcon";
 
 interface IPlayerStatsContainerProps {
   queryRef: QueryRef<{
@@ -289,13 +290,7 @@ function PlayerStatsContainer({ queryRef }: IPlayerStatsContainerProps) {
               {/* Badge */}
               {badge && (
                 <div className="absolute -bottom-3 left-1/2 flex -translate-x-1/2 items-center gap-1.5 rounded-full bg-gradient-to-r from-yellow-400 to-yellow-300 px-3 py-1 text-xs font-bold uppercase text-black shadow-md ring-1 ring-black/10 transition-transform duration-300 hover:scale-105">
-                  <CldImage
-                    src={badge.icon}
-                    width={20}
-                    height={20}
-                    alt=""
-                    className="h-4 w-4"
-                  />
+                  <BadgeIcon badge={badge} className='h-4 w-4' />
                   <span className="whitespace-nowrap">{badge.name}</span>
                 </div>
               )}

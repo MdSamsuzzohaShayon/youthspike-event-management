@@ -2,27 +2,16 @@
 // BadgeIcon — renders a single badge's thumbnail (or nothing).
 // ---------------------------------------------------------------------------
 
-import { IBadge, TAddBadge } from "@/types";
-import { getBadgePublicId } from "@/utils/badge/badge-helpers";
+import { IBadge } from "@/types";
+
 import { CldImage } from "next-cloudinary";
 import React from "react";
 
 const BadgeIcon: React.FC<{ badge: IBadge, className: string }> = React.memo(({ badge, className }) => {
-    const publicId = getBadgePublicId(badge.icon);
-    if (!publicId) return null;
+    if (!badge.icon) return null;
     return (
-        // <CldImage
-        //     src={publicId}
-        //     alt={badge.name}
-        //     width={32}
-        //     height={32}
-        //     crop="fill"
-        //     gravity="auto"
-        //     className="h-full w-full object-cover"
-        // />
         <img className={` ${className || "h-full w-full object-cover"}`} src={badge.icon} alt={badge.name} />
     );
 });
-BadgeIcon.displayName = "BadgeIcon";
 
-export default BadgeIcon
+export default BadgeIcon;

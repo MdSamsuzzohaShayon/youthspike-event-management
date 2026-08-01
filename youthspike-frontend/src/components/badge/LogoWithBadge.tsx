@@ -2,6 +2,7 @@ import React from 'react';
 import { CldImage } from 'next-cloudinary';
 import TextImg from '../elements/TextImg';
 import { IBadge } from '@/types';
+import BadgeIcon from './BadgeIcon';
 
 interface LogoWithBadgeProps {
     logo?: string | null;
@@ -39,7 +40,7 @@ export default function LogoWithBadge({
         group
       `}
         >
-            
+
             {/* Yellow glow */}
             <div
                 className={`
@@ -117,19 +118,7 @@ export default function LogoWithBadge({
               ${badgeSize}
             `}
                     >
-                        <CldImage
-                            src={badge.icon}
-                            alt={badge.name}
-                            width={48}
-                            height={48}
-                            className="w-full h-full object-contain"
-                        />
-                        <CldImage
-                            src="k0xpdkgfrenbi5rexyyw"
-                            alt="test"
-                            width={48}
-                            height={48}
-                        />
+                        <BadgeIcon badge={badge} className="w-full h-full object-contain" />
                     </div>
                 </div>
             )}

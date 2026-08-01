@@ -1,6 +1,7 @@
 import { IBadge } from '@/types'
 import { CldImage } from 'next-cloudinary'
 import React from 'react'
+import BadgeIcon from './BadgeIcon'
 
 interface IBadgeTableProps {
     badges: IBadge[]
@@ -21,10 +22,10 @@ const EmptyState = ({ className = '' }: { className?: string }) => (
 )
 
 const BadgeSeal = ({
-    icon,
+    badge,
     size = 'md',
 }: {
-    icon: string
+    badge: IBadge,
     size?: 'sm' | 'md'
 }) => {
     const dims = size === 'md' ? 56 : 44
@@ -40,13 +41,7 @@ const BadgeSeal = ({
             {/* static outer ring */}
             <span className="absolute inset-[3px] rounded-full border border-white/10 bg-black/40" />
             <div className="absolute inset-[3px] flex items-center justify-center overflow-hidden rounded-full bg-gray-900 ring-1 ring-inset ring-white/5">
-                <CldImage
-                    alt={icon}
-                    width={imgDims}
-                    height={imgDims}
-                    className="h-full w-full object-cover object-center transition-transform duration-300 group-hover/seal:scale-110"
-                    src={icon}
-                />
+                <BadgeIcon badge={badge} className='h-full w-full object-cover object-center transition-transform duration-300 group-hover/seal:scale-110' />
             </div>
             {/* glow */}
             <span className="pointer-events-none absolute inset-0 rounded-full bg-yellow-400/0 blur-md transition-colors duration-500 group-hover/seal:bg-yellow-400/20" />
@@ -108,7 +103,7 @@ const BadgeTable = ({ badges }: IBadgeTableProps) => {
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex justify-center">
-                                            <BadgeSeal icon={badge.icon} size="sm" />
+                                            <BadgeSeal badge={badge} size="sm" />
                                         </div>
                                     </td>
                                 </tr>
@@ -130,7 +125,7 @@ const BadgeTable = ({ badges }: IBadgeTableProps) => {
                         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-yellow-400/40 to-transparent" />
 
                         <div className="flex items-center gap-3">
-                            <BadgeSeal icon={badge.icon} size="md" />
+                            <BadgeSeal badge={badge} size="md" />
                             <div className="min-w-0 flex-1">
                                 <div className="flex items-center gap-2">
                                     <span className="font-mono text-[10px] text-gray-600">
