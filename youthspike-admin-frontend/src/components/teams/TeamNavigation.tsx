@@ -163,6 +163,8 @@ const EventSelector: React.FC<{
   ldoIdUrl: string;
   onOpenModal: () => void;
 }> = ({ selectedEvent, events, ldoIdUrl, onOpenModal }) => {
+  const currentEventId = SessionStorageService.getItem(CURRENT_EVENT);
+  
   if (selectedEvent) {
     return (
       <button
@@ -181,7 +183,7 @@ const EventSelector: React.FC<{
   if (events.length > 0) {
     return (
       <Link
-        href={`/${events[0]._id}/${ldoIdUrl}`}
+        href={`/${currentEventId || events[0]._id}/${ldoIdUrl}`}
         className="btn-info"
       >
         View Event
