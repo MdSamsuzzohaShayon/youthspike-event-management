@@ -79,6 +79,7 @@ export interface IPlayerAndTeamsResponse extends IResponse {
     player: IPlayer;
     teams: ITeamRelatives[];
     events: IEvent[];
+    badges: IBadge[];
   };
 }
 

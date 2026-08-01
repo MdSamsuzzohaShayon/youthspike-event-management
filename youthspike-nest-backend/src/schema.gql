@@ -1061,6 +1061,7 @@ type PlayerAndTeams {
   events: [Event!]!
   player: CustomPlayer
   teams: [CustomTeam!]
+  badges: [CustomBadge!]
 }
 
 type GetPlayerAndTeamsResponse {

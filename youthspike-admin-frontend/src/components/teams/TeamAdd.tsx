@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { IOption, IPlayer, IGroup, ITeam, IGetTeamResponse, IEvent, TAddTeam, IBadge } from '@/types';
+import { IOption, IPlayer, IGroup, ITeam, IGetTeamResponse, IEvent, TAddTeam, IBadge, UserRole } from '@/types';
 import { ADD_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import SelectInput from '../elements/forms/SelectInput';
 import { useLdoId } from '@/lib/LdoProvider';
@@ -17,6 +17,7 @@ import SessionStorageService from '@/utils/SessionStorageService';
 import { CURRENT_EVENT } from '@/utils/constant';
 import validateTeam from '@/utils/validateTeam';
 import BadgeSelect from '../elements/forms/BadgeSelect';
+import { useUser } from '@/lib/UserProvider';
 
 
 
@@ -50,6 +51,7 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
   const { setMessage } = useMessage();
   const router = useRouter();
   const apolloClient = useApolloClient();
+  const user = useUser();
 
   const [teamState, setTeamState] = useState<TAddTeam>(initialTeamState);
   const [badgeList, setBadgeList] = useState<IBadge[]>(badges);
@@ -225,15 +227,11 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
     const currentEvent = SessionStorageService.getItem(CURRENT_EVENT);
     if (currentEvent) {
       setTeamState((prev) => ({ ...prev, events: [...new Set([...(prev?.events || []) as string[], currentEvent])] as string[] }));
-      setBadgeList((prevBadges)=> [...prevBadges].filter((badge)=> badge?.event === currentEvent));
+      setBadgeList((prevBadges) => [...prevBadges].filter((badge) => badge?.event === currentEvent));
     }
   }, [badges]);
 
 
-
-  console.log({badge: teamState.badge, badges});
-
-  
 
 
 
@@ -279,13 +277,15 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
 
       <div className='w-full mt-6'>
         <label htmlFor="badge" className="text-xs font-medium text-gray-300 uppercase">Badge</label>
-      <BadgeSelect
-        name="badge"
-        className=''
-        value={teamState.badge as string}
-        badges={badgeList || []}
-        onChange={handleInputChange}
-      />
+        {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
+          <BadgeSelect
+            name="badge"
+            className=''
+            value={teamState.badge as string}
+            badges={badgeList || []}
+            onChange={handleInputChange}
+          />
+        )}
       </div>
 
       <div className="w-full flex justify-start items-center flex-wrap gap-x-4">

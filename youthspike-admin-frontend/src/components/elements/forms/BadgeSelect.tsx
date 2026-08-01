@@ -86,13 +86,6 @@ export default function BadgeSelect({
           {selectedBadge ? (
             <>
               <div className="overflow-hidden rounded-md border border-gray-700">
-                {/* <CldImage
-                  src={selectedBadge.icon}
-                  alt={selectedBadge.name}
-                  width={BADGE_IMAGE_SIZE}
-                  height={BADGE_IMAGE_SIZE}
-                  className="h-6 w-6 object-cover transition-transform duration-300 group-hover:scale-105"
-                /> */}
                 <BadgeIcon badge={selectedBadge as IBadge} className='h-6 w-6 object-cover transition-transform duration-300 group-hover:scale-105' />
               </div>
 
@@ -143,13 +136,6 @@ export default function BadgeSelect({
               `}
             >
               <div className="overflow-hidden rounded-lg border border-yellow-500/20">
-                {/* <CldImage
-                  src={badge.icon}
-                  alt={badge.name}
-                  width={BADGE_IMAGE_SIZE}
-                  height={BADGE_IMAGE_SIZE}
-                  className="h-12 w-12 object-cover transition-transform duration-300 group-hover:scale-110"
-                /> */}
                 <BadgeIcon badge={badge as IBadge} className="h-12 w-12 object-cover transition-transform duration-300 group-hover:scale-110" />
               </div>
 
