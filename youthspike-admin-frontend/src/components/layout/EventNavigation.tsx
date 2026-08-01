@@ -24,11 +24,7 @@ interface UserRoleFlags {
   isCoCaptain: boolean;
 }
 
-interface NavigationItem {
-  label: string;
-  href: string;
-  shouldShow: boolean;
-}
+
 
 // Sub-component: EventLogo
 const EventLogo = ({ event }: { event: IEvent }) => (

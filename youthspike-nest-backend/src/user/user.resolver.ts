@@ -175,7 +175,7 @@ export class UserResolver {
     user.team = team.name;
     user.teamLogo = team.logo;
   
-    if (user.role === UserRole.captain || user.role === UserRole.co_captain) {
+    if (user.role === UserRole.captain || user.role === UserRole.co_captain || user.role === UserRole.player) {
       user.teamId = team._id;
     }
   }

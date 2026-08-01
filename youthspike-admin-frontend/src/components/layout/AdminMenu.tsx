@@ -11,7 +11,7 @@ import { removeTeamFromStore } from '@/utils/localStorage';
 import Link from 'next/link';
 import { getUserFromCookie, removeCookie } from '@/utils/clientCookie';
 import SessionStorageService from '@/utils/SessionStorageService';
-import { CURRENT_EVENT_ID, DIVISION } from '@/utils/constant';
+import { CURRENT_EVENT, CURRENT_EVENT_ID, DIVISION } from '@/utils/constant';
 import { FRONTEND_URL } from '@/utils/keys';
 
 
@@ -51,7 +51,8 @@ const AdminMenu = () => {
     }
 
     if (!eventId) {
-      eventId = userDetail?.info?.events?.[0] || null;
+      eventId = SessionStorageService.getItem(CURRENT_EVENT);
+      // eventId = userDetail?.info?.events?.[0] || null;
     }
     setEventId(eventId);
   }, [params, router, pathname]);
