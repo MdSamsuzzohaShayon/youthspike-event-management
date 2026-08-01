@@ -2,7 +2,7 @@
 // BadgeListItem — a single row: icon, name, edit/delete actions.
 // ---------------------------------------------------------------------------
 
-import { TAddBadge } from "@/types";
+import { IBadge, TAddBadge } from "@/types";
 import { Pencil, Trash2 } from "lucide-react";
 import React from "react";
 import BadgeIcon from "./BadgeIcon";
@@ -23,7 +23,7 @@ const BadgeListItem: React.FC<BadgeListItemProps> = React.memo(
                 }`}
         >
             <div className="h-8 w-8 flex-shrink-0 rounded-md overflow-hidden border border-gray-600">
-                <BadgeIcon badge={badge} />
+                <BadgeIcon badge={badge as IBadge} className="" />
             </div>
             <span className="text-sm text-gray-200 max-w-[10rem] truncate font-medium">
                 {badge.name}

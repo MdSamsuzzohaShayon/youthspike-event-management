@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { CldImage } from 'next-cloudinary';
 import { BADGE_IMAGE_SIZE } from '@/utils/constant';
+import BadgeIcon from '@/components/badge/BadgeIcon';
+import { IBadge } from '@/types';
 
 interface Badge {
   _id: string;
@@ -84,13 +86,14 @@ export default function BadgeSelect({
           {selectedBadge ? (
             <>
               <div className="overflow-hidden rounded-md border border-gray-700">
-                <CldImage
+                {/* <CldImage
                   src={selectedBadge.icon}
                   alt={selectedBadge.name}
                   width={BADGE_IMAGE_SIZE}
                   height={BADGE_IMAGE_SIZE}
                   className="h-6 w-6 object-cover transition-transform duration-300 group-hover:scale-105"
-                />
+                /> */}
+                <BadgeIcon badge={selectedBadge as IBadge} className='h-6 w-6 object-cover transition-transform duration-300 group-hover:scale-105' />
               </div>
 
               <span className="font-medium text-white">
@@ -140,13 +143,14 @@ export default function BadgeSelect({
               `}
             >
               <div className="overflow-hidden rounded-lg border border-yellow-500/20">
-                <CldImage
+                {/* <CldImage
                   src={badge.icon}
                   alt={badge.name}
                   width={BADGE_IMAGE_SIZE}
                   height={BADGE_IMAGE_SIZE}
                   className="h-12 w-12 object-cover transition-transform duration-300 group-hover:scale-110"
-                />
+                /> */}
+                <BadgeIcon badge={badge as IBadge} className="h-12 w-12 object-cover transition-transform duration-300 group-hover:scale-110" />
               </div>
 
               <div className="flex flex-1 flex-col items-start">

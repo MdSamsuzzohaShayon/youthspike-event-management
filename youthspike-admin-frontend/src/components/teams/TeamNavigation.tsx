@@ -23,7 +23,8 @@ import {
   ChevronDown,
   Star,
   Menu,
-  X
+  X,
+  BadgeIcon
 } from 'lucide-react';
 import React, { useMemo, useRef, useState, useCallback } from 'react';
 import SessionStorageService from '@/utils/SessionStorageService';
@@ -181,7 +182,7 @@ const EventSelector: React.FC<{
     return (
       <Link
         href={`/${events[0]._id}/${ldoIdUrl}`}
-        className="px-3 py-1.5 bg-yellow-500 text-black rounded-lg text-xs font-semibold hover:bg-yellow-400 transition-colors"
+        className="btn-info"
       >
         View Event
       </Link>

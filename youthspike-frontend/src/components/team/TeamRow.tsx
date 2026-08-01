@@ -37,10 +37,7 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
     [selectedGroup, teamScores]
   );
 
-  if (badge) {
-    console.log('Badge:', badge);
-    console.log('Badge icon:', badge?.icon);
-  }
+
   return (
     <tr
       key={team._id}

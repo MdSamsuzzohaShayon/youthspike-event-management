@@ -1,4 +1,4 @@
-import { EPlayerStatus, IBadge, IEmailcontent, IGroup, IOption, ITeam, TUpdateGroup, TUpdateTeam } from '@/types';
+import { EPlayerStatus, IBadge, IEmailcontent, IGroup, IOption, ITeam, TUpdateGroup, TUpdateTeam, UserRole } from '@/types';
 import Link from 'next/link';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CldImage } from 'next-cloudinary';
@@ -23,6 +23,7 @@ import TeamInfoSection from './TeamInfoSection';
 import TeamCardCaptainSection from './TeamCardCaptainSection';
 import EmailControl from './EmailControl';
 import ActionMenu from './ActionMenu';
+import { useUser } from '@/lib/UserProvider';
 
 interface ITeamCardProps {
   team: ITeam;
@@ -44,6 +45,8 @@ interface ITeamCardProps {
 function TeamCard({ team, eventId, groupList, isChecked, emailcontents, badge, badges, onCheckedTeam, onSendCredential, onUpdateTeam, onMoveTeamOpen, onDeleteTeamOpen }: ITeamCardProps) {
   // Hooks
   const { ldoIdUrl } = useLdoId();
+  const user = useUser();
+
   const [mutateGroup] = useMutation(UPDATE_GROUP);
   const [mutateTeam] = useMutation(UPDATE_TEAM);
 
@@ -128,7 +131,7 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, badge, b
 
   const handleBadgeChange = (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLInputElement;
-    onUpdateTeam(e, {badge: inputEl.value}, team._id);
+    onUpdateTeam(e, { badge: inputEl.value }, team._id);
   }
 
 
@@ -190,13 +193,16 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, badge, b
           onGroupChange={onGroupChange}
         />
         {team.captain && <TeamCardCaptainSection captain={team.captain} />}
-        <BadgeSelect
-          name="badge"
-          className='w-48'
-          value={badge?._id}
-          badges={badges || []}
-          onChange={handleBadgeChange}
-        />
+
+        {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
+          <BadgeSelect
+            name="badge"
+            className='w-48'
+            value={badge?._id}
+            badges={badges || []}
+            onChange={handleBadgeChange}
+          />
+        )}
       </div>
 
       {/* Desktop Layout */}

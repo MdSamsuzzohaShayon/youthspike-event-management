@@ -56,8 +56,8 @@ const ImageUploader: React.FC<ImageUploaderProps> = ({
             onUploadStart();
             try {
                 const result = await uploadImageToCloudinary({file, folder});
-                if(result?.public_id){
-                    onChange(result.public_id);
+                if(result?.url){
+                    onChange(result.url);
                 }else{
                     throw new Error(`Can not upload image properly!`)
                 }
