@@ -164,7 +164,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
 
   const handleBadgeChange = (e: React.SyntheticEvent) => {
     const inputEl = e.target as HTMLInputElement;
-    onUpdatePlayer(e, {badge: inputEl.value}, player._id);
+    onUpdatePlayer(e, { badge: inputEl.value }, player._id);
   }
 
   const handleOpenDialog = useCallback((e: React.SyntheticEvent, capOrCo: UserRole) => {
@@ -296,62 +296,55 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
         role="presentation"
         onClick={() => setIsOptionsOpen(true)}
       >
-        <AnimatePresence>
-          {actionOpen && (
-            <motion.ul
-              className="absolute z-10 right-6 top-12 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
-              variants={menuVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              transition={{ duration: 0.2 }}
-            >
-              <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-                <Link href={`${FRONTEND_URL}/players/${player._id}`}>Stats</Link>
-              </li>
-              {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
-                <>
-                  <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-                    <button onClick={handleEditRedirect}>Edit</button>
-                  </li>
-                  {rankControls && player.status === EPlayerStatus.ACTIVE && (
-                    <>
-                      <li
-                        role="presentation"
-                        className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
-                        onClick={(e) => (player.email?.trim() && selectedTeam?._id ? onUpdateTeam(e, { captain: player._id }, selectedTeam?._id) : handleOpenDialog(e, UserRole.captain))}
-                      >
-                        Make Captain
-                      </li>
-                      <li
-                        role="presentation"
-                        className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
-                        onClick={(e) => (player.email?.trim() && selectedTeam?._id ? onUpdateTeam(e, { cocaptain: player._id }, selectedTeam?._id) : handleOpenDialog(e, UserRole.co_captain))}
-                      >
-                        Make Co-Captain
-                      </li>
-                    </>
-                  )}
-                  <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={handleMovePlayerBox}>
-                    Move Player
-                  </li>
-                  {player.status === EPlayerStatus.ACTIVE ? (
-                    <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => onUpdatePlayer(e, { status: EPlayerStatus.INACTIVE }, player._id)}>
-                      Make Inactive
+        {actionOpen && (
+          <ul
+            className="absolute z-10 right-6 top-12 w-48 bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200 rounded-md shadow-lg overflow-hidden"
+          >
+            <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+              <Link href={`${FRONTEND_URL}/players/${player._id}`}>Stats</Link>
+            </li>
+            {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
+              <>
+                <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
+                  <button onClick={handleEditRedirect}>Edit</button>
+                </li>
+                {rankControls && player.status === EPlayerStatus.ACTIVE && (
+                  <>
+                    <li
+                      role="presentation"
+                      className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+                      onClick={(e) => (player.email?.trim() && selectedTeam?._id ? onUpdateTeam(e, { captain: player._id }, selectedTeam?._id) : handleOpenDialog(e, UserRole.captain))}
+                    >
+                      Make Captain
                     </li>
-                  ) : (
-                    <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => onUpdatePlayer(e, { status: EPlayerStatus.ACTIVE }, player._id)}>
-                      Make Active
+                    <li
+                      role="presentation"
+                      className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer"
+                      onClick={(e) => (player.email?.trim() && selectedTeam?._id ? onUpdateTeam(e, { cocaptain: player._id }, selectedTeam?._id) : handleOpenDialog(e, UserRole.co_captain))}
+                    >
+                      Make Co-Captain
                     </li>
-                  )}
-                  <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => deleteEl.current?.showModal()}>
-                    Delete
+                  </>
+                )}
+                <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={handleMovePlayerBox}>
+                  Move Player
+                </li>
+                {player.status === EPlayerStatus.ACTIVE ? (
+                  <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => onUpdatePlayer(e, { status: EPlayerStatus.INACTIVE }, player._id)}>
+                    Make Inactive
                   </li>
-                </>
-              )}
-            </motion.ul>
-          )}
-        </AnimatePresence>
+                ) : (
+                  <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => onUpdatePlayer(e, { status: EPlayerStatus.ACTIVE }, player._id)}>
+                    Make Active
+                  </li>
+                )}
+                <li role="presentation" className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer" onClick={(e) => deleteEl.current?.showModal()}>
+                  Delete
+                </li>
+              </>
+            )}
+          </ul>
+        )}
 
         <button onClick={() => setActionOpen((prev) => !prev)} className="w-8 h-8 flex items-center justify-center bg-gray-700 rounded-full hover:bg-gray-600 transition-colors" aria-label="Options">
           <Image width={imgSize.logo} height={imgSize.logo} src="/icons/dots-vertical.svg" alt="options" className="w-5 h-5 svg-white" />
@@ -372,7 +365,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
   );
 
 
-  
+
   return (
     <>
       {/* ✅ Desktop Layout */}
@@ -380,13 +373,15 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
         <div className="flex items-center gap-4 w-full">
           {PlayerImage}
           {PlayerInfo}
-          <BadgeSelect
-            name="badge"
-            className='w-48'
-            value={badge?._id}
-            badges={badges || []}
-            onChange={handleBadgeChange}
-          />
+          {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
+            <BadgeSelect
+              name="badge"
+              className='w-48'
+              value={badge?._id}
+              badges={badges || []}
+              onChange={handleBadgeChange}
+            />
+          )}
         </div>
 
         <div className="player-role mr-4">{PlayerRole}</div>
@@ -410,6 +405,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
           <div>{PlayerRole}</div>
           {OptionsButton}
         </div>
+        {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
         <BadgeSelect
           name="badge"
           className='w-full my-2'
@@ -417,6 +413,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
           badges={badges || []}
           onChange={handleBadgeChange}
         />
+        )}
         {PlayerInfo}
       </div>
 
