@@ -356,6 +356,7 @@ export class EventMutations implements IEventMutations {
             divisionPromises.push(this.teamService.updateMany({ events: eventId, division: { $regex: new RegExp(`^${division.prev.trim()}$`, 'i') } }, { division: division.new }));
             divisionPromises.push(this.playerService.updateMany({ events: eventId, division: { $regex: new RegExp(`^${division.prev.trim()}$`, 'i') } }, { division: division.new }));
             divisionPromises.push(this.groupService.updateMany({ events: eventId, division: { $regex: new RegExp(`^${division.prev.trim()}$`, 'i') } }, { division: division.new }));
+            divisionPromises.push(this.matchService.updateMany({ events: eventId, division: { $regex: new RegExp(`^${division.prev.trim()}$`, 'i') } }, { division: division.new }));
           }
           // Add new division
           else if (division.new) {
@@ -372,6 +373,7 @@ export class EventMutations implements IEventMutations {
             divisionPromises.push(this.teamService.updateMany({ events: eventId, division: { $regex: new RegExp(`^${division.prev.trim()}$`, 'i') } }, { division: null }));
             divisionPromises.push(this.playerService.updateMany({ events: eventId, division: { $regex: new RegExp(`^${division.prev.trim()}$`, 'i') } }, { division: null }));
             divisionPromises.push(this.groupService.updateMany({ events: eventId, division: { $regex: new RegExp(`^${division.prev.trim()}$`, 'i') } }, { division: null }));
+            divisionPromises.push(this.matchService.updateMany({ events: eventId, division: { $regex: new RegExp(`^${division.prev.trim()}$`, 'i') } }, { division: null }));
 
           }
         }

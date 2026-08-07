@@ -16,7 +16,7 @@ function PlayerUpdateContainer({ eventId, queryRef }: IProps) {
     throw new Error('Team not found');
   }
 
-  const { player, teams, events } = playerData;
+  const { player, teams, events, badges } = playerData;
 
 
 
@@ -24,7 +24,7 @@ function PlayerUpdateContainer({ eventId, queryRef }: IProps) {
   return (
     <div className='min-h-screen container mx-auto px-4'>
       <h1>Update Player</h1>
-      <PlayerAdd events={events} update prevPlayer={player} teams={teams || []} />
+      <PlayerAdd events={events} update prevPlayer={player} teams={teams || []} badges={badges} />
     </div>
   );
 }

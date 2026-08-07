@@ -200,12 +200,13 @@ export class PlayerQueries implements IPlayerQueries {
 
   async getPlayerAndTeams(playerId: string, eventIds?: string[]): Promise<GetPlayerAndTeamsResponse> {
     try {
-      let events = [], player = null, teams = [];
+      let events = [], player = null, teams = [], badges = [];
       if (eventIds && eventIds.length > 0) {
-        [events, player, teams] = await Promise.all([
+        [events, player, teams, badges] = await Promise.all([
           this.eventService.find({ _id: { $in: eventIds } }),
           this.playerService.findById(playerId.toString()),
           this.teamService.find({ events: { $in: eventIds } }),
+          this.badgeService.find({event: {$in: eventIds}}),
         ]);
       } else {
         // Find player first, then find ldo ides, get all events  of that ldo
@@ -217,6 +218,7 @@ export class PlayerQueries implements IPlayerQueries {
         if (!ldo) return AppResponse.notFound("LDO");
         events = await this.eventService.find({ _id: { $in: ldo.events as string[] } });
         teams = await this.teamService.find({ events: { $in: ldo.events } });
+        badges = await this.badgeService.find({ event: { $in: ldo.events } });
       }
       return {
         code: HttpStatus.OK,
@@ -225,7 +227,8 @@ export class PlayerQueries implements IPlayerQueries {
         data: {
           player: player as CustomPlayer,
           teams: teams as CustomTeam[],
-          events: events as Event[]
+          events: events as Event[],
+          badges: badges as CustomBadge[],
         },
       };
     } catch (error) {

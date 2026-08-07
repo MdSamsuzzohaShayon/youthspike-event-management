@@ -134,15 +134,24 @@ export interface ISearchMatchResponse {
 }
 
 export interface ISearchFilter {
-  ce: EGroupType;
   search: string;
   division: string;
   group: string;
-  matchFilter: string;
   status: string;
+  
+  ce: EGroupType;
+  matchFilter: string;
   limit?: number;
   offset?: number;
 }
+
+export interface IFilterState extends Omit<ISearchFilter, 'ce' | 'matchFilter' | 'limit' | 'offset'>{
+  search: string;
+  division: string;
+  group: string;
+  status: string;
+}
+
 
 export interface ISearchLimitFilter extends ISearchFilter {
   limit: number;

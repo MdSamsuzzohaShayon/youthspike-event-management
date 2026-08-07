@@ -21,6 +21,7 @@ import {
   IMatch,
   IEvent,
   IBadge,
+  IFilterState,
 } from "@/types";
 import FilterContent from "../event/FilterContent";
 import { SEARCH_TEAMS } from "@/graphql/team";
@@ -157,6 +158,32 @@ export default function TeamsContainer({
     }
   }, [localFilter, executeSearchQuery, updateAllData, router]);
 
+  const handleFilterApply = async (filter: IFilterState) => {
+    setIsApplyingFilters(true);
+
+    try {
+      const responseData = await executeSearchQuery(filter);
+      updateAllData(responseData);
+      setAppliedFilter(filter);
+
+      // Update URL
+      const params = new URLSearchParams();
+      Object.entries(filter).forEach(([key, value]) => {
+        if (value) {
+          params.set(key, value);
+        }
+      });
+
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      // Set params in the url
+      router.replace(newUrl, { scroll: false });
+    } catch (error) {
+      console.error("Failed to apply filters:", error);
+    } finally {
+      setIsApplyingFilters(false);
+    }
+  }
+
   // Clear filters
   const handleClearFilters = useCallback(async () => {
     const clearedFilter = { ...DEFAULT_FILTER_STATE };
@@ -237,10 +264,10 @@ export default function TeamsContainer({
             loading={isApplyingFilters}
             filter={localFilter}
             updateFilter={updateLocalFilter}
-            onApplyFilters={handleApplyFilters}
-            onClearFilters={handleClearFilters}
-            hasUnsavedChanges={hasUnsavedChanges}
-            hasActiveFilters={hasActiveFilters}
+            onApplyFilters={handleFilterApply}
+            // onClearFilters={handleClearFilters}
+            // hasUnsavedChanges={hasUnsavedChanges}
+            // hasActiveFilters={hasActiveFilters}
           />
 
           {/* Active filters indicator */}

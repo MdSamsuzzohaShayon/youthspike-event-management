@@ -139,6 +139,9 @@ export class PlayerAndTeams {
 
   @Field((_type) => [CustomTeam], { nullable: true })
   teams?: CustomTeam[];
+
+  @Field((_type) => [CustomBadge], { nullable: true })
+  badges?: CustomBadge[];
 }
 
 @ObjectType()

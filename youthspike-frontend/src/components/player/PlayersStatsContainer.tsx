@@ -15,6 +15,8 @@ import {
   IEvent,
   EGroupType,
   ISearchPlayerStatsResponse,
+  IFilterState,
+  EMatchStatus,
 } from "@/types";
 import { SEARCH_PLAYER_STATS } from "@/graphql/player";
 import PlayerSearchList from "./PlayerSearchList";
@@ -29,22 +31,19 @@ interface IPlayersStatsContainerProps {
   initialSearchParams: Partial<ISearchFilter>;
 }
 
-interface IFilterState extends Partial<ISearchFilter> {
-  search: string;
-  division: string;
-  group: string;
-}
 
-const DEFAULT_FILTER_STATE: IFilterState = {
-  ce: EGroupType.CONFERENCE,
+
+const DEFAULT_FILTER_STATE: Omit<IFilterState, 'status'> = {
+  // ce: EGroupType.CONFERENCE,
   search: "",
   division: "",
   group: "",
-  limit: 30,
-  offset: 0,
+  // limit: 30,
+  // offset: 0,
 };
 
 const LOAD_MORE_INCREMENT = 3;
+const PAGE_SIZE = 30;
 
 function PlayersStatsContainer({
   queryRef,
@@ -68,11 +67,11 @@ function PlayersStatsContainer({
   const [event, setEvent] = useState<IEvent | null>(null);
 
   // Filter and pagination states
-  const [localFilter, setLocalFilter] = useState<IFilterState>({
+  const [localFilter, setLocalFilter] = useState<Omit<IFilterState, 'status'>>({
     ...DEFAULT_FILTER_STATE,
     ...initialSearchParams,
   });
-  const [appliedFilter, setAppliedFilter] = useState<IFilterState>(localFilter);
+  const [appliedFilter, setAppliedFilter] = useState<Omit<IFilterState, 'status'>>(localFilter);
   const [currentOffset, setCurrentOffset] = useState(0);
 
   // Loading states
@@ -82,13 +81,13 @@ function PlayersStatsContainer({
 
   // Build query variables
   const buildQueryVariables = useCallback(
-    (filter: IFilterState, offset: number = 0) => ({
+    (filter: Omit<IFilterState, 'status'>, offset: number = 0) => ({
       eventId: initialData?.searchPlayerStats.data.event._id,
       filter: {
         search: filter.search || undefined,
         division: filter.division || undefined,
         group: filter.group || undefined,
-        limit: filter.limit,
+        limit: PAGE_SIZE,
         offset: offset,
       },
     }),
@@ -122,15 +121,15 @@ function PlayersStatsContainer({
       // Check if there are more players to load
       setHasMorePlayers(
         searchData.players.length ===
-        (appliedFilter.limit || DEFAULT_FILTER_STATE.limit!)
+        PAGE_SIZE
       );
     },
-    [appliedFilter.limit]
+    []
   );
 
   // Execute GraphQL query
   const executeSearchQuery = useCallback(
-    async (filter: IFilterState, offset: number = 0) => {
+    async (filter: Omit<IFilterState, 'status'>, offset: number = 0) => {
       try {
         const result = await apolloClient.query({
           query: SEARCH_PLAYER_STATS,
@@ -174,13 +173,39 @@ function PlayersStatsContainer({
     }
   }, [localFilter, executeSearchQuery, transformServerData, router]);
 
+  const handleFilterApply = async (filter: Omit<IFilterState, 'status'>) => {
+    setIsApplyingFilters(true);
+
+    try {
+      const response = await executeSearchQuery(filter);
+      transformServerData(response.data);
+      setAppliedFilter(filter);
+
+      // Update URL
+      const params = new URLSearchParams();
+      Object.entries(filter).forEach(([key, value]) => {
+        if (value) {
+          params.set(key, value);
+        }
+      });
+
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      // Set params in the url
+      router.replace(newUrl, { scroll: false });
+    } catch (error) {
+      console.error("Failed to apply filters:", error);
+    } finally {
+      setIsApplyingFilters(false);
+    }
+  }
+
   // Load more players
   const handleLoadMore = useCallback(async () => {
     if (!hasMorePlayers || isLoadingMore) return;
 
     setIsLoadingMore(true);
     const newOffset =
-      currentOffset + (appliedFilter.limit || DEFAULT_FILTER_STATE.limit!);
+      currentOffset + PAGE_SIZE;
 
     try {
       const response = await executeSearchQuery(appliedFilter, newOffset);
@@ -207,7 +232,7 @@ function PlayersStatsContainer({
         // Check if there are more players
         setHasMorePlayers(
           newPlayers.length ===
-          (appliedFilter.limit || DEFAULT_FILTER_STATE.limit!)
+          PAGE_SIZE
         );
       } else {
         setHasMorePlayers(false);
@@ -309,10 +334,10 @@ function PlayersStatsContainer({
       allPlayers.slice(
         0,
         currentOffset +
-        (appliedFilter.limit || DEFAULT_FILTER_STATE.limit!) +
+        PAGE_SIZE +
         LOAD_MORE_INCREMENT
       ),
-    [allPlayers, currentOffset, appliedFilter.limit]
+    [allPlayers, currentOffset]
   );
 
 
@@ -336,10 +361,10 @@ function PlayersStatsContainer({
             loading={isApplyingFilters}
             filter={localFilter}
             updateFilter={updateLocalFilter}
-            onApplyFilters={handleApplyFilters}
-            onClearFilters={handleClearFilters}
-            hasUnsavedChanges={hasUnsavedChanges}
-            hasActiveFilters={hasActiveFilters}
+            onApplyFilters={handleFilterApply}
+          // onClearFilters={handleClearFilters}
+          // hasUnsavedChanges={hasUnsavedChanges}
+          // hasActiveFilters={hasActiveFilters}
           />
 
           {/* Active filters indicator */}

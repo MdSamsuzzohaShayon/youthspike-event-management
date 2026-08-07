@@ -113,6 +113,15 @@ query GetPlayerAndTeams($playerId: String!, $eventIds: [String!]) {
         division
         num
       }
+      badges{
+        _id
+        name
+        description
+        icon
+        event
+        teams
+        players
+      }
     }
   }
 }

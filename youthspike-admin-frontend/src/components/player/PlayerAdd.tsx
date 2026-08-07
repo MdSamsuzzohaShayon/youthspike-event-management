@@ -70,6 +70,8 @@ function PlayerAdd({ update, prevPlayer, teams, events, badges }: IPlayerAddProp
   const apolloClient = useApolloClient();
   const user = useUser();
 
+
+
   const [playerState, setPlayerState] = useState<TAddPlayer>(initialPlayerState);
   const [playerUpdate, setPlayerUpdate] = useState<Partial<TUpdatePlayer>>({});
   const uploadedProfile = useRef<File | null>(null);
@@ -294,14 +296,16 @@ function PlayerAdd({ update, prevPlayer, teams, events, badges }: IPlayerAddProp
         />
       )}
 
-      <BadgeSelect
-        name="badge"
-        className='mt-6'
-        value={playerState.badge as string}
-        badges={badges || []}
-        onChange={handleInputChange}
+      {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
+        <BadgeSelect
+          name="badge"
+          className='mt-6'
+          value={playerState.badge as string}
+          badges={badges || []}
+          onChange={handleInputChange}
+        />
+      )}
 
-      />
 
       <div className="input-group w-full mb-4">
         <button type="submit" className="btn-info mt-8 w-full">
