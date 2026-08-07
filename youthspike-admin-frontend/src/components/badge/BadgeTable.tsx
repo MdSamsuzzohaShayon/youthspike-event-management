@@ -41,13 +41,6 @@ const BadgeSeal = ({
             {/* static outer ring */}
             <span className="absolute inset-[3px] rounded-full border border-white/10 bg-black/40" />
             <div className="absolute inset-[3px] flex items-center justify-center overflow-hidden rounded-full bg-gray-900 ring-1 ring-inset ring-white/5">
-                {/* <CldImage
-                    alt={icon}
-                    width={imgDims}
-                    height={imgDims}
-                    className="h-full w-full object-cover object-center transition-transform duration-300 group-hover/seal:scale-110"
-                    src={icon}
-                /> */}
                 <BadgeIcon badge={badge} className="h-full w-full object-cover object-center transition-transform duration-300 group-hover/seal:scale-110" />
             </div>
             {/* glow */}

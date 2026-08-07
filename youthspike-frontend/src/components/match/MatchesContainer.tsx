@@ -15,6 +15,7 @@ import {
   IGroup,
   INetRelatives,
   IEvent,
+  IFilterState,
 } from "@/types";
 import FilterContent from "../event/FilterContent";
 import ActiveFiltersBar from "../event/ActiveFiltersBar";
@@ -29,14 +30,8 @@ interface MatchesContainerProps {
   initialSearchParams: Partial<ISearchFilter>;
 }
 
-interface FilterState {
-  search: string;
-  division: string;
-  group: string;
-  status: string;
-}
 
-const DEFAULT_FILTER_STATE: FilterState = {
+const DEFAULT_FILTER_STATE: IFilterState = {
   search: "",
   division: "",
   group: "",
@@ -55,12 +50,12 @@ export default function MatchesContainer({
   const apolloClient = useApolloClient();
 
   // Filter states
-  const [localFilter, setLocalFilter] = useState<FilterState>({
+  const [localFilter, setLocalFilter] = useState<IFilterState>({
     ...DEFAULT_FILTER_STATE,
     ...initialSearchParams,
   });
 
-  const [appliedFilter, setAppliedFilter] = useState<FilterState>(localFilter);
+  const [appliedFilter, setAppliedFilter] = useState<IFilterState>(localFilter);
 
   // Server data state
   const [matches, setMatches] = useState<IMatch[]>([]);
@@ -77,7 +72,7 @@ export default function MatchesContainer({
 
   // Build query variables
   const buildQueryVariables = useCallback(
-    (filter: FilterState, offset: number = 0) => ({
+    (filter: IFilterState, offset: number = 0) => ({
       eventId,
       filter: {
         limit: PAGE_SIZE,
@@ -110,7 +105,7 @@ export default function MatchesContainer({
 
   // Execute GraphQL query
   const executeSearchQuery = useCallback(
-    async (filter: FilterState, offset: number = 0) => {
+    async (filter: IFilterState, offset: number = 0) => {
       try {
         const result = await apolloClient.query({
           query: SEARCH_MATCHES,
@@ -151,6 +146,32 @@ export default function MatchesContainer({
       setIsApplyingFilters(false);
     }
   }, [localFilter, executeSearchQuery, updateAllData, router]);
+
+  const handleFilterApply = async (filter: IFilterState) => {
+    setIsApplyingFilters(true);
+
+    try {
+      const responseData = await executeSearchQuery(filter);
+      updateAllData(responseData);
+      setAppliedFilter(filter);
+
+      // Update URL
+      const params = new URLSearchParams();
+      Object.entries(filter).forEach(([key, value]) => {
+        if (value) {
+          params.set(key, value);
+        }
+      });
+
+      const newUrl = `${window.location.pathname}?${params.toString()}`;
+      // Set params in the url
+      router.replace(newUrl, { scroll: false });
+    } catch (error) {
+      console.error("Failed to apply filters:", error);
+    } finally {
+      setIsApplyingFilters(false);
+    }
+  }
 
   // Clear filters
   const handleClearFilters = useCallback(async () => {
@@ -312,10 +333,10 @@ export default function MatchesContainer({
             loading={isApplyingFilters}
             filter={localFilter}
             updateFilter={updateLocalFilter}
-            onApplyFilters={handleApplyFilters}
-            onClearFilters={handleClearFilters}
-            hasUnsavedChanges={hasUnsavedChanges}
-            hasActiveFilters={hasActiveFilters}
+            onApplyFilters={handleFilterApply}
+            // onClearFilters={handleClearFilters}
+            // hasUnsavedChanges={hasUnsavedChanges}
+            // hasActiveFilters={hasActiveFilters}
             showStatus
           />
 
