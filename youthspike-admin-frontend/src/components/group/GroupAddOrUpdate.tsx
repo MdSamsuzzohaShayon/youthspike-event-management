@@ -88,7 +88,7 @@ function GroupAddOrUpdate({ eventId, teamList, update, prevGroup, division }: IG
           return;
         }
 
-        await mutateGroup({ variables: { updateInput: { _id: groupId, ...updateGroup } } });
+        await mutateGroup({ variables: { updateInput: { _id: groupId, ...updateGroup }, eventId } });
       }else{
         setIsLoading(true);
         if (!division || division === '') {

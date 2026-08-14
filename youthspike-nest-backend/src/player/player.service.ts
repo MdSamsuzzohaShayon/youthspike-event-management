@@ -52,7 +52,7 @@ export class PlayerService {
   ) {
     const query = this.playerModel
       .find(filter)
-      .sort({ _id: 1 }) // deterministic order
+      .sort({ firstName: 1 }) // deterministic order
       .lean();
 
     if (Number.isInteger(offset) && offset! >= 0) {

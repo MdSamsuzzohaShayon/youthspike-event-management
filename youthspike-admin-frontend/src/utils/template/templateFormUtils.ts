@@ -4,9 +4,9 @@
 // Keeping these outside the hook makes them trivially unit-testable.
 // ─────────────────────────────────────────────────────────────
 
-import { DEFINED_PLACEHOLDERS, SAMPLE_USERS } from '@/utils/defaultTemplateData';
+import { DEFINED_PLACEHOLDERS, SAMPLE_USERS } from '@/utils/template/defaultTemplateData';
 import { extractPlaceholders, validatePlaceholders } from '@/utils/templates';
-import { transformToEmailHtml, wrapEmailShell } from '@/utils/emailTransformer';
+import { transformToEmailHtml, wrapEmailShell } from '@/utils/template/emailTransformer';
 import { ETemplateType, ITemplateCreate, TPlaceholder } from '@/types';
 
 export type SampleUser = (typeof SAMPLE_USERS)[number];

@@ -186,18 +186,21 @@ export default function TeamsContainer({
 
   // Clear filters
   const handleClearFilters = useCallback(async () => {
-    const clearedFilter = { ...DEFAULT_FILTER_STATE };
+    // const clearedFilter = { ...DEFAULT_FILTER_STATE };
 
-    setLocalFilter(clearedFilter);
+    // setLocalFilter(clearedFilter);
 
-    try {
-      const responseData = await executeSearchQuery(clearedFilter);
-      updateAllData(responseData);
-      setAppliedFilter(clearedFilter);
-      router.replace(window.location.pathname, { scroll: false });
-    } catch (error) {
-      console.error("Failed to clear filters:", error);
-    }
+    // try {
+    //   const responseData = await executeSearchQuery(clearedFilter);
+    //   updateAllData(responseData);
+    //   setAppliedFilter(clearedFilter);
+    //   router.replace(window.location.pathname, { scroll: false });
+    // } catch (error) {
+    //   console.error("Failed to clear filters:", error);
+    // }
+
+    window.location.assign(window.location.pathname);
+    
   }, [executeSearchQuery, updateAllData, router]);
 
   // Load more teams

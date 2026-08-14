@@ -7,8 +7,8 @@ import { PreloadQuery } from "@/lib/client";
 import Loader from "@/components/elements/Loader";
 import { QueryRef } from "@apollo/client/react";
 
-import { IGetTemplatesResponse, IGetTemplatesWithEventResponse, ISearchFilter } from "@/types";
-import { GET_TEMPLATES, GET_TEMPLATES_WITH_EVENT } from "@/graphql/templates";
+import { IGetTemplatesWithEventResponse, ISearchFilter } from "@/types";
+import { GET_TEMPLATES_WITH_EVENT } from "@/graphql/templates";
 import TemplatesMainContainer from "@/components/template/TemplatesMainContainer";
 
 
