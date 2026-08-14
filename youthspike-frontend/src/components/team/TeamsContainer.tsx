@@ -185,23 +185,9 @@ export default function TeamsContainer({
   }
 
   // Clear filters
-  const handleClearFilters = useCallback(async () => {
-    // const clearedFilter = { ...DEFAULT_FILTER_STATE };
-
-    // setLocalFilter(clearedFilter);
-
-    // try {
-    //   const responseData = await executeSearchQuery(clearedFilter);
-    //   updateAllData(responseData);
-    //   setAppliedFilter(clearedFilter);
-    //   router.replace(window.location.pathname, { scroll: false });
-    // } catch (error) {
-    //   console.error("Failed to clear filters:", error);
-    // }
-
+  const handleClearFilters = async () => {
     window.location.assign(window.location.pathname);
-    
-  }, [executeSearchQuery, updateAllData, router]);
+  };
 
   // Load more teams
   const handleLoadMore = useCallback(async () => {
@@ -243,8 +229,7 @@ export default function TeamsContainer({
   const hasActiveFilters = Object.values(appliedFilter).some(
     (value) => value !== ""
   );
-  const hasUnsavedChanges =
-    JSON.stringify(localFilter) !== JSON.stringify(appliedFilter);
+
   const isLoading = isApplyingFilters || isLoadingMore;
   const showInitialLoading = isApplyingFilters && teams.length === 0;
 
@@ -268,9 +253,6 @@ export default function TeamsContainer({
             filter={localFilter}
             updateFilter={updateLocalFilter}
             onApplyFilters={handleFilterApply}
-            // onClearFilters={handleClearFilters}
-            // hasUnsavedChanges={hasUnsavedChanges}
-            // hasActiveFilters={hasActiveFilters}
           />
 
           {/* Active filters indicator */}

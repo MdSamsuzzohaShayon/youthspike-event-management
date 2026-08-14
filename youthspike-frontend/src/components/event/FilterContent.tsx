@@ -15,9 +15,6 @@ interface IFilterContentProps {
   updateFilter: (key: string, value: string) => void;
   onApplyFilters: (filter: IFilterState) => void;
   showStatus?: boolean;
-  // onClearFilters: () => void;
-  // hasUnsavedChanges: boolean;
-  // hasActiveFilters: boolean;
 }
 
 function FilterContent({
@@ -27,9 +24,6 @@ function FilterContent({
   filter,
   updateFilter,
   onApplyFilters,
-  // onClearFilters,
-  // hasUnsavedChanges,
-  // hasActiveFilters,
   showStatus,
 }: IFilterContentProps) {
   const dispatch = useAppDispatch();
@@ -63,8 +57,9 @@ function FilterContent({
 
   const handleDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     if (!loading ) {
-      onApplyFilters({ group: filter?.group || '', search: filter?.search || '', status: filter?.status || '', division: e.target.value });
+      onApplyFilters({ group: '', search: filter?.search || '', status: filter?.status || '', division: e.target.value });
       updateFilter("division", e.target.value);
+      updateFilter("group", '');
     } else {
       dispatch(setMessage({ message: 'A request is already in progress. Please wait a moment and try again.', name: 'Error', type: EMessage.ERROR }));
     }
