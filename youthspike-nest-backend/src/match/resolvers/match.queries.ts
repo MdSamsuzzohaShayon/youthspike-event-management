@@ -300,7 +300,7 @@ export class MatchQueries {
         });
       }
 
-      const findMatch = matches.find((m) => String(m._id) === "6a3f69136344c6a66e49ba6c")
+
 
       /**
        * ---------------------------------------------------------

@@ -23,7 +23,7 @@ class GetGroupsResponse extends AppResponse<Group[]> {
 
 @ObjectType()
 class GetGroupResponse extends AppResponse<Group> {
-  @Field((_type) => Group, { nullable: false })
+  @Field((_type) => Group, { nullable: true })
   data?: Group;
 }
 
@@ -46,6 +46,22 @@ export class GroupResolver {
        * TODO:
        *  Step-1: Get user id from token if not logged in as admin
        */
+
+      const groupExist = await this.groupService.findOne({
+        name: {
+          $regex: `^${input.name}$`,
+          $options: 'i',
+        },
+        event: input.event,
+      });
+      if(groupExist){
+        return AppResponse.handleError({
+          code: 406,
+          success: false,
+          message: 'There is already a group exist with this name in this event!',
+        });
+      }
+
       const groupObj = { ...input, matches: [] };
       if (input.matches) groupObj.matches;
       const newGroup = await this.groupService.create(groupObj);
@@ -79,6 +95,23 @@ export class GroupResolver {
       // ✅ Step 1: Validate Group
       const existingGroup = await this.groupService.findOne({ _id: groupId });
       if (!existingGroup) return AppResponse.notFound("Group");
+
+      if(updateInput.name){
+        const groupNameExist = await this.groupService.findOne({
+          name: {
+            $regex: `^${updateInput.name}$`,
+            $options: 'i',
+          },
+          event: eventId,
+        });
+        if(groupNameExist){
+          return AppResponse.handleError({
+            code: 406,
+            success: false,
+            message: 'There is already a group exist with this name in this event!',
+          });
+        }
+      }
 
       // ✅ Step 2: Validate Event (use eventId if provided)
       const targetEventId = eventId || existingGroup.event;

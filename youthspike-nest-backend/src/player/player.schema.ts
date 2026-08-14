@@ -122,6 +122,11 @@ export const PlayerSchema = SchemaFactory.createForClass(Player);
 // Create single index 
 PlayerSchema.index({events: 1});
 
+// one compound index is not good here
+PlayerSchema.index({ firstName: 1 });
+PlayerSchema.index({ lastName: 1 });
+PlayerSchema.index({ username: 1 });
+
 
 export const PlayerSchemaFactory = async () => {
   return PlayerSchema;

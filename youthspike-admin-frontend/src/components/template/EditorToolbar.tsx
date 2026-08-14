@@ -8,7 +8,7 @@
 import { Editor } from '@tiptap/react';
 import React, { useCallback, useRef, useState } from 'react';
 import styles from './emailEditor.module.scss';
-import { makeButton, makeDivider, makeFooter, makeHero, makeSection, makeSpacer, makeThreeColumns, makeTwoColumns } from '@/utils/emailTransformer';
+import { makeButton, makeDivider, makeFooter, makeHero, makeSection, makeSpacer, makeThreeColumns, makeTwoColumns } from '@/utils/template/emailTransformer';
 
 
 interface Props {

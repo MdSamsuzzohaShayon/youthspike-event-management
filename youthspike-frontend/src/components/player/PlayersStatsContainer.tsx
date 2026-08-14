@@ -254,19 +254,22 @@ function PlayersStatsContainer({
 
   // Clear filters
   const handleClearFilters = useCallback(async () => {
-    const clearedFilter = { ...DEFAULT_FILTER_STATE };
+    // const clearedFilter = { ...DEFAULT_FILTER_STATE };
 
-    setLocalFilter(clearedFilter);
-    setCurrentOffset(0);
+    // setLocalFilter(clearedFilter);
+    // setCurrentOffset(0);
 
-    try {
-      const response = await executeSearchQuery(clearedFilter, 0);
-      transformServerData(response.data);
-      setAppliedFilter(clearedFilter);
-      router.replace(window.location.pathname, { scroll: false });
-    } catch (error) {
-      console.error("Failed to clear filters:", error);
-    }
+    // try {
+    //   const response = await executeSearchQuery(clearedFilter, 0);
+    //   transformServerData(response.data);
+    //   setAppliedFilter(clearedFilter);
+    //   router.replace(window.location.pathname, { scroll: false });
+    // } catch (error) {
+    //   console.error("Failed to clear filters:", error);
+    // }
+
+    window.location.assign(window.location.pathname);
+    
   }, [executeSearchQuery, transformServerData, router]);
 
   // Filter players based on applied filters (client-side for search)

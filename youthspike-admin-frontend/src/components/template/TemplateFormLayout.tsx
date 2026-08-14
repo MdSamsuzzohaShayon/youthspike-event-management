@@ -100,6 +100,7 @@ export default function TemplateFormLayout({
               // Preview the actual email-safe compiled HTML, not the raw editor markup.
               <EmailPreview html={compiledEmailHtml} subject={subject} sampleUser={selectedUser} />
             )}
+
           </section>
 
           {/* ── Right sidebar ── */}

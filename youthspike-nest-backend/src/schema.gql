@@ -1431,7 +1431,7 @@ type GetGroupResponse {
   code: Int!
   success: Boolean!
   message: String
-  data: Group!
+  data: Group
 }
 
 type CreateOrUpdateTemplateResponse {

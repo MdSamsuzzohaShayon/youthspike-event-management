@@ -8,9 +8,9 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { Editor } from '@tiptap/react';
 
-import { DEFAULT_BODY, DEFAULT_NAME, DEFAULT_SUBJECT, DEFINED_PLACEHOLDERS, SAMPLE_USERS } from '@/utils/defaultTemplateData';
+import { DEFAULT_BODY, DEFAULT_NAME, DEFAULT_SUBJECT, DEFINED_PLACEHOLDERS, SAMPLE_USERS } from '@/utils/template/defaultTemplateData';
 import { ETemplateType, ITemplateCreate, TemplateVersion } from '@/types';
-import { buildTemplateSavePayload, compileEmailHtml, extractUsedPlaceholderKeys, filterValidPlaceholders, SampleUser, validateTemplatePlaceholders } from '@/utils/templateFormUtils';
+import { buildTemplateSavePayload, compileEmailHtml, extractUsedPlaceholderKeys, filterValidPlaceholders, SampleUser, validateTemplatePlaceholders } from '@/utils/template/templateFormUtils';
 import { useTemplateVersions } from './useTemplateVersions';
 
 export type TemplateFormTab = 'editor' | 'preview';

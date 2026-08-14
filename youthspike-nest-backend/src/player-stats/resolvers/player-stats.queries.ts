@@ -324,7 +324,7 @@ export class PlayerStatsQueries {
   async searchPlayerStats(context: any, eventId: string, filter: PlayerStatsSearchFilter) {
     try {
       const playerQuery: QueryFilter<Player> = {};
-      const teamQuery: QueryFilter<Team> = { event: eventId };
+      const teamQuery: QueryFilter<Team> = { events: eventId };
       const groupQuery: QueryFilter<Group> = { event: eventId };
       const matchQuery: QueryFilter<Match> = { event: eventId };
 
@@ -360,7 +360,7 @@ export class PlayerStatsQueries {
         matchQuery.division = { $regex: new RegExp(`${filter.division}`, 'i') };
       }
       if (filter?.group) {
-        teamQuery.group = filter.group;
+        teamQuery.groups = filter.group;
         matchQuery.group = filter.group;
         // If there is a group then show matches for a player according to group
       }
