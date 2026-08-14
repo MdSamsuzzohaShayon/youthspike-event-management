@@ -31,6 +31,7 @@ const FilterTag: React.FC<{ label: string }> = memo(({ label }) => (
       rounded-full
       border border-gray-700
       shadow-sm
+      uppercase
       whitespace-nowrap
     "
   >
@@ -50,7 +51,7 @@ const ActiveFiltersBar: React.FC<ActiveFiltersProps> = ({
   const selectedGroup = useMemo(() => {
     if (!appliedFilter.group) return null;
     return groups.find((group) => group._id === appliedFilter.group) ?? null;
-  }, [appliedFilter.group, groups]);
+  }, [appliedFilter, groups]);
 
   const hasActiveFilters =
     Boolean(appliedFilter.division) ||
@@ -80,7 +81,7 @@ const ActiveFiltersBar: React.FC<ActiveFiltersProps> = ({
             <FilterTag label={`Division: ${appliedFilter.division}`} />
           )}
 
-          {selectedGroup && (
+          {appliedFilter?.group && selectedGroup && (
             <FilterTag label={`Group: ${selectedGroup.name}`} />
           )}
 
