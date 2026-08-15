@@ -584,13 +584,6 @@ export class TeamQueries {
         this.badgeService.find({ event: { $in: eventIds } })
       ]);
 
-      // const emailsenders = await this.emailsenderService.find({ _id: { $in: emailcontents.map((ec) => String(ec.emailsender)) } });
-
-
-      // // Make sure groups is not null and there are no null values in groups array
-      // const matchesWithoutGroup = matches.filter((m) => !m?.group || m?.group === null || m?.group === '').map((m) => String(m._id));
-
-      console.log(teams.find((t)=> t.name === 'State College Nittany Lions'));
       
 
 

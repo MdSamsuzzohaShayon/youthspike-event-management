@@ -18,9 +18,6 @@ interface ITeamStandingsProps {
   selectedGroup?: string | null;
 }
 
-
-
-
 function TeamStandings({
   teamList = [],
   matchList = [],
@@ -57,38 +54,44 @@ function TeamStandings({
   }, [teamList, teamScores, selectedGroup]);
 
   return (
-    <div className="teamList w-full flex flex-col rounded-lg shadow-lg">
-      <div className="overflow-x-auto">
-        <motion.table
-          className="w-full text-left text-sm text-gray-300 bg-gray-900 rounded-lg overflow-hidden"
-          variants={tableVariant}
-          initial="hidden"
-          animate="visible"
-        >
-          <thead>
-            <tr className="bg-yellow-logo text-black font-semibold">
-              <th className="py-3 px-2">Team</th>
-              <th className="py-3 px-2">Matches</th>
-              <th className="py-3 px-2">Points</th>
-              <th className="py-3 px-2">Overall</th>
-              {selectedGroup && <th className="py-3 px-2">Group Record</th>}
-              <th className="py-3 px-2">Match PT DIFF/AVG</th>
-              <th className="py-3 px-2">GM PT DIFF/AVG</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedTeams.map((team, index) => (
-              <TeamRow
-                selectedGroup={selectedGroup}
-                key={team._id}
-                team={team}
-                teamScores={teamScores.get(team._id) ?? EMPTY_TEAM_SCORE}
-                badge={team?.badge ? badgeMap.get(String(team.badge)) : null}
-                index={index}
-              />
-            ))}
-          </tbody>
-        </motion.table>
+    <div className="teamList w-full flex flex-col">
+      <div className="overflow-x-auto w-full">
+        <div className="min-w-[1000px] w-full">
+          <div className="relative w-full">
+            <motion.table
+              className="w-full text-left text-sm text-gray-300 bg-gray-900"
+              variants={tableVariant}
+              initial="hidden"
+              animate="visible"
+            >
+              <thead>
+                <tr className="bg-yellow-logo text-black font-semibold">
+                  <th className="py-3 px-3 sticky left-0 top-0 shadow-md z-20 bg-yellow-logo min-w-[120px] max-w-[120px]">
+                    Team
+                  </th>
+                  <th className="py-3 px-4 text-center whitespace-nowrap">Matches</th>
+                  <th className="py-3 px-4 text-center whitespace-nowrap">Points</th>
+                  <th className="py-3 px-4 text-center whitespace-nowrap">Overall</th>
+                  {selectedGroup && <th className="py-3 px-4 text-center whitespace-nowrap">Group Record</th>}
+                  <th className="py-3 px-4 text-center whitespace-nowrap">Match PT DIFF/AVG</th>
+                  <th className="py-3 px-4 text-center whitespace-nowrap">GM PT DIFF/AVG</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedTeams.map((team, index) => (
+                  <TeamRow
+                    selectedGroup={selectedGroup}
+                    key={team._id}
+                    team={team}
+                    teamScores={teamScores.get(team._id) ?? EMPTY_TEAM_SCORE}
+                    badge={team?.badge ? badgeMap.get(String(team.badge)) : null}
+                    index={index}
+                  />
+                ))}
+              </tbody>
+            </motion.table>
+          </div>
+        </div>
       </div>
     </div>
   );

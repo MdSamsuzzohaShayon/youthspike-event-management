@@ -1,45 +1,52 @@
-const sourceGroupId = ObjectId('6a6141c22196a012dc1b43ca');
-const targetGroupId = ObjectId('6a7ef92d32c63c3af5a7ce1e');
+const badges = db.badges.find().toArray();
 
-// Find match IDs before changing anything
-const matches = db.matches
-  .find({ group: sourceGroupId }, { _id: 1 })
-  .toArray();
+print(`Found ${badges.length} badges.\n`);
 
-const matchIds = matches.map(match => match._id);
+let teamBadgeCount = 0;
+let playerBadgeCount = 0;
+let updatedCount = 0;
 
-print(`Found ${matchIds.length} matches to move.`);
+badges.forEach((badge, index) => {
+  const teamCount = Array.isArray(badge.teams) ? badge.teams.length : 0;
 
-if (matchIds.length > 0) {
-  // 1. Update matches
-  const matchUpdateResult = db.matches.updateMany(
-    { _id: { $in: matchIds } },
-    { $set: { group: targetGroupId } }
+  const badgeFor = teamCount > 1 ? "TEAM" : "PLAYER";
+
+  print(
+    `[${index + 1}/${badges.length}] ` +
+    `Badge: "${badge.name || "Unnamed"}" | ` +
+    `Teams: ${teamCount} | ` +
+    `badgeFor: ${badgeFor}`
   );
 
-  // 2. Add matches to target group
-  const targetGroupUpdateResult = db.groups.updateOne(
-    { _id: targetGroupId },
+  const result = db.badges.updateOne(
+    { _id: badge._id },
     {
-      $addToSet: {
-        matches: { $each: matchIds }
-      }
+      $set: {
+        badgeFor: badgeFor,
+      },
     }
   );
 
-  // 3. Remove matches from source group
-  const sourceGroupUpdateResult = db.groups.updateOne(
-    { _id: sourceGroupId },
-    {
-      $pull: {
-        matches: { $in: matchIds }
-      }
-    }
-  );
+  if (result.modifiedCount === 1) {
+    updatedCount++;
 
-  print(`Matches updated: ${matchUpdateResult.modifiedCount}`);
-  print(`Target group updated: ${targetGroupUpdateResult.modifiedCount}`);
-  print(`Source group updated: ${sourceGroupUpdateResult.modifiedCount}`);
-} else {
-  print('No matches found. Nothing to update.');
-}
+    print(`  ✓ Updated successfully`);
+  } else {
+    print(`  - No change needed`);
+  }
+
+  if (badgeFor === "TEAM") {
+    teamBadgeCount++;
+  } else {
+    playerBadgeCount++;
+  }
+});
+
+print("\n========================================");
+print("Badge Migration Completed");
+print("========================================");
+print(`Total badges:        ${badges.length}`);
+print(`TEAM badges:         ${teamBadgeCount}`);
+print(`PLAYER badges:       ${playerBadgeCount}`);
+print(`Documents updated:   ${updatedCount}`);
+print("========================================");

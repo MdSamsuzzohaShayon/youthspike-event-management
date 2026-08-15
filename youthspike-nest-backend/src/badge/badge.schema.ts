@@ -6,6 +6,15 @@ import { Event } from 'src/event/event.schema';
 import mongoose from 'mongoose';
 import { Player } from 'src/player/player.schema';
 
+export enum EBadgeFor {
+  'TEAM' = 'TEAM',
+  'PLAYER' = 'PLAYER',
+}
+
+registerEnumType(EBadgeFor, {
+  name: 'EBadgeFor',
+});
+
 
 @Schema({ timestamps: true })
 @ObjectType()
@@ -18,6 +27,10 @@ export class Badge extends AppDocument {
   @Field((_type) => String)
   @Prop({ required: true })
   icon: string;
+
+  @Field((_type) => EBadgeFor, {nullable: false})
+  @Prop({ required: true })
+  badgeFor: EBadgeFor;
 
   @Field((_type) => String, {nullable: true})
   @Prop({ required: false })
