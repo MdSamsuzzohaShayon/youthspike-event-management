@@ -8,6 +8,8 @@ import { KeyboardEvent, RefObject } from "react";
 import ImageUploader from "../elements/forms/ImageUploader";
 import { Loader2 } from "lucide-react";
 import { CldImage } from "next-cloudinary";
+import { EBadgeFor } from "@/types";
+import SelectInput from "../elements/forms/SelectInput";
 
 interface BadgeEditorFormProps {
     fieldName: string;
@@ -19,6 +21,7 @@ interface BadgeEditorFormProps {
     draftName: string;
     draftDescription: string,
     draftIcon: string;
+    draftBadgeFor: EBadgeFor;
     formError: string | null;
     folder?: string;
     nameInputRef: RefObject<HTMLInputElement | null>;
@@ -27,6 +30,7 @@ interface BadgeEditorFormProps {
     onNameFieldKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
     onDescriptionFieldKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
     onDraftIconChange: (publicId: string) => void;
+    onDraftBadgeForChange: (bf: EBadgeFor) => void;
     onUploadStart: () => void;
     onUploadEnd: () => void;
     onUploadError: (message: string) => void;
@@ -44,6 +48,7 @@ const BadgeEditorForm: React.FC<BadgeEditorFormProps> = ({
     draftName,
     draftDescription,
     draftIcon,
+    draftBadgeFor,
     formError,
     folder,
     nameInputRef,
@@ -52,6 +57,7 @@ const BadgeEditorForm: React.FC<BadgeEditorFormProps> = ({
     onNameFieldKeyDown,
     onDescriptionFieldKeyDown,
     onDraftIconChange,
+    onDraftBadgeForChange,
     onUploadStart,
     onUploadEnd,
     onUploadError,
@@ -100,6 +106,10 @@ const BadgeEditorForm: React.FC<BadgeEditorFormProps> = ({
                     placeholder="e.g. A champion team"
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-300 placeholder:text-gray-500 transition-colors duration-150 focus:border-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500/50"
                 />
+            </div>
+
+            <div className="flex flex-1 flex-col gap-1">
+                <SelectInput name="badgeFor" optionList={Object.values(EBadgeFor).map((bf, i)=> ({id: i+1, value: bf, text: bf.toLowerCase()}))} value={draftBadgeFor} handleSelect={(e)=> onDraftBadgeForChange((e.target as any).value) } />
             </div>
 
             {/* Image upload */}

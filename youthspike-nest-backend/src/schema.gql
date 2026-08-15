@@ -406,10 +406,16 @@ type Badge {
   updatedAt: String
   name: String!
   icon: String!
+  badgeFor: EBadgeFor!
   description: String
   event: Event!
   teams: [Team!]
   players: [Player!]
+}
+
+enum EBadgeFor {
+  TEAM
+  PLAYER
 }
 
 type Player {
@@ -526,6 +532,7 @@ type CustomBadge {
   updatedAt: String
   name: String!
   icon: String!
+  badgeFor: EBadgeFor!
   description: String
   event: String!
   teams: [String!]
@@ -1537,6 +1544,7 @@ input CreateEventInput {
 input EventBadgeInput {
   name: String!
   icon: String!
+  badgeFor: EBadgeFor!
   description: String!
 }
 
@@ -1579,6 +1587,7 @@ input UpdateDivision {
 input UpdateBadgeInput {
   name: String
   icon: String
+  badgeFor: EBadgeFor
   description: String
   _id: String
 }

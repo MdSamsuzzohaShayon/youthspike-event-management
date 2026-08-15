@@ -25,8 +25,12 @@ const BadgeListItem: React.FC<BadgeListItemProps> = React.memo(
             <div className="h-8 w-8 flex-shrink-0 rounded-md overflow-hidden border border-gray-600">
                 <BadgeIcon badge={badge as IBadge} className="" />
             </div>
-            <span className="text-sm text-gray-200 max-w-[10rem] truncate font-medium">
+            <span className="text-sm text-gray-200 max-w-[10rem] truncate font-medium ">
                 {badge.name}
+            </span>
+            /
+            <span className="text-sm text-gray-200 max-w-[10rem] truncate font-bold text-yellow-logo">
+                {badge.badgeFor}
             </span>
             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                 <button

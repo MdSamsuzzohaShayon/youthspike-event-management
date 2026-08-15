@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { FileUpload } from 'graphql-upload/processRequest.mjs';
 import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
 import { EventBadgeInput, EventSponsorInput } from 'src/event/resolvers/event.input';
+import { EBadgeFor } from 'src/badge/badge.schema';
 const GraphQLUpload = GraphQLUploadModule.default;
 
 
@@ -88,7 +89,7 @@ export class CloudinaryService {
     }
   }
 
-  async uploadBadges(files: Promise<FileUpload>, name: string, description: string, w = 300, h = 300): Promise<EventBadgeInput | null> {
+  async uploadBadges(files: Promise<FileUpload>, name: string, description: string, badgeFor: EBadgeFor, w = 300, h = 300): Promise<EventBadgeInput | null> {
     const { createReadStream, filename, mimetype } = await files;
     try {
       const stream = createReadStream();
@@ -114,7 +115,7 @@ export class CloudinaryService {
         stream.pipe(uploadStream); // 👈 direct pipe (BEST)
       });
 
-      return { name, description, icon: result.public_id };
+      return { name, description, badgeFor, icon: result.public_id };
     } catch (error) {
       return null;
     }

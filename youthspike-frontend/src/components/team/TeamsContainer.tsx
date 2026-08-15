@@ -271,7 +271,7 @@ export default function TeamsContainer({
           {/* Content */}
           {!showInitialLoading && (
             <div className="team-list w-full flex flex-col gap-y-4">
-              <div className="grid gap-4">
+              <div className="w-full md:grid md:gap-4">
                 {teams.length > 0 ? (
                   <SearchTeamList matchList={matches} selectedGroup={appliedFilter?.group} teamList={teams as unknown as ITeam[]} nets={nets} rounds={rounds} badges={badges} />
                 ) : (

@@ -46,20 +46,20 @@ function PlayerRow({
                 href={`/players/${player?._id || ""}/?${EStatsFilter.CONFERENCE}=${EGroupType.CONFERENCE}`}
                 className="flex flex-col sm:flex-row sm:items-center"
               >
-                <div className="relative w-8 h-8 flex-shrink-0 mx-auto sm:mx-0">
+                <div className="relative w-12 h-12 flex-shrink-0 mx-auto sm:mx-0">
                   {player.profile ? (
                     <CldImage
                       alt={player.firstName}
                       width="32"
                       height="32"
-                      className="w-8 h-8 rounded-lg object-cover"
+                      className="w-12 h-12 rounded-lg object-cover"
                       crop="fit"
                       src={player.profile}
                     />
                   ) : (
                     <TextImg
                       fullText={player.firstName + player.lastName}
-                      className="w-8 h-8 rounded-lg"
+                      className="w-12 h-12 rounded-lg"
                     />
                   )}
                 </div>

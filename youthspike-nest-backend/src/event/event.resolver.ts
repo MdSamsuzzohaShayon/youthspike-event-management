@@ -47,7 +47,6 @@ export class EventResolver {
   @Mutation((_returns) => CreateOrUpdateEventResponse)
   async createEvent(
     @Args('sponsorsInput', { type: () => [EventSponsorInput] }) sponsorsInput: EventSponsorInput[],
-    // @Args('badgesInput', { type: () => [EventBadgeInput] }) badgesInput: EventBadgeInput[],
     @Args('input') input: CreateEventInput,
     @Context() context: any,
     @Args('multiplayerInput', { nullable: true }) multiplayerInput?: ProStatsInput,
@@ -57,7 +56,6 @@ export class EventResolver {
   ) {
     return this.eventMutations.createEvent({
       sponsorsInput,
-      // badgesInput,
       input,
       context,
       multiplayerInput,

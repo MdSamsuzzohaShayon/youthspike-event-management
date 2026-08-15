@@ -6,7 +6,7 @@ import {
   useEffect,
   type KeyboardEvent,
 } from "react";
-import type { TAddBadge } from "@/types";
+import { EBadgeFor, TAddBadge } from "@/types";
 import useOrphanDraftImageCleanup from "@/hooks/useOrphanDraftImageCleanup";
 import { buildLowerCaseNameSet, getBadgePublicId, isNameTaken, normalizeBadgeName } from "@/utils/badge/badge-helpers";
 import BadgeList from "@/components/badge/BadgeList";
@@ -46,7 +46,8 @@ export default function BadgeInput({
 
   const [draftIcon, setDraftIcon] = useState<string>(""); // Cloudinary public_id
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
+  const [isUploading, setIsUploading] = useState<boolean>(false);
+  const [draftBadgeFor, setDraftBadgeFor] = useState<EBadgeFor>(EBadgeFor.TEAM);
   const [formError, setFormError] = useState<string | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -68,6 +69,7 @@ export default function BadgeInput({
 
   const resetEditor = useCallback(() => {
     setDraftName("");
+    setDraftBadgeFor(EBadgeFor.TEAM)
     setDraftDescription("");
     setDraftIcon("");
     setEditingIndex(null);
@@ -88,7 +90,7 @@ export default function BadgeInput({
       return;
     }
 
-    const nextBadge: TAddBadge = { name: normalizedDraftName, description: draftDescription, icon: draftIcon };
+    const nextBadge: TAddBadge = { name: normalizedDraftName, badgeFor: draftBadgeFor, description: draftDescription, icon: draftIcon };
     const updatedBadges =
       isEditing && editingIndex !== null
         ? badges.map((badge, index) => (index === editingIndex ? nextBadge : badge))
@@ -115,6 +117,7 @@ export default function BadgeInput({
       const badge = badges[index];
       if (!badge) return;
       setDraftName(badge.name);
+      setDraftBadgeFor(badge.badgeFor);
       setDraftDescription(badge.description);
       // Only reuse the icon if it's already a Cloudinary public_id.
       // If it's somehow still a raw File, force a re-upload.
@@ -213,6 +216,7 @@ export default function BadgeInput({
         draftName={draftName}
         draftDescription={draftDescription}
         draftIcon={draftIcon}
+        draftBadgeFor={draftBadgeFor}
         formError={formError}
         folder={folder}
         nameInputRef={nameInputRef}
@@ -221,6 +225,7 @@ export default function BadgeInput({
         onNameFieldKeyDown={handleNameFieldKeyDown}
         onDescriptionFieldKeyDown={handleDescriptionFieldKeyDown}
         onDraftIconChange={setDraftIcon}
+        onDraftBadgeForChange={setDraftBadgeFor}
         onUploadStart={handleUploadStart}
         onUploadEnd={handleUploadEnd}
         onUploadError={setFormError}

@@ -18,6 +18,9 @@ npm i reflect-metadata rxjs socket.io socket.io-redis @nestjs/config apollo-serv
 npm i @types/bcrypt @types/passport-jwt concurrently cross-env eslint-config-nestjs http-proxy nodemon pm2 --save-dev
 
 
+# Transfer a file to vps server
+rsync -avh --progress res/spikeball_backup_20260814_111324.tar.gz shayon@104.248.112.37:/home/shayon/youthspike-nest-backend
+
 
 # Restore mongodb database
 # mongorestore --gzip --db spikeball_temp ./spikeball-matches

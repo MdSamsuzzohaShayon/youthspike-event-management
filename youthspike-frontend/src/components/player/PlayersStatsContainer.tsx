@@ -253,7 +253,7 @@ function PlayersStatsContainer({
   ]);
 
   // Clear filters
-  const handleClearFilters = useCallback(async () => {
+  const handleClearFilters = async () => {
     // const clearedFilter = { ...DEFAULT_FILTER_STATE };
 
     // setLocalFilter(clearedFilter);
@@ -270,7 +270,7 @@ function PlayersStatsContainer({
 
     window.location.assign(window.location.pathname);
     
-  }, [executeSearchQuery, transformServerData, router]);
+  };
 
   // Filter players based on applied filters (client-side for search)
   const filteredPlayers: IPlayer[] = useMemo(() => {
@@ -365,9 +365,6 @@ function PlayersStatsContainer({
             filter={localFilter}
             updateFilter={updateLocalFilter}
             onApplyFilters={handleFilterApply}
-          // onClearFilters={handleClearFilters}
-          // hasUnsavedChanges={hasUnsavedChanges}
-          // hasActiveFilters={hasActiveFilters}
           />
 
           {/* Active filters indicator */}

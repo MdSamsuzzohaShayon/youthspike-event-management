@@ -43,54 +43,103 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
       key={team._id}
       className="odd:bg-gray-800 even:bg-gray-700 hover:bg-gray-600 transition-all"
     >
-      <td className="py-3 px-2 flex justify-start items-center md:text-start gap-x-2 text-center">
-        <span>{index + 1}</span>
-          <LogoBadge
-            logo={team.logo}
-            teamName={team.name}
-            badge={badge}
-            size="w-14 h-14"
-            badgeSize="w-6 h-6"
-          />
-        <Link href={`/teams/${team._id}/roster`} className="flex flex-col md:flex-row justify-center md:justify-start items-center gap-2">
-
-
-          <span
-            className="
-          font-medium
-          text-white
-          transition-colors
-          group-hover:text-yellow-300
-        "
-          >
-            {team.name}
+      <td className="py-2 px-3 sticky left-0 bg-inherit min-w-[120px] max-w-[120px] z-10">
+        <div className="md:flex md:items-start">
+          <span className="w-5 text-center font-medium text-sm shrink-0 mt-1">
+            {index + 1}
           </span>
-        </Link>
-      </td>
-      <td className="py-3 px-2">
-        {hasScores ? `${teamScores.totalMatches}` : '0'}
-      </td>
-      <td className="py-3 px-2">
-        {hasScores ? `${teamPoints}` : '0'}
+
+          <div className="md:ml-2 md:flex md:flex-col md:w-full">
+            {/* Team info container */}
+            <div className="flex flex-col">
+              {/* Team link (logo + name) - Stacked vertically on mobile */}
+              <Link
+                href={`/teams/${team._id}/roster`}
+                className="flex flex-col sm:flex-row sm:items-center"
+              >
+                <div className="relative flex-shrink-0 mx-auto sm:mx-0">
+                  <LogoWithBadge
+                    logo={team.logo}
+                    teamName={team.name}
+                    badge={badge}
+                    size="w-12 h-12"
+                    badgeSize="w-4 h-4"
+                  />
+                </div>
+                <div className="ml-0 sm:ml-2 min-w-0 text-center sm:text-left mt-1 sm:mt-0">
+                  <div className="text-xs font-medium transition-colors break-words capitalize">
+                    <span className="block sm:inline">{team.name}</span>
+                  </div>
+                </div>
+              </Link>
+
+              {/* Badge info - Always below */}
+              {badge && (
+                <div className="mt-1 flex flex-col items-center sm:items-start">
+                  <span className="text-yellow-logo text-[6px] uppercase hover:underline truncate max-w-full">
+                    {badge.name}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       </td>
 
-      {/* Overall record  */}
-      <td className="py-3 px-2">
-        {hasScores ? `${teamScores.overallWins}-${teamScores.totalMatches - (teamScores.overallWins + teamScores.overallLoses)}-${teamScores.overallLoses}` : '0-0'}
+      {/* Matches */}
+      <td className="py-3 px-4 text-center whitespace-nowrap">
+        <div className="flex flex-col">
+          <span className="font-bold text-xl">
+            {hasScores ? teamScores.totalMatches : '0'}
+          </span>
+        </div>
       </td>
 
-      {/* Group record  */}
+      {/* Points */}
+      <td className="py-3 px-4 text-center whitespace-nowrap">
+        <div className="flex flex-col">
+          <span className="font-bold text-xl">
+            {hasScores ? teamPoints : '0'}
+          </span>
+        </div>
+      </td>
+
+      {/* Overall record */}
+      <td className="py-3 px-4 text-center whitespace-nowrap">
+        <div className="flex flex-col">
+          <span className="font-bold text-xl">
+            {hasScores ? `${teamScores.overallWins}-${teamScores.totalMatches - (teamScores.overallWins + teamScores.overallLoses)}-${teamScores.overallLoses}` : '0-0'}
+          </span>
+        </div>
+      </td>
+
+      {/* Group record */}
       {selectedGroup && (
-        <td className="py-3 px-2">
-          {hasScores ? `${teamScores.groupWins}-${teamScores.totalMatches - (teamScores.groupWins + teamScores.groupLoses)}-${teamScores.groupLoses}` : '0-0'}
+        <td className="py-3 px-4 text-center whitespace-nowrap">
+          <div className="flex flex-col">
+            <span className="font-bold text-xl">
+              {hasScores ? `${teamScores.groupWins}-${teamScores.totalMatches - (teamScores.groupWins + teamScores.groupLoses)}-${teamScores.groupLoses}` : '0-0'}
+            </span>
+          </div>
         </td>
       )}
 
-      <td className="py-3 px-2">
-        {hasScores ? teamScores.matchAvgDiff.toFixed(2) : '0.00'}
+      {/* Match PT DIFF/AVG */}
+      <td className="py-3 px-4 text-center whitespace-nowrap">
+        <div className="flex flex-col">
+          <span className="font-bold text-xl">
+            {hasScores ? teamScores.matchAvgDiff.toFixed(2) : '0.00'}
+          </span>
+        </div>
       </td>
-      <td className="py-3 px-2">
-        {hasScores ? teamScores.gameAvgDiff.toFixed(2) : '0.00'}
+
+      {/* GM PT DIFF/AVG */}
+      <td className="py-3 px-4 text-center whitespace-nowrap">
+        <div className="flex flex-col">
+          <span className="font-bold text-xl">
+            {hasScores ? teamScores.gameAvgDiff.toFixed(2) : '0.00'}
+          </span>
+        </div>
       </td>
     </tr>
   );

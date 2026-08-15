@@ -3,7 +3,7 @@ import { Field, Float, InputType, Int, ObjectType, OmitType, PartialType } from 
 import { EEventItem } from '../event.schema';
 import { FileUpload } from 'graphql-upload/processRequest.mjs';
 import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
-import { Badge } from 'src/badge/badge.schema';
+import { Badge, EBadgeFor } from 'src/badge/badge.schema';
 const GraphQLUpload = GraphQLUploadModule.default;
 
 @InputType()
@@ -22,6 +22,9 @@ export class EventBadgeInput {
 
   @Field(() => String)
   icon: string;
+
+  @Field(() => EBadgeFor)
+  badgeFor: EBadgeFor;
 
   @Field(() => String)
   description: string;
