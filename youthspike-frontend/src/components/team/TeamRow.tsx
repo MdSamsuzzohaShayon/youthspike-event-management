@@ -60,7 +60,7 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
                 <div className="relative flex-shrink-0 mx-auto sm:mx-0">
                   <LogoWithBadge
                     logo={team.logo}
-                    teamName={team.name}
+                    name={team.name}
                     badge={badge}
                     size="w-12 h-12"
                     badgeSize="w-4 h-4"
@@ -86,14 +86,7 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
         </div>
       </td>
 
-      {/* Matches */}
-      <td className="py-3 px-4 text-center whitespace-nowrap">
-        <div className="flex flex-col">
-          <span className="font-bold text-xl">
-            {hasScores ? teamScores.totalMatches : '0'}
-          </span>
-        </div>
-      </td>
+
 
       {/* Points */}
       <td className="py-3 px-4 text-center whitespace-nowrap">
@@ -123,6 +116,15 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
           </div>
         </td>
       )}
+
+      {/* Matches */}
+      <td className="py-3 px-4 text-center whitespace-nowrap">
+        <div className="flex flex-col">
+          <span className="font-bold text-xl">
+            {hasScores ? teamScores.totalMatches : '0'}
+          </span>
+        </div>
+      </td>
 
       {/* Match PT DIFF/AVG */}
       <td className="py-3 px-4 text-center whitespace-nowrap">

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import {
+  EBadgeFor,
   IBadge,
   IEvent,
   IGetTeamResponse,
@@ -114,6 +115,7 @@ function PlayerSearchList({
     [teamList]
   );
   const badgeMap = useMemo(()=>createBadgeMap(badges), [badges]);
+  const playerBadges = useMemo(()=>{return badges.filter((badge)=> badge.badgeFor && badge.badgeFor === EBadgeFor.PLAYER)}, [badges]);
 
 
 
@@ -143,7 +145,7 @@ function PlayerSearchList({
                 isChecked={false}
                 onSelect={() => { }}
                 badge={player.badge ? badgeMap.get(String(player.badge)) : null}
-                badges={badges}
+                badges={playerBadges}
                 setIsLoading={setIsLoading}
                 selectedEvent={selectedEvent || null}
                 onUpdateTeam={handleUpdateTeam}

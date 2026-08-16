@@ -194,7 +194,7 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, badge, b
         />
         {team.captain && <TeamCardCaptainSection captain={team.captain} />}
 
-        {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
+        {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && badges.length > 0 && (
           <BadgeSelect
             name="badge"
             className='w-48'

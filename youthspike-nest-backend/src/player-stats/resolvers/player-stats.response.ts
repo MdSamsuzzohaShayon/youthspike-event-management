@@ -98,6 +98,9 @@ export class PlayersSearch {
   @Field((_type) => [CustomPlayer], { nullable: false })
   players: CustomPlayer[];
 
+  @Field((_type) => [CustomBadge], { nullable: false })
+  badges: CustomBadge[];
+
   @Field((_type) => [CustomGroup], { nullable: false })
   groups: CustomGroup[];
 
@@ -105,7 +108,7 @@ export class PlayersSearch {
   teams: CustomTeam[];
 
   @Field((_type) => [CustomMatch], { nullable: false })
-  matches: CustomMatch;
+  matches: CustomMatch[];
 
   @Field(() => [PlayerStatsEntry])
   statsOfPlayer: PlayerStatsEntry[];

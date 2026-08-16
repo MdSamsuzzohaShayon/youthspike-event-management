@@ -59,6 +59,7 @@ interface ISearchPlayerData {
   groups: IGroup[];
   players: IPlayer[];
   teams: ITeam[];
+  badges: IBadge[];
   statsOfPlayer: IAllStats[];
   matches: IMatch[];
 }

@@ -29,7 +29,7 @@ function TeamStandings({
   const matchesByTeam = useMemo(() => buildMatchesByTeam(matchList), [matchList]);
   const netsByMatch = useMemo(() => groupByMatchId(nets), [nets]);
   const roundsByMatch = useMemo(() => groupByMatchId(rounds), [rounds]);
-  const badgeMap = useMemo(() => createBadgeMap(badges), [badges])
+  const badgeMap = useMemo(() => createBadgeMap(badges), [badges]);
 
   /**
    * Derived team scores. Previously this lived in useState + useEffect,
@@ -69,10 +69,10 @@ function TeamStandings({
                   <th className="py-3 px-3 sticky left-0 top-0 shadow-md z-20 bg-yellow-logo min-w-[120px] max-w-[120px]">
                     Team
                   </th>
-                  <th className="py-3 px-4 text-center whitespace-nowrap">Matches</th>
                   <th className="py-3 px-4 text-center whitespace-nowrap">Points</th>
                   <th className="py-3 px-4 text-center whitespace-nowrap">Overall</th>
                   {selectedGroup && <th className="py-3 px-4 text-center whitespace-nowrap">Group Record</th>}
+                  <th className="py-3 px-4 text-center whitespace-nowrap">Matches</th>
                   <th className="py-3 px-4 text-center whitespace-nowrap">Match PT DIFF/AVG</th>
                   <th className="py-3 px-4 text-center whitespace-nowrap">GM PT DIFF/AVG</th>
                 </tr>

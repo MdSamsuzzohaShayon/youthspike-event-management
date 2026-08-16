@@ -31,6 +31,7 @@ import TabsNav from "../event/TabsNav";
 import { readDate } from "@/utils/datetime";
 import Link from "next/link";
 import EventWrapper from "../event/EventWrapper";
+import BadgeTable from "../badge/BadgeTable";
 
 interface ITeamsContainerProps {
   queryRef: QueryRef<{ searchTeams: ISearchTeamResponse }>;
@@ -307,6 +308,11 @@ export default function TeamsContainer({
                   No more teams to load
                 </div>
               )}
+
+              <div className="w-full mt-6">
+                <h4>Badges</h4>
+                <BadgeTable badges={badges} />
+              </div>
             </div>
           )}
         </div>

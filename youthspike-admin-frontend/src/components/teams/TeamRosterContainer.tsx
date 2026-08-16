@@ -120,7 +120,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
         </div>
 
         <div className="w-full mt-6">
-          <h2>Badges</h2>
+          <h4>Badges</h4>
           <BadgeTable badges={badges} />
         </div>
 

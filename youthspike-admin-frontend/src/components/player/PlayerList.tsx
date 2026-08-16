@@ -6,7 +6,7 @@ import './PlayerList.css';
 import useScreenWidth from '../../hooks/useScreenWidth';
 import PlayerCard from './PlayerCard';
 
-import { IPlayerExpRel, IPlayerRankingExpRel, IEvent, IOption, ITeam, IPlayerRank, IUpdatePlayerRankingRes, IPlayer, IGetTeamResponse, IUpdatePlayerResponse, IResponse, TUpdateTeam, TAddTeam, TUpdatePlayer, IBadge } from '@/types';
+import { IPlayerExpRel, IPlayerRankingExpRel, IEvent, IOption, ITeam, IPlayerRank, IUpdatePlayerRankingRes, IPlayer, IGetTeamResponse, IUpdatePlayerResponse, IResponse, TUpdateTeam, TAddTeam, TUpdatePlayer, IBadge, EBadgeFor } from '@/types';
 import Image from 'next/image';
 import { itemVariants } from '@/utils/animation';
 import { UPDATE_PLAYER_RANKING } from '@/graphql/player-ranking';
@@ -473,7 +473,11 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
 
 
 
+  // Memoization
   const badgeMap = useMemo(()=>createBadgeMap(badges), [badges]);
+  const playerBadges = useMemo(()=>{return badges.filter((badge)=> badge.badgeFor && badge.badgeFor === EBadgeFor.PLAYER)}, [badges]);
+  console.log({badges});
+  
 
 
   /** Derived State: Sorted Players */
@@ -523,7 +527,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
             onDelete={handleDelete}
             onUpdatePlayer={handleUpdatePlayer}
             badge={player.badge ? badgeMap.get(String(player.badge)) : null}
-            badges={badges}
+            badges={playerBadges}
           />
         </motion.li>
       ))}

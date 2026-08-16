@@ -109,7 +109,10 @@ const BadgeEditorForm: React.FC<BadgeEditorFormProps> = ({
             </div>
 
             <div className="flex flex-1 flex-col gap-1">
-                <SelectInput name="badgeFor" optionList={Object.values(EBadgeFor).map((bf, i)=> ({id: i+1, value: bf, text: bf.toLowerCase()}))} value={draftBadgeFor} handleSelect={(e)=> onDraftBadgeForChange((e.target as any).value) } />
+                <SelectInput name="badgeFor" label="Badge For"
+                    optionList={Object.values(EBadgeFor).map((bf, i) => ({ id: i + 1, value: bf, text: bf.toLowerCase() }))}
+                    value={draftBadgeFor}
+                    handleSelect={(e) => onDraftBadgeForChange((e.target as any).value)} />
             </div>
 
             {/* Image upload */}

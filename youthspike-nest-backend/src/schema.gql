@@ -1161,6 +1161,7 @@ type PlayerWithStatsResponse {
 type PlayersSearch {
   event: Event!
   players: [CustomPlayer!]!
+  badges: [CustomBadge!]!
   groups: [CustomGroup!]!
   teams: [CustomTeam!]!
   matches: [CustomMatch!]!

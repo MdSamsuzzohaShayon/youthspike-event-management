@@ -91,11 +91,22 @@ query SearchPlayerStats($eventId: String!, $filter: PlayerStatsSearchFilter) {
       players {
         _id
         email
+        badge
         firstName
         lastName
         username
         teams
         profile
+      }
+      badges{
+        _id
+        name
+        description
+        badgeFor
+        icon
+        event
+        teams
+        players
       }
       statsOfPlayer {
         playerId

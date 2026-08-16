@@ -71,7 +71,7 @@ class EventHelpers {
         updates: UpdateBadgeInput[],
     ) {
         const { name, icon, badgeFor, description } = badge;
-        if (!name || !icon || !description) {
+        if (!name || !icon || !description || !badgeFor) {
             if (badge._id) {
                 updates.push(badge);
             }
@@ -85,7 +85,7 @@ class EventHelpers {
             return;
         }
 
-        if (match.name === name && match.icon === icon) {
+        if (match.name === name && match.icon === icon && match.description === description && match.badgeFor === badgeFor) {
             return;
         }
 

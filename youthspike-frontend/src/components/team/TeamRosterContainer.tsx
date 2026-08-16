@@ -28,8 +28,8 @@ import { createBadgeMap } from '@/utils/badge/badge-helpers';
 
 import TeamNavigation from './TeamNavigation';
 import PlayerList from '../player/PlayerList';
-import BadgeTable from '../badge/BadgeTable';
 import { attachRanksAndSort, buildPlayerRankingWithRankings, buildRankByPlayerId, canUserChangeTeamRanking, clearPersistedTeamId, partitionPlayersByRankingAndStatus, persistCurrentTeamId } from '@/utils/team/roster-helpers';
+import BadgeTable from '../badge/BadgeTable';
 
 interface ITeamRosterContainerProps {
   queryRef: QueryRef<{ getTeamRoster: IGetTeamRosterResponse }>;
@@ -179,7 +179,7 @@ function TeamRosterContainer({ queryRef }: ITeamRosterContainerProps) {
       </div>
 
       <div className="w-full mt-6">
-        <h2>Badges</h2>
+        <h4>Badges</h4>
         <BadgeTable badges={badges ?? []} />
       </div>
     </div>

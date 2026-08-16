@@ -6,11 +6,7 @@ import { BADGE_IMAGE_SIZE } from '@/utils/constant';
 import BadgeIcon from '@/components/badge/BadgeIcon';
 import { IBadge } from '@/types';
 
-interface Badge {
-  _id: string;
-  name: string;
-  icon: string;
-}
+
 
 type BadgeSelectChangeEvent = React.ChangeEvent<
   HTMLInputElement | HTMLSelectElement
@@ -19,7 +15,7 @@ type BadgeSelectChangeEvent = React.ChangeEvent<
 interface IBadgeSelectProps {
   name: string;
   value?: string;
-  badges: Badge[];
+  badges: IBadge[];
   placeholder?: string;
   className?: string;
   onChange?: (e: BadgeSelectChangeEvent) => void;
@@ -144,8 +140,8 @@ export default function BadgeSelect({
                   {badge.name}
                 </span>
 
-                <span className="text-xs text-gray-500">
-                  Badge
+                <span className="text-xs text-yellow-logo">
+                  {badge.badgeFor}
                 </span>
               </div>
 
