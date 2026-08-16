@@ -206,6 +206,7 @@ const GET_PLAYER_EVENT_SETTINGS = gql`
         badges{
           _id
           name
+          badgeFor
           description
           icon
           event

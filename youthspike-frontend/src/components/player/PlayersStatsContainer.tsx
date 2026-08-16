@@ -17,6 +17,7 @@ import {
   ISearchPlayerStatsResponse,
   IFilterState,
   EMatchStatus,
+  IBadge,
 } from "@/types";
 import { SEARCH_PLAYER_STATS } from "@/graphql/player";
 import PlayerSearchList from "./PlayerSearchList";
@@ -25,6 +26,7 @@ import Link from "next/link";
 import TabsNav from "../event/TabsNav";
 import { readDate } from "@/utils/datetime";
 import EventWrapper from "../event/EventWrapper";
+import BadgeTable from "../badge/BadgeTable";
 
 interface IPlayersStatsContainerProps {
   queryRef: QueryRef<{ searchPlayerStats: ISearchPlayerStatsResponse }>;
@@ -64,6 +66,7 @@ function PlayersStatsContainer({
   >(new Map());
   const [teamMap, setTeamMap] = useState<Map<string, ITeam>>(new Map());
   const [groups, setGroups] = useState<IGroup[]>([]);
+  const [badges, setBadges] = useState<IBadge[]>([]);
   const [event, setEvent] = useState<IEvent | null>(null);
 
   // Filter and pagination states
@@ -115,6 +118,7 @@ function PlayersStatsContainer({
       setPlayerStatsMap(statsMap);
       setTeamMap(teamsMap);
       setGroups(searchData.groups || []);
+      setBadges(searchData.badges || []);
       setServerData(searchData);
       setEvent(searchData.event || null);
 
@@ -269,7 +273,7 @@ function PlayersStatsContainer({
     // }
 
     window.location.assign(window.location.pathname);
-    
+
   };
 
   // Filter players based on applied filters (client-side for search)
@@ -384,6 +388,7 @@ function PlayersStatsContainer({
           {!isApplyingFilters && (
             <div className="w-full player-standings">
               <PlayerSearchList
+                badges={badges}
                 playerList={displayedPlayers}
                 matchList={serverData?.matches || []}
                 playerStatsMap={playerStatsMap}
@@ -425,6 +430,11 @@ function PlayersStatsContainer({
               No more players to load.
             </div>
           )}
+
+          <div className="w-full mt-6">
+            <h4>Badges</h4>
+            <BadgeTable badges={badges} />
+          </div>
         </div>
       </div>
 

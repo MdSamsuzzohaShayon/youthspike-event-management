@@ -97,6 +97,7 @@ const BadgeCard = ({ badge, index }: { badge: IBadge; index: number }) => {
                     {badge.description}
                 </div>
             </div>
+            {badge.badgeFor  && <div className="text-yellow-logo line-clamdiv-1 text-[7px] leading-none text-gray-400">{badge.badgeFor}</div>}
             
             {/* Visual indicator */}
             <div className="flex shrink-0 items-center">

@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
+  EBadgeFor,
   EPlayerStatType,
+  IBadge,
   IMatch,
   IMatchExpRel,
   IPlayer,
@@ -13,8 +15,10 @@ import { useAppSelector } from "@/redux/hooks";
 import PlayerRow from "./PlayerRow";
 import SortableHeader from "../elements/SortableHeader";
 import { aggregatePlayerStats } from "@/utils/helper";
+import { createBadgeMap } from "@/utils/badge/badge-helpers";
 
 interface IPlayerSearchListProps {
+  badges: IBadge[],
   playerList: IPlayer[];
   matchList: IMatch[];
   playerStatsMap: Map<string, IPlayerStats[]>;
@@ -25,6 +29,7 @@ interface IPlayerSearchListProps {
 
 
 function PlayerSearchList({
+  badges,
   playerList,
   matchList,
   teamRank,
@@ -58,6 +63,10 @@ function PlayerSearchList({
       record.firstName !== undefined
     );
   }, [playerList, matchList, rankingMap, teamMap]);
+
+  const badgeMap = useMemo(() => createBadgeMap(badges), [badges]);
+  
+  const playerBadges = useMemo(()=>{return badges.filter((badge)=> badge.badgeFor && badge.badgeFor === EBadgeFor.PLAYER)}, [badges]);
 
   // Memoize sorted players with additional safety checks
   const sortedPlayers = useMemo(() => {
@@ -252,6 +261,7 @@ function PlayerSearchList({
                   <PlayerRow
                     key={player?._id + index}
                     index={index}
+                    badge={player?.badge ? badgeMap.get(String(player.badge)) : null}
                     player={player}
                     teamRank={showRank}
                     playerStats={playerStatsMap.get(player?._id) || []}

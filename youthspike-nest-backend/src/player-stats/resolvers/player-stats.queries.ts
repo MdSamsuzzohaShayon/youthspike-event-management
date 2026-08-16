@@ -13,7 +13,7 @@ import { Team } from 'src/team/team.schema';
 import { Match } from 'src/match/match.schema';
 import { Net } from 'src/net/net.schema';
 import { Round } from 'src/round/round.schema';
-import { CustomPlayerStats, PlayerWithStatsResponse } from './player-stats.response';
+import { CustomPlayerStats, PlayersStatsSearchResponse, PlayerWithStatsResponse } from './player-stats.response';
 import { Player } from 'src/player/player.schema';
 import { playerKey, tokenToUser } from 'src/utils/helper';
 import { QueryFilter, QueryOptions } from 'mongoose';
@@ -321,12 +321,13 @@ export class PlayerStatsQueries {
     }
   }
 
-  async searchPlayerStats(context: any, eventId: string, filter: PlayerStatsSearchFilter) {
+  async searchPlayerStats(context: any, eventId: string, filter: PlayerStatsSearchFilter): Promise<PlayersStatsSearchResponse> {
     try {
       const playerQuery: QueryFilter<Player> = {};
       const teamQuery: QueryFilter<Team> = { events: eventId };
       const groupQuery: QueryFilter<Group> = { event: eventId };
       const matchQuery: QueryFilter<Match> = { event: eventId };
+      const badgeQuery: QueryFilter<Badge> = { event: eventId };
 
       // Return any one of them between player and event
       const secret = this.configService.get<string>('JWT_SECRET');
@@ -386,11 +387,12 @@ export class PlayerStatsQueries {
         matchQuery.group = { $ne: null };
       }
 
-      const [event, groups, teams, matches] = await Promise.all([
+      const [event, groups, teams, matches, badges] = await Promise.all([
         this.eventService.findOne({ _id: eventId }),
         this.groupService.find(groupQuery),
         this.teamService.find(teamQuery),
         this.matchesService.find(matchQuery),
+        this.badgeService.find(badgeQuery)
       ]);
 
 
@@ -444,11 +446,12 @@ export class PlayerStatsQueries {
         success: true,
         message: 'List of players!',
         data: {
-          players,
-          groups,
+          players: players as CustomPlayer[],
+          groups: groups as CustomGroup[],
           event,
-          teams,
-          matches,
+          teams: teams as CustomTeam[],
+          matches: matches as CustomMatch[],
+          badges: badges as CustomBadge[],
           statsOfPlayer: Object.entries(statsOfPlayer).map(([playerId, stats]) => ({
             playerId,
             stats,

@@ -220,6 +220,7 @@ query SearchPlayers($eventId: String!, $filter: PlayerSearchFilter!) {
         _id
         name
         description
+        badgeFor
         icon
         event
         teams

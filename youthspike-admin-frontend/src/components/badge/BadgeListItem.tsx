@@ -32,7 +32,7 @@ const BadgeListItem: React.FC<BadgeListItemProps> = React.memo(
             <span className="text-sm text-gray-200 max-w-[10rem] truncate font-bold text-yellow-logo">
                 {badge.badgeFor}
             </span>
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <div className="flex items-center gap-1">
                 <button
                     type="button"
                     onClick={onEdit}

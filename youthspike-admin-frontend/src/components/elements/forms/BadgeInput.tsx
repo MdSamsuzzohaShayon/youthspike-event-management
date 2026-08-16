@@ -102,6 +102,7 @@ export default function BadgeInput({
   }, [
     normalizedDraftName,
     draftDescription,
+    draftBadgeFor,
     draftIcon,
     existingLowerCaseNames,
     isEditing,

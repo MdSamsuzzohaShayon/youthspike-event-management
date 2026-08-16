@@ -6,7 +6,7 @@ import BadgeIcon from './BadgeIcon';
 
 interface LogoWithBadgeProps {
     logo?: string | null;
-    teamName: string;
+    name: string;
     badge?: IBadge | null;
 
     /**
@@ -26,7 +26,7 @@ interface LogoWithBadgeProps {
 
 export default function LogoWithBadge({
     logo,
-    teamName,
+    name,
     badge,
     size = 'w-14 h-14',
     badgeSize = 'w-6 h-6',
@@ -42,7 +42,7 @@ export default function LogoWithBadge({
                 {logo ? (
                     <CldImage
                         src={logo}
-                        alt={teamName}
+                        alt={name}
                         width={200}
                         height={200}
                         crop="fit"
@@ -50,7 +50,7 @@ export default function LogoWithBadge({
                     />
                 ) : (
                     <TextImg
-                        fullText={teamName}
+                        fullText={name}
                         className="w-full h-full"
                     />
                 )}

@@ -3,6 +3,7 @@ import Image from "next/image";
 import {
   EGroupType,
   EStatsFilter,
+  IBadge,
   IPlayerRecord,
   IPlayerStats,
   IServerReceiverSinglePlay,
@@ -12,6 +13,7 @@ import Link from "next/link";
 import { CldImage } from "next-cloudinary";
 import { aggregatePlayerStats } from "@/utils/helper";
 import TextImg from "../elements/TextImg";
+import LogoWithBadge from "../badge/LogoWithBadge";
 
 interface IPlayerRowProps {
   player: IPlayerRecord;
@@ -19,6 +21,7 @@ interface IPlayerRowProps {
   playerStats: IPlayerStats[];
   teamRank?: boolean;
   team?: ITeam | null;
+  badge?: IBadge | null;
 }
 
 function PlayerRow({
@@ -27,7 +30,9 @@ function PlayerRow({
   playerStats,
   teamRank,
   team,
+  badge
 }: IPlayerRowProps) {
+  
   // Aggregate the stats - simple sum of all numeric fields
   const aggregatedStats = aggregatePlayerStats(playerStats);
   return (
@@ -46,7 +51,7 @@ function PlayerRow({
                 href={`/players/${player?._id || ""}/?${EStatsFilter.CONFERENCE}=${EGroupType.CONFERENCE}`}
                 className="flex flex-col sm:flex-row sm:items-center"
               >
-                <div className="relative w-12 h-12 flex-shrink-0 mx-auto sm:mx-0">
+                {/* <div className="relative w-12 h-12 flex-shrink-0 mx-auto sm:mx-0">
                   {player.profile ? (
                     <CldImage
                       alt={player.firstName}
@@ -62,7 +67,18 @@ function PlayerRow({
                       className="w-12 h-12 rounded-lg"
                     />
                   )}
+                </div> */}
+
+                <div className="relative flex-shrink-0 mx-auto sm:mx-0">
+                  <LogoWithBadge
+                    logo={player.profile}
+                    name={player.firstName + ' ' + player.lastName}
+                    badge={badge}
+                    size="w-12 h-12"
+                    badgeSize="w-4 h-4"
+                  />
                 </div>
+
                 <div className="ml-0 sm:ml-2 min-w-0 text-center sm:text-left mt-1 sm:mt-0">
                   <div className="text-xs font-medium transition-colors break-words capitalize">
                     <span className="block sm:inline">{player.firstName}</span>
@@ -116,10 +132,10 @@ function PlayerRow({
         <span className="font-bold text-xl">
           {aggregatedStats.serveOpportunity > 0
             ? (
-                (aggregatedStats.serveCompletionCount /
-                  aggregatedStats.serveOpportunity) *
-                100
-              ).toFixed(1)
+              (aggregatedStats.serveCompletionCount /
+                aggregatedStats.serveOpportunity) *
+              100
+            ).toFixed(1)
             : 0}
           %
         </span>
@@ -141,9 +157,9 @@ function PlayerRow({
         <span className="font-bold text-xl">
           {aggregatedStats.serveAce > 0
             ? (
-                (aggregatedStats.serveAce / aggregatedStats.serveOpportunity) *
-                100
-              ).toFixed(1)
+              (aggregatedStats.serveAce / aggregatedStats.serveOpportunity) *
+              100
+            ).toFixed(1)
             : 0}
           %
         </span>
@@ -158,10 +174,10 @@ function PlayerRow({
           <span className="font-bold text-xl">
             {aggregatedStats.receiverOpportunity > 0
               ? (
-                  (aggregatedStats.receivedCount /
-                    aggregatedStats.receiverOpportunity) *
-                  100
-                ).toFixed(1)
+                (aggregatedStats.receivedCount /
+                  aggregatedStats.receiverOpportunity) *
+                100
+              ).toFixed(1)
               : 0}
             %
           </span>
@@ -175,10 +191,10 @@ function PlayerRow({
           <span className="font-bold text-xl">
             {aggregatedStats.cleanHits > 0
               ? (
-                  (aggregatedStats.cleanHits /
-                    aggregatedStats.hittingOpportunity) *
-                  100
-                ).toFixed(1)
+                (aggregatedStats.cleanHits /
+                  aggregatedStats.hittingOpportunity) *
+                100
+              ).toFixed(1)
               : 0}
             %
           </span>
@@ -193,10 +209,10 @@ function PlayerRow({
           <span className="font-bold text-xl">
             {aggregatedStats.settingOpportunity > 0
               ? (
-                  (aggregatedStats.cleanSets /
-                    aggregatedStats.settingOpportunity) *
-                  100
-                ).toFixed(1)
+                (aggregatedStats.cleanSets /
+                  aggregatedStats.settingOpportunity) *
+                100
+              ).toFixed(1)
               : 0}
             %
           </span>
@@ -211,10 +227,10 @@ function PlayerRow({
           <span className="font-bold text-xl">
             {aggregatedStats.defensiveOpportunity > 0
               ? (
-                  (aggregatedStats.defensiveConversion /
-                    aggregatedStats.defensiveOpportunity) *
-                  100
-                ).toFixed(1)
+                (aggregatedStats.defensiveConversion /
+                  aggregatedStats.defensiveOpportunity) *
+                100
+              ).toFixed(1)
               : 0}
             %
           </span>

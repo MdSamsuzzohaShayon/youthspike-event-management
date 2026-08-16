@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { IBadge, IEmailcontent, IEvent, IGetTeamResponse, IGroup, IGroupRelatives, IOption, IPlayer, IPlayerExpRel, IResponse, ITeam, TUpdateTeam } from '@/types';
+import { EBadgeFor, IBadge, IEmailcontent, IEvent, IGetTeamResponse, IGroup, IGroupRelatives, IOption, IPlayer, IPlayerExpRel, IResponse, ITeam, TUpdateTeam } from '@/types';
 import TeamCard from './TeamCard';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
@@ -415,6 +415,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
   }, [selectedGroupIdFilter, groupList]);
 
   const badgeMap = useMemo(() => createBadgeMap(badges), [badges]);
+  const teamBadges = useMemo(()=> {return badges.filter((badge)=> badge.badgeFor && badge.badgeFor === EBadgeFor.TEAM)}, [badges]);
 
   const emailcontentsMapByTeam = useMemo(() => {
     const map = new Map<string, IEmailcontent[]>();
@@ -509,7 +510,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
             isChecked={checkedTeamsMap.get(team._id) ?? false}
             emailcontents={emailcontentsMapByTeam.get(team._id)}
             badge={team.badge ? badgeMap.get(String(team.badge)) : null}
-            badges={badges}
+            badges={teamBadges}
             onSendCredential={handleSendSingleTeamCredential}
             onUpdateTeam={handleUpdateTeam}
             onMoveTeamOpen={handleOpenMoveTeamDialog}

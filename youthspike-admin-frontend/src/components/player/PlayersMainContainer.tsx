@@ -328,7 +328,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
 
 
       <div className="w-full mt-6">
-        <h2>Badges</h2>
+        <h4>Badges</h4>
         <BadgeTable badges={badges} />
       </div>
     </div>

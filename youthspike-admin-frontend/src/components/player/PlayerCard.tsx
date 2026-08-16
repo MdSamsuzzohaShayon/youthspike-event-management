@@ -373,7 +373,7 @@ export default function PlayerCard({ player, isChecked, onSelect, teams, teamLis
         <div className="flex items-center gap-4 w-full">
           {PlayerImage}
           {PlayerInfo}
-          {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
+          {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && badges.length > 0 && (
             <BadgeSelect
               name="badge"
               className='w-48'
