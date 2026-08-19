@@ -62,8 +62,8 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
                     logo={team.logo}
                     name={team.name}
                     badge={badge}
-                    size="w-12 h-12"
-                    badgeSize="w-4 h-4"
+                    size="w-16 h-16"
+                    badgeSize="w-8 h-8"
                   />
                 </div>
                 <div className="ml-0 sm:ml-2 min-w-0 text-center sm:text-left mt-1 sm:mt-0">
@@ -72,15 +72,6 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
                   </div>
                 </div>
               </Link>
-
-              {/* Badge info - Always below */}
-              {badge && (
-                <div className="mt-1 flex flex-col items-center sm:items-start">
-                  <span className="text-yellow-logo text-[6px] uppercase hover:underline truncate max-w-full">
-                    {badge.name}
-                  </span>
-                </div>
-              )}
             </div>
           </div>
         </div>

@@ -337,6 +337,7 @@ const GET_EVENT_WITH_GROUPS_AND_UNASSIGNED_PLAYERS = gql`
           event
           teams
           players
+          badgeFor
       }
       }
     }

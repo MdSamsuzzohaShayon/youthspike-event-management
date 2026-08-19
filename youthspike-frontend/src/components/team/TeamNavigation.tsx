@@ -79,8 +79,7 @@ const TeamNavigation = ({ team, events, ldoIdUrl, totalPlayers, badge }: ITeamNa
               <div className="relative flex-shrink-0">
                 <div className="absolute inset-0 bg-gradient-to-r from-yellow-500 to-yellow-400 rounded-2xl blur-xl opacity-20 animate-pulse" />
                 <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/30 via-yellow-400/20 to-transparent rounded-2xl rotate-45 animate-spin-slow" />
-                {/* <TeamLogo team={team} /> */}
-                <LogoWithBadge teamName={team.name} badge={badge} logo={team.logo} size='w-18'  />
+                <LogoWithBadge name={team.name} badge={badge} logo={team.logo} size='w-18'  />
               </div>
               
               <div className="min-w-0 flex-1">
@@ -125,7 +124,7 @@ const TeamNavigation = ({ team, events, ldoIdUrl, totalPlayers, badge }: ITeamNa
               <div className="h-12 w-px bg-gradient-to-b from-transparent via-gray-700 to-transparent hidden lg:block absolute left-0" />
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-yellow-400" />
+                  <Trophy className="w-4 h-4 text-yellow-logo" />
                   <h4 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                     {selectedEvent ? 'Current Event' : 'Participating Events'}
                   </h4>
@@ -134,7 +133,7 @@ const TeamNavigation = ({ team, events, ldoIdUrl, totalPlayers, badge }: ITeamNa
                 {selectedEvent ? (
                   <Link
                     href={`/${selectedEvent._id}/${ldoIdUrl}`}
-                    className="group inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-yellow-400 text-black rounded-xl text-sm font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-yellow-500/30 hover:scale-105 active:scale-95"
+                    className="group inline-flex items-center gap-2 px-4 py-2 bg-yellow-logo text-black rounded-xl text-sm font-semibold transition-all duration-300 hover:shadow-lg hover:shadow-yellow-500/30 hover:scale-105 active:scale-95"
                   >
                     <span className="relative">
                       {selectedEvent.name}
@@ -232,31 +231,6 @@ const TeamNavigation = ({ team, events, ldoIdUrl, totalPlayers, badge }: ITeamNa
   );
 };
 
-// Team Logo Component
-const TeamLogo = ({ team }: { team: ITeam }) => (
-  team?.logo ? (
-    <div className="relative w-16 h-16 md:w-20 md:h-20">
-      <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/40 to-yellow-600/10 rounded-2xl blur-lg animate-pulse" />
-      <CldImage
-        alt={team.name}
-        width={80}
-        height={80}
-        src={team.logo}
-        className="relative w-full h-full rounded-2xl border-2 border-yellow-500/30 object-cover object-center shadow-2xl transition-all duration-500 hover:border-yellow-400/60 hover:shadow-yellow-500/20 hover:scale-105"
-        crop="fit"
-      />
-    </div>
-  ) : (
-    <div className="relative w-16 h-16 md:w-20 md:h-20">
-      <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/40 to-yellow-600/10 rounded-2xl blur-lg animate-pulse" />
-      <TextImg
-        className="relative w-full h-full rounded-2xl border-2 border-yellow-500/30 shadow-2xl transition-all duration-500 hover:border-yellow-400/60 hover:shadow-yellow-500/20 hover:scale-105"
-        fullText={team?.name || ''}
-        txtCls="text-lg md:text-xl font-bold"
-      />
-    </div>
-  )
-);
 
 // Enhanced Stat Card Component
 const StatCard = ({ 

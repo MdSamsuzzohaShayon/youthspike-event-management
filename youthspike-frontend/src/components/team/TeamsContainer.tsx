@@ -22,6 +22,7 @@ import {
   IEvent,
   IBadge,
   IFilterState,
+  EBadgeFor,
 } from "@/types";
 import FilterContent from "../event/FilterContent";
 import { SEARCH_TEAMS } from "@/graphql/team";
@@ -32,6 +33,7 @@ import { readDate } from "@/utils/datetime";
 import Link from "next/link";
 import EventWrapper from "../event/EventWrapper";
 import BadgeTable from "../badge/BadgeTable";
+import EventHeader from "../event/EventHeader";
 
 interface ITeamsContainerProps {
   queryRef: QueryRef<{ searchTeams: ISearchTeamResponse }>;
@@ -213,6 +215,10 @@ export default function TeamsContainer({
     }
   }, [teams.length, appliedFilter, executeSearchQuery]);
 
+  const teamBadges = useMemo(()=>{
+    return badges.filter((badge)=> badge.badgeFor === EBadgeFor.TEAM)
+  }, [badges]);
+
   // Initialize with preloaded data
   useEffect(() => {
     if (isInitial.current && initialData) {
@@ -237,11 +243,8 @@ export default function TeamsContainer({
   return (
     <div className="animate-fade-in">
 
-      {/* Event Wrapper Start  */}
-      {event && <EventWrapper event={event} />}
-
-      {/* Tabs Navigation (Client Component) */}
-      {event && <TabsNav eventId={event?._id || ""} />}
+       {/* Event Wrapper Start  */}
+       {event && <EventHeader event={event}  eventId={event._id} />}
 
       {/* Page Content */}
       <div className="flex flex-col lg:flex-row gap-4 md:gap-6 md:mt-6">
@@ -311,7 +314,7 @@ export default function TeamsContainer({
 
               <div className="w-full mt-6">
                 <h4>Badges</h4>
-                <BadgeTable badges={badges} />
+                <BadgeTable badges={teamBadges} />
               </div>
             </div>
           )}

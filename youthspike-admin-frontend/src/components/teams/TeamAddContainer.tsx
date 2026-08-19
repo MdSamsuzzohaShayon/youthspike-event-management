@@ -9,7 +9,6 @@ import {
   IPlayer,
 } from '@/types';
 
-import SelectInput from '../elements/forms/SelectInput';
 import TeamAdd from './TeamAdd';
 
 import SessionStorageService from '@/utils/SessionStorageService';

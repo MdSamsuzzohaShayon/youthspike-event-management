@@ -17,6 +17,7 @@ import {
   UserRole,
   IPlayerRankingItem,
   IPlayerRankingItemExpRel,
+  EBadgeFor,
 } from '@/types';
 
 import { useLdoId } from '@/lib/LdoProvider';
@@ -74,7 +75,15 @@ function RosterSection({
           </span>
         )}
       </div>
-      <PlayerList players={players} events={events} badgeMap={badgeMap} />
+      <div className="w-full md:grid md:gap-4">
+        {players.length > 0 ? (
+          <PlayerList players={players} events={events} badgeMap={badgeMap} />
+        ) : (
+          <div className="text-center py-8 text-gray-400">
+            No players found teaming your criteria.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -122,6 +131,10 @@ function TeamRosterContainer({ queryRef }: ITeamRosterContainerProps) {
 
   const canRank = useMemo(() => canUserChangeTeamRanking(user, team), [user, team]);
 
+  const teamBadges = useMemo(()=>{
+    return badges.filter((badge)=> badge.badgeFor === EBadgeFor.TEAM)
+  }, [badges]);
+
   const teamEvents = useMemo(
     () => (events ?? []).filter((event) => (event?.teams || []).includes(team._id)),
     [events, team._id],
@@ -145,7 +158,7 @@ function TeamRosterContainer({ queryRef }: ITeamRosterContainerProps) {
       />
 
       <div className="relative z-10">
-        <div className="animate-fadeInUp space-y-3">
+        <div className="w-full flex flex-col gap-y-6">
           <RosterSection
             title="Team Roster"
             subtitle={`${activePlayers.length} active players`}
@@ -180,7 +193,7 @@ function TeamRosterContainer({ queryRef }: ITeamRosterContainerProps) {
 
       <div className="w-full mt-6">
         <h4>Badges</h4>
-        <BadgeTable badges={badges ?? []} />
+        <BadgeTable badges={teamBadges ?? []} />
       </div>
     </div>
   );

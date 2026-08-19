@@ -1,5 +1,5 @@
 import React, { useState, useRef, useMemo, useEffect } from 'react';
-import { IOption, IPlayer, IGroup, ITeam, IGetTeamResponse, IEvent, TAddTeam, IBadge, UserRole } from '@/types';
+import { IOption, IPlayer, IGroup, ITeam, IGetTeamResponse, IEvent, TAddTeam, IBadge, UserRole, EBadgeFor } from '@/types';
 import { ADD_A_TEAM, UPDATE_TEAM } from '@/graphql/teams';
 import SelectInput from '../elements/forms/SelectInput';
 import { useLdoId } from '@/lib/LdoProvider';
@@ -89,7 +89,7 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
         uploadedLogo,
         apolloClient,
         mutateTeam,
-        events: events.map((e) => e._id),
+        events: (teamState?.events || []),
       });
       const formEl = e.target as HTMLFormElement;
       formEl.reset();
@@ -108,7 +108,7 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
         uploadedLogo,
         addTeam,
         apolloClient,
-        events: events.map((e) => e._id)
+        events: (teamState?.events || [])
       });
     }
 
@@ -221,6 +221,10 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
     }
   }, [prevTeam]);
 
+  const teamBadges = useMemo(()=>{
+    return badgeList.filter((badge)=> badge?.badgeFor === EBadgeFor.TEAM);
+  }, [badgeList]);
+
 
 
   useEffect(() => {
@@ -282,7 +286,7 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
             name="badge"
             className=''
             value={teamState.badge as string}
-            badges={badgeList || []}
+            badges={teamBadges || []}
             onChange={handleInputChange}
           />
         )}

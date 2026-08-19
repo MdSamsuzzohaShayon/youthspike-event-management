@@ -23,6 +23,7 @@ import Link from "next/link";
 import { readDate } from "@/utils/datetime";
 import TabsNav from "../event/TabsNav";
 import EventWrapper from "../event/EventWrapper";
+import EventHeader from "../event/EventHeader";
 
 interface MatchesContainerProps {
   queryRef: QueryRef<{ searchMatches: ISearchMatchResponse }>;
@@ -315,11 +316,8 @@ export default function MatchesContainer({
   return (
     <div className="animate-fade-in">
 
-      {/* Event Wrapper Start  */}
-      {event && <EventWrapper event={event} />}
-
-      {/* Tabs Navigation (Client Component) */}
-      {event && <TabsNav eventId={event?._id || ""} />}
+       {/* Event Wrapper Start  */}
+       {event && <EventHeader event={event}  eventId={event._id} />}
 
       {/* Page Content */}
       <div className="flex flex-col gap-4 md:gap-6 md:mt-6">

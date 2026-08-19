@@ -18,6 +18,7 @@ import {
   IFilterState,
   EMatchStatus,
   IBadge,
+  EBadgeFor,
 } from "@/types";
 import { SEARCH_PLAYER_STATS } from "@/graphql/player";
 import PlayerSearchList from "./PlayerSearchList";
@@ -27,6 +28,7 @@ import TabsNav from "../event/TabsNav";
 import { readDate } from "@/utils/datetime";
 import EventWrapper from "../event/EventWrapper";
 import BadgeTable from "../badge/BadgeTable";
+import EventHeader from "../event/EventHeader";
 
 interface IPlayersStatsContainerProps {
   queryRef: QueryRef<{ searchPlayerStats: ISearchPlayerStatsResponse }>;
@@ -321,20 +323,9 @@ function PlayersStatsContainer({
     [appliedFilter]
   );
 
-  const hasUnsavedChanges = useMemo(
-    () =>
-      JSON.stringify({
-        search: localFilter.search,
-        division: localFilter.division,
-        group: localFilter.group,
-      }) !==
-      JSON.stringify({
-        search: appliedFilter.search,
-        division: appliedFilter.division,
-        group: appliedFilter.group,
-      }),
-    [localFilter, appliedFilter]
-  );
+  const playerBadges = useMemo(()=>{
+    return badges.filter((badge)=> badge.badgeFor === EBadgeFor.PLAYER)
+  }, [badges]);
 
   const displayedPlayers = useMemo(
     () =>
@@ -352,10 +343,7 @@ function PlayersStatsContainer({
   return (
     <div className="animate-fade-in">
       {/* Event Wrapper Start  */}
-      {event && <EventWrapper event={event} />}
-
-      {/* Tabs Navigation (Client Component) */}
-      {event && <TabsNav eventId={event?._id || ""} />}
+      {event && <EventHeader event={event}  eventId={event._id} />}
 
       {/* Page Content */}
       <div className="flex flex-col lg:flex-row gap-4 md:gap-6 md:mt-6">
@@ -433,7 +421,7 @@ function PlayersStatsContainer({
 
           <div className="w-full mt-6">
             <h4>Badges</h4>
-            <BadgeTable badges={badges} />
+            <BadgeTable badges={playerBadges} />
           </div>
         </div>
       </div>
