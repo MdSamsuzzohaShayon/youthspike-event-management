@@ -235,6 +235,7 @@ query GetTeamRoster($teamId: String!) {
         _id
         name
         icon
+        badgeFor
         event
         teams
         players
@@ -319,6 +320,7 @@ query SearchTeams($eventIds: [String!], $filter: TeamSearchFilter) {
       badges{
         _id
         name
+        badgeFor
         icon
         event
         teams

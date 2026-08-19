@@ -51,31 +51,14 @@ function PlayerRow({
                 href={`/players/${player?._id || ""}/?${EStatsFilter.CONFERENCE}=${EGroupType.CONFERENCE}`}
                 className="flex flex-col sm:flex-row sm:items-center"
               >
-                {/* <div className="relative w-12 h-12 flex-shrink-0 mx-auto sm:mx-0">
-                  {player.profile ? (
-                    <CldImage
-                      alt={player.firstName}
-                      width="32"
-                      height="32"
-                      className="w-12 h-12 rounded-lg object-cover"
-                      crop="fit"
-                      src={player.profile}
-                    />
-                  ) : (
-                    <TextImg
-                      fullText={player.firstName + player.lastName}
-                      className="w-12 h-12 rounded-lg"
-                    />
-                  )}
-                </div> */}
 
                 <div className="relative flex-shrink-0 mx-auto sm:mx-0">
                   <LogoWithBadge
                     logo={player.profile}
                     name={player.firstName + ' ' + player.lastName}
                     badge={badge}
-                    size="w-12 h-12"
-                    badgeSize="w-4 h-4"
+                    size="w-16 h-16"
+                    badgeSize="w-8 h-8"
                   />
                 </div>
 

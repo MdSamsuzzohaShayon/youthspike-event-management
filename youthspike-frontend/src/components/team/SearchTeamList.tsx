@@ -58,11 +58,8 @@ function TeamStandings({
       <div className="overflow-x-auto w-full">
         <div className="min-w-[1000px] w-full">
           <div className="relative w-full">
-            <motion.table
+            <table
               className="w-full text-left text-sm text-gray-300 bg-gray-900"
-              variants={tableVariant}
-              initial="hidden"
-              animate="visible"
             >
               <thead>
                 <tr className="bg-yellow-logo text-black font-semibold">
@@ -89,7 +86,7 @@ function TeamStandings({
                   />
                 ))}
               </tbody>
-            </motion.table>
+            </table>
           </div>
         </div>
       </div>
