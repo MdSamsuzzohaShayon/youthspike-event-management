@@ -1,52 +1,30 @@
-const badges = db.badges.find().toArray();
+const eventId = ObjectId("6a3c355236b002d89afc4a49");
 
-print(`Found ${badges.length} badges.\n`);
+const team = db.teams.findOne(
+  { name: "Idaho Falls Freeze Minor B" },
+  { _id: 1 }
+);
 
-let teamBadgeCount = 0;
-let playerBadgeCount = 0;
-let updatedCount = 0;
+if (!team) {
+  throw new Error("Team not found: Idaho Falls Freeze Minor B");
+}
 
-badges.forEach((badge, index) => {
-  const teamCount = Array.isArray(badge.teams) ? badge.teams.length : 0;
-
-  const badgeFor = teamCount > 1 ? "TEAM" : "PLAYER";
-
-  print(
-    `[${index + 1}/${badges.length}] ` +
-    `Badge: "${badge.name || "Unnamed"}" | ` +
-    `Teams: ${teamCount} | ` +
-    `badgeFor: ${badgeFor}`
-  );
-
-  const result = db.badges.updateOne(
-    { _id: badge._id },
-    {
-      $set: {
-        badgeFor: badgeFor,
-      },
+// Add event to the team
+db.teams.updateOne(
+  { _id: team._id },
+  {
+    $addToSet: {
+      events: eventId
     }
-  );
-
-  if (result.modifiedCount === 1) {
-    updatedCount++;
-
-    print(`  ✓ Updated successfully`);
-  } else {
-    print(`  - No change needed`);
   }
+);
 
-  if (badgeFor === "TEAM") {
-    teamBadgeCount++;
-  } else {
-    playerBadgeCount++;
+// Add team to the event
+db.events.updateOne(
+  { _id: eventId },
+  {
+    $addToSet: {
+      teams: team._id
+    }
   }
-});
-
-print("\n========================================");
-print("Badge Migration Completed");
-print("========================================");
-print(`Total badges:        ${badges.length}`);
-print(`TEAM badges:         ${teamBadgeCount}`);
-print(`PLAYER badges:       ${playerBadgeCount}`);
-print(`Documents updated:   ${updatedCount}`);
-print("========================================");
+);

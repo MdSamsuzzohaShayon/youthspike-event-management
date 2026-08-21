@@ -324,7 +324,9 @@ export class PlayerStatsQueries {
   async searchPlayerStats(context: any, eventId: string, filter: PlayerStatsSearchFilter): Promise<PlayersStatsSearchResponse> {
     try {
       const playerQuery: QueryFilter<Player> = {};
-      const teamQuery: QueryFilter<Team> = { events: eventId };
+      const teamQuery: QueryFilter<Team> = { 
+        events: eventId 
+      };
       const groupQuery: QueryFilter<Group> = { event: eventId };
       const matchQuery: QueryFilter<Match> = { event: eventId };
       const badgeQuery: QueryFilter<Badge> = { event: eventId };
@@ -396,6 +398,8 @@ export class PlayerStatsQueries {
       ]);
 
 
+
+
       if (!event) return AppResponse.notFound('Event');
 
       // const matchIds = new Set(matches.map((m) => String(m._id)));
@@ -449,7 +453,7 @@ export class PlayerStatsQueries {
           players: players as CustomPlayer[],
           groups: groups as CustomGroup[],
           event,
-          teams: teams as CustomTeam[],
+          teams: teams.map((t)=> ({...t, groups: t.groups.filter((g)=> g && g !== '')})) as CustomTeam[],
           matches: matches as CustomMatch[],
           badges: badges as CustomBadge[],
           statsOfPlayer: Object.entries(statsOfPlayer).map(([playerId, stats]) => ({

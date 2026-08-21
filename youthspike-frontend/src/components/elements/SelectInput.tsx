@@ -9,6 +9,7 @@ function SelectInput({
   defaultValue, 
   value, 
   handleSelect,
+  disabled=false,
   compact = false 
 }: ISelectInputProps) {
   if (compact) {
@@ -18,7 +19,8 @@ function SelectInput({
           {label || name}
         </label>
         <select
-          onChange={handleSelect}
+          disabled={disabled}
+          onChange={disabled ? ()=> console.warn("It is disabled now") : handleSelect}
           name={name}
           id={name}
           className="text-sm p-2 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-yellow-400"
@@ -44,7 +46,8 @@ function SelectInput({
         {label || name}
       </label>
       <select
-        onChange={handleSelect}
+        disabled={disabled}
+        onChange={disabled ? ()=> console.warn("It is disabled now") : handleSelect}
         name={name}
         id={name}
         className="p-2 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-yellow-400 text-sm"

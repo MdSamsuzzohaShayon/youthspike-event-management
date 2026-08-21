@@ -72,6 +72,7 @@ export interface InputFieldProps extends IInputCommon {
 export interface ISelectInputProps extends IInputCommon {
   optionList: IOption[];
   handleSelect: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  disabled?: boolean;
   compact?: boolean;
 }
 
