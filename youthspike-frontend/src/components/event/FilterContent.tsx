@@ -56,31 +56,32 @@ function FilterContent({
   }, [groups, filter.division]);
 
   const handleDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (!loading ) {
-      onApplyFilters({ group: '', search: filter?.search || '', status: filter?.status || '', division: e.target.value });
-      updateFilter("division", e.target.value);
-      updateFilter("group", '');
-    } else {
-      dispatch(setMessage({ message: 'A request is already in progress. Please wait a moment and try again.', name: 'Error', type: EMessage.ERROR }));
+    if(loading){
+      console.error('A request is already in progress. Please wait a moment and try again.');
+      return;
     }
+    onApplyFilters({ group: '', search: filter?.search || '', status: filter?.status || '', division: e.target.value });
+    updateFilter("division", e.target.value);
+    updateFilter("group", '');
   };
 
   const handleGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (!loading ) {
-      onApplyFilters({ division: filter?.division || '', search: filter?.search || '', status: filter?.status || '', group: e.target.value });
-      updateFilter("group", e.target.value);
-    } else {
-      dispatch(setMessage({ message: 'A request is already in progress. Please wait a moment and try again.', name: 'Error', type: EMessage.ERROR }));
+    if(loading){
+      console.error('A request is already in progress. Please wait a moment and try again.');
+      return;
     }
+    onApplyFilters({ division: filter?.division || '', search: filter?.search || '', status: filter?.status || '', group: e.target.value });
+    updateFilter("group", e.target.value);
+
   };
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if (!loading ) {
-      onApplyFilters({ group: filter?.group || '', division: filter?.division || '', search: filter?.search || '', status: e.target.value });
-      updateFilter("status", e.target.value);
-    } else {
-      dispatch(setMessage({ message: 'A request is already in progress. Please wait a moment and try again.', name: 'Error', type: EMessage.ERROR }));
+    if(loading){
+      console.error('A request is already in progress. Please wait a moment and try again.');
+      return;
     }
+    onApplyFilters({ group: filter?.group || '', division: filter?.division || '', search: filter?.search || '', status: e.target.value });
+    updateFilter("status", e.target.value);
   };
 
   const handleSearchChange = (
@@ -146,6 +147,7 @@ function FilterContent({
           optionList={divisionList}
           label="Division"
           value={filter.division}
+          disabled={loading}
         />
 
         {/* Group */}
@@ -155,6 +157,7 @@ function FilterContent({
           optionList={filteredGroups}
           label="Group"
           value={filter.group}
+          disabled={loading}
         />
       </div>
 
@@ -165,6 +168,7 @@ function FilterContent({
           type="text"
           defaultValue={filter.search || ""}
           handleInputChange={handleSearchChange}
+          
         />
       </div>
 

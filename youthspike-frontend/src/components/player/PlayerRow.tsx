@@ -32,6 +32,9 @@ function PlayerRow({
   team,
   badge
 }: IPlayerRowProps) {
+
+  console.log({team, player});
+  
   
   // Aggregate the stats - simple sum of all numeric fields
   const aggregatedStats = aggregatePlayerStats(playerStats);

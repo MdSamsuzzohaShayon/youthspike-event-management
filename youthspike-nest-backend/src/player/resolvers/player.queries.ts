@@ -179,6 +179,9 @@ export class PlayerQueries implements IPlayerQueries {
       }
       await Promise.all(playerUpdatePromises);
 
+      
+      
+
       return {
         code: HttpStatus.OK,
         success: true,

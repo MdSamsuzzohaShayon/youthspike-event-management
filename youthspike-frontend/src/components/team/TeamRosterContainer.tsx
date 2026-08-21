@@ -124,15 +124,11 @@ function TeamRosterContainer({ queryRef }: ITeamRosterContainerProps) {
     return attachRanksAndSort(activePlayers, rankByPlayerId);
   }, [activePlayers, rankings]);
 
-  // const playerRankingData: IPlayerRankingExpRel | null = useMemo(
-  //   () => buildPlayerRankingWithRankings(playerRanking, rankings) as IPlayerRankingExpRel | null,
-  //   [playerRanking, rankings],
-  // );
 
   const canRank = useMemo(() => canUserChangeTeamRanking(user, team), [user, team]);
 
-  const teamBadges = useMemo(()=>{
-    return badges.filter((badge)=> badge.badgeFor === EBadgeFor.TEAM)
+  const playerBadges = useMemo(()=>{
+    return badges.filter((badge)=> badge.badgeFor === EBadgeFor.PLAYER)
   }, [badges]);
 
   const teamEvents = useMemo(
@@ -193,7 +189,7 @@ function TeamRosterContainer({ queryRef }: ITeamRosterContainerProps) {
 
       <div className="w-full mt-6">
         <h4>Badges</h4>
-        <BadgeTable badges={teamBadges ?? []} />
+        <BadgeTable badges={playerBadges ?? []} />
       </div>
     </div>
   );

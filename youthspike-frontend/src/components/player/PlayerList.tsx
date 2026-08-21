@@ -23,19 +23,22 @@ function PlayerList({ players, events = [], badgeMap }: PlayerListProps) {
               {/* Header */}
               <thead>
                 <tr className="bg-yellow-logo text-black font-semibold">
+                  {hasRank && (
+                    <th className="py-3 px-4 whitespace-nowrap min-w-[160px]">
+                      Rank
+                    </th>
+                  )}
                   <th className={`
                     py-3 px-3 md:py-3 md:px-3 whitespace-nowrap
                     sticky left-0 top-0 shadow-md z-20 bg-yellow-logo min-w-[140px] max-w-[140px] md:min-w-[240px] md:max-w-[240px]
                   `}>
                     Player
                   </th>
-
                   <th className="py-3 px-4 whitespace-nowrap min-w-[160px]">
-                    Username
+                    First Name
                   </th>
-
-                  <th className="py-3 px-4 text-center whitespace-nowrap min-w-[140px]">
-                    Badge
+                  <th className="py-3 px-4 whitespace-nowrap min-w-[160px]">
+                    Last Name
                   </th>
                 </tr>
               </thead>
@@ -43,12 +46,12 @@ function PlayerList({ players, events = [], badgeMap }: PlayerListProps) {
               {/* Body */}
               <tbody>
                 {players.map((player, index) => (
-                  <RankPlayerRow 
-                    player={player} 
-                    index={index} 
-                    hasRank={hasRank} 
-                    key={player._id} 
-                    badge={player.badge ? badgeMap.get(String(player.badge)) : null} 
+                  <RankPlayerRow
+                    player={player}
+                    index={index}
+                    hasRank={hasRank}
+                    key={player._id}
+                    badge={player.badge ? badgeMap.get(String(player.badge)) : null}
                   />
                 ))}
               </tbody>

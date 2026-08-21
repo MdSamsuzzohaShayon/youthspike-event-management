@@ -152,33 +152,6 @@ function PlayersStatsContainer({
     [apolloClient, buildQueryVariables]
   );
 
-  // Apply filters with reset pagination
-  const handleApplyFilters = useCallback(async () => {
-    setIsApplyingFilters(true);
-    setCurrentOffset(0);
-
-    try {
-      const response = await executeSearchQuery(localFilter, 0);
-      transformServerData(response.data);
-      setAppliedFilter(localFilter);
-
-      // Update URL
-      const params = new URLSearchParams();
-      Object.entries(localFilter).forEach(([key, value]) => {
-        if (value && value !== "") {
-          params.set(key, String(value));
-        }
-      });
-
-      const newUrl = `${window.location.pathname}?${params.toString()}`;
-      router.replace(newUrl, { scroll: false });
-    } catch (error) {
-      console.error("Failed to apply filters:", error);
-    } finally {
-      setIsApplyingFilters(false);
-    }
-  }, [localFilter, executeSearchQuery, transformServerData, router]);
-
   const handleFilterApply = async (filter: Omit<IFilterState, 'status'>) => {
     setIsApplyingFilters(true);
 
@@ -260,44 +233,12 @@ function PlayersStatsContainer({
 
   // Clear filters
   const handleClearFilters = async () => {
-    // const clearedFilter = { ...DEFAULT_FILTER_STATE };
-
-    // setLocalFilter(clearedFilter);
-    // setCurrentOffset(0);
-
-    // try {
-    //   const response = await executeSearchQuery(clearedFilter, 0);
-    //   transformServerData(response.data);
-    //   setAppliedFilter(clearedFilter);
-    //   router.replace(window.location.pathname, { scroll: false });
-    // } catch (error) {
-    //   console.error("Failed to clear filters:", error);
-    // }
 
     window.location.assign(window.location.pathname);
 
   };
 
-  // Filter players based on applied filters (client-side for search)
-  const filteredPlayers: IPlayer[] = useMemo(() => {
-    return allPlayers.filter((player) => {
-      const fullName = `${player.firstName} ${player.lastName}`.toLowerCase();
-      const matchesSearch =
-        !appliedFilter.search ||
-        fullName.includes(appliedFilter.search.toLowerCase()) ||
-        player.email
-          .toLowerCase()
-          .includes(appliedFilter.search.toLowerCase()) ||
-        player.username
-          ?.toLowerCase()
-          .includes(appliedFilter.search.toLowerCase());
-
-      const matchesDivision =
-        !appliedFilter.division || player?.division === appliedFilter.division;
-
-      return matchesSearch && matchesDivision;
-    });
-  }, [allPlayers, appliedFilter.search, appliedFilter.division]);
+  
 
   // Update local filter
   const updateLocalFilter = useCallback((key: string, value: string) => {
