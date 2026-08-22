@@ -19,10 +19,6 @@ import {
 } from "@/types";
 import FilterContent from "../event/FilterContent";
 import ActiveFiltersBar from "../event/ActiveFiltersBar";
-import Link from "next/link";
-import { readDate } from "@/utils/datetime";
-import TabsNav from "../event/TabsNav";
-import EventWrapper from "../event/EventWrapper";
 import EventHeader from "../event/EventHeader";
 
 interface MatchesContainerProps {
@@ -51,12 +47,10 @@ export default function MatchesContainer({
   const apolloClient = useApolloClient();
 
   // Filter states
-  const [localFilter, setLocalFilter] = useState<IFilterState>({
+  const [appliedFilter, setAppliedFilter] = useState<IFilterState>({
     ...DEFAULT_FILTER_STATE,
     ...initialSearchParams,
   });
-
-  const [appliedFilter, setAppliedFilter] = useState<IFilterState>(localFilter);
 
   // Server data state
   const [matches, setMatches] = useState<IMatch[]>([]);
@@ -122,31 +116,6 @@ export default function MatchesContainer({
     [apolloClient, buildQueryVariables]
   );
 
-  // Apply filters
-  const handleApplyFilters = useCallback(async () => {
-    setIsApplyingFilters(true);
-
-    try {
-      const responseData = await executeSearchQuery(localFilter);
-      updateAllData(responseData);
-      setAppliedFilter(localFilter);
-
-      // Update URL
-      const params = new URLSearchParams();
-      Object.entries(localFilter).forEach(([key, value]) => {
-        if (value) {
-          params.set(key, value);
-        }
-      });
-
-      const newUrl = `${window.location.pathname}?${params.toString()}`;
-      router.replace(newUrl, { scroll: false });
-    } catch (error) {
-      console.error("Failed to apply filters:", error);
-    } finally {
-      setIsApplyingFilters(false);
-    }
-  }, [localFilter, executeSearchQuery, updateAllData, router]);
 
   const handleFilterApply = async (filter: IFilterState) => {
     setIsApplyingFilters(true);
@@ -175,23 +144,11 @@ export default function MatchesContainer({
   }
 
   // Clear filters
-  const handleClearFilters = useCallback(async () => {
-    // const clearedFilter = { ...DEFAULT_FILTER_STATE };
+  const handleClearFilters = async () => {
 
-    // setLocalFilter(clearedFilter);
-
-    // try {
-    //   const responseData = await executeSearchQuery(clearedFilter);
-    //   updateAllData(responseData);
-    //   setAppliedFilter(clearedFilter);
-    //   router.replace(window.location.pathname, { scroll: false });
-    // } catch (error) {
-    //   console.error("Failed to clear filters:", error);
-    // }
-    
     window.location.assign(window.location.pathname);
 
-  }, [executeSearchQuery, updateAllData, router]);
+  };
 
   // Load more matches
   const handleLoadMore = useCallback(async () => {
@@ -265,7 +222,7 @@ export default function MatchesContainer({
     for (let i = 0; i < matches.length; i += 1) {
       const match = matches[i];
 
-      if (localFilter?.group && localFilter?.group !== String(match.group)) {
+      if (appliedFilter?.group && appliedFilter?.group !== String(match.group)) {
         continue;
       }
 
@@ -301,10 +258,6 @@ export default function MatchesContainer({
     return result;
   }, [matches, teamById, roundsByMatchId, normalizedNets]);
 
-  // Update local filter
-  const updateLocalFilter = (key: string, value: string) => {
-    setLocalFilter((prev) => ({ ...prev, [key]: value }));
-  };
 
   // UI state computations
   const hasActiveFilters = Object.values(appliedFilter).some(
@@ -329,8 +282,7 @@ export default function MatchesContainer({
             groups={groups}
             divisions={event?.divisions ?? ""}
             loading={isApplyingFilters}
-            filter={localFilter}
-            updateFilter={updateLocalFilter}
+            filter={appliedFilter}
             onApplyFilters={handleFilterApply}
             showStatus
           />

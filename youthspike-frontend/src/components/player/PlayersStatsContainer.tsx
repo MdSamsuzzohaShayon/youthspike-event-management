@@ -72,11 +72,10 @@ function PlayersStatsContainer({
   const [event, setEvent] = useState<IEvent | null>(null);
 
   // Filter and pagination states
-  const [localFilter, setLocalFilter] = useState<Omit<IFilterState, 'status'>>({
+  const [appliedFilter, setAppliedFilter] = useState<Omit<IFilterState, 'status'>>({
     ...DEFAULT_FILTER_STATE,
     ...initialSearchParams,
   });
-  const [appliedFilter, setAppliedFilter] = useState<Omit<IFilterState, 'status'>>(localFilter);
   const [currentOffset, setCurrentOffset] = useState(0);
 
   // Loading states
@@ -238,16 +237,6 @@ function PlayersStatsContainer({
 
   };
 
-  
-
-  // Update local filter
-  const updateLocalFilter = useCallback((key: string, value: string) => {
-    setLocalFilter((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  }, []);
-
   // Initialize with preloaded data
   useEffect(() => {
     if (initialData?.searchPlayerStats) {
@@ -295,8 +284,7 @@ function PlayersStatsContainer({
             groups={groups}
             divisions={event?.divisions ?? ""}
             loading={isApplyingFilters}
-            filter={localFilter}
-            updateFilter={updateLocalFilter}
+            filter={appliedFilter}
             onApplyFilters={handleFilterApply}
           />
 

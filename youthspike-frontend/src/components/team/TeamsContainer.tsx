@@ -60,12 +60,10 @@ export default function TeamsContainer({
   const apolloClient = useApolloClient();
 
   // Filter states
-  const [localFilter, setLocalFilter] = useState<ITeamFilter>({
+  const [appliedFilter, setAppliedFilter] = useState<ITeamFilter>({
     ...DEFAULT_FILTER_STATE,
     ...initialSearchParams,
   });
-
-  const [appliedFilter, setAppliedFilter] = useState<ITeamFilter>(localFilter);
 
   // Server data state
   const [teams, setTeams] = useState<ITeam[]>([]);
@@ -135,32 +133,6 @@ export default function TeamsContainer({
   );
 
   // Apply filters
-  const handleApplyFilters = useCallback(async () => {
-    setIsApplyingFilters(true);
-
-    try {
-      const responseData = await executeSearchQuery(localFilter);
-
-      updateAllData(responseData);
-      setAppliedFilter(localFilter);
-
-      // Update URL
-      const params = new URLSearchParams();
-      Object.entries(localFilter).forEach(([key, value]) => {
-        if (value) {
-          params.set(key, value);
-        }
-      });
-
-      const newUrl = `${window.location.pathname}?${params.toString()}`;
-      router.replace(newUrl, { scroll: false });
-    } catch (error) {
-      console.error("Failed to apply filters:", error);
-    } finally {
-      setIsApplyingFilters(false);
-    }
-  }, [localFilter, executeSearchQuery, updateAllData, router]);
-
   const handleFilterApply = async (filter: IFilterState) => {
     setIsApplyingFilters(true);
 
@@ -227,10 +199,7 @@ export default function TeamsContainer({
     }
   }, [initialData, updateAllData]);
 
-  // Update local filter
-  const updateLocalFilter = (key: string, value: string) => {
-    setLocalFilter((prev) => ({ ...prev, [key]: value }));
-  };
+
 
   // UI state computations
   const hasActiveFilters = Object.values(appliedFilter).some(
@@ -254,8 +223,7 @@ export default function TeamsContainer({
             groups={groups}
             divisions={event?.divisions ?? ""}
             loading={isApplyingFilters}
-            filter={localFilter}
-            updateFilter={updateLocalFilter}
+            filter={appliedFilter}
             onApplyFilters={handleFilterApply}
           />
 

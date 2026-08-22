@@ -70,7 +70,7 @@ function SearchMatchList({ matchList = [], eventId }: IMatchListProps) {
   return (
     <div className="matchList w-full flex flex-col gap-y-4">
       {sortedMatches.map((match, i) => (
-        <MatchCard key={`${match?._id}-${i}`} match={match} handleSelectMatch={() => {}} isChecked={false} setMessage={setMessage} sl={i + 1} />
+        <MatchCard key={`${match?._id}-${i}`} match={match} eventId={eventId || ''} handleSelectMatch={() => {}} isChecked={false} setMessage={setMessage} sl={i + 1} />
       ))}
     </div>
   );

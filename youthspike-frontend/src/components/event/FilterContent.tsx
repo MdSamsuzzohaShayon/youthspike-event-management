@@ -12,7 +12,6 @@ interface IFilterContentProps {
   groups: IGroup[];
   loading: boolean;
   filter: Partial<ISearchFilter>;
-  updateFilter: (key: string, value: string) => void;
   onApplyFilters: (filter: IFilterState) => void;
   showStatus?: boolean;
 }
@@ -22,7 +21,6 @@ function FilterContent({
   groups,
   loading,
   filter,
-  updateFilter,
   onApplyFilters,
   showStatus,
 }: IFilterContentProps) {
@@ -53,35 +51,34 @@ function FilterContent({
     }));
 
     return [...groupOptions];
-  }, [groups, filter.division]);
+  }, [groups, filter]);
 
   const handleDivisionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if(loading){
+    if (loading) {
       console.error('A request is already in progress. Please wait a moment and try again.');
       return;
     }
     onApplyFilters({ group: '', search: filter?.search || '', status: filter?.status || '', division: e.target.value });
-    updateFilter("division", e.target.value);
-    updateFilter("group", '');
+
+
   };
 
+
   const handleGroupChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if(loading){
+    if (loading) {
       console.error('A request is already in progress. Please wait a moment and try again.');
       return;
     }
     onApplyFilters({ division: filter?.division || '', search: filter?.search || '', status: filter?.status || '', group: e.target.value });
-    updateFilter("group", e.target.value);
 
   };
 
   const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    if(loading){
+    if (loading) {
       console.error('A request is already in progress. Please wait a moment and try again.');
       return;
     }
     onApplyFilters({ group: filter?.group || '', division: filter?.division || '', search: filter?.search || '', status: e.target.value });
-    updateFilter("status", e.target.value);
   };
 
   const handleSearchChange = (
@@ -89,8 +86,6 @@ function FilterContent({
   ) => {
     const searchValue = e.target.value;
 
-    // Update the filter immediately so the input stays responsive.
-    updateFilter("search", searchValue);
 
     // Cancel the previous debounce timer.
     if (searchDebounceRef.current) {
@@ -134,9 +129,6 @@ function FilterContent({
       className="w-full animate-slide-down mb-3"
       onSubmit={(e) => {
         e.preventDefault();
-        // if (!loading ) {
-        //   onApplyFilters();
-        // }
       }}
     >
       <div className="grid grid-cols-2 gap-3 mb-3">
@@ -168,7 +160,7 @@ function FilterContent({
           type="text"
           defaultValue={filter.search || ""}
           handleInputChange={handleSearchChange}
-          
+
         />
       </div>
 
@@ -198,7 +190,7 @@ function FilterContent({
         </div>
       )}
 
-     
+
     </form>
   );
 }

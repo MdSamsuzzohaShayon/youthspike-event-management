@@ -36,6 +36,8 @@ export default function MatchesMainContainer({ queryRef, eventId, initialSearchP
   const router = useRouter();
   const { data: initialData } = useReadQuery(queryRef);
 
+  console.log({eventId});
+  
   
   const apolloClient = useApolloClient();
 

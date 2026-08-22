@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { QueryRef, useReadQuery, useApolloClient, useQuery } from '@apollo/client/react';
 import { useRouter } from 'next/navigation';
 import FilterContent from '../event/FilterContent';
-import { ISearchFilter, ISearchPlayerResponse, IPlayer, ITeam, IEvent, EGroupType, EFilterPage, IGroup, IGetTeamsResponse, IBadge } from '@/types';
+import { ISearchFilter, ISearchPlayerResponse, IPlayer, ITeam, IEvent, EGroupType, EFilterPage, IGroup, IGetTeamsResponse, IBadge, EBadgeFor } from '@/types';
 import { SEARCH_PLAYERS } from '@/graphql/players';
 import PlayerSearchList from './PlayerSearchList';
 import EventNavigation from '../layout/EventNavigation';
@@ -259,6 +259,9 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
     [allPlayers, currentOffset, appliedFilter.limit],
   );
 
+  const playerBadges = useMemo(()=> badges.filter((badge)=> badge.badgeFor === EBadgeFor.PLAYER), [badges]);
+  
+
 
 
   return (
@@ -298,7 +301,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
       {/* Players List */}
       {!isApplyingFilters && (
         <div className="w-full player-standings">
-          <PlayerSearchList playerList={displayedPlayers} teamList={teamList} events={event ? [event] : []} badges={badges} selectedEvent={event} />
+          <PlayerSearchList playerList={displayedPlayers} teamList={teamList} events={event ? [event] : []} badges={playerBadges} selectedEvent={event} />
 
         </div>
       )}
@@ -329,7 +332,7 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
 
       <div className="w-full mt-6">
         <h4>Badges</h4>
-        <BadgeTable badges={badges} />
+        <BadgeTable badges={playerBadges} />
       </div>
     </div>
   );

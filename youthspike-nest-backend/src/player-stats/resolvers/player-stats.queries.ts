@@ -453,7 +453,7 @@ export class PlayerStatsQueries {
           players: players as CustomPlayer[],
           groups: groups as CustomGroup[],
           event,
-          teams: teams.map((t)=> ({...t, groups: t.groups.filter((g)=> g && g !== '')})) as CustomTeam[],
+          teams: teams.map((t)=> ({...t, groups: (t?.groups || []).filter((g)=> g && g !== '')})) as CustomTeam[],
           matches: matches as CustomMatch[],
           badges: badges as CustomBadge[],
           statsOfPlayer: Object.entries(statsOfPlayer).map(([playerId, stats]) => ({

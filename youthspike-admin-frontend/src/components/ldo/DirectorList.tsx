@@ -47,28 +47,36 @@ function DirectorList({ ldoList, setIsLoading, refetchFunc }: IDirectorListProps
   };
 
   return (
-    <div className="directorList w-full flex flex-col gap-4 rounded-lg shadow-lg">
+    <div className="directorList w-full flex flex-col animate-fade-in">
       {ldoList.length > 0 ? (
-        <div className="overflow-x-auto shadow-lg rounded-lg border border-gray-700">
-          <motion.table className="w-full border-collapse" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-            <thead className="bg-yellow-logo text-black">
-              <tr>
-                <th className="py-4 px-6 text-left">Name</th>
-                <th className="py-4 px-6 text-left">Logo</th>
-                <th className="py-4 px-6 text-left">Director</th>
-                <th className="py-4 px-6 text-left">Phone</th>
-                <th className="py-4 px-6 text-left">Email</th>
-                <th className="py-4 px-6 text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-700">
-              {ldoList?.map((ldo, i) => (
-                <DirectorRow key={ldo._id} ldo={ldo} handleDeleteLDO={handleDeleteLDO} />
-              ))}
-            </tbody>
-          </motion.table>
+        <div className="overflow-x-auto w-full">
+          <div className="min-w-[800px] w-full">
+            <div className="relative w-full">
+              <table className="w-full text-left text-sm text-gray-300 bg-gray-900">
+                <thead>
+                  <tr className="bg-yellow-logo text-black font-semibold">
+                    <th className="py-3 px-3 sticky left-0 top-0 shadow-md z-20 bg-yellow-logo min-w-[120px] max-w-[120px]">Name</th>
+                    <th className="py-3 px-3">Logo</th>
+                    <th className="py-3 px-3">Director</th>
+                    <th className="py-3 px-3">Phone</th>
+                    <th className="py-3 px-3">Email</th>
+                    <th className="py-3 px-3 text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ldoList?.map((ldo, i) => (
+                    <DirectorRow key={ldo._id} ldo={ldo} handleDeleteLDO={handleDeleteLDO} />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
-      ) : (<div>There are not director avaialable, once you create one, it will be deplayed here!</div>)}
+      ) : (
+        <div className="text-center py-8 text-gray-400 animate-fade-in">
+          No directors available. Once you create one, it will be displayed here!
+        </div>
+      )}
 
       <DirectorDialog dialogEl={dialogEl} handleCancel={handleCancel} handleConfirmDelete={handleConfirmDelete} />
     </div>

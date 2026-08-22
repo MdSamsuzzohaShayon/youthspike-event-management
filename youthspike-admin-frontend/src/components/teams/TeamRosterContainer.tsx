@@ -4,7 +4,7 @@
 import { useEffect, useMemo } from 'react';
 import { useQuery, useReadQuery } from '@apollo/client/react';
 import { QueryRef } from '@apollo/client/react';
-import { IPlayer, IGetTeamRosterResponse, ITeam, IGetTeamsResponse } from '@/types';
+import { IPlayer, IGetTeamRosterResponse, ITeam, IGetTeamsResponse, EBadgeFor } from '@/types';
 import { notFound, usePathname } from 'next/navigation';
 import RosterWrapper from './RosterWrapper';
 import { useLdoId } from '@/lib/LdoProvider';
@@ -72,6 +72,8 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
     return { ...playerRanking, rankings: rankings };
   }, [playerRanking, rankings]);
 
+  const playerBadges = useMemo(()=> badges.filter((badge)=> badge.badgeFor === EBadgeFor.PLAYER), [badges]);
+
 
   if (!team) {
     notFound();
@@ -111,7 +113,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
           <RosterWrapper
             events={events}
             players={players}
-            badges={badges}
+            badges={playerBadges}
             unassignedPlayers={unassignedPlayers}
             team={team}
             playerRanking={playerRankingData}
@@ -121,7 +123,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
 
         <div className="w-full mt-6">
           <h4>Badges</h4>
-          <BadgeTable badges={badges} />
+          <BadgeTable badges={playerBadges} />
         </div>
 
       </div>

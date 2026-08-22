@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QueryRef, useApolloClient, useReadQuery } from '@apollo/client/react';
 import { useRouter } from 'next/navigation';
-import { ITeam, ISearchFilter, IGroup, ISearchTeamResponse, ITeamFilter, IEvent, EFilterPage, IPlayer, IEmailcontent, IBadge } from '@/types';
+import { ITeam, ISearchFilter, IGroup, ISearchTeamResponse, ITeamFilter, IEvent, EFilterPage, IPlayer, IEmailcontent, IBadge, EBadgeFor } from '@/types';
 import FilterContent from '../event/FilterContent';
 import { SEARCH_TEAM_LIST_LIGHT } from '@/graphql/teams';
 import SearchTeamList from './SearchTeamList';
@@ -195,6 +195,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
 
   const selectedEvent = useMemo(() => { return eventId ? events.find((e) => e._id === eventId) : null }, [events, eventId]);
   const divivionList = useMemo(() => selectedEvent ? divisionsToOptionList(selectedEvent?.divisions) : [], [selectedEvent]);
+  const teamBadges = useMemo(()=> badges.filter((badge)=> badge.badgeFor === EBadgeFor.TEAM), [badges]);
 
 
 
@@ -280,7 +281,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
                 event={selectedEvent || null}
                 captainMap={playerMap}
                 emailcontents={emailcontents}
-                badges={badges}
+                badges={teamBadges}
               />
             ) : (
               <div className="text-center py-8 text-gray-400">No teams found teaming your criteria.</div>
@@ -314,7 +315,7 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
 
       <div className="w-full mt-6">
         <h2>Badges</h2>
-        <BadgeTable badges={badges} />
+        <BadgeTable badges={teamBadges} />
       </div>
 
       {eventId && <MultiPlayerAddDialog divisionList={divivionList} eventId={eventId} importerRef={importerRef} setIsLoading={() => { }} />}
