@@ -27,24 +27,73 @@ function validateMatchDatetime(isoString: string | null): EEventPeriod {
   return EEventPeriod.CURRENT;
 }
 
-function readDate(isoDateString: string) {
+function readDate(isoDateString: string): string {
+  // Handle empty, null, or undefined input
+  
+  if (!isoDateString) {
+    console.warn('readDate: Empty or invalid date string provided');
+    return 'Invalid Date';
+  }
+
+  // Try parsing as ISO string first (faster and more reliable)
   try {
-    const newDate = isoDateString.split('T')[0].split('-');
-
-    // Format the date string
-    const formattedDate = `${monthNames[parseInt(newDate[1], 10) - 1]} ${newDate[2]}, ${newDate[0]}`;
-
-    return formattedDate;
-  } catch (error) {
     const date = new Date(isoDateString);
-
-    // Extract the month, date, and year
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      throw new Error(`Invalid date string: ${isoDateString}`);
+    }
+    
+    // Extract date components
     const month = monthNames[date.getMonth()];
     const day = date.getDate();
     const year = date.getFullYear();
-    console.log(error);
-    const formattedDate = `${month} ${day}, ${year}`;
-    return formattedDate;
+    
+    return `${month} ${day}, ${year}`;
+  } catch (error) {
+    // Fallback to manual parsing if Date object fails
+    try {
+      // Check if it's an ISO format (YYYY-MM-DD or with time)
+      const match = isoDateString.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      
+      if (match) {
+        const year = match[1];
+        const monthIndex = parseInt(match[2], 10) - 1;
+        const day = parseInt(match[3], 10);
+        
+        // Validate month and day ranges
+        if (monthIndex < 0 || monthIndex > 11) {
+          throw new Error(`Invalid month: ${match[2]}`);
+        }
+        
+        if (day < 1 || day > 31) {
+          throw new Error(`Invalid day: ${match[3]}`);
+        }
+        
+        return `${monthNames[monthIndex]} ${day}, ${year}`;
+      }
+      
+      // Handle other common date formats
+      const date = new Date(isoDateString);
+      if (isNaN(date.getTime())) {
+        throw new Error(`Unable to parse date: ${isoDateString}`);
+      }
+      
+      const month = monthNames[date.getMonth()];
+      const day = date.getDate();
+      const year = date.getFullYear();
+      
+      return `${month} ${day}, ${year}`;
+      
+    } catch (fallbackError) {
+      console.error('readDate: Failed to parse date', {
+        input: isoDateString,
+        originalError: error,
+        fallbackError
+      });
+      
+      return 'Invalid Date';
+    }
   }
 }
 

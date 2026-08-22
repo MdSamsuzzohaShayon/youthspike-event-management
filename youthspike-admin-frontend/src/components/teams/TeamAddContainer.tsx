@@ -31,6 +31,9 @@ function TeamAddContainer({ queryRef }: TeamAddContainerProps) {
   }
 
   const eventData = data.getEventWithGroupsAndUnassignedPlayers.data;
+
+  console.log(eventData);
+  
   
   
 

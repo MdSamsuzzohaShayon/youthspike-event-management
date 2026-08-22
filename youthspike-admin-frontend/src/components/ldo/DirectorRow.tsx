@@ -12,6 +12,7 @@ interface IDeleteRowProps{
     ldo: ILDO;
     handleDeleteLDO: (e: React.SyntheticEvent, ldoId: string)=> void;
 }
+
 const DirectorRow = ({ ldo, handleDeleteLDO }: IDeleteRowProps) => {
     
     const handleRedirect=(e: React.SyntheticEvent)=>{
@@ -21,24 +22,73 @@ const DirectorRow = ({ ldo, handleDeleteLDO }: IDeleteRowProps) => {
     }
 
     return (
-        <tr className='hover:bg-gray-900 transition'  >
-            <td className="py-4 px-6" >{ldo.name}</td>
-            <td className="py-4 px-6" >
-                {ldo?.logo ? <CldImage crop="fit" width={100} height={100} alt="Ldo Logo" className="w-8" src={ldo?.logo} /> : <TextImg className='w-8 h-8 ' fullText={ldo.name} />}
+        <tr className="odd:bg-gray-800 even:bg-gray-700 hover:bg-gray-600 transition-all">
+            <td className="py-2 px-3 sticky left-0 bg-inherit min-w-[120px] max-w-[120px] z-10">
+                {ldo.name}
             </td>
-            <td className="py-4 px-6 break-words capitalize" >{ldo.director?.firstName} {ldo.director?.lastName}</td>
-            <td className="py-4 px-6 lowercase" >{ldo.phone}</td>
-            <td className="py-4 px-6 lowercase" >{ldo.director?.email}</td>
-            <td className="py-4 px-6 flex justify-center items-center gap-2" >
-                <Link href="#" onClick={handleRedirect}>
-                    <Image height={20} width={20} src='/icons/event.svg' alt='edit' className='w-6 svg-white' />
-                </Link>
-                <Link href={`/admin/directors/${ldo._id}`}>
-                    <Image height={20} width={20} src='/icons/edit.svg' alt='edit' className='w-6 svg-white' />
-                </Link>
-                <button onClick={(e) => handleDeleteLDO(e, ldo?._id)} >
-                    <Image height={20} width={20} src='/icons/delete.svg' alt='delete' className='w-6 svg-white' />
-                </button>
+            <td className="py-3 px-3">
+                {ldo?.logo ? (
+                    <CldImage 
+                        crop="fit" 
+                        width={40} 
+                        height={40} 
+                        alt="Ldo Logo" 
+                        className="w-16 h-16 rounded-md object-cover" 
+                        src={ldo?.logo} 
+                    />
+                ) : (
+                    <TextImg className='w-16 h-16 rounded-md' fullText={ldo.name} />
+                )}
+            </td>
+            <td className="py-3 px-3 break-words capitalize text-gray-200">
+                {ldo.director?.firstName} {ldo.director?.lastName}
+            </td>
+            <td className="py-3 px-3 lowercase text-gray-300">
+                {ldo.phone}
+            </td>
+            <td className="py-3 px-3 lowercase text-gray-300">
+                {ldo.director?.email}
+            </td>
+            <td className="py-3 px-3">
+                <div className="flex justify-center items-center gap-3">
+                    <Link 
+                        href="#" 
+                        onClick={handleRedirect}
+                        className="hover:opacity-80 transition-opacity"
+                    >
+                        <Image 
+                            height={20} 
+                            width={20} 
+                            src='/icons/event.svg' 
+                            alt='event' 
+                            className='w-5 h-5 svg-white' 
+                        />
+                    </Link>
+                    <Link 
+                        href={`/admin/directors/${ldo._id}`}
+                        className="hover:opacity-80 transition-opacity"
+                    >
+                        <Image 
+                            height={20} 
+                            width={20} 
+                            src='/icons/edit.svg' 
+                            alt='edit' 
+                            className='w-5 h-5 svg-white' 
+                        />
+                    </Link>
+                    <button 
+                        onClick={(e) => handleDeleteLDO(e, ldo?._id)}
+                        className="hover:opacity-80 transition-opacity"
+                    >
+                        <Image 
+                            height={20} 
+                            width={20} 
+                            src='/icons/delete.svg' 
+                            alt='delete' 
+                            className='w-5 h-5 svg-white' 
+                        />
+                    </button>
+                </div>
             </td>
         </tr>
     )

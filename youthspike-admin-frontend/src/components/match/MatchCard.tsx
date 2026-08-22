@@ -26,13 +26,13 @@ interface MatchCardProps {
   match: IMatchExpRel;
   sl: number;
   isChecked: boolean;
+  eventId: string;
   handleSelectMatch: (e: React.SyntheticEvent, _id: string) => void;
   setMessage: (message: Omit<IMessage, "id">) => void;
 }
 
-function MatchCard({ match, isChecked, handleSelectMatch, setMessage }: MatchCardProps) {
+function MatchCard({ match, isChecked, eventId, handleSelectMatch, setMessage }: MatchCardProps) {
   const user = useUser();
-  const router = useRouter();
   const { ldoIdUrl } = useLdoId();
   const actionItemEl = useRef<HTMLUListElement | null>(null);
   const deleteEl = useRef<HTMLDialogElement | null>(null);
@@ -227,7 +227,7 @@ function MatchCard({ match, isChecked, handleSelectMatch, setMessage }: MatchCar
   const teamAWon = teamScores.teamA > teamScores.teamB && match.completed;
   const teamBWon = teamScores.teamB > teamScores.teamA && match.completed;
 
-  // console.log(`/${eventId}/matches/${match._id}/${ldoIdUrl}`);
+
   
 
   return (
@@ -269,7 +269,7 @@ function MatchCard({ match, isChecked, handleSelectMatch, setMessage }: MatchCar
           {(user.info?.role === UserRole.admin || user.info?.role === UserRole.director) && (
             <React.Fragment>
               <li className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
-                <Link href={`/${match.event}/matches/${match._id}/${ldoIdUrl}`}>Edit</Link>
+                <Link href={`/${eventId}/matches/${match._id}/${ldoIdUrl}`}>Edit</Link>
               </li>
               <li className="px-4 py-3 hover:bg-gray-200 dark:hover:bg-gray-700 cursor-pointer">
                 <button type="button" onClick={(e) => deleteEl.current?.showModal()}>
