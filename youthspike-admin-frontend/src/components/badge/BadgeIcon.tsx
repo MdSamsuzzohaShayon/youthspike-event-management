@@ -11,15 +11,6 @@ const BadgeIcon: React.FC<{ badge: IBadge, className: string }> = React.memo(({ 
     const publicId = getBadgePublicId(badge.icon);
     if (!publicId) return null;
     return (
-        // <CldImage
-        //     src={publicId}
-        //     alt={badge.name}
-        //     width={32}
-        //     height={32}
-        //     crop="fill"
-        //     gravity="auto"
-        //     className="h-full w-full object-cover"
-        // />
         <img className={` ${className || "h-full w-full object-cover"}`} src={badge.icon} alt={badge.name} />
     );
 });

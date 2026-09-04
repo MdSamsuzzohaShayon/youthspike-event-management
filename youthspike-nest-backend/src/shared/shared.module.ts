@@ -63,7 +63,13 @@ import {
   ArchiveServerReceiverSinglePlay,
   ArchiveServerReceiverSinglePlaySchemaFactory,
   ArchiveSponsor, ArchiveSponsorSchemaFactory, ArchiveTeam, ArchiveTeamSchemaFactory, 
-  ArchiveTemplate, ArchiveTemplateSchemaFactory, ArchiveUser, ArchiveUserSchemaFactory
+  ArchiveTemplate, ArchiveTemplateSchemaFactory, ArchiveUser, ArchiveUserSchemaFactory,
+  ArchiveEmailsender,
+  ArchiveEmailsenderSchemaFactory,
+  ArchiveEmailcontent,
+  ArchiveEmailcontentSchemaFactory,
+  ArchiveBadge,
+  ArchiveBadgeSchemaFactory,
 } from 'src/archive/archive.schema';
 import {
   ArchiveTemplateService, ArchiveUserService,
@@ -82,6 +88,9 @@ import {
   ArchivePlayerStatsService,
   ArchiveServerReceiverOnNetService,
   ArchiveServerReceiverSinglePlayService,
+  ArchiveEmailsenderService,
+  ArchiveEmailcontentService,
+  ArchiveBadgeService,
 } from 'src/archive/archive.service';
 import { Emailcontent, EmailcontentSchemaFactory, Emailsender, EmailsenderSchemaFactory } from 'src/emailsender/emailsernder.schema';
 import { BadgeService } from 'src/badge/badge.service';
@@ -277,6 +286,21 @@ import { Badge, BadgeSchemaFactory } from 'src/badge/badge.schema';
         name: ArchiveTemplate.name,
         useFactory: ArchiveTemplateSchemaFactory,
       },
+
+      {
+        name: ArchiveEmailsender.name,
+        useFactory: ArchiveEmailsenderSchemaFactory,
+      },
+
+      {
+        name: ArchiveEmailcontent.name,
+        useFactory: ArchiveEmailcontentSchemaFactory,
+      },
+
+      {
+        name: ArchiveBadge.name,
+        useFactory: ArchiveBadgeSchemaFactory,
+      },
     ]),
 
     ConfigModule,
@@ -324,6 +348,9 @@ import { Badge, BadgeSchemaFactory } from 'src/badge/badge.schema';
     ArchivePlayerStatsService,
     ArchiveServerReceiverOnNetService,
     ArchiveServerReceiverSinglePlayService,
+    ArchiveEmailsenderService,
+    ArchiveEmailcontentService,
+    ArchiveBadgeService,
 
   ],
   exports: [
@@ -366,6 +393,9 @@ import { Badge, BadgeSchemaFactory } from 'src/badge/badge.schema';
     ArchivePlayerStatsService,
     ArchiveServerReceiverOnNetService,
     ArchiveServerReceiverSinglePlayService,
+    ArchiveEmailsenderService,
+    ArchiveEmailcontentService,
+    ArchiveBadgeService,
   ],
 })
 export class SharedModule {

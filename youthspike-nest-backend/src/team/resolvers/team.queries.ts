@@ -34,7 +34,7 @@ import { EmailsenderService } from 'src/emailsender/emailsender.service';
 import { CustomEmailcontent, CustomEmailsender } from 'src/emailsender/emailsender.response';
 import { BadgeService } from 'src/badge/badge.service';
 import { CustomBadge } from 'src/badge/badge.response';
-import { Badge } from 'src/badge/badge.schema';
+import { Badge, EBadgeFor } from 'src/badge/badge.schema';
 
 // ITeamQueries
 
@@ -353,7 +353,7 @@ export class TeamQueries {
           playerRanking: playerRanking as CustomPlayerRanking,
           rankings: rankings as CustomPlayerRankingItem[],
           unassignedPlayers: unassignedPlayers as CustomPlayer[],
-          badges: badges as CustomBadge[],
+          badges: badges.map((badge)=> ({...badge, badgeFor: badge?.badgeFor ? badge?.badgeFor: EBadgeFor.TEAM })) as CustomBadge[],
         },
       };
     } catch (err) {

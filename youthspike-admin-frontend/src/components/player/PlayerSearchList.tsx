@@ -121,7 +121,7 @@ function PlayerSearchList({
 
   return (
     <div className="playerList">
-      <ul className="relative w-full">
+      <ul className="relative w-full flex flex-col justify-start gap-x-2">
         {playerList.map((player) => {
           // Single Map lookup instead of multiple lookups
           const teams = teamsOfPlayerMap.get(player._id) ?? [];
@@ -134,7 +134,7 @@ function PlayerSearchList({
           return (
             <li
               key={player._id}
-              className="mb-2 flex items-center rounded-xl bg-gray-800 p-2"
+              className="mb-2 flex items-center rounded-xl bg-gray-700 overflow-hidden"
             >
               <PlayerCard
                 player={player as IPlayerRank}

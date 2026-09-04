@@ -1,10 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { SEARCH_MATCHES } from '@/graphql/matches';
 import { QueryRef, useApolloClient, useReadQuery } from '@apollo/client/react';
 import { useRouter } from 'next/navigation';
-import { IMatch, IRoundRelatives, ISearchFilter, ISearchMatchResponse, ITeam, IGroup, INetRelatives, IEvent, EFilterPage } from '@/types';
+import { IMatch, IRoundRelatives, ISearchFilter, ISearchMatchResponse, ITeam, IGroup, INetRelatives, IEvent, EFilterPage, IFilterState } from '@/types';
 import FilterContent from '../event/FilterContent';
 import SearchMatchList from './SearchMatchList';
 import EventNavigation from '../layout/EventNavigation';
@@ -16,14 +16,9 @@ interface MatchesMainContainerProps {
   eventId?: string;
 }
 
-interface FilterState {
-  search: string;
-  division: string;
-  group: string;
-  status: string;
-}
 
-const DEFAULT_FILTER_STATE: FilterState = {
+
+const DEFAULT_FILTER_STATE: IFilterState = {
   search: '',
   division: '',
   group: '',
@@ -36,20 +31,16 @@ export default function MatchesMainContainer({ queryRef, eventId, initialSearchP
   const router = useRouter();
   const { data: initialData } = useReadQuery(queryRef);
 
-  console.log({eventId});
-  
-  
+
   const apolloClient = useApolloClient();
 
- 
 
-  // Filter states
-  const [localFilter, setLocalFilter] = useState<FilterState>({
+
+
+  const [appliedFilter, setAppliedFilter] = useState<IFilterState>({
     ...DEFAULT_FILTER_STATE,
     ...initialSearchParams,
   });
-
-  const [appliedFilter, setAppliedFilter] = useState<FilterState>(localFilter);
 
   // Server data state
   const [matches, setMatches] = useState<IMatch[]>([]);
@@ -58,15 +49,17 @@ export default function MatchesMainContainer({ queryRef, eventId, initialSearchP
   const [rounds, setRounds] = useState<IRoundRelatives[]>([]);
   const [groups, setGroups] = useState<IGroup[]>([]);
   const [event, setEvent] = useState<IEvent | null>(null);
+  const searchRequestIdRef = useRef<number>(0);
 
   // Loading states
-  const [hasMore, setHasMore] = useState<boolean>(true);
   const [isApplyingFilters, setIsApplyingFilters] = useState<boolean>(false);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
+  const [currentOffset, setCurrentOffset] = useState<number>(0);
+  const [hasMoreMatches, setHasMoreMatches] = useState<boolean>(true);
 
   // Build query variables
   const buildQueryVariables = useCallback(
-    (filter: FilterState, offset: number = 0) => ({
+    (filter: IFilterState, offset: number = 0) => ({
       ...(eventId ? { eventId } : {}),
       filter: {
         limit: PAGE_SIZE,
@@ -79,32 +72,20 @@ export default function MatchesMainContainer({ queryRef, eventId, initialSearchP
     }),
     [eventId],
   );
-  
 
-  // Update all server data from response
-  const updateAllData = useCallback((responseData: { searchMatches: ISearchMatchResponse }) => {
-    const searchData = responseData?.searchMatches?.data;
-    if (!searchData) return;
 
-    setMatches(searchData.matches || []);
-    setTeams(searchData.teams || []);
-    setNets(searchData.nets || []);
-    setRounds(searchData.rounds || []);
-    setGroups(searchData.groups || []);
-    setEvent(searchData.event || null);
-    setHasMore((searchData.matches || []).length === PAGE_SIZE);
-  }, []);
 
   // Execute GraphQL query
   const executeSearchQuery = useCallback(
-    async (filter: FilterState, offset: number = 0) => {
+    async (filter: IFilterState, offset: number = 0) => {
       try {
         const result = await apolloClient.query({
           query: SEARCH_MATCHES,
           variables: buildQueryVariables(filter, offset),
           fetchPolicy: 'network-only',
         });
-        return result.data as { searchMatches: ISearchMatchResponse };
+        return (result.data as { searchMatches: ISearchMatchResponse })
+          .searchMatches;
       } catch (error) {
         console.error('Failed to fetch matches:', error);
         throw error;
@@ -113,86 +94,124 @@ export default function MatchesMainContainer({ queryRef, eventId, initialSearchP
     [apolloClient, buildQueryVariables],
   );
 
+  const transformServerData = useCallback(
+    (searchData: ISearchMatchResponse["data"]) => {
+      if (!searchData) return;
+
+      setMatches(searchData?.matches || []);
+      setTeams(searchData?.teams || {});
+      setNets(searchData?.nets || []);
+      setRounds(searchData?.rounds || []);
+      setGroups(searchData?.groups || []);
+      setEvent(searchData?.event || null);
+
+      setHasMoreMatches(
+        searchData.matches.length ===
+        PAGE_SIZE
+      );
+    },
+    []
+  );
+
   // Apply filters
-  const handleApplyFilters = useCallback(async () => {
+  const handleFilterApply = async (
+    filter: IFilterState
+  ) => {
+    const requestId = ++searchRequestIdRef.current;
+
     setIsApplyingFilters(true);
 
     try {
-      const responseData = await executeSearchQuery(localFilter);
-      updateAllData(responseData);
-      setAppliedFilter(localFilter);
+      const response = await executeSearchQuery(filter);
 
-      // Update URL
+      // Ignore stale response.
+      if (requestId !== searchRequestIdRef.current) {
+        return;
+      }
+
+      transformServerData(response.data);
+      setAppliedFilter(filter);
+
       const params = new URLSearchParams();
-      Object.entries(localFilter).forEach(([key, value]) => {
+
+      Object.entries(filter).forEach(([key, value]) => {
         if (value) {
           params.set(key, value);
         }
       });
 
-      const newUrl = `${window.location.pathname}?${params.toString()}`;
-      router.replace(newUrl, { scroll: false });
+      const queryString = params.toString();
+
+      router.replace(
+        queryString
+          ? `${window.location.pathname}?${queryString}`
+          : window.location.pathname,
+        { scroll: false }
+      );
     } catch (error) {
-      console.error('Failed to apply filters:', error);
+      if (requestId === searchRequestIdRef.current) {
+        console.error("Failed to apply filters:", error);
+      }
     } finally {
-      setIsApplyingFilters(false);
+      if (requestId === searchRequestIdRef.current) {
+        setIsApplyingFilters(false);
+      }
     }
-  }, [localFilter, executeSearchQuery, updateAllData, router]);
+  };
 
   // Clear filters
-  const handleClearFilters = useCallback(async () => {
-    const clearedFilter = { ...DEFAULT_FILTER_STATE };
-
-    setLocalFilter(clearedFilter);
-
-    try {
-      const responseData = await executeSearchQuery(clearedFilter);
-      updateAllData(responseData);
-      setAppliedFilter(clearedFilter);
-      router.replace(window.location.pathname, { scroll: false });
-    } catch (error) {
-      console.error('Failed to clear filters:', error);
-    }
-  }, [executeSearchQuery, updateAllData, router]);
+  const handleClearFilters = async () => {
+    window.location.assign(window.location.pathname);
+  };
 
   // Load more matches
   const handleLoadMore = useCallback(async () => {
+    if (!hasMoreMatches || isLoadingMore) return;
+
     setIsLoadingMore(true);
+    const newOffset =
+      currentOffset + PAGE_SIZE;
 
     try {
-      const offset = matches.length;
-      const responseData = await executeSearchQuery(appliedFilter, offset);
-      const searchData = responseData?.searchMatches?.data;
+      const response = await executeSearchQuery(appliedFilter, newOffset);
+      const newMatches = response.data.matches || [];
 
-      if (searchData) {
-        // Append new matches to existing ones
-        const newMatches = searchData.matches || [];
-        if (newMatches.length > 0) {
-          setMatches((prev) => [...prev, ...newMatches]);
-          setHasMore(newMatches.length === PAGE_SIZE);
-        } else {
-          setHasMore(false);
-        }
+      if (newMatches.length > 0) {
+        setMatches((prev) => [...prev, ...newMatches]);
+        setCurrentOffset(newOffset);
 
-        // Update other entities with the latest data from server
-        // This ensures all related data is in sync
-        setTeams((prev) => [...prev, ...(searchData.teams || [])]);
-        setNets((prev) => [...prev, ...(searchData.nets || [])]);
-        setRounds((prev) => [...prev, ...(searchData.rounds || [])]);
+
+        setTeams(response.data.teams || []);
+
+        // Check if there are more matches
+        setHasMoreMatches(
+          newMatches.length ===
+          PAGE_SIZE
+        );
+      } else {
+        setHasMoreMatches(false);
       }
     } catch (error) {
-      console.error('Failed to load more matches:', error);
+      console.error("Failed to load more matches:", error);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [matches.length, appliedFilter, executeSearchQuery]);
+  }, [
+    hasMoreMatches,
+    isLoadingMore,
+    currentOffset,
+    appliedFilter,
+    executeSearchQuery,
+  ]);
 
-  // Initialize with preloaded data
-  useEffect(() => {
-    if (initialData && matches.length === 0) {
-      updateAllData(initialData);
-    }
-  }, [initialData, matches.length, updateAllData]);
+    // Initialize with preloaded data
+    useEffect(() => {
+      if (initialData?.searchMatches) {
+        transformServerData(initialData.searchMatches.data);
+      }
+    }, [initialData, transformServerData]);
+
+
 
   // Optimized data lookups
   const teamById = useMemo(() => new Map(teams.map((team) => [team._id, team])), [teams]);
@@ -237,14 +256,9 @@ export default function MatchesMainContainer({ queryRef, eventId, initialSearchP
     });
   }, [matches, teamById, roundsByMatchId, normalizedNets]);
 
-  // Update local filter
-  const updateLocalFilter = (key: string, value: string) => {
-    setLocalFilter((prev) => ({ ...prev, [key]: value }));
-  };
 
   // UI state computations
   const hasActiveFilters = Object.values(appliedFilter).some((value) => value !== '');
-  const hasUnsavedChanges = JSON.stringify(localFilter) !== JSON.stringify(appliedFilter);
   const isLoading = isApplyingFilters || isLoadingMore;
   const showInitialLoading = isApplyingFilters && matches.length === 0;
 
@@ -259,18 +273,14 @@ export default function MatchesMainContainer({ queryRef, eventId, initialSearchP
         groups={groups}
         divisions={event?.divisions ?? ''}
         loading={isApplyingFilters}
-        filter={localFilter}
-        updateFilter={updateLocalFilter}
-        onApplyFilters={handleApplyFilters}
-        onClearFilters={handleClearFilters}
-        hasUnsavedChanges={hasUnsavedChanges}
-        hasActiveFilters={hasActiveFilters}
+        filter={appliedFilter}
+        onApplyFilters={handleFilterApply}
         filterPage={EFilterPage.MATCHES}
         showStatus
         eventId={eventId}
       />
 
-      
+
 
       {/* Active filters indicator */}
       {hasActiveFilters && (
@@ -297,7 +307,7 @@ export default function MatchesMainContainer({ queryRef, eventId, initialSearchP
           </div>
 
           {/* Load more button */}
-          {hasMore && matches.length > 0 && (
+          {hasMoreMatches && matches.length > 0 && (
             <div className="w-full mt-6 flex justify-center">
               <button
                 onClick={handleLoadMore}
@@ -317,7 +327,7 @@ export default function MatchesMainContainer({ queryRef, eventId, initialSearchP
           )}
 
           {/* No more matches indicator */}
-          {!hasMore && matches.length > 0 && <div className="text-center py-4 text-gray-400 text-sm">No more matches to load</div>}
+          {!hasMoreMatches && matches.length > 0 && <div className="text-center py-4 text-gray-400 text-sm">No more matches to load</div>}
         </div>
       )}
     </div>

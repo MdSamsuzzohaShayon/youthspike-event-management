@@ -7,29 +7,21 @@ import Link from 'next/link';
 
 import {
   IPlayer,
-  IPlayerRank,
   IGetTeamRosterResponse,
-  IPlayerRankingExpRel,
   IEventRelatives,
   IBadge,
-  ITeam,
-  EPlayerStatus,
-  UserRole,
-  IPlayerRankingItem,
   IPlayerRankingItemExpRel,
   EBadgeFor,
 } from '@/types';
 
 import { useLdoId } from '@/lib/LdoProvider';
 import { useUser } from '@/lib/UserProvider';
-import SessionStorageService from '@/utils/SessionStorageService';
-import { TEAM } from '@/utils/constant';
 import { ADMIN_FRONTEND_URL } from '@/utils/keys';
 import { createBadgeMap } from '@/utils/badge/badge-helpers';
 
 import TeamNavigation from './TeamNavigation';
 import PlayerList from '../player/PlayerList';
-import { attachRanksAndSort, buildPlayerRankingWithRankings, buildRankByPlayerId, canUserChangeTeamRanking, clearPersistedTeamId, partitionPlayersByRankingAndStatus, persistCurrentTeamId } from '@/utils/team/roster-helpers';
+import { attachRanksAndSort, buildRankByPlayerId, canUserChangeTeamRanking, clearPersistedTeamId, partitionPlayersByRankingAndStatus, persistCurrentTeamId } from '@/utils/team/roster-helpers';
 import BadgeTable from '../badge/BadgeTable';
 
 interface ITeamRosterContainerProps {

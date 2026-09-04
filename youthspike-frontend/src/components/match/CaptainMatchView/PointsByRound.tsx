@@ -6,21 +6,19 @@ import { screen } from "@/utils/constant";
 interface IPointsByRoundProps {
   dark: boolean;
   roundList: IRoundRelatives[];
-  screenWidth: number;
   currMatch: IMatchRelatives;
 }
 
 export default function PointsByRound({
   dark,
   roundList,
-  screenWidth,
   currMatch,
 }: IPointsByRoundProps) {
   const { myTeamE, opTeamE, roundMap } = useAppSelector((s) => s.matches);
   const allNets = useAppSelector((s) => s.nets.nets);
 
   // --------- Layout Helpers ----------
-  const boxSizeClass = screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8";
+  // const boxSizeClass = screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8";
   const baseFlexDir = dark ? "flex-col" : "flex-col-reverse";
   const textColor = dark ? "text-white" : "text-black-logo";
   const activeTeam = dark ? opTeamE : myTeamE;
@@ -66,12 +64,12 @@ export default function PointsByRound({
     (round: IRoundRelatives) => (
       <div
         key={round._id}
-        className={`r-box ${boxSizeClass} flex flex-wrap ${baseFlexDir} justify-center items-center`}
+        className={`r-box text-xs w-6 md:text-xs md:w-6 flex flex-wrap ${baseFlexDir} justify-center items-center`}
       >
         {renderRoundScore(round)}
       </div>
     ),
-    [renderRoundScore, boxSizeClass, baseFlexDir]
+    [renderRoundScore, baseFlexDir]
   );
 
   // --------- Determine Match Base Point (teamAP/BP) ----------
@@ -95,7 +93,7 @@ export default function PointsByRound({
       {/* Base match-wide score box */}
       {(matchBasePoint || matchBasePoint === 0) && (
         <div
-          className={`r-box ${boxSizeClass} flex flex-wrap ${baseFlexDir} justify-center items-center`}
+          className={`r-box text-xs w-6 md:text-xs md:w-6 flex flex-wrap ${baseFlexDir} justify-center items-center`}
         >
           <p className="plus-minus w-full h-6" />
           <p

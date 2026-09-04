@@ -2,6 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 
 import {
+  ArchiveBadge,
+  ArchiveEmailcontent,
+  ArchiveEmailsender,
   ArchiveEvent,
   ArchiveGroup,
   ArchiveLDO,
@@ -36,6 +39,8 @@ import { Team } from 'src/team/team.schema';
 import { Template } from 'src/template/template.schema';
 import { User } from 'src/user/user.schema';
 import { Room } from 'src/room/room.schema';
+import { Emailcontent, Emailsender } from 'src/emailsender/emailsernder.schema';
+import { Badge } from 'src/badge/badge.schema';
 
 // Base Service Interface
 interface IBaseService<T> {
@@ -64,38 +69,38 @@ type LeanDocument<T> = T & IBaseDocument;
 
 // Base Service Implementation
 @Injectable()
-export class BaseService<T> implements IBaseService<T> {
+export class BaseService<TArchive, TSource = TArchive> implements IBaseService<TArchive> {
   constructor(
-    protected readonly model: Model<T>,
-    protected readonly archivedModel?: Model<T>,
+    protected readonly model: Model<TSource>,
+    protected readonly archivedModel?: Model<TArchive>,
   ) { }
 
-  async findById(id: string): Promise<(T & { _id: Types.ObjectId }) | null> {
+  async findById(id: string): Promise<(TArchive & { _id: Types.ObjectId }) | null> {
     if (!Types.ObjectId.isValid(id)) {
       return null;
     }
     const doc = await this.archivedModel.findById(id).lean();
-    return doc as (T & { _id: Types.ObjectId }) | null;
+    return doc as (TArchive & { _id: Types.ObjectId }) | null;
   }
 
-  async findOne(filter: QueryFilter<T>): Promise<(T & { _id: Types.ObjectId }) | null> {
+  async findOne(filter: QueryFilter<TArchive>): Promise<(TArchive & { _id: Types.ObjectId }) | null> {
     const doc = await this.archivedModel.findOne(filter).lean();
-    return doc as (T & { _id: Types.ObjectId }) | null;
+    return doc as (TArchive & { _id: Types.ObjectId }) | null;
   }
 
 
 
-  async find(filter: QueryFilter<T>): Promise<T[]> {
+  async find(filter: QueryFilter<TArchive>): Promise<TArchive[]> {
     return this.archivedModel.find(filter).lean();
   }
 
-  async create(data: T): Promise<T & { _id: Types.ObjectId }> {
+  async create(data: TArchive): Promise<TArchive & { _id: Types.ObjectId }> {
     const created = new this.archivedModel(data);
     const saved = await created.save();
-    return saved.toObject() as T & { _id: Types.ObjectId };
+    return saved.toObject() as TArchive & { _id: Types.ObjectId };
   }
 
-  async insertMany(data: Partial<T>[]): Promise<T[]> {
+  async insertMany(data: Partial<TArchive>[]): Promise<TArchive[]> {
     if (!data?.length) {
       return [];
     }
@@ -107,24 +112,24 @@ export class BaseService<T> implements IBaseService<T> {
       // Single loop with minimal object creation
       for (let i = 0; i < data.length; i++) {
         const item = data[i];
-        const itemWithId = item as Partial<T> & { _id?: Types.ObjectId };
+        const itemWithId = item as Partial<TArchive> & { _id?: Types.ObjectId };
 
         if (itemWithId._id) {
           // Create new object only when needed
           const { _id, ...rest } = itemWithId;
-          serializedData[i] = { ...rest, originalId: _id.toString() } as T;
+          serializedData[i] = { ...rest, originalId: _id.toString() } as TArchive;
         } else {
-          serializedData[i] = item as T;
+          serializedData[i] = item as TArchive;
         }
       }
 
-      const created = await this.archivedModel.insertMany(serializedData) as unknown as (Document & T)[];
+      const created = await this.archivedModel.insertMany(serializedData) as unknown as (Document & TArchive)[];
 
       // Reuse array for results
       const results = new Array(created.length);
       for (let i = 0; i < created.length; i++) {
         const { __v, ...cleanDoc } = created[i].toObject() as any;
-        results[i] = cleanDoc as T;
+        results[i] = cleanDoc as TArchive;
       }
 
       return results;
@@ -135,20 +140,20 @@ export class BaseService<T> implements IBaseService<T> {
     }
   }
 
-  async updateById(id: string, updateData: UpdateQuery<T>): Promise<(T & { _id: Types.ObjectId }) | null> {
+  async updateById(id: string, updateData: UpdateQuery<TArchive>): Promise<(TArchive & { _id: Types.ObjectId }) | null> {
     if (!Types.ObjectId.isValid(id)) {
       return null;
     }
     const doc = await this.archivedModel.findByIdAndUpdate(id, updateData, { new: true }).lean();
-    return doc as (T & { _id: Types.ObjectId }) | null;
+    return doc as (TArchive & { _id: Types.ObjectId }) | null;
   }
 
 
-  async updateOne(filter: QueryFilter<T>, updateData: UpdateQuery<T>): Promise<any> {
+  async updateOne(filter: QueryFilter<TArchive>, updateData: UpdateQuery<TArchive>): Promise<any> {
     return this.archivedModel.updateOne(filter, updateData);
   }
 
-  async updateMany(filter: QueryFilter<T>, updateData: UpdateQuery<T>): Promise<any> {
+  async updateMany(filter: QueryFilter<TArchive>, updateData: UpdateQuery<TArchive>): Promise<any> {
     return this.archivedModel.updateMany(filter, updateData);
   }
 
@@ -159,14 +164,17 @@ export class BaseService<T> implements IBaseService<T> {
     return this.archivedModel.deleteOne({ _id: id });
   }
 
-  async delete(filter: QueryFilter<T>): Promise<any> {
+  async delete(filter: QueryFilter<TArchive>): Promise<any> {
     return this.archivedModel.deleteMany(filter);
   }
-  async deleteMany(filter: QueryFilter<T>): Promise<any> {
+  async deleteOne(filter: QueryFilter<TArchive>): Promise<any> {
+    return this.archivedModel.deleteOne(filter);
+  }
+  async deleteMany(filter: QueryFilter<TArchive>): Promise<any> {
     return this.archivedModel.deleteMany(filter);
   }
 
-  async archive(id: string): Promise<T | null> {
+  async archive(id: string): Promise<TArchive | null> {
     // Validate inputs
     if (!Types.ObjectId.isValid(id)) {
       console.warn(`Invalid ObjectId: ${id}`);
@@ -183,7 +191,7 @@ export class BaseService<T> implements IBaseService<T> {
       const document = await this.archivedModel
         .findById(id)
         .lean()
-        .exec() as LeanDocument<T> | null;
+        .exec() as LeanDocument<TArchive> | null;
 
       if (!document) {
         console.warn(`Document with id ${id} not found`);
@@ -203,7 +211,7 @@ export class BaseService<T> implements IBaseService<T> {
       delete archiveData.id; // Remove if using virtual id
 
       // Create archive document
-      await this.archivedModel.create(archiveData as DeepPartial<ApplyBasicCreateCasting<Require_id<T>>>);
+      await this.archivedModel.create(archiveData as DeepPartial<ApplyBasicCreateCasting<Require_id<TArchive>>>);
 
       // Delete original document
       const deleteResult = await this.archivedModel.deleteOne({ _id: id });
@@ -215,7 +223,7 @@ export class BaseService<T> implements IBaseService<T> {
       }
 
       // Return the original document (without archive modifications)
-      return document as unknown as T;
+      return document as unknown as TArchive;
 
     } catch (error) {
       console.error(`Error archiving document ${id}:`, error);
@@ -227,7 +235,7 @@ export class BaseService<T> implements IBaseService<T> {
     }
   }
 
-  async restore(id: string): Promise<T | null> {
+  async restore(id: string): Promise<TArchive | null> {
     // if (!Types.ObjectId.isValid(id) || !this.archivedModel) {
     //   return null;
     // }
@@ -256,11 +264,11 @@ export class BaseService<T> implements IBaseService<T> {
     return null;
   }
 
-  async count(filter: QueryFilter<T> = {}): Promise<number> {
+  async count(filter: QueryFilter<TArchive> = {}): Promise<number> {
     return this.archivedModel.countDocuments(filter);
   }
 
-  async exists(filter: QueryFilter<T>): Promise<boolean> {
+  async exists(filter: QueryFilter<TArchive>): Promise<boolean> {
     const count = await this.archivedModel.countDocuments(filter).limit(1);
     return count > 0;
   }
@@ -268,7 +276,7 @@ export class BaseService<T> implements IBaseService<T> {
 
 // Event Service
 @Injectable()
-export class ArchiveEventService extends BaseService<Event> {
+export class ArchiveEventService extends BaseService<ArchiveEvent, Event> {
   constructor(
     @InjectModel(Event.name) eventModel: Model<Event>,
     @InjectModel(ArchiveEvent.name) archivedEventModel: Model<ArchiveEvent>,
@@ -276,12 +284,12 @@ export class ArchiveEventService extends BaseService<Event> {
     super(eventModel, archivedEventModel);
   }
 
-  async findByName(name: string): Promise<Event | null> {
+  async findByName(name: string): Promise<ArchiveEvent | null> {
     if (!name) return null;
     return this.archivedModel.findOne({ name }).lean();
   }
 
-  async findByDateRange(startDate: Date, endDate: Date): Promise<Event[]> {
+  async findByDateRange(startDate: Date, endDate: Date): Promise<ArchiveEvent[]> {
     return this.archivedModel.find({
       date: {
         $gte: startDate,
@@ -293,7 +301,7 @@ export class ArchiveEventService extends BaseService<Event> {
 
 // Group Service
 @Injectable()
-export class ArchiveGroupService extends BaseService<Group> {
+export class ArchiveGroupService extends BaseService<ArchiveGroup, Group> {
   constructor(
     @InjectModel(Group.name) groupModel: Model<Group>,
     @InjectModel(ArchiveGroup.name) archivedGroupModel: Model<ArchiveGroup>,
@@ -301,14 +309,14 @@ export class ArchiveGroupService extends BaseService<Group> {
     super(groupModel, archivedGroupModel);
   }
 
-  async findByEventId(eventId: string): Promise<Group[]> {
+  async findByEventId(eventId: string): Promise<ArchiveGroup[]> {
     return this.archivedModel.find({ eventId }).lean();
   }
 }
 
 // LDO Service
 @Injectable()
-export class ArchiveLDOService extends BaseService<LDO> {
+export class ArchiveLDOService extends BaseService<ArchiveLDO, LDO> {
   constructor(
     @InjectModel(LDO.name) ldoModel: Model<LDO>,
     @InjectModel(ArchiveLDO.name) archivedLDOModel: Model<ArchiveLDO>,
@@ -319,7 +327,7 @@ export class ArchiveLDOService extends BaseService<LDO> {
 
 // Match Service
 @Injectable()
-export class ArchiveMatchService extends BaseService<Match> {
+export class ArchiveMatchService extends BaseService<ArchiveMatch, Match> {
   constructor(
     @InjectModel(Match.name) matchModel: Model<Match>,
     @InjectModel(ArchiveMatch.name) archivedMatchModel: Model<ArchiveMatch>,
@@ -330,7 +338,7 @@ export class ArchiveMatchService extends BaseService<Match> {
 
 // Net Service
 @Injectable()
-export class ArchiveNetService extends BaseService<Net> {
+export class ArchiveNetService extends BaseService<ArchiveNet, Net> {
   constructor(
     @InjectModel(Net.name) netModel: Model<Net>,
     @InjectModel(ArchiveNet.name) archivedNetModel: Model<ArchiveNet>,
@@ -341,7 +349,7 @@ export class ArchiveNetService extends BaseService<Net> {
 
 // Player Service
 @Injectable()
-export class ArchivePlayerService extends BaseService<Player> {
+export class ArchivePlayerService extends BaseService<ArchivePlayer, Player> {
   constructor(
     @InjectModel(Player.name) playerModel: Model<Player>,
     @InjectModel(ArchivePlayer.name) archivedPlayerModel: Model<ArchivePlayer>,
@@ -352,7 +360,7 @@ export class ArchivePlayerService extends BaseService<Player> {
 
 // PlayerRanking Service
 @Injectable()
-export class ArchivePlayerRankingService extends BaseService<PlayerRanking> {
+export class ArchivePlayerRankingService extends BaseService<ArchivePlayerRanking, PlayerRanking> {
   constructor(
     @InjectModel(PlayerRanking.name) playerRankingModel: Model<PlayerRanking>,
     @InjectModel(ArchivePlayerRanking.name) archivedPlayerRankingModel: Model<ArchivePlayerRanking>,
@@ -362,7 +370,7 @@ export class ArchivePlayerRankingService extends BaseService<PlayerRanking> {
 }
 
 @Injectable()
-export class ArchivePlayerRankingItemService extends BaseService<PlayerRankingItem> {
+export class ArchivePlayerRankingItemService extends BaseService<ArchivePlayerRankingItem, PlayerRankingItem> {
   constructor(
     @InjectModel(PlayerRankingItem.name) playerRankingModel: Model<PlayerRankingItem>,
     @InjectModel(ArchivePlayerRankingItem.name) archivedPlayerRankingItemModel: Model<ArchivePlayerRankingItem>,
@@ -373,7 +381,7 @@ export class ArchivePlayerRankingItemService extends BaseService<PlayerRankingIt
 
 // PlayerStats Service
 @Injectable()
-export class ArchivePlayerStatsService extends BaseService<PlayerStats> {
+export class ArchivePlayerStatsService extends BaseService<ArchivePlayerStats, PlayerStats> {
   constructor(
     @InjectModel(PlayerStats.name) playerStatsModel: Model<PlayerStats>,
     @InjectModel(ArchivePlayerStats.name) archivedPlayerStatsModel: Model<ArchivePlayerStats>,
@@ -384,7 +392,7 @@ export class ArchivePlayerStatsService extends BaseService<PlayerStats> {
 
 // Room Service
 @Injectable()
-export class ArchiveRoomService extends BaseService<Room> {
+export class ArchiveRoomService extends BaseService<ArchiveRoom, Room> {
   constructor(
     @InjectModel(Room.name) roomModel: Model<Room>,
     @InjectModel(ArchiveRoom.name) archivedRoomModel: Model<ArchiveRoom>,
@@ -395,7 +403,7 @@ export class ArchiveRoomService extends BaseService<Room> {
 
 // Round Service
 @Injectable()
-export class ArchiveRoundService extends BaseService<Round> {
+export class ArchiveRoundService extends BaseService<ArchiveRound, Round> {
   constructor(
     @InjectModel(Round.name) roundModel: Model<Round>,
     @InjectModel(ArchiveRound.name) archivedRoundModel: Model<ArchiveRound>,
@@ -406,7 +414,7 @@ export class ArchiveRoundService extends BaseService<Round> {
 
 // ServerReceiverOnNet Service
 @Injectable()
-export class ArchiveServerReceiverOnNetService extends BaseService<ServerReceiverOnNet> {
+export class ArchiveServerReceiverOnNetService extends BaseService<ArchiveServerReceiverOnNet, ServerReceiverOnNet> {
   constructor(
     @InjectModel(ServerReceiverOnNet.name) serverReceiverOnNetModel: Model<ServerReceiverOnNet>,
     @InjectModel(ArchiveServerReceiverOnNet.name) archivedServerReceiverOnNetModel: Model<ArchiveServerReceiverOnNet>,
@@ -417,7 +425,7 @@ export class ArchiveServerReceiverOnNetService extends BaseService<ServerReceive
 
 // ServerReceiverSinglePlay Service
 @Injectable()
-export class ArchiveServerReceiverSinglePlayService extends BaseService<ServerReceiverSinglePlay> {
+export class ArchiveServerReceiverSinglePlayService extends BaseService<ArchiveServerReceiverSinglePlay, ServerReceiverSinglePlay> {
   constructor(
     @InjectModel(ServerReceiverSinglePlay.name) serverReceiverSinglePlayModel: Model<ServerReceiverSinglePlay>,
     @InjectModel(ArchiveServerReceiverSinglePlay.name) archivedServerReceiverSinglePlayModel: Model<ArchiveServerReceiverSinglePlay>,
@@ -428,7 +436,7 @@ export class ArchiveServerReceiverSinglePlayService extends BaseService<ServerRe
 
 // Sponsor Service
 @Injectable()
-export class ArchiveSponsorService extends BaseService<Sponsor> {
+export class ArchiveSponsorService extends BaseService<ArchiveSponsor, Sponsor> {
   constructor(
     @InjectModel(Sponsor.name) sponsorModel: Model<Sponsor>,
     @InjectModel(ArchiveSponsor.name) archivedSponsorModel: Model<ArchiveSponsor>,
@@ -439,7 +447,7 @@ export class ArchiveSponsorService extends BaseService<Sponsor> {
 
 // Team Service
 @Injectable()
-export class ArchiveTeamService extends BaseService<Team> {
+export class ArchiveTeamService extends BaseService<ArchiveTeam, Team> {
   constructor(
     @InjectModel(Team.name) teamModel: Model<Team>,
     @InjectModel(ArchiveTeam.name) archivedTeamModel: Model<ArchiveTeam>,
@@ -450,7 +458,7 @@ export class ArchiveTeamService extends BaseService<Team> {
 
 // Template Service
 @Injectable()
-export class ArchiveTemplateService extends BaseService<Template> {
+export class ArchiveTemplateService extends BaseService<ArchiveTemplate, Template> {
   constructor(
     @InjectModel(Template.name) templateModel: Model<Template>,
     @InjectModel(ArchiveTemplate.name) archivedTemplateModel: Model<ArchiveTemplate>,
@@ -461,11 +469,43 @@ export class ArchiveTemplateService extends BaseService<Template> {
 
 // User Service
 @Injectable()
-export class ArchiveUserService extends BaseService<User> {
+export class ArchiveUserService extends BaseService<ArchiveUser, User> {
   constructor(
     @InjectModel(User.name) userModel: Model<User>,
     @InjectModel(ArchiveUser.name) archivedUserModel: Model<ArchiveUser>,
   ) {
     super(userModel, archivedUserModel);
+  }
+}
+
+
+@Injectable()
+export class ArchiveEmailsenderService extends BaseService<ArchiveEmailsender, Emailsender> {
+  constructor(
+    @InjectModel(Emailsender.name) emailsenderModel: Model<Emailsender>,
+    @InjectModel(ArchiveEmailsender.name) archivedEmailsenderModel: Model<ArchiveEmailsender>,
+  ) {
+    super(emailsenderModel, archivedEmailsenderModel);
+  }
+}
+
+@Injectable()
+export class ArchiveEmailcontentService extends BaseService<ArchiveEmailcontent, Emailcontent> {
+  constructor(
+    @InjectModel(Emailcontent.name) emailsenderModel: Model<Emailcontent>,
+    @InjectModel(ArchiveEmailcontent.name) archivedEmailcontentModel: Model<ArchiveEmailcontent>,
+  ) {
+    super(emailsenderModel, archivedEmailcontentModel);
+  }
+}
+
+
+@Injectable()
+export class ArchiveBadgeService extends BaseService<ArchiveBadge, Badge> {
+  constructor(
+    @InjectModel(Badge.name) badgeModel: Model<Badge>,
+    @InjectModel(ArchiveBadge.name) archivedBadgeModel: Model<ArchiveBadge>,
+  ) {
+    super(badgeModel, archivedBadgeModel);
   }
 }

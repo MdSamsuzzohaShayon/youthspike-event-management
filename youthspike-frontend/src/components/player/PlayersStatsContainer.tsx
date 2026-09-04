@@ -23,10 +23,6 @@ import {
 import { SEARCH_PLAYER_STATS } from "@/graphql/player";
 import PlayerSearchList from "./PlayerSearchList";
 import ActiveFiltersBar from "../event/ActiveFiltersBar";
-import Link from "next/link";
-import TabsNav from "../event/TabsNav";
-import { readDate } from "@/utils/datetime";
-import EventWrapper from "../event/EventWrapper";
 import BadgeTable from "../badge/BadgeTable";
 import EventHeader from "../event/EventHeader";
 
