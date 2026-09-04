@@ -59,8 +59,6 @@ function FilterContent({
       return;
     }
     onApplyFilters({ group: '', search: filter?.search || '', status: filter?.status || '', division: e.target.value });
-
-
   };
 
 

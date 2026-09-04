@@ -1,28 +1,24 @@
-import { EFilterPage, IGroup, ISearchFilter } from '@/types';
-import React, { useMemo } from 'react';
+import { EFilterPage, IFilterState, IGroup, ISearchFilter } from '@/types';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import SelectInput from '../elements/forms/SelectInput';
 import InputField from '../elements/forms/InputField';
 import { useLdoId } from '@/lib/LdoProvider';
 import SessionStorageService from '@/utils/SessionStorageService';
-import { CURRENT_EVENT, DIVISION } from '@/utils/constant';
+import { CURRENT_EVENT } from '@/utils/constant';
 import Image from 'next/image';
 import routerService from '@/lib/router-service';
+import { useMessage } from '@/lib/MessageProvider';
 
 interface IFilterContentProps {
-  // This is optional because we can search for all matches, not just matches of a specific event
   divisions: string;
   groups: IGroup[];
   loading: boolean;
   filter: Partial<ISearchFilter>;
-  updateFilter: (key: string, value: string) => void;
-  onApplyFilters: () => void;
-  onClearFilters: () => void;
-  hasUnsavedChanges: boolean;
-  hasActiveFilters: boolean;
-  filterPage: EFilterPage;
+  onApplyFilters: (filter: IFilterState) => void;
   eventId?: string;
   showStatus?: boolean;
+  filterPage: EFilterPage;
 }
 
 const pageLinks: Record<EFilterPage, string> = {
@@ -36,87 +32,137 @@ function FilterContent({
   groups,
   loading,
   filter,
-  updateFilter,
   onApplyFilters,
-  onClearFilters,
-  hasUnsavedChanges,
-  hasActiveFilters,
-  filterPage,
   showStatus,
   eventId,
+  filterPage,
 }: IFilterContentProps) {
   const { ldoIdUrl } = useLdoId();
+  const { setMessage } = useMessage();
+
+  const [searchValue, setSearchValue] = useState(filter?.search || '');
+
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Keep local search synchronized when parent filter changes.
+  useEffect(() => {
+    setSearchValue(filter?.search || '');
+  }, [filter?.search]);
+
+  // Cleanup debounce timer.
+  useEffect(() => {
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+    };
+  }, []);
+
   const divisionList = useMemo(() => {
     if (!divisions) return [];
-    return [
-      ...divisions.split(',').map((div, i) => ({
-        id: i + 1,
-        value: div.trim(),
-        label: div.trim().toUpperCase(),
-      })),
-    ];
+
+    return divisions.split(',').map((div, i) => ({
+      id: i + 1,
+      value: div.trim(),
+      label: div.trim().toUpperCase(),
+    }));
   }, [divisions]);
 
   const filteredGroups = useMemo(() => {
-    const newGroups = filter?.division ? groups.filter((g) => g?.division?.trim()?.toLowerCase() === filter?.division?.trim()?.toLowerCase()) : groups;
+    const newGroups = filter?.division
+      ? groups.filter(
+          (g) =>
+            g?.division?.trim()?.toLowerCase() ===
+            filter?.division?.trim()?.toLowerCase()
+        )
+      : groups;
 
-    const groupOptions = newGroups.map((g, i) => ({
+    return newGroups.map((g, i) => ({
       id: i + 1,
       value: g._id,
       label: g.name,
       text: g.name,
     }));
-
-    return [...groupOptions];
   }, [groups, filter?.division]);
 
   const handleDivisionChange = (e: React.SyntheticEvent) => {
-    const inputEl = e.target as HTMLSelectElement;
-    updateFilter('division', inputEl.value);
+    const value = (e.target as HTMLInputElement).value;
 
-    if (inputEl.value) {
-      SessionStorageService.setItem(DIVISION, inputEl.value.trim());
-    } else {
-      SessionStorageService.removeItem(DIVISION);
-    }
+    onApplyFilters({
+      group: '',
+      search: searchValue,
+      status: filter?.status || '',
+      division: value,
+    });
   };
 
-
-  const handleRedirectTeam = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    // Set event
-    if (eventId) {
-      SessionStorageService.setItem(CURRENT_EVENT, eventId);
-    }
-    routerService.push(`/teams/new/${ldoIdUrl}`);
-  }
-
-
-  const handleRedirectPlayer = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    // Set event
-    if (eventId) {
-      SessionStorageService.setItem(CURRENT_EVENT, eventId);
-      routerService.push(`/players/new/${ldoIdUrl}`);
-    }else{
-      console.error("No event id found");
-    }
-    
-  }
-
   const handleGroupChange = (e: React.SyntheticEvent) => {
-    const inputEl = e.target as HTMLSelectElement;
-    updateFilter('group', inputEl.value);
+    const value = (e.target as HTMLInputElement).value;
+
+    onApplyFilters({
+      division: filter?.division || '',
+      search: searchValue,
+      status: filter?.status || '',
+      group: value,
+    });
   };
 
   const handleStatusChange = (e: React.SyntheticEvent) => {
-    const inputEl = e.target as HTMLSelectElement;
-    updateFilter('status', inputEl.value);
+    const value = (e.target as HTMLInputElement).value;
+
+    onApplyFilters({
+      group: filter?.group || '',
+      division: filter?.division || '',
+      search: searchValue,
+      status: value,
+    });
   };
 
-  const handleSearchChange = (e: React.SyntheticEvent) => {
-    const inputEl = e.target as HTMLInputElement;
-    updateFilter('search', inputEl.value);
+  const handleSearchChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const value = e.target.value;
+
+    // Update input immediately.
+    setSearchValue(value);
+
+    // Cancel previous debounce.
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+
+    // Start a new debounce.
+    searchDebounceRef.current = setTimeout(() => {
+      onApplyFilters({
+        group: filter?.group || '',
+        division: filter?.division || '',
+        status: filter?.status || '',
+        search: value,
+      });
+
+      searchDebounceRef.current = null;
+    }, 500);
+  };
+
+  const handleRedirectPlayer = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+
+    if (eventId) {
+      SessionStorageService.setItem(CURRENT_EVENT, eventId);
+      routerService.push(`/players/new/${ldoIdUrl}`);
+    } else {
+      console.error('No event id found');
+    }
+  };
+
+  const handleRedirectTeam = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+
+    if (eventId) {
+      SessionStorageService.setItem(CURRENT_EVENT, eventId);
+    }
+
+    routerService.push(`/teams/new/${ldoIdUrl}`);
   };
 
   return (
@@ -124,30 +170,44 @@ function FilterContent({
       className="w-full animate-slide-down mb-3"
       onSubmit={(e) => {
         e.preventDefault();
-        if (!loading && hasUnsavedChanges) {
-          onApplyFilters();
-        }
       }}
     >
       <div className="grid grid-cols-2 gap-3 mb-3">
-        {/* Division */}
-        <SelectInput handleSelect={handleDivisionChange} name="division" optionList={divisionList} label="Division" value={filter?.division} />
+        <SelectInput
+          handleSelect={handleDivisionChange}
+          name="division"
+          optionList={divisionList}
+          label="Division"
+          value={filter?.division}
+        />
 
-        {/* Group */}
-        <SelectInput handleSelect={handleGroupChange} name="group" optionList={filteredGroups} label="Group" value={filter.group} />
+        <SelectInput
+          handleSelect={handleGroupChange}
+          name="group"
+          optionList={filteredGroups}
+          label="Group"
+          value={filter?.group}
+        />
       </div>
 
-      {/* Search Input */}
       <div className="relative mb-3">
-        <InputField name="search" type="text" value={filter.search || ''} onChange={handleSearchChange} />
+        <InputField
+          name="search"
+          type="text"
+          value={searchValue}
+          onChange={handleSearchChange}
+        />
       </div>
 
-      {/* Status Filter */}
       {showStatus && (
         <div className="mb-4">
-          <label htmlFor="matchStatus" className="text-sm font-medium text-gray-300 mb-1 block">
+          <label
+            htmlFor="matchStatus"
+            className="text-sm font-medium text-gray-300 mb-1 block"
+          >
             Match Status
           </label>
+
           <select
             id="matchStatus"
             value={filter.status || ''}
@@ -165,46 +225,44 @@ function FilterContent({
         </div>
       )}
 
-      {/* Action Buttons */}
       <div className="flex gap-2">
-        <button
-          onClick={onApplyFilters}
-          disabled={loading}
-          className="btn-info"
-        >
-          {loading ? (
-            <>
-              <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2" />
-              Applying...
-            </>
-          ) : (
-            'Apply Filters'
-          )}
-        </button>
-
         {filterPage === EFilterPage.MATCHES ? (
-          <Link href={`/${eventId}/${pageLinks[filterPage]}/${ldoIdUrl}`} className="btn-info">
+          <Link
+            href={`/${eventId}/${pageLinks[filterPage]}/${ldoIdUrl}`}
+            className="btn-info"
+          >
             New Match
           </Link>
-        ) : (
-          filterPage === EFilterPage.PLAYERS ? (<button className='btn-info flex justify-center items-center gap-x-2' onClick={handleRedirectPlayer}>
-            <Image src={`/icons/plus.svg`} height={20} width={20} alt='new-team' className='w-6 h-6' />
+        ) : filterPage === EFilterPage.PLAYERS ? (
+          <button
+            className="btn-info flex justify-center items-center gap-x-2"
+            onClick={handleRedirectPlayer}
+          >
+            <Image
+              src="/icons/plus.svg"
+              height={20}
+              width={20}
+              alt="new-player"
+              className="w-6 h-6"
+            />
             New Player
-          </button>) : (<button className='btn-info flex justify-center items-center gap-x-2' onClick={handleRedirectTeam}>
-            <Image src={`/icons/plus.svg`} height={20} width={20} alt='new-team' className='w-6 h-6' />
+          </button>
+        ) : (
+          <button
+            className="btn-info flex justify-center items-center gap-x-2"
+            onClick={handleRedirectTeam}
+          >
+            <Image
+              src="/icons/plus.svg"
+              height={20}
+              width={20}
+              alt="new-team"
+              className="w-6 h-6"
+            />
             New Team
-          </button>)
-        )}
-
-        {hasActiveFilters && (
-          <button onClick={onClearFilters} disabled={loading} className="px-4 py-2 bg-gray-700 text-white font-semibold rounded-md hover:bg-gray-600 disabled:opacity-50 transition-colors">
-            Clear
           </button>
         )}
       </div>
-
-      {/* Unsaved changes indicator */}
-      {hasUnsavedChanges && !loading && <div className="mt-2 text-sm text-yellow-400 text-center">You have unsaved filter changes</div>}
     </form>
   );
 }

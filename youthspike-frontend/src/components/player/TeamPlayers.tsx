@@ -73,11 +73,7 @@ function TeamPlayers({ teamPlayers, screenWidth, roundList, onTop, teamE }: ITea
               <PlayerScoreCard
                 player={player}
                 onTop={onTop}
-                screenWidth={screenWidth}
                 subbedRounds={subbedPlayers.get(player._id)}
-                myTeamE={myTeamE}
-                tapr={teamAPlayerRanking}
-                tbpr={teamBPlayerRanking}
               />
             </Link>
           ))}

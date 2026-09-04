@@ -88,12 +88,6 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
   }, [team]);
 
 
-  // useEffect(() => {
-  //   // Remove event on unmount
-  //   return () => {
-  //     SessionStorageService.removeItem(CURRENT_EVENT);
-  //   }
-  // }, []);
 
   return (
     <div className="min-h-screen">

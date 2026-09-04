@@ -1,66 +1,72 @@
-// components/player/PlayersMainContainer.tsx
-'use client';
+// components/player/PlayersMain.tsx
+"use client";
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { QueryRef, useReadQuery, useApolloClient, useQuery } from '@apollo/client/react';
-import { useRouter } from 'next/navigation';
-import FilterContent from '../event/FilterContent';
-import { ISearchFilter, ISearchPlayerResponse, IPlayer, ITeam, IEvent, EGroupType, EFilterPage, IGroup, IGetTeamsResponse, IBadge, EBadgeFor } from '@/types';
-import { SEARCH_PLAYERS } from '@/graphql/players';
-import PlayerSearchList from './PlayerSearchList';
-import EventNavigation from '../layout/EventNavigation';
-import ActiveFiltersBar from '../event/ActiveFiltersBar';
-import Loader from '../elements/Loader';
-import { GET_TEAMS } from '@/graphql/teams';
-import SessionStorageService from '@/utils/SessionStorageService';
-import { CURRENT_EVENT } from '@/utils/constant';
-import BadgeTable from '../badge/BadgeTable';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { QueryRef, useReadQuery, useApolloClient } from "@apollo/client/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import FilterContent from "../event/FilterContent";
+import {
+  ISearchFilter,
+  IGroup,
+  IPlayer,
+  ITeam,
+  IPlayerStats,
+  IEvent,
+  IFilterState,
+  IBadge,
+  EBadgeFor,
+  ISearchPlayerResponse,
+  EFilterPage,
+} from "@/types";
+import PlayerSearchList from "./PlayerSearchList";
+import ActiveFiltersBar from "../event/ActiveFiltersBar";
+import BadgeTable from "../badge/BadgeTable";
+import { SEARCH_PLAYERS } from "@/graphql/players";
+import EventNavigation from "../layout/EventNavigation";
 
-interface PlayersMainContainerProps {
+interface IPlayersMainContainerProps {
   queryRef: QueryRef<{ searchPlayers: ISearchPlayerResponse }>;
   initialSearchParams: Partial<ISearchFilter>;
 }
 
-interface IFilterState extends Partial<ISearchFilter> {
-  search: string;
-  division: string;
-  group: string;
-}
 
-const TEAM_LIMIT = 500;
 
-const DEFAULT_FILTER_STATE: IFilterState = {
-  ce: EGroupType.CONFERENCE,
-  search: '',
-  division: '',
-  group: '',
-  limit: 30,
-  offset: 0,
+const DEFAULT_FILTER_STATE: Omit<IFilterState, 'status'> = {
+  // ce: EGroupType.CONFERENCE,
+  search: "",
+  division: "",
+  group: "",
 };
 
 const LOAD_MORE_INCREMENT = 3;
+const PAGE_SIZE = 30;
 
-export default function PlayersMainContainer({ queryRef, initialSearchParams }: PlayersMainContainerProps) {
+function PlayersMainContainer({
+  queryRef,
+  initialSearchParams,
+}: IPlayersMainContainerProps) {
   const router = useRouter();
   const { data: initialData } = useReadQuery(queryRef);
   const apolloClient = useApolloClient();
 
+
   // Server data state
-  const [serverData, setServerData] = useState<ISearchPlayerResponse['data'] | null>(null);
+  const [serverData, setServerData] = useState<
+    ISearchPlayerResponse["data"] | null
+  >(null);
   const [allPlayers, setAllPlayers] = useState<IPlayer[]>([]);
+  const [groups, setGroups] = useState<IGroup[]>([]);
   const [badges, setBadges] = useState<IBadge[]>([]);
-  // const [teamList, setTeamList] = useState<ITeam[]>([]);
-  const [groupList, setGroupList] = useState<IGroup[]>([]);
+  const [teams, setTeams] = useState<ITeam[]>([]);
   const [event, setEvent] = useState<IEvent | null>(null);
 
-
+  const searchRequestIdRef = useRef<number>(0);
 
   // Filter and pagination states
-  const [localFilter, setLocalFilter] = useState<IFilterState>({
+  const [appliedFilter, setAppliedFilter] = useState<Omit<IFilterState, 'status'>>({
     ...DEFAULT_FILTER_STATE,
     ...initialSearchParams,
   });
-  const [appliedFilter, setAppliedFilter] = useState<IFilterState>(localFilter);
   const [currentOffset, setCurrentOffset] = useState(0);
 
   // Loading states
@@ -68,115 +74,113 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [hasMorePlayers, setHasMorePlayers] = useState<boolean>(true);
 
-
-  const eventId = initialData?.searchPlayers?.data?.event?._id || null;
-
-  const eventIds = eventId ? [eventId] : undefined;
-  const { data: teamsData, loading, error } = useQuery<{ getTeams: IGetTeamsResponse }>(GET_TEAMS, {
-    variables: { eventIds, limit: TEAM_LIMIT },
-    fetchPolicy: "cache-first",
-  });
-
-
-
-  const teamList = useMemo(() => {
-    return (teamsData?.getTeams?.data || []) as ITeam[];
-  }, [teamsData]);
-
   // Build query variables
   const buildQueryVariables = useCallback(
-    (filter: IFilterState, offset: number = 0) => ({
-      eventId: eventId,
+    (filter: Omit<IFilterState, 'status'>, offset: number = 0) => ({
+      eventId: initialData?.searchPlayers.data.event._id,
       filter: {
         search: filter.search || undefined,
         division: filter.division || undefined,
         group: filter.group || undefined,
-        limit: filter.limit,
+        limit: PAGE_SIZE,
         offset: offset,
       },
     }),
-    [initialData],
+    [initialData]
   );
 
   // Transform server data into usable maps
   const transformServerData = useCallback(
-    (searchData: ISearchPlayerResponse['data']) => {
+    (searchData: ISearchPlayerResponse["data"]) => {
       if (!searchData) return;
 
       setAllPlayers(searchData.players || []);
-      // setTeamList(searchData.teams || []);
-      setGroupList(searchData.groups || []);
-      setBadges(searchData?.badges || []);
-      setEvent(searchData.event);
+      setTeams(searchData.teams || []);
+      setGroups(searchData.groups || []);
+      setBadges(searchData.badges || []);
       setServerData(searchData);
-
+      setEvent(searchData.event || null);
 
       // Check if there are more players to load
-      setHasMorePlayers(searchData.players.length === (appliedFilter.limit || DEFAULT_FILTER_STATE.limit!));
+      setHasMorePlayers(
+        searchData.players.length ===
+        PAGE_SIZE
+      );
     },
-    [appliedFilter.limit],
+    []
   );
-
 
   // Execute GraphQL query
   const executeSearchQuery = useCallback(
-    async (filter: IFilterState, offset: number = 0) => {
+    async (filter: Omit<IFilterState, 'status'>, offset: number = 0) => {
       try {
-        const result = await apolloClient.query<{ searchPlayers: ISearchPlayerResponse }>({
+        const result = await apolloClient.query({
           query: SEARCH_PLAYERS,
           variables: buildQueryVariables(filter, offset),
-          fetchPolicy: 'network-only',
+          fetchPolicy: "network-only",
         });
-
-        if (!result.data) {
-          console.error(result);
-
-          throw new Error('No data returned from query');
-        }
-
-        return result.data.searchPlayers;
+        return (result.data as { searchPlayers: ISearchPlayerResponse })
+          .searchPlayers;
       } catch (error) {
-        console.error('Failed to fetch players:', error);
+        console.error("Failed to fetch players:", error);
         throw error;
       }
     },
-    [apolloClient, buildQueryVariables],
+    [apolloClient, buildQueryVariables]
   );
 
-  // Apply filters with reset pagination
-  const handleApplyFilters = useCallback(async () => {
+  const handleFilterApply = async (
+    filter: Omit<IFilterState, 'status'>
+  ) => {
+    const requestId = ++searchRequestIdRef.current;
+
     setIsApplyingFilters(true);
-    setCurrentOffset(0);
 
     try {
-      const response = await executeSearchQuery(localFilter, 0);
+      const response = await executeSearchQuery(filter);
+
+      // Ignore stale response.
+      if (requestId !== searchRequestIdRef.current) {
+        return;
+      }
 
       transformServerData(response.data);
-      setAppliedFilter(localFilter);
+      setAppliedFilter(filter);
 
-      // Update URL
       const params = new URLSearchParams();
-      Object.entries(localFilter).forEach(([key, value]) => {
-        if (value && value !== '') {
-          params.set(key, String(value));
+
+      Object.entries(filter).forEach(([key, value]) => {
+        if (value) {
+          params.set(key, value);
         }
       });
 
-      const newUrl = `${window.location.pathname}?${params.toString()}`;
-      router.replace(newUrl, { scroll: false });
+      const queryString = params.toString();
+
+      router.replace(
+        queryString
+          ? `${window.location.pathname}?${queryString}`
+          : window.location.pathname,
+        { scroll: false }
+      );
     } catch (error) {
-      console.error('Failed to apply filters:', error);
+      if (requestId === searchRequestIdRef.current) {
+        console.error("Failed to apply filters:", error);
+      }
     } finally {
-      setIsApplyingFilters(false);
+      if (requestId === searchRequestIdRef.current) {
+        setIsApplyingFilters(false);
+      }
     }
-  }, [localFilter, executeSearchQuery, transformServerData, router]);
+  };
 
   // Load more players
   const handleLoadMore = useCallback(async () => {
     if (!hasMorePlayers || isLoadingMore) return;
 
     setIsLoadingMore(true);
-    const newOffset = currentOffset + (appliedFilter.limit || DEFAULT_FILTER_STATE.limit!);
+    const newOffset =
+      currentOffset + PAGE_SIZE;
 
     try {
       const response = await executeSearchQuery(appliedFilter, newOffset);
@@ -186,48 +190,36 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
         setAllPlayers((prev) => [...prev, ...newPlayers]);
         setCurrentOffset(newOffset);
 
-        // setTeamList(response.data.teams || []);
-        setGroupList(response.data.groups || []);
-        setBadges(response?.data?.badges || []);
+
+        setTeams(response.data.teams || []);
 
         // Check if there are more players
-        setHasMorePlayers(newPlayers.length === (appliedFilter.limit || DEFAULT_FILTER_STATE.limit!));
+        setHasMorePlayers(
+          newPlayers.length ===
+          PAGE_SIZE
+        );
       } else {
         setHasMorePlayers(false);
       }
     } catch (error) {
-      console.error('Failed to load more players:', error);
+      console.error("Failed to load more players:", error);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [hasMorePlayers, isLoadingMore, currentOffset, appliedFilter, executeSearchQuery]);
+  }, [
+    hasMorePlayers,
+    isLoadingMore,
+    currentOffset,
+    appliedFilter,
+    executeSearchQuery,
+  ]);
 
   // Clear filters
-  const handleClearFilters = useCallback(async () => {
-    const clearedFilter = { ...DEFAULT_FILTER_STATE };
+  const handleClearFilters = async () => {
 
-    setLocalFilter(clearedFilter);
-    setCurrentOffset(0);
+    window.location.assign(window.location.pathname);
 
-    try {
-      const response = await executeSearchQuery(clearedFilter, 0);
-      transformServerData(response.data);
-      setAppliedFilter(clearedFilter);
-      router.replace(window.location.pathname, { scroll: false });
-    } catch (error) {
-      console.error('Failed to clear filters:', error);
-    }
-  }, [executeSearchQuery, transformServerData, router]);
-
-
-
-  // Update local filter
-  const updateLocalFilter = useCallback((key: string, value: string) => {
-    setLocalFilter((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  }, []);
+  };
 
   // Initialize with preloaded data
   useEffect(() => {
@@ -237,103 +229,124 @@ export default function PlayersMainContainer({ queryRef, initialSearchParams }: 
   }, [initialData, transformServerData]);
 
   // UI state computations
-  const hasActiveFilters = useMemo(() => Object.entries(appliedFilter).some(([key, value]) => value !== '' && key !== 'limit' && key !== 'offset'), [appliedFilter]);
-
-  const hasUnsavedChanges = useMemo(
+  const hasActiveFilters = useMemo(
     () =>
-      JSON.stringify({
-        search: localFilter.search,
-        division: localFilter.division,
-        group: localFilter.group,
-      }) !==
-      JSON.stringify({
-        search: appliedFilter.search,
-        division: appliedFilter.division,
-        group: appliedFilter.group,
-      }),
-    [localFilter, appliedFilter],
+      Object.entries(appliedFilter).some(
+        ([key, value]) => value !== "" && key !== "limit" && key !== "offset"
+      ),
+    [appliedFilter]
   );
+
+  const playerBadges = useMemo(() => {
+    return badges.filter((badge) => badge.badgeFor === EBadgeFor.PLAYER)
+  }, [badges]);
 
   const displayedPlayers = useMemo(
-    () => allPlayers.slice(0, currentOffset + (appliedFilter.limit || DEFAULT_FILTER_STATE.limit!) + LOAD_MORE_INCREMENT),
-    [allPlayers, currentOffset, appliedFilter.limit],
+    () =>
+      allPlayers.slice(
+        0,
+        currentOffset +
+        PAGE_SIZE +
+        LOAD_MORE_INCREMENT
+      ),
+    [allPlayers, currentOffset]
   );
-
-  const playerBadges = useMemo(()=> badges.filter((badge)=> badge.badgeFor === EBadgeFor.PLAYER), [badges]);
-  
 
 
 
   return (
     <div className="animate-fade-in">
+      {/* Event Wrapper Start  */}
       <div className="navigation my-8">
         <EventNavigation event={event} />
       </div>
 
-      {/* Filters */}
-      <FilterContent
-        eventId={event?._id || ''}
-        filterPage={EFilterPage.PLAYERS}
-        groups={groupList}
-        divisions={event?.divisions ?? ''}
-        loading={isApplyingFilters}
-        filter={localFilter}
-        updateFilter={updateLocalFilter}
-        onApplyFilters={handleApplyFilters}
-        onClearFilters={handleClearFilters}
-        hasUnsavedChanges={hasUnsavedChanges}
-        hasActiveFilters={hasActiveFilters}
-      />
+      {/* Page Content */}
+      <div className="flex flex-col lg:flex-row gap-4 md:gap-6 md:mt-6">
+        <div className="content w-full rounded-md bg-gray-800 p-3 md:p-4 animate-fade-in-up">
 
-      {/* Active filters indicator */}
-      {hasActiveFilters && (
-        <ActiveFiltersBar appliedFilter={appliedFilter} groups={groupList} isApplyingFilters={isApplyingFilters} onClearFilters={handleClearFilters} />
-      )}
+          {/* Filters */}
+          <FilterContent
+            groups={groups}
+            divisions={event?.divisions ?? ""}
+            loading={isApplyingFilters}
+            filter={appliedFilter}
+            filterPage={EFilterPage.PLAYERS}
+            onApplyFilters={handleFilterApply}
+          />
 
-      {/* Loading state for initial load */}
-      {isApplyingFilters && allPlayers.length === 0 && (
-        <div className="flex justify-center items-center py-8">
-          <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
-          <span className="ml-2 text-gray-300">Loading players...</span>
+          {/* Active filters indicator */}
+          {hasActiveFilters && (
+            <ActiveFiltersBar appliedFilter={appliedFilter} groups={groups} isApplyingFilters={isApplyingFilters} onClearFilters={handleClearFilters} />
+          )}
+
+          {/* Loading state for initial load */}
+          {isApplyingFilters && allPlayers.length === 0 && (
+            <div className="flex justify-center items-center py-8">
+              <div className="w-8 h-8 border-2 border-yellow-logo border-t-transparent rounded-full animate-spin" />
+              <span className="ml-2 text-gray-300">Loading players...</span>
+            </div>
+          )}
+
+          {/* Players List */}
+          {!isApplyingFilters && (
+            <div className="w-full player-standings">
+              <PlayerSearchList
+                playerList={displayedPlayers}
+                teamList={teams}
+                events={event ? [event] : []}
+                badges={playerBadges}
+                selectedEvent={event}
+              />
+            </div>
+          )}
+
+          {/* Load More Button */}
+          {hasMorePlayers && !isApplyingFilters && displayedPlayers.length > 0 && (
+            <div className="flex justify-center mt-6">
+              <button
+                onClick={handleLoadMore}
+                disabled={isLoadingMore}
+                className="px-6 py-2 bg-yellow-logo text-gray-900 rounded-md hover:bg-yellow-logo disabled:bg-yellow-700 disabled:cursor-not-allowed transition-colors font-medium"
+              >
+                {isLoadingMore ? (
+                  <span className="flex items-center">
+                    <div className="w-4 h-4 border-2 border-gray-900 border-t-transparent rounded-full animate-spin mr-2" />
+                    Loading...
+                  </span>
+                ) : (
+                  `Load More Players`
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* No players found */}
+          {!isApplyingFilters && displayedPlayers.length === 0 && (
+            <div className="text-center py-8 text-gray-400 animate-fade-in">
+              No players found matching your criteria.
+            </div>
+          )}
+
+          {/* End of results */}
+          {!hasMorePlayers && displayedPlayers.length > 0 && (
+            <div className="text-center py-4 text-gray-500 text-sm">
+              No more players to load.
+            </div>
+          )}
+
+          <div className="w-full mt-6">
+            <h4>Badges</h4>
+            <BadgeTable badges={playerBadges} />
+          </div>
         </div>
-      )}
-
-      {/* Players List */}
-      {!isApplyingFilters && (
-        <div className="w-full player-standings">
-          <PlayerSearchList playerList={displayedPlayers} teamList={teamList} events={event ? [event] : []} badges={playerBadges} selectedEvent={event} />
-
-        </div>
-      )}
-
-      {/* Load More Button */}
-      {hasMorePlayers && !isApplyingFilters && displayedPlayers.length > 0 && (
-        <div className="flex justify-center mt-6">
-          <button
-            onClick={handleLoadMore}
-            disabled={isLoadingMore}
-            className="btn-info"
-          >
-            {isLoadingMore ? (
-              <Loader />
-            ) : (
-              `Load More Players`
-            )}
-          </button>
-        </div>
-      )}
-
-      {/* No players found */}
-      {!isApplyingFilters && displayedPlayers.length === 0 && <div className="text-center py-8 text-gray-400 animate-fade-in">No players found matching your criteria.</div>}
-
-      {/* End of results */}
-      {!hasMorePlayers && displayedPlayers.length > 0 && <div className="text-center py-4 text-gray-500 text-sm">No more players to load.</div>}
-
-
-      <div className="w-full mt-6">
-        <h4>Badges</h4>
-        <BadgeTable badges={playerBadges} />
       </div>
+
+      {/* Event Wrapper End  */}
+
     </div>
   );
 }
+
+
+export default PlayersMainContainer;

@@ -17,6 +17,8 @@ import { Team } from 'src/team/team.schema';
 import { Template } from 'src/template/template.schema';
 import { User } from 'src/user/user.schema';
 import { Event } from 'src/event/event.schema';
+import { Emailcontent, Emailsender } from 'src/emailsender/emailsernder.schema';
+import { Badge } from 'src/badge/badge.schema';
 
 /**
  * Base Archive Schema
@@ -326,3 +328,57 @@ export class ArchiveUser extends User {
 }
 export const ArchiveUserSchema = SchemaFactory.createForClass(ArchiveUser);
 export const ArchiveUserSchemaFactory = async () => ArchiveUserSchema;
+
+
+/* -------------------- Emailsender Archive -------------------- */
+@ObjectType()
+@Schema({ timestamps: true })
+export class ArchiveEmailsender extends Emailsender {
+  @Field(() => Date)
+  @Prop({ default: () => new Date() })
+  archivedAt: Date;
+
+
+  @Field(() => String)
+  @Prop({ required: true })
+  originalId: string; // Store original document _id
+}
+
+export const ArchiveEmailsenderSchema = SchemaFactory.createForClass(ArchiveEmailsender);
+export const ArchiveEmailsenderSchemaFactory = async () => ArchiveEmailsenderSchema;
+
+
+/* -------------------- Emailcontent Archive -------------------- */
+@ObjectType()
+@Schema({ timestamps: true })
+export class ArchiveEmailcontent extends Emailcontent {
+  @Field(() => Date)
+  @Prop({ default: () => new Date() })
+  archivedAt: Date;
+
+
+  @Field(() => String)
+  @Prop({ required: true })
+  originalId: string; // Store original document _id
+}
+
+export const ArchiveEmailcontentSchema = SchemaFactory.createForClass(ArchiveEmailcontent);
+export const ArchiveEmailcontentSchemaFactory = async () => ArchiveEmailcontentSchema;
+
+
+/* -------------------- Badge Archive -------------------- */
+@ObjectType()
+@Schema({ timestamps: true })
+export class ArchiveBadge extends Badge {
+  @Field(() => Date)
+  @Prop({ default: () => new Date() })
+  archivedAt: Date;
+
+
+  @Field(() => String)
+  @Prop({ required: true })
+  originalId: string; // Store original document _id
+}
+
+export const ArchiveBadgeSchema = SchemaFactory.createForClass(ArchiveBadge);
+export const ArchiveBadgeSchemaFactory = async () => ArchiveBadgeSchema;

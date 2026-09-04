@@ -4,12 +4,14 @@ import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setVerifyLineup } from '@/redux/slices/matchesSlice';
 import { ETeam, ITeam } from '@/types/team';
 import EmitEvents from '@/utils/socket/EmitEvents';
-import React, { useMemo, useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import Image from 'next/image';
-import { imgW } from '@/utils/constant';
+import { imgW, MAX_MATCH_HEIGHT } from '@/utils/constant';
 import NetBox from '../net/NetBox';
-import { EPlayerStatus, IMatch, IMatchRelatives, INetRelatives, IPlayer, IRoundRelatives } from '@/types';
+import { EPlayerStatus, IMatchRelatives, INetRelatives, IPlayer, IRoundRelatives } from '@/types';
 import LocalStorageService from '@/utils/LocalStorageService';
+import { getAssignedPlayerIds, getAvailableSubs, getMovedPlayerIds, isActivePlayer } from '@/utils/match/captainViewHelpers';
+import SubbedPlayersPanel from '../match/CaptainMatchView/SubbedPlayersPanel';
 
 interface IVerifyLineupProps {
   teamA: ITeam | null;
@@ -22,7 +24,18 @@ interface IVerifyLineupProps {
   roundList: IRoundRelatives[];
 }
 
-function VerifyLineup({ teamA, teamB, myTeamE, myPlayers, match, currentRoundNets, currentRound, roundList }: IVerifyLineupProps) {
+
+
+function VerifyLineup({
+  teamA,
+  teamB,
+  myTeamE,
+  myPlayers,
+  match,
+  currentRoundNets,
+  currentRound,
+  roundList,
+}: IVerifyLineupProps) {
   const socket = useSocket();
   const user = useUser();
   const dispatch = useAppDispatch();
@@ -31,82 +44,110 @@ function VerifyLineup({ teamA, teamB, myTeamE, myPlayers, match, currentRoundNet
   const { teamAPlayers, teamBPlayers } = useAppSelector((state) => state.players);
   const { current: currEvent } = useAppSelector((state) => state.events);
 
-  const handleCloseLineup = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    dispatch(setVerifyLineup(false));
-  };
+  const currentTeamPlayers = useMemo<IPlayer[]>(
+    () => (myTeamE === ETeam.teamA ? teamAPlayers : teamBPlayers),
+    [myTeamE, teamAPlayers, teamBPlayers],
+  );
 
-  const handlePlayerSubmit = (e: React.SyntheticEvent) => {
-    e.preventDefault();
-    const emitEvents = new EmitEvents(socket, dispatch);
-    // Player must be active
-    const myPlayerIds: string[] = myPlayers.filter((p) => p.status === EPlayerStatus.ACTIVE).map((mp) => mp._id);
-    emitEvents.submitLineup({ eventId: currEvent?._id || "", currRoom, currRound: currentRound, currRoundNets: currentRoundNets, dispatch, myPlayerIds, myTeamE, roundList, socket, user, teamA, teamB, match });
-    LocalStorageService.removeAssignClock(currentRound?._id || "");
-  };
+  const assignedPlayerIds = useMemo<Set<string>>(() => getAssignedPlayerIds(currentRoundNets), [currentRoundNets]);
 
-  // Precompute assigned players for efficiency
-  const assignedPlayers = useMemo(() => {
-    const assigned = new Set();
-    currentRoundNets.forEach((crn) => {
-      [crn.teamAPlayerA, crn.teamAPlayerB, crn.teamBPlayerA, crn.teamBPlayerB].forEach((playerId) => {
-        if (playerId) assigned.add(playerId);
-      });
-    });
-    return assigned;
-  }, [currentRoundNets]);
+  const movedPlayerIds = useMemo<Set<string>>(() => getMovedPlayerIds(teamA, teamB), [teamA, teamB]);
 
-  // Filter subbed players
-  const subbedPlayers = useMemo(() => {
-    const players = myTeamE === ETeam.teamA ? teamAPlayers : teamBPlayers;
-    const movedPlayersMap = new Map(
-      [...(teamA?.moved ?? []), ...(teamB?.moved ?? [])].map((p) => [p._id, p])
-    );
+  const subbedPlayers = useMemo<IPlayer[]>(
+    () => getAvailableSubs(currentTeamPlayers, movedPlayerIds, assignedPlayerIds),
+    [currentTeamPlayers, movedPlayerIds, assignedPlayerIds],
+  );
 
-    return players.filter((player) => !movedPlayersMap.has(player._id) && !assignedPlayers.has(player._id) && player.status === EPlayerStatus.ACTIVE);
-  }, [assignedPlayers, myTeamE, teamAPlayers, teamBPlayers, teamA, teamB]);
+  const handleCloseLineup = useCallback(
+    (e: React.SyntheticEvent) => {
+      e.preventDefault();
+      dispatch(setVerifyLineup(false));
+    },
+    [dispatch],
+  );
 
-  const renderSubbedPlayers = useCallback(
-    () => (
-      <div className="bg-gray-100 p-4 rounded-md">
-        <h2 className="text-lg font-semibold mb-2">Subbed Players</h2>
-        {subbedPlayers.length > 0 ? subbedPlayers.map((player) => <div key={player._id} className="capitalize">{`${player.firstName} ${player.lastName}`}</div>) : <p>No subbed players available.</p>}
-      </div>
-    ),
-    [subbedPlayers],
+  const handlePlayerSubmit = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+
+      if (!socket) {
+        console.error('VerifyLineup: cannot submit lineup — socket is not connected.');
+        return;
+      }
+
+      if (!currEvent?._id) {
+        console.error('VerifyLineup: cannot submit lineup — no active event.');
+        return;
+      }
+
+      try {
+        const emitEvents = new EmitEvents(socket, dispatch);
+        const myPlayerIds: string[] = myPlayers.filter(isActivePlayer).map((player) => player._id);
+
+        emitEvents.submitLineup({
+          eventId: currEvent._id,
+          currRoom,
+          currRound: currentRound,
+          currRoundNets: currentRoundNets,
+          dispatch,
+          myPlayerIds,
+          myTeamE,
+          roundList,
+          socket,
+          user,
+          teamA,
+          teamB,
+          match,
+        });
+
+        LocalStorageService.removeAssignClock(currentRound?._id ?? '');
+      } catch (error) {
+        console.error('VerifyLineup: failed to submit lineup.', error);
+      }
+    },
+    [socket, dispatch, myPlayers, currEvent, currRoom, currentRound, currentRoundNets, myTeamE, roundList, user, teamA, teamB, match],
   );
 
   return (
-    <div className="w-full bg-white text-black-logo z-20 shadow-lg">
-      <div className="container mx-auto p-6">
-        <div className="relative flex justify-end mb-4">
-          <Image src="/icons/close.svg" alt="Close lineup modal" className="cursor-pointer" role="button" onClick={handleCloseLineup} width={imgW.logo} height={imgW.logo} />
+    <div className={`w-full bg-white text-black-logo z-20 shadow-lg ${MAX_MATCH_HEIGHT}`}>
+      <div className="container mx-auto px-6">
+        <div className="relative flex justify-end">
+
         </div>
 
-        <div className="flex flex-col items-center gap-y-6">
+        <div className="flex flex-col items-center gap-y-2">
           {/* Assigned Nets Section */}
           <div className="w-full">
-            <h3 className="text-xl font-bold mb-4">Assigned Nets</h3>
-            <div className="grid grid-cols-1 gap-4">
-              {currentRoundNets && currentRoundNets.map((crn) => <NetBox key={crn._id} crn={crn} myTeamE={myTeamE} teamPlayerList={myTeamE === ETeam.teamA ? teamAPlayers : teamBPlayers} />)}
+            <div className="w-full flex justify-between items-center">
+            <h3 className="text-xl font-bold mb-2">Assigned Nets</h3> 
+            <Image src="/icons/close.svg" alt="Close lineup modal" className="cursor-pointer" role="button" onClick={handleCloseLineup} width={imgW.logo} height={imgW.logo}/>
+            </div>
+            <div className="flex flex-col gap-y-2">
+              {currentRoundNets.map((crn) => (
+                <NetBox key={crn._id} crn={crn} myTeamE={myTeamE} teamPlayerList={currentTeamPlayers} />
+              ))}
             </div>
           </div>
 
           {/* Subbed Players Section */}
-          {!match?.extendedOvertime && <div className="w-full">{renderSubbedPlayers()}</div>}
+          {!match?.extendedOvertime && (
+            <div className="w-full">
+              <SubbedPlayersPanel players={subbedPlayers} />
+            </div>
+          )}
 
           {/* Buttons Section */}
           <div className="flex justify-center items-center gap-4 mt-6">
             <button
               type="button"
-              className="btn-secondary bg-gray-800 text-white px-6 py-2 rounded-md shadow-md hover:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="btn-success"
               onClick={handlePlayerSubmit}
             >
               Submit
             </button>
             <button
               type="button"
-              className="btn-danger bg-red-600 text-white px-6 py-2 rounded-md shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="btn-danger"
               onClick={handleCloseLineup}
             >
               Cancel

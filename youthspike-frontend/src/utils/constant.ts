@@ -51,6 +51,9 @@ const CURRENT_EVENT_ID = 'cei';
 // Match Points
 const MATCH_WIN_POINTS = 3;
 
+// Captain match view 
+const MAX_MATCH_HEIGHT = "h-[450px]";
+
 // eslint-disable-next-line import/prefer-default-export
 export {
   screen,
@@ -69,5 +72,6 @@ export {
   ASSIGN_CLOCK,
   PLAY_STRATEGY,
   CURRENT_EVENT_ID,
-  MATCH_WIN_POINTS
+  MATCH_WIN_POINTS,
+  MAX_MATCH_HEIGHT
 };

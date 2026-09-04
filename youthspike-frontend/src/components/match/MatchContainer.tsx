@@ -15,9 +15,9 @@ import {
   setMatchScore,
   setRoundMap,
 } from "@/redux/slices/matchesSlice";
-import MatchAuthenticatedView from "./MatchAuthenticatedView";
 import useMatchSocket from "@/hooks/match/useMatchSocket";
 import useNetMaps from "@/hooks/score-keeping/useNetMaps";
+import CaptainMatchView from "./CaptainMatchView/CaptainMatchView";
 
 interface IMatchContainerProps {
   queryRef: QueryRef<{ getMatch: { data: IMatchExpRel } }>;
@@ -146,7 +146,7 @@ export function MatchContainer({ queryRef }: IMatchContainerProps) {
   }
 
   return (
-    <MatchAuthenticatedView
+    <CaptainMatchView
       currMatch={currMatch}
       myPlayers={myPlayers}
       myTeam={myTeam || null}

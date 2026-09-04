@@ -1,7 +1,7 @@
 import { useAppSelector } from '@/redux/hooks';
 import { ETeam, ITeam } from '@/types/team';
 import { netSize } from '@/utils/constant';
-import TextImg from '../elements/TextImg';
+import TextImg from '../../elements/TextImg';
 import { CldImage } from 'next-cloudinary';
 
 interface ILogoMatchScoreProps {
@@ -27,9 +27,9 @@ function LogoMatchScore({ dark, team, teamE, completed, penalty }: ILogoMatchSco
       <div className="w-full flex justify-between items-center pt-4 gap-1">
         <div className="w-3/6 overflow-hidden">
           {team?.logo ? (
-            <CldImage alt={team.name} width="200" height="200" className="w-full" crop="fit" src={team.logo} />
+            <CldImage alt={team.name} width="100" height="100" className="w-26" crop="fit" src={team.logo} />
           ) : (
-            <TextImg fullText={team?.name} className="h-32 w-32 rounded-lg" style={{ height: `${netSize.tlh}rem` }} />
+            <TextImg fullText={team?.name} className="h-26 w-26 rounded-lg" style={{ height: `${netSize.tlh}rem` }} />
           )}
         </div>
         <div className="w-3/6 flex flex-col justify-center items-center gap-y-1">

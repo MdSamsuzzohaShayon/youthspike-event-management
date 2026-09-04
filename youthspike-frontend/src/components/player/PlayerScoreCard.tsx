@@ -14,18 +14,15 @@ import { screen } from "@/utils/constant";
 // Types
 // ============================================================================
 
-interface PlayerScoreCardProps {
+interface IPlayerScoreCardProps {
   player: IPlayer | null;
-  screenWidth: number;
-  myTeamE: ETeam;
   subbedRounds?: number[];
-  tapr?: IPlayerRankingExpRel | null; // Team A Player Ranking
-  tbpr?: IPlayerRankingExpRel | null; // Team B Player Ranking
   onTop?: boolean;
   playerRankExist?: number | null;
   teamPlayer?: ETeamPlayer;
   evacuatePlayer?: (teamPlayer: ETeamPlayer, playerId: string | null) => void;
   dropdownPlayer?: (e: React.SyntheticEvent, teamPlayer: ETeamPlayer) => void;
+
 }
 
 interface PlayerImageProps {
@@ -45,7 +42,7 @@ interface RemovePlayerButtonProps {
   player: IPlayer | null;
   myTeamE: ETeam;
   currentRound: any;
-  canClosePSC: boolean;
+  closePSCAvailable: boolean;
   onRemove: (e: React.SyntheticEvent, playerId: string | null) => void;
 }
 
@@ -145,14 +142,14 @@ const RemovePlayerButton: React.FC<RemovePlayerButtonProps> = ({
   player,
   myTeamE,
   currentRound,
-  canClosePSC,
+  closePSCAvailable,
   onRemove,
 }) => {
   const shouldShowForTeamA =
-    myTeamE === ETeam.teamA && canClosePSC && !currentRound?.teamAScore;
+    myTeamE === ETeam.teamA && closePSCAvailable && !currentRound?.teamAScore;
 
   const shouldShowForTeamB =
-    myTeamE === ETeam.teamB && canClosePSC && !currentRound?.teamBScore;
+    myTeamE === ETeam.teamB && closePSCAvailable && !currentRound?.teamBScore;
 
   if (!shouldShowForTeamA && !shouldShowForTeamB) {
     return null;
@@ -184,16 +181,18 @@ function PlayerScoreCard({
   teamPlayer,
   evacuatePlayer,
   dropdownPlayer,
-  screenWidth,
-  myTeamE,
   subbedRounds,
-  tapr: teamAPlayerRanking,
-  tbpr: teamBPlayerRanking,
-}: PlayerScoreCardProps) {
+}: IPlayerScoreCardProps) {
   const user = useUser();
   const currentRoom = useAppSelector((state) => state.rooms.current);
   const currentRound = useAppSelector((state) => state.rounds.current);
-  const canClosePSC = useAppSelector((state) => state.matches.closePSCAvailable);
+  const {closePSCAvailable, myTeamE } = useAppSelector((state) => state.matches);
+  const {teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
+
+  // screenWidth,
+  // myTeamE,
+  // teamAPlayerRanking,
+  // teamBPlayerRanking,
 
   // ============================================================================
   // Computed Values
@@ -290,9 +289,6 @@ function PlayerScoreCard({
   /**
    * Calculate image container height based on screen width
    */
-  const imageContainerSIze = useMemo(() => {
-    return screenWidth > screen.xs ? "h-20 w-20" : "h-24 w-24";
-  }, [screenWidth]);
 
   // ============================================================================
   // Event Handlers
@@ -349,14 +345,14 @@ function PlayerScoreCard({
 
         {/* Player image section */}
         <div
-          className={`p-img-wrap cursor-pointer relative ${imageContainerSIze} object-center object-cover`}
+          className={`p-img-wrap cursor-pointer relative object-center object-cover`}
         >
           {shouldShowEvacuateButton && !onTop && (
             <RemovePlayerButton
               player={player}
               myTeamE={myTeamE}
               currentRound={currentRound}
-              canClosePSC={canClosePSC}
+              closePSCAvailable={closePSCAvailable}
               onRemove={handleEvacuatePlayer}
             />
           )}

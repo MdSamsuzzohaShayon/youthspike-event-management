@@ -266,6 +266,9 @@ export default function MatchesContainer({
   const isLoading = isApplyingFilters || isLoadingMore;
   const showInitialLoading = isApplyingFilters && matches.length === 0;
 
+  console.log({event});
+  
+
   return (
     <div className="animate-fade-in">
 

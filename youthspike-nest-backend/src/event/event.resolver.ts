@@ -1,4 +1,4 @@
-import { HttpStatus, UseGuards } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common';
 import { Args, Context, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { Roles } from 'src/shared/auth/roles.decorator';
@@ -14,8 +14,6 @@ const GraphQLUpload = GraphQLUploadModule.default;
 
 import {
   CreateEventInput,
-  EventBadgeInput,
-  EventFilterInput,
   EventSponsorInput,
   EventSponsorStringInput,
   ProStatsInput,
@@ -25,7 +23,6 @@ import {
 import {
   CreateOrUpdateEventResponse,
   GetArchiveEventsResponse,
-  GetEventDetailsResponse,
   GetEventResponse,
   GetEventsResponse,
   GetEventWithGroupsAndUnassignedPlayersResponse,
