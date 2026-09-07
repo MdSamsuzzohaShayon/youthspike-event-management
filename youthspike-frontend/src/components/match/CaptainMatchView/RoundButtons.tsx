@@ -1,11 +1,9 @@
 import { IRoundRelatives } from "@/types";
-import { screen } from "@/utils/constant";
 
 
 
 interface IRoundButtonProps{
   roundList: IRoundRelatives[];
-  screenWidth: number;
   onRoundClick: (roundId: string) => void;
   currentRoundId?: string;
   extendedOvertime?: boolean;
@@ -15,7 +13,6 @@ const RoundButtons: React.FC<IRoundButtonProps> = ({
   roundList,
   currentRoundId,
   extendedOvertime,
-  screenWidth,
   onRoundClick
 }) => {
   return (
@@ -29,7 +26,7 @@ const RoundButtons: React.FC<IRoundButtonProps> = ({
         return (
           <button
             key={round._id}
-            className={`single-r ${isCurrentRound ? "bg-yellow-logo" : "bg-white"} py-1 text-center cursor-pointer ${screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8"
+            className={`single-r ${isCurrentRound ? "bg-yellow-logo" : "bg-white"} py-1 text-center cursor-pointer text-xs w-6
               } rounded-t-lg`}
             type="button"
             onClick={() => onRoundClick(round._id)}

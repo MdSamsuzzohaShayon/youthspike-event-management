@@ -8,7 +8,6 @@ interface IPlayerSelectionPanelProps {
   currentRound: IRoundRelatives | null;
   myPlayers: IPlayer[];
   disabledPlayerIds: string[];
-  minHeight: number;
   onClose: () => void;
 }
 
@@ -19,13 +18,11 @@ const PlayerSelectionPanel: React.FC<IPlayerSelectionPanelProps> = ({
   currentRound,
   myPlayers,
   disabledPlayerIds,
-  minHeight,
   onClose,
 }) => {
   return (
     <div
       id="left-drop-down"
-      style={{ minHeight: `${minHeight}px` }}
       className="drop-down-select w-3/6 overflow-y-scroll text-black-logo bg-white border border-gray-300"
     >
       <div className="flex justify-end p-2">

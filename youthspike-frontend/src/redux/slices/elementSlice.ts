@@ -5,7 +5,6 @@ import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 export interface IElementState {
-  screenWidth: number;
   playerAssignStrategy: EAssignStrategies[];
   isLoading: boolean;
   message: IMessage | null;
@@ -23,7 +22,6 @@ const initialColMenu = [
 ];
 
 const initialState: IElementState = {
-  screenWidth: 0,
   playerAssignStrategy: initialStrategyList,
   isLoading: false,
   message: null,
@@ -35,9 +33,6 @@ export const elementSlice = createSlice({
   name: 'element',
   initialState,
   reducers: {
-    setScreenSize: (state, action: PayloadAction<number>) => {
-      state.screenWidth = action.payload;
-    },
     setIsLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;
     },
@@ -49,6 +44,6 @@ export const elementSlice = createSlice({
 });
 
 // Action creators are generated for each case reducer function
-export const { setScreenSize, setIsLoading, setMessage } = elementSlice.actions;
+export const { setIsLoading, setMessage } = elementSlice.actions;
 
 export default elementSlice.reducer;

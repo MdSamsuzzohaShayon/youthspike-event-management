@@ -1,6 +1,5 @@
 import useResizeObserver from "@/hooks/useResizeObserver";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import { setScreenSize } from "@/redux/slices/elementSlice";
 import LocalStorageService from "@/utils/LocalStorageService";
 import React, {
   useCallback,
@@ -74,7 +73,6 @@ function CaptainMatchView({
   const { ldoIdUrl } = useLdoId();
 
   // Redux state
-  const { screenWidth } = useAppSelector((state) => state.elements);
   const { matchScore } = useAppSelector((state) => state.matches);
   const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector(
     (state) => state.playerRanking
@@ -97,16 +95,8 @@ function CaptainMatchView({
   const clockRef = useRef<HTMLDivElement | null>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
   const endTimeRef = useRef<number>(0);
-  const lastTextRef = useRef("");
-
-  const mainEl = useResizeObserver(
-    useCallback(
-      (_target: HTMLDivElement, entry: ResizeObserverEntry) => {
-        dispatch(setScreenSize(entry.contentRect.width));
-      },
-      [dispatch]
-    )
-  );
+  const lastTextRef = useRef<string>("");
+  const mainRef = useRef<HTMLDivElement | null>(null);
 
   const handlePlayAudio = useCallback((event: React.SyntheticEvent) => {
     event.preventDefault();
@@ -293,8 +283,8 @@ function CaptainMatchView({
   // Simulate an initial user interaction so the browser allows audio
   // playback later without requiring an explicit click.
   useEffect(() => {
-    mainEl.current?.click();
-  }, [mainEl]);
+    mainRef.current?.click();
+  }, [mainRef]);
 
   const myScore =
     myTeamE === ETeam.teamA ? matchScore.teamAMScore : matchScore.teamBMScore;
@@ -313,7 +303,7 @@ function CaptainMatchView({
   const myRosterHref = getTeamRosterHref(myTeam?._id, ldoIdUrl, false);
 
   return (
-    <div className="relative bg-white text-black-logo" ref={mainEl}>
+    <div className="relative bg-white text-black-logo" ref={mainRef}>
       <button
         ref={audioPlayEl}
         onClick={handlePlayAudio}
@@ -336,7 +326,6 @@ function CaptainMatchView({
         <TeamPlayers
           teamPlayers={opActivePlayers}
           roundList={roundList}
-          screenWidth={screenWidth}
           onTop
           teamE={opponentTeamE}
         />
@@ -416,7 +405,6 @@ function CaptainMatchView({
         <TeamPlayers
           roundList={roundList}
           teamPlayers={myActivePlayers}
-          screenWidth={screenWidth}
           teamE={myTeamE}
         />
         <TeamRosterHeader teamName={myTeam?.name} rosterHref={myRosterHref} />

@@ -5,13 +5,11 @@ import { ETieBreaker } from '@/types/net';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import { UserRole } from '@/types/user';
-import { fsToggle } from '@/utils/helper';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 interface ITeamScoreInputProps {
   net: INetRelatives | null;
   teamE: ETeam;
-  screenWidth: number;
   teamName: string;
   user: IUserContext | null;
   currRound: IRoundRelatives | null;
@@ -19,7 +17,7 @@ interface ITeamScoreInputProps {
   currRoundNets: INetRelatives[];
   handlePointChange: (e: React.SyntheticEvent<HTMLInputElement>, netId: string | null, teamAorB: "teamAScore" | "teamBScore") => void;
 }
-function TeamScoreInput({ net, teamE, wTeam, screenWidth, teamName, user, currRound, currRoundNets, handlePointChange }: ITeamScoreInputProps) {
+function TeamScoreInput({ net, teamE, wTeam, teamName, user, currRound, currRoundNets, handlePointChange }: ITeamScoreInputProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [defaultVal, setDefaultVal] = useState<string>('');
   const { match: currMatch } = useAppSelector((state) => state.matches);
@@ -69,8 +67,7 @@ function TeamScoreInput({ net, teamE, wTeam, screenWidth, teamName, user, currRo
         name={teamName}
         onChange={(e) => handlePointChange(e, net?._id ?? null, teamE === ETeam.teamA ? 'teamAScore' : 'teamBScore')}
         defaultValue={defaultVal}
-        style={fsToggle(screenWidth)}
-        className={`w-5/6 md:w-2/6 rounded-lg ${wTeam === teamE ? 'bg-green-500 text-gray-100' : 'bg-white text-black-logo'}  p-1 text-center outline-none`}
+        className={`w-5/6 rounded-lg ${wTeam === teamE ? 'bg-green-500 text-gray-100' : 'bg-white text-black-logo'}  p-1 text-center outline-none`}
         readOnly={inputReadonly}
       />
     </div>

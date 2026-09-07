@@ -58,7 +58,7 @@ const RoundDetailPanel: React.FC<IRoundDetailPanelProps> = ({
 
         <PointsByRound
           roundList={roundList}
-          dark
+          isDarkMode
           currMatch={match}
         />
       </div>
@@ -75,7 +75,7 @@ const RoundDetailPanel: React.FC<IRoundDetailPanelProps> = ({
       <div className="round-bottom w-full border border-gray-300 px-2 flex flex-col items-center justify-between  h-3/6">
         <PointsByRound
           roundList={roundList}
-          dark={false}
+          isDarkMode={false}
           currMatch={match}
         />
 

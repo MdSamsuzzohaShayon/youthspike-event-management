@@ -146,15 +146,6 @@ export const toOrdinal = (n: number): string => {
   }
 };
 
-export const fsToggle = (screenWidth: number) => {
-  const fontStyle = { fontSize: screenWidth > screen.xs ? `${netSize.hfm}rem` : `${netSize.fsm}rem` };
-  return fontStyle;
-};
-
-export const setNetH = (screenWidth: number) => {
-  const hStyle = { height: screenWidth > screen.xs ? `${netSize.mhl}rem` : `${netSize.mhm}rem` };
-  return hStyle;
-};
 
 
 
