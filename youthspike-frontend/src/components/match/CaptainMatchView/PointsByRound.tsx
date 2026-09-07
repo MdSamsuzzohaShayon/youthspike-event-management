@@ -1,109 +1,170 @@
 import React, { useCallback, useMemo } from "react";
 import { useAppSelector } from "@/redux/hooks";
 import { ETeam, IRoundRelatives, IMatchRelatives } from "@/types";
-import { screen } from "@/utils/constant";
+
+// Assuming a type structure for the round score object based on usage
+interface IRoundScoreData {
+  teamARPlusMinus: number;
+  teamBRPlusMinus: number;
+  teamARScore: number;
+  teamBRScore: number;
+}
 
 interface IPointsByRoundProps {
-  dark: boolean;
+  isDarkMode: boolean;
   roundList: IRoundRelatives[];
   currMatch: IMatchRelatives;
 }
 
+interface IScoreBoxProps {
+  plusMinusScore: number | null;
+  baseScore: number | null;
+  isDarkMode: boolean;
+}
+
+/**
+ * Pure helper: Calculate the match base point based on the viewing team and mode.
+ */
+const calculateMatchBasePoint = (
+  currMatch: IMatchRelatives,
+  myTeamE: ETeam | null,
+  isDarkMode: boolean
+): number | null => {
+  const { teamAP, teamBP } = currMatch;
+  
+  // If both are missing, there is no base point
+  if (teamAP == null && teamBP == null) return null;
+
+  const isMyTeamA = myTeamE === ETeam.teamA;
+  const isMyTeamB = myTeamE === ETeam.teamB;
+
+  if (isDarkMode) {
+    // Dark mode = show opposing team's base point
+    return isMyTeamA ? (teamBP ?? 0) : (teamAP ?? 0);
+  } else {
+    // Light mode = show my team's base point
+    return isMyTeamB ? (teamBP ?? 0) : (teamAP ?? 0);
+  }
+};
+
+/**
+ * Pure helper: Get plus/minus score for the active team.
+ */
+const getPlusMinusScore = (
+  roundScore: IRoundScoreData,
+  activeTeam: ETeam | null
+): number | null => {
+  if (!activeTeam) return null;
+  return activeTeam === ETeam.teamA 
+    ? roundScore.teamARPlusMinus 
+    : roundScore.teamBRPlusMinus;
+};
+
+/**
+ * Pure helper: Get base score for the active team.
+ */
+const getBaseScore = (
+  roundScore: IRoundScoreData,
+  activeTeam: ETeam | null
+): number | null => {
+  if (!activeTeam) return null;
+  return activeTeam === ETeam.teamA 
+    ? roundScore.teamARScore 
+    : roundScore.teamBRScore;
+};
+
+/**
+ * Subcomponent: Renders a single score box (Plus/Minus & Base Point)
+ * Extracted to follow SRP and DRY principles.
+ */
+const ScoreBox = React.memo(({ plusMinusScore, baseScore, isDarkMode }: IScoreBoxProps) => {
+  const baseFlexDir = isDarkMode ? "flex-col" : "flex-col-reverse";
+  const borderClass = isDarkMode ? "rounded-t-lg" : "rounded-b-lg";
+  
+  const plusMinusClass = plusMinusScore !== null 
+    ? (plusMinusScore >= 0 ? "text-green-600" : "text-red-600") 
+    : "";
+
+  const formattedPlusMinus = plusMinusScore !== null
+    ? (plusMinusScore > 0 ? `+${plusMinusScore}` : `${plusMinusScore}`)
+    : "";
+
+  return (
+    <div
+      className={`r-box text-xs w-6 md:text-xs md:w-6 flex flex-wrap ${baseFlexDir} justify-center items-center`}
+    >
+      <p className={`plus-minus w-full text-center h-6 ${plusMinusClass}`}>
+        {formattedPlusMinus}
+      </p>
+      <p
+        className={`base-point h-10 w-full border border-yellow-logo ${borderClass} flex justify-center items-center`}
+      >
+        {baseScore ?? ""}
+      </p>
+    </div>
+  );
+});
+
+ScoreBox.displayName = "ScoreBox";
+
 export default function PointsByRound({
-  dark,
+  isDarkMode,
   roundList,
   currMatch,
 }: IPointsByRoundProps) {
   const { myTeamE, opTeamE, roundMap } = useAppSelector((s) => s.matches);
-  const allNets = useAppSelector((s) => s.nets.nets);
+  
+  // Determine which team's data to display based on theme
+  const currentViewingTeam = isDarkMode ? opTeamE : myTeamE;
+  const textColor = isDarkMode ? "text-white" : "text-black-logo";
 
-  // --------- Layout Helpers ----------
-  // const boxSizeClass = screenWidth > screen.xs ? "text-xs w-6" : "text-sm w-8";
-  const baseFlexDir = dark ? "flex-col" : "flex-col-reverse";
-  const textColor = dark ? "text-white" : "text-black-logo";
-  const activeTeam = dark ? opTeamE : myTeamE;
+  const matchBasePoint = useMemo(
+    () => calculateMatchBasePoint(currMatch, myTeamE, isDarkMode),
+    [currMatch, myTeamE, isDarkMode]
+  );
 
-  // --------- Determine Plus/Minus and Score for a Round ----------
-  const renderRoundScore = useCallback(
+  const renderRoundBox = useCallback(
     (round: IRoundRelatives) => {
-      // Get round score from an object
-      const roundScore = roundMap[round._id];
-      if (!roundScore) return null;
+      // Safely access the round score from the map
+      const roundScore = roundMap[round._id] as IRoundScoreData | undefined;
+      
+      if (!roundScore) {
+        return (
+          <ScoreBox 
+            key={round._id} 
+            plusMinusScore={null} 
+            baseScore={null} 
+            isDarkMode={isDarkMode} 
+          />
+        );
+      }
 
-      const plusMinusScore =
-        activeTeam === ETeam.teamA
-          ? roundScore.teamARPlusMinus
-          : roundScore.teamBRPlusMinus;
-
-      const plusMinusClass =
-        plusMinusScore >= 0 ? "text-green-600" : "text-red-600";
+      const plusMinusScore = getPlusMinusScore(roundScore, currentViewingTeam);
+      const baseScore = getBaseScore(roundScore, currentViewingTeam);
 
       return (
-        <>
-          <p className={`plus-minus w-full text-center h-6 ${plusMinusClass}`}>
-            {plusMinusScore > 0 ? `+${plusMinusScore}` : plusMinusScore}
-          </p>
-
-          <p
-            className={`base-point h-10 w-full border border-yellow ${
-              dark ? "rounded-t-lg" : "rounded-b-lg"
-            } flex justify-center items-center`}
-          >
-            {activeTeam === ETeam.teamA
-              ? roundScore.teamARScore
-              : roundScore.teamBRScore}
-          </p>
-        </>
+        <ScoreBox 
+          key={round._id} 
+          plusMinusScore={plusMinusScore} 
+          baseScore={baseScore} 
+          isDarkMode={isDarkMode} 
+        />
       );
     },
-    [allNets, myTeamE, opTeamE, dark, roundMap]
+    [roundMap, currentViewingTeam, isDarkMode]
   );
-
-  // --------- Render Single Round Box ----------
-  const renderRoundBox = useCallback(
-    (round: IRoundRelatives) => (
-      <div
-        key={round._id}
-        className={`r-box text-xs w-6 md:text-xs md:w-6 flex flex-wrap ${baseFlexDir} justify-center items-center`}
-      >
-        {renderRoundScore(round)}
-      </div>
-    ),
-    [renderRoundScore, baseFlexDir]
-  );
-
-  // --------- Determine Match Base Point (teamAP/BP) ----------
-  const matchBasePoint = useMemo(() => {
-    if (!currMatch.teamAP && !currMatch.teamBP) return null;
-
-    const isTeamA = myTeamE === ETeam.teamA;
-    const isTeamB = myTeamE === ETeam.teamB;
-
-    return dark
-      ? // dark mode = show opposing team
-        (isTeamA ? currMatch.teamBP : currMatch.teamAP) || 0
-      : // light mode = show my team
-        (isTeamB ? currMatch.teamBP : currMatch.teamAP) || 0;
-  }, [currMatch, myTeamE, dark]);
 
   return (
     <div
       className={`points-by-round flex flex-wrap justify-center items-center w-full ${textColor} gap-1`}
     >
       {/* Base match-wide score box */}
-      {(matchBasePoint || matchBasePoint === 0) && (
-        <div
-          className={`r-box text-xs w-6 md:text-xs md:w-6 flex flex-wrap ${baseFlexDir} justify-center items-center`}
-        >
-          <p className="plus-minus w-full h-6" />
-          <p
-            className={`base-point h-10 w-full border border-yellow-logo ${
-              dark ? "rounded-t-lg" : "rounded-b-lg"
-            } flex justify-center items-center`}
-          >
-            {matchBasePoint}
-          </p>
-        </div>
+      {matchBasePoint !== null && (
+        <ScoreBox 
+          plusMinusScore={null} 
+          baseScore={matchBasePoint} 
+          isDarkMode={isDarkMode} 
+        />
       )}
 
       {/* Round-by-round point boxes */}

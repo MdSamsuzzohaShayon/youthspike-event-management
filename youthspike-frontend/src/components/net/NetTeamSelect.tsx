@@ -52,8 +52,6 @@ function NetTeamSelect({ teamE, net, onTop }: Props) {
     (s) => s.playerRanking
   );
 
-  const screenWidth = useAppSelector((s) => s.elements.screenWidth);
-
   // =============================
   // Derived Data
   // =============================
@@ -252,8 +250,6 @@ function NetTeamSelect({ teamE, net, onTop }: Props) {
               playerRankExist={showPlayers ? ranks[key] : null}
               dropdownPlayer={handleDropdownPlayer}
               evacuatePlayer={handleEvacuatePlayer}
-              screenWidth={screenWidth}
-              myTeamE={myTeamE}
             />
           );
         })}

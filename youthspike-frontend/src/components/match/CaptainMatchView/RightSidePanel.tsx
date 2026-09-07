@@ -8,7 +8,6 @@ import { useAppSelector } from "@/redux/hooks";
 
 const RightSidePanel = () => {
     // Redux state
-    const screenWidth = useAppSelector((state) => state.elements.screenWidth);
     const currentNetNumber = useAppSelector((state) => state.nets.currNetNum);
     const currentRoundNets = useAppSelector((state) => state.nets.currentRoundNets);
     const currentRoom = useAppSelector((state) => state.rooms.current);
@@ -40,7 +39,6 @@ const RightSidePanel = () => {
                     <NetCard
                         currRoom={currentRoom}
                         net={selectedNet}
-                        screenWidth={screenWidth}
                     />
                 </div>
             )}
@@ -52,7 +50,6 @@ const RightSidePanel = () => {
                         key={net._id}
                         currRoom={currentRoom}
                         net={net}
-                        screenWidth={screenWidth}
                     />
                 ))}
             </div>

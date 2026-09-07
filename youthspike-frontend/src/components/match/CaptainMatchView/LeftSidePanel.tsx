@@ -32,7 +32,7 @@ const LeftSidePanel = () => {
         match,
     } = useAppSelector((state) => state.matches);
     const { roundList, current: currentRound } = useAppSelector((state) => state.rounds);
-    const screenWidth = useAppSelector((state) => state.elements.screenWidth);
+
 
     const { handleRoundChange } = useRoundNavigation({
         roundList,
@@ -69,20 +69,15 @@ const LeftSidePanel = () => {
         [myTeamE]
     );
 
-    const minPanelHeight = useMemo(
-        () => (screenWidth > screen.xs ? PLAYER_SELECTION_HEIGHT.desktop : PLAYER_SELECTION_HEIGHT.mobile) + EXTRA_HEIGHT,
-        [screenWidth]
-    );
 
     const renderRoundButtons = useMemo(() => (
         <RoundButtons
             roundList={roundList}
             currentRoundId={currentRound?._id}
             extendedOvertime={match.extendedOvertime}
-            screenWidth={screenWidth}
             onRoundClick={handleRoundNavigation}
         />
-    ), [roundList, currentRound?._id, match.extendedOvertime, screenWidth, handleRoundNavigation]);
+    ), [roundList, currentRound?._id, match.extendedOvertime, handleRoundNavigation]);
 
 
 
@@ -95,7 +90,6 @@ const LeftSidePanel = () => {
                 currentRound={currentRound}
                 myPlayers={myPlayers}
                 disabledPlayerIds={disabledPlayerIds}
-                minHeight={minPanelHeight}
                 onClose={handleClosePlayerSelection}
             />
         );

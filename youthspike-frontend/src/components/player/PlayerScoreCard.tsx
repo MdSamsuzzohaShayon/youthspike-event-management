@@ -189,11 +189,6 @@ function PlayerScoreCard({
   const {closePSCAvailable, myTeamE } = useAppSelector((state) => state.matches);
   const {teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
 
-  // screenWidth,
-  // myTeamE,
-  // teamAPlayerRanking,
-  // teamBPlayerRanking,
-
   // ============================================================================
   // Computed Values
   // ============================================================================
@@ -345,7 +340,7 @@ function PlayerScoreCard({
 
         {/* Player image section */}
         <div
-          className={`p-img-wrap cursor-pointer relative object-center object-cover`}
+          className={`w-22 h-22 sm:w-8 sm:h-8 md:w-22 md:h-22 cursor-pointer relative object-center object-cover`}
         >
           {shouldShowEvacuateButton && !onTop && (
             <RemovePlayerButton

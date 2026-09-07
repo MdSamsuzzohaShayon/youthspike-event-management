@@ -10,13 +10,11 @@ import { useLdoId } from '@/lib/LdoProvider';
 interface ITeamPlayersProps {
   teamPlayers: IPlayer[];
   roundList: IRoundRelatives[];
-  screenWidth: number;
   onTop?: boolean;
   teamE: ETeam;
 }
 
-function TeamPlayers({ teamPlayers, screenWidth, roundList, onTop, teamE }: ITeamPlayersProps) {
-  const { myTeamE } = useAppSelector((state) => state.matches);
+function TeamPlayers({ teamPlayers, roundList, onTop, teamE }: ITeamPlayersProps) {
   const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
   const {ldoIdUrl} = useLdoId();
 

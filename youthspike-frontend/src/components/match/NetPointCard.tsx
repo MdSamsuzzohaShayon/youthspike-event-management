@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -21,8 +21,7 @@ import { ETieBreaker } from "@/types/net";
 
 import EmitEvents from "@/utils/socket/EmitEvents";
 import LocalStorageService from "@/utils/LocalStorageService";
-import { fsToggle } from "@/utils/helper";
-import { screen } from "@/utils/constant";
+
 
 import TeamScoreInput from "../team/TeamScoreInput";
 
@@ -30,14 +29,15 @@ interface INetPointCardProps {
   net?: INetRelatives | null;
   onNavigateRight: () => void;
   onNavigateLeft: () => void;
-  screenWidth: number;
   currentRoom: IRoom | null;
   roundList: IRoundRelatives[];
   currentMatch: IMatchRelatives;
 }
 
+type TeamScoreKey = "teamAScore" | "teamBScore";
+
 /**
- * Update a specific net score inside a list
+ * Pure helper: Update a specific net score inside a list immutably.
  */
 const updateNetScores = (
   nets: INetRelatives[],
@@ -50,26 +50,28 @@ const updateNetScores = (
 };
 
 /**
- * Calculate total round scores
+ * Pure helper: Calculate total round scores.
+ * Returns null for both if any score is missing.
  */
-const calculateRoundScores = (nets: INetRelatives[]) => {
-  let teamATotalScore: number | null = 0;
-  let teamBTotalScore: number | null = 0;
+const calculateRoundScores = (
+  nets: INetRelatives[]
+): { teamATotalScore: number | null; teamBTotalScore: number | null } => {
+  let teamATotalScore = 0;
+  let teamBTotalScore = 0;
 
   for (const net of nets) {
-    if (net.teamAScore != null && net.teamBScore != null) {
-      teamATotalScore! += net.teamAScore;
-      teamBTotalScore! += net.teamBScore;
-    } else {
+    if (net.teamAScore == null || net.teamBScore == null) {
       return { teamATotalScore: null, teamBTotalScore: null };
     }
+    teamATotalScore += net.teamAScore;
+    teamBTotalScore += net.teamBScore;
   }
 
   return { teamATotalScore, teamBTotalScore };
 };
 
 /**
- * Determine winning team
+ * Pure helper: Determine winning team based on scores.
  */
 const getWinningTeam = (net?: INetRelatives | null): ETeam | null => {
   if (!net || net.teamAScore == null || net.teamBScore == null) return null;
@@ -84,7 +86,6 @@ function NetPointCard({
   net,
   onNavigateRight,
   onNavigateLeft,
-  screenWidth,
   currentRoom,
   roundList,
   currentMatch,
@@ -93,80 +94,105 @@ function NetPointCard({
   const socket = useSocket();
   const dispatch = useAppDispatch();
 
-  const [winningTeam, setWinningTeam] = useState<ETeam | null>(null);
-
   const { current: currentRound } = useAppSelector((state) => state.rounds);
   const { nets, currentRoundNets } = useAppSelector((state) => state.nets);
   const { myTeamE, opTeamE } = useAppSelector((state) => state.matches);
   const teamA = useAppSelector((state) => state.teams.teamA);
 
+  // Derived state instead of useEffect + useState to avoid unnecessary re-renders
+  const winningTeam = useMemo(() => getWinningTeam(net), [net]);
+
+  const isTeamALead = useMemo(() => {
+    return (
+      user.info?.captainplayer === teamA?.captain?._id ||
+      user.info?.cocaptainplayer === teamA?.cocaptain?._id
+    );
+  }, [user.info, teamA]);
+
   /**
-   * Handle score change
+   * Handle score change for a specific team and net
    */
-  const handleScoreChange = (
-    event: React.SyntheticEvent<HTMLInputElement>,
-    netId: string | null,
-    teamKey: "teamAScore" | "teamBScore"
-  ) => {
-    event.preventDefault();
-    if (!netId) return;
+  const handleScoreChange = useCallback(
+    (
+      event: React.SyntheticEvent<HTMLInputElement>,
+      netId: string | null,
+      teamKey: TeamScoreKey
+    ) => {
+      event.preventDefault();
 
-    const value = event.currentTarget.value.trim();
-    if (!value) return;
+      // Early exit if prerequisites are missing
+      if (!netId || !currentRound) return;
 
-    const parsedScore = Number(value);
-    if (isNaN(parsedScore)) return;
+      const rawValue = event.currentTarget.value.trim();
+      if (!rawValue) return;
 
-    const updatedFields: Partial<INetRelatives> = {
-      [teamKey]: parsedScore,
-      [teamKey === "teamAScore" ? "teamBScore" : "teamAScore"]:
-        net?.[teamKey === "teamAScore" ? "teamBScore" : "teamAScore"] ?? null,
-    };
+      const parsedScore = Number(rawValue);
+      if (isNaN(parsedScore) || parsedScore < 0) return; // Validate numeric and positive
 
-    const updatedCurrentRoundNets = updateNetScores(
+      // Only update the target team's score; the spread operator preserves other fields
+      const updatedFields: Partial<INetRelatives> = {
+        [teamKey]: parsedScore,
+      };
+
+      const updatedCurrentRoundNets = updateNetScores(
+        currentRoundNets,
+        netId,
+        updatedFields
+      );
+
+      const updatedAllNets = updateNetScores(nets, netId, updatedFields);
+
+      const { teamATotalScore, teamBTotalScore } =
+        calculateRoundScores(updatedCurrentRoundNets);
+
+      const isCompleted = teamATotalScore != null && teamBTotalScore != null;
+
+      const updatedRound: IRoundRelatives = {
+        ...currentRound,
+        teamAScore: teamATotalScore,
+        teamBScore: teamBTotalScore,
+        completed: isCompleted,
+      };
+
+      const updatedRoundList = roundList.map((round) =>
+        round._id === currentRound._id ? updatedRound : round
+      );
+
+      // Dispatch all updates (React 18 automatically batches these)
+      dispatch(setCurrentRoundNets(updatedCurrentRoundNets));
+      dispatch(setNets(updatedAllNets));
+      dispatch(setCurrentRound(updatedRound));
+      dispatch(setRoundList(updatedRoundList));
+
+      // Emit socket event safely
+      if (socket) {
+        const updatedNet =
+          updatedCurrentRoundNets.find((n) => n._id === netId) ?? null;
+
+        new EmitEvents(socket, dispatch).updatePoints({
+          currRoom: currentRoom,
+          currRound: currentRound,
+          currNet: updatedNet,
+          myTeamE,
+        });
+      }
+    },
+    [
+      currentRound,
       currentRoundNets,
-      netId,
-      updatedFields
-    );
-
-    const updatedAllNets = updateNetScores(nets, netId, updatedFields);
-
-    dispatch(setCurrentRoundNets(updatedCurrentRoundNets));
-    dispatch(setNets(updatedAllNets));
-
-    const { teamATotalScore, teamBTotalScore } =
-      calculateRoundScores(updatedCurrentRoundNets);
-
-    const updatedRound: IRoundRelatives = {
-      ...currentRound,
-      teamAScore: teamATotalScore,
-      teamBScore: teamBTotalScore,
-      completed: teamATotalScore != null && teamBTotalScore != null,
-    } as IRoundRelatives;
-
-    dispatch(setCurrentRound(updatedRound));
-
-    const updatedRoundList = roundList.map((round) =>
-      round._id === currentRound?._id ? updatedRound : round
-    );
-
-    dispatch(setRoundList(updatedRoundList));
-
-    const updatedNet =
-      updatedCurrentRoundNets.find((n) => n._id === netId) ?? null;
-
-    new EmitEvents(socket, dispatch).updatePoints({
-      currRoom: currentRoom,
-      currRound: currentRound,
-      currNet: updatedNet,
+      nets,
+      roundList,
+      dispatch,
+      socket,
+      currentRoom,
       myTeamE,
-    });
-  };
+    ]
+  );
 
   /**
-   * Navigate to scoreboard
+   * Navigate to scoreboard view
    */
-  const navigateToScoreboard = () => {
+  const navigateToScoreboard = useCallback(() => {
     if (!currentRound || !net) return;
 
     LocalStorageService.setMatch(
@@ -178,115 +204,92 @@ function NetPointCard({
     window.location.assign(
       `/matches/${currentMatch._id}/scoreboard?view=${EView.NET}`
     );
-  };
-
-  /**
-   * Determine winning team
-   */
-  useEffect(() => {
-    setWinningTeam(getWinningTeam(net));
-  }, [net]);
-
-  /**
-   * Check if user is captain or co-captain
-   */
-  const isTeamALead = useMemo(() => {
-    return (
-      user.info?.captainplayer === teamA?.captain?._id ||
-      user.info?.cocaptainplayer === teamA?.cocaptain?._id
-    );
-  }, [user.info, teamA]);
+  }, [currentRound, net, currentMatch._id]);
 
   return (
-    <div className="absolute z-10 w-11/12 left-2 bg-yellow-logo top-1/2 transform -translate-y-1/2 flex justify-around items-center gap-x-2">
-      
-      {/* Spectate Button */}
-      <div className="px-2">
-        <Image
-          width={30}
-          height={30}
-          onClick={navigateToScoreboard}
-          src="/icons/spectate.svg"
-          alt="Scorekeeper"
-          className="w-6 md:w-6 svg-black"
-        />
-      </div>
+    <div className="absolute z-10 w-11/12 left-2 bg-yellow-logo top-1/2 transform -translate-y-1/2 flex justify-around flex-col items-center gap-y-1 py-1">
 
-      <div className="flex flex-col items-center p-1 rounded-lg">
-        
-        {/* Top Score */}
+      <div className="oponent-score w-full">
         <TeamScoreInput
           key={`top-${net?._id}`}
           currRound={currentRound}
           net={net ?? null}
           user={user}
           teamName={isTeamALead ? "teamBScore" : "teamAScore"}
-          screenWidth={screenWidth}
           handlePointChange={handleScoreChange}
           teamE={opTeamE}
           wTeam={winningTeam}
           currRoundNets={currentRoundNets}
         />
+      </div>
 
-        {/* Net Info */}
-        <div className="net-card flex items-center w-full py-1">
-          {screenWidth <= screen.xs && (
+      <div className="net-info-actions w-full flex justify-around items-center h-4">
+        <div className="spectate w-3/12 md:w-2/6 flex justify-center items-center">
             <Image
               width={30}
               height={30}
-              src="/icons/right-arrow.svg"
-              alt="Right"
-              onClick={onNavigateRight}
-              className="w-4 svg-black transform scale-x-[-1]"
+              onClick={navigateToScoreboard}
+              src="/icons/spectate.svg"
+              alt="Scorekeeper"
+              className="h-4 w-4 svg-black cursor-pointer"
             />
-          )}
+        </div>
+
+        <div className="net-card w-5/12 md:w-2/6 flex items-center py-1">
+          <Image
+            width={30}
+            height={30}
+            src="/icons/right-arrow.svg"
+            alt="Left"
+            onClick={onNavigateRight}
+            className="block landscape:hidden sm:hidden w-4 svg-black transform scale-x-[-1] cursor-pointer"
+          />
 
           <div className="text-center flex-1">
-            <h3 style={fsToggle(screenWidth)} className="uppercase">
+            <span className="text-xs md:text-lg uppercase">
               Net {net?.num}
-            </h3>
+            </span>
             {net?.netType === ETieBreaker.TIE_BREAKER_NET && (
               <p>Worth 2 points</p>
             )}
           </div>
 
-          {screenWidth <= screen.xs && (
+          <Image
+            width={30}
+            height={30}
+            src="/icons/right-arrow.svg"
+            alt="Left"
+            onClick={onNavigateLeft}
+            className="rotate-180 block landscape:hidden sm:hidden w-4 svg-black transform scale-x-[-1] cursor-pointer"
+          />
+        </div>
+
+        <div className="score-keeping w-3/12 md:w-2/6 flex justify-center items-center">
+          <Link href={`/score-keeping/${currentMatch._id}`} className="px-2">
             <Image
               width={30}
               height={30}
-              src="/icons/right-arrow.svg"
-              alt="Left"
-              onClick={onNavigateLeft}
-              className="w-4 svg-black"
+              src="/icons/scorekeeper.png"
+              alt="Scorekeeper"
+              className="h-4 w-4 svg-black cursor-pointer"
             />
-          )}
+          </Link>
         </div>
+      </div>
 
-        {/* Bottom Score */}
+      <div className="my-score w-full">
         <TeamScoreInput
           key={`bottom-${net?._id}`}
           currRound={currentRound}
           net={net ?? null}
           user={user}
           teamName={isTeamALead ? "teamAScore" : "teamBScore"}
-          screenWidth={screenWidth}
           handlePointChange={handleScoreChange}
           teamE={myTeamE}
           wTeam={winningTeam}
           currRoundNets={currentRoundNets}
         />
       </div>
-
-      {/* Scorekeeper Link */}
-      <Link href={`/score-keeping/${currentMatch._id}`} className="px-2">
-        <Image
-          width={30}
-          height={30}
-          src="/icons/scorekeeper.png"
-          alt="Scorekeeper"
-          className="w-6 md:w-6 svg-black"
-        />
-      </Link>
     </div>
   );
 }

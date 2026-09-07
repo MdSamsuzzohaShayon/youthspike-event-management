@@ -11,7 +11,6 @@ import NetPointCard from './NetPointCard';
 import NetTeamSelect from '../net/NetTeamSelect';
 
 interface INetCardProps {
-  screenWidth: number;
   net: INetRelatives | null;
   currRoom: IRoom | null;
 }
@@ -19,7 +18,7 @@ interface INetCardProps {
 // Constant
 const touchThreshold: number = 50;
 
-function NetCard({ net, screenWidth, currRoom }: INetCardProps) {
+function NetCard({ net, currRoom }: INetCardProps) {
   const dispatch = useAppDispatch();
 
   // Redux State
@@ -80,7 +79,6 @@ function NetCard({ net, screenWidth, currRoom }: INetCardProps) {
         <NetPointCard net={net}
           onNavigateRight={handleRightShift}
           onNavigateLeft={handleLeftShift}
-          screenWidth={screenWidth}
           currentRoom={currRoom}
           roundList={roundList}
           currentMatch={currMatch} />
