@@ -17,6 +17,8 @@ const RoundButtons: React.FC<IRoundButtonProps> = ({
 }) => {
   return (
     <div className="round-nums flex flex-wrap w-full justify-center gap-1 items-center">
+      {/* Empty button just for space  */}
+      <div className="py-1 text-center w-6"/>
       {roundList.map((round, index) => {
         const isCurrentRound = round._id === currentRoundId;
         const buttonLabel = extendedOvertime && index === roundList.length - 1

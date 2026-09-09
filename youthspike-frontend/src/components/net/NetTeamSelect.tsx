@@ -237,7 +237,7 @@ function NetTeamSelect({ teamE, net, onTop }: Props) {
           : "flex-col-reverse bg-white text-black-logo"
         } border ${border.light}`}
     >
-      <div className="flex gap-1 w-full">
+      <div className="flex gap-x-1 w-full justify-between">
         {[ETeamPlayer.PLAYER_A, ETeamPlayer.PLAYER_B].map((spot) => {
           const key = spot === ETeamPlayer.PLAYER_A ? "A" : "B";
 

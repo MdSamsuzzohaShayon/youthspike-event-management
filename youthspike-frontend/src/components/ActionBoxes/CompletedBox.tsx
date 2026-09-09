@@ -3,10 +3,6 @@ import React, { useEffect, useState, useCallback } from "react";
 import { ADMIN_FRONTEND_URL } from "@/utils/keys";
 import { EMessage, ITeam } from "@/types";
 import { useLdoId } from "@/lib/LdoProvider";
-import {
-  setDisabledPlayerIds,
-  setPrevPartner,
-} from "@/redux/slices/matchesSlice";
 import Image from "next/image";
 import { setCurrentRoundNets } from "@/redux/slices/netSlice";
 import { ETeam } from "@/types/team";
@@ -16,7 +12,6 @@ import LocalStorageService from "@/utils/LocalStorageService";
 import TextImg from "../elements/TextImg";
 import { CldImage } from "next-cloudinary";
 import { setMessage } from "@/redux/slices/elementSlice";
-import autoAssignClock from "@/utils/assignStrategies/autoAssignClock";
 import { useRoundNavigation } from "@/hooks/useRoundNavigation";
 
 interface CompletedBoxProps {
