@@ -309,7 +309,7 @@ function PlayerScoreCard({
   // ============================================================================
 
   return (
-    <div className="w-full h-full relative overflow-hidden flex flex-col justify-end">
+    <div className="w-full md:w-fit h-full relative overflow-hidden flex flex-col justify-end">
       {/* Rank badge on bottom (for non-top players) */}
       {player && !onTop && (
         <PlayerRankBadge

@@ -36,7 +36,7 @@ export default function LogoMatchScore({
 
   return (
     <div 
-      className={`logo-match-score relative py-4 px-3 flex w-full ${flexDirection} gap-4 rounded-2xl transition-all duration-500 shadow-lg`}
+      className={`logo-match-score relative py-4 px-3 flex w-full ${flexDirection} gap-4 rounded-lg transition-all duration-500 shadow-lg`}
     >
       <div className="w-full flex justify-between items-center gap-4">
         
@@ -72,7 +72,7 @@ export default function LogoMatchScore({
           <div 
             aria-live="polite" // Accessibility: announces score changes to screen readers
             className={`
-              score-box relative w-full max-w-[160px] p-1 md:p-2 rounded-2xl 
+              score-box relative w-full max-w-[160px] p-1 rounded-lg 
               flex flex-col justify-center items-center text-center
               border-2 transition-all duration-500
               ${isWinning 
@@ -94,7 +94,7 @@ export default function LogoMatchScore({
               </span>
             )}
 
-            <span className="text-4xl md:text-6xl font-extrabold tabular-nums tracking-tighter drop-shadow-sm">
+            <span className="text-4xl font-extrabold tabular-nums tracking-tighter drop-shadow-sm">
               {totalScore}
             </span>
 

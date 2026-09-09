@@ -207,7 +207,7 @@ function NetPointCard({
   }, [currentRound, net, currentMatch._id]);
 
   return (
-    <div className="absolute z-10 w-11/12 left-2 bg-yellow-logo top-1/2 transform -translate-y-1/2 flex justify-around flex-col items-center gap-y-1 py-1">
+    <div className="absolute z-10 w-11/12 left-2 bg-yellow-logo top-1/2 transform -translate-y-1/2 flex justify-around flex-col items-center gap-y-1 py-1 rounded-lg">
 
       <div className="oponent-score w-full">
         <TeamScoreInput
