@@ -220,7 +220,7 @@ const EventHeader = ({ event, eventId }: IEventHeaderProps) => {
                     key={tab.segment}
                     href={href}
                     className={`
-                      relative group flex items-center gap-2.5 px-4 py-3 rounded-xl
+                      relative group flex items-center gap-2.5 px-1 md:px-4 py-3 rounded-xl
                       transition-all duration-300 ease-out flex-1 sm:flex-none justify-center sm:justify-start
                       ${isActive
                         ? 'bg-gradient-to-r from-yellow-500/20 to-yellow-500/10 text-yellow-400 shadow-lg shadow-yellow-500/10'

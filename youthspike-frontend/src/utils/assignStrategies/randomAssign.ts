@@ -1,9 +1,9 @@
-/* eslint-disable no-restricted-syntax */
 import { EPlayerStatus, IPlayer, IPlayerRank } from '@/types/player';
 import { ETeam } from '@/types/team';
 import { IMatchRelatives, INetRelatives, IRoundRelatives } from '@/types';
 import { IPlayerRankingExpRel } from '@/types';
-import findPrevPartner from '../match/findPrevPartner';
+
+// --- Types & Interfaces ---
 
 interface IRandomAssignParams {
   matchUp: boolean;
@@ -25,18 +25,7 @@ interface IRandomAssignResult {
   selectedPlayerIds: string[];
 }
 
-interface IRankingData {
-  myRankingsMap: Map<string, number>;
-  opRankingsMap: Map<string, number>;
-  mySortedPlayers: IPlayerRank[];
-  opSortedPlayers: IPlayerRank[];
-}
-
-interface IOpponentPairScore {
-  playerAScore: number;
-  playerBScore: number;
-  totalScore: number;
-}
+// --- Pure Helper Functions ---
 
 /**
  * Fisher-Yates (Knuth) shuffle algorithm for randomizing player order
@@ -51,193 +40,149 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 /**
- * Find optimal pair based on score condition (max or min)
+ * Creates a Map for O(1) rank lookups from ranking data
  */
-function findOptimalPairByScore(
-  players: IPlayer[],
-  scoreLimit: number,
-  rankingsMap: Map<string, number>,
-  condition: 'max' | 'min'
-): [IPlayerRank | null, IPlayerRank | null] {
-  let bestPair: [IPlayerRank | null, IPlayerRank | null] = [null, null];
-  let bestScore = condition === 'max' ? -Infinity : Infinity;
+function createRankMap(ranking: IPlayerRankingExpRel | null): Map<string, number> {
+  const map = new Map<string, number>();
+  ranking?.rankings?.forEach(({ player, rank }) => {
+    const playerId = typeof player === 'object' ? player._id : player;
+    if (playerId) map.set(playerId, rank);
+  });
+  return map;
+}
+
+/**
+ * Builds a map of players to their previous round partners to avoid consecutive pairings.
+ * Rule 5: A player cannot pair with the same partner in 2 consecutive rounds.
+ */
+function buildPrevPartnerMap(
+  roundList: IRoundRelatives[],
+  currRound: IRoundRelatives | null,
+  allNets: INetRelatives[],
+  myTeam: ETeam
+): Map<string, string | null> {
+  const partnerMap = new Map<string, string | null>();
+  
+  // Skip if it's the first round
+  if (!currRound || currRound.num <= 1) return partnerMap;
+
+  const prevRound = roundList.find((r) => r.num === currRound.num - 1);
+  if (!prevRound) return partnerMap;
+
+  const prevRoundNets = allNets.filter((net) => net.round === prevRound._id);
+
+  for (const net of prevRoundNets) {
+    let playerAId: string | null | undefined = null;
+    let playerBId: string | null | undefined = null;
+
+    if (myTeam === ETeam.teamA) {
+      playerAId = net.teamAPlayerA;
+      playerBId = net.teamAPlayerB;
+    } else {
+      playerAId = net.teamBPlayerA;
+      playerBId = net.teamBPlayerB;
+    }
+
+    if (playerAId && playerBId) {
+      partnerMap.set(playerAId, playerBId);
+      partnerMap.set(playerBId, playerAId);
+    }
+  }
+
+  return partnerMap;
+}
+
+/**
+ * Calculates the opponent's pair score for a specific net
+ * Rule 6: Matchup variance constraint
+ */
+function getOpponentPairScore(
+  net: INetRelatives,
+  myTeam: ETeam,
+  opRankingsMap: Map<string, number>
+): number | null {
+  let opponentPlayerAId: string | null | undefined = null;
+  let opponentPlayerBId: string | null | undefined = null;
+
+  if (myTeam === ETeam.teamA) {
+    opponentPlayerAId = net.teamBPlayerA;
+    opponentPlayerBId = net.teamBPlayerB;
+  } else {
+    opponentPlayerAId = net.teamAPlayerA;
+    opponentPlayerBId = net.teamAPlayerB;
+  }
+
+  if (!opponentPlayerAId || !opponentPlayerBId) return null;
+
+  const rankA = opRankingsMap.get(opponentPlayerAId) ?? 0;
+  const rankB = opRankingsMap.get(opponentPlayerBId) ?? 0;
+
+  return rankA + rankB;
+}
+
+/**
+ * Finds a valid pair of players considering previous partners and variance constraints.
+ * Returns the first valid pair found (randomized by caller's shuffle).
+ */
+function findValidPair(
+  players: IPlayerRank[],
+  prevPartnerMap: Map<string, string | null>,
+  targetScore: number | null,
+  variance: number
+): [IPlayerRank, IPlayerRank] {
+  if (players.length < 2) {
+    throw new Error("Insufficient available players to form a pair.");
+  }
+
+  const validPairs: [IPlayerRank, IPlayerRank][] = [];
+  const fallbackPairs: [IPlayerRank, IPlayerRank][] = []; // Pairs that fit variance but break partner rule
 
   for (let i = 0; i < players.length; i += 1) {
-    const playerA = players[i];
-    const rankA = rankingsMap.get(playerA._id) ?? 0;
-
     for (let j = i + 1; j < players.length; j += 1) {
+      const playerA = players[i];
       const playerB = players[j];
-      const rankB = rankingsMap.get(playerB._id) ?? 0;
-      const totalScore = rankA + rankB;
+      const pairScore = playerA.rank + playerB.rank;
 
-      const isBetterPair = condition === 'max'
-        ? totalScore <= scoreLimit && totalScore > bestScore
-        : totalScore >= scoreLimit && totalScore < bestScore;
+      // Rule 6: Enforce variance constraints if targetScore is set
+      if (targetScore !== null) {
+        const scoreDifference = Math.abs(pairScore - targetScore);
+        if (scoreDifference > variance) {
+          continue; // Hard constraint: must be within variance
+        }
+      }
 
-      if (isBetterPair) {
-        bestPair = [{ ...playerA, rank: rankA }, { ...playerB, rank: rankB }];
-        bestScore = totalScore;
+      // Rule 5: Enforce previous partner constraint
+      const werePartnersLastRound = prevPartnerMap.get(playerA._id) === playerB._id;
+
+      if (!werePartnersLastRound) {
+        validPairs.push([playerA, playerB]);
+      } else {
+        fallbackPairs.push([playerA, playerB]);
       }
     }
   }
 
-  return bestPair;
-}
-
-/**
- * Get opponent pair score for a specific net
- */
-function getIOpponentPairScore(
-  currRoundNets: INetRelatives[],
-  netIndex: number,
-  myTeam: ETeam,
-  opPlayers: IPlayer[],
-  opRankingsMap: Map<string, number>
-): IOpponentPairScore | null {
-  const net = currRoundNets[netIndex];
-  let opponentPlayerAId: string | null = null;
-  let opponentPlayerBId: string | null = null;
-
-  if (myTeam === ETeam.teamA) {
-    opponentPlayerAId = net.teamBPlayerA || null;
-    opponentPlayerBId = net.teamBPlayerB || null;
-  } else {
-    opponentPlayerAId = net.teamAPlayerA || null;
-    opponentPlayerBId = net.teamAPlayerB || null;
+  if (validPairs.length > 0) {
+    return validPairs[0]; // Return first valid (already randomized upstream)
   }
 
-  if (!opponentPlayerAId || !opponentPlayerBId) {
-    return null;
+  if (fallbackPairs.length > 0) {
+    // Fallback: Use a pair that fits variance but breaks the partner rule (edge case fallback)
+    return fallbackPairs[0];
   }
 
-  const playerAScore = opRankingsMap.get(opponentPlayerAId) ?? 0;
-  const playerBScore = opRankingsMap.get(opponentPlayerBId) ?? 0;
-
-  return {
-    playerAScore,
-    playerBScore,
-    totalScore: playerAScore + playerBScore
-  };
+  throw new Error("Could not find a valid pair meeting the assignment constraints.");
 }
 
 /**
- * Prepare and organize ranking data for both teams
- */
-function prepareIRankingData(params: IRandomAssignParams): IRankingData {
-  const { myTeam, teamAPlayerRanking, teamBPlayerRanking, myPlayers, opPlayers, currMatch } = params;
-
-  // Extract rankings based on team
-  const myRankingsData = myTeam === ETeam.teamA ? teamAPlayerRanking : teamBPlayerRanking;
-  const opRankingsData = myTeam === ETeam.teamA ? teamBPlayerRanking : teamAPlayerRanking;
-
-  // Create ranking maps for O(1) lookup
-  const myRankingsMap = new Map<string, number>(
-    myRankingsData?.rankings?.map(({ player, rank }) => [typeof player === "object" ? player._id : player, rank]) ?? []
-  );
-  const opRankingsMap = new Map<string, number>(
-    opRankingsData?.rankings?.map(({ player, rank }) => [typeof player === "object" ? player._id : player, rank]) ?? []
-  );
-
-  // Sort players by rank
-  let mySortedPlayers = createSortedPlayerList(myPlayers, myRankingsMap);
-  let opSortedPlayers = createSortedPlayerList(opPlayers, opRankingsMap);
-
-  // Limit players for extended overtime
-  if (currMatch.extendedOvertime) {
-    mySortedPlayers = limitPlayersForOvertime(mySortedPlayers);
-    opSortedPlayers = limitPlayersForOvertime(opSortedPlayers);
-  }
-
-  return {
-    myRankingsMap,
-    opRankingsMap,
-    mySortedPlayers,
-    opSortedPlayers
-  };
-}
-
-/**
- * Create sorted list of players with their ranks
- */
-function createSortedPlayerList(players: IPlayer[], rankingsMap: Map<string, number>): IPlayerRank[] {
-  const playersWithRanks = players.map((player) => ({
-    ...player,
-    rank: rankingsMap.get(player._id) ?? 0
-  }));
-
-  return playersWithRanks.sort((a, b) => a.rank - b.rank);
-}
-
-/**
- * Limit players to top 3 for extended overtime
+ * Limits players to top 3 for extended overtime
  */
 function limitPlayersForOvertime(players: IPlayerRank[]): IPlayerRank[] {
   return players.length > 3 ? players.slice(0, 3) : players;
 }
 
-/**
- * Find alternative partner that satisfies variance constraints
- */
-function findAlternativePartnerWithinVariance(
-  currentPlayerA: IPlayer,
-  availablePlayers: IPlayer[],
-  rankingsMap: Map<string, number>,
-  targetScore: number,
-  variance: number,
-  isAboveMax: boolean
-): IPlayerRank | null {
-  const currentRank = rankingsMap.get(currentPlayerA._id) ?? 0;
-  const maxScore = targetScore + variance;
-  const minScore = Math.max(0, targetScore - variance);
 
-  for (const player of availablePlayers) {
-    const playerRank = rankingsMap.get(player._id) ?? 0;
-    const pairScore = currentRank + playerRank;
-
-    if (player._id === currentPlayerA._id) continue;
-
-    if (isAboveMax && pairScore <= maxScore) {
-      return { ...player, rank: playerRank };
-    }
-    if (!isAboveMax && pairScore >= minScore) {
-      return { ...player, rank: playerRank };
-    }
-  }
-
-  return null;
-}
-
-/**
- * Update net with selected players based on team
- */
-function updateNetWithPlayers(
-  net: INetRelatives,
-  playerA: IPlayer,
-  playerB: IPlayer,
-  team: ETeam
-): INetRelatives {
-  const updatedNet = { ...net };
-
-  if (team === ETeam.teamA) {
-    updatedNet.teamAPlayerA = playerA._id;
-    updatedNet.teamAPlayerB = playerB._id;
-  } else {
-    updatedNet.teamBPlayerA = playerA._id;
-    updatedNet.teamBPlayerB = playerB._id;
-  }
-
-  return updatedNet;
-}
-
-/**
- * Validate that we have enough available players
- */
-function validateAvailablePlayers(availableCount: number, requiredCount: number = 2): void {
-  if (availableCount < requiredCount) {
-    throw new Error(`Insufficient available players. Required: ${requiredCount}, Available: ${availableCount}`);
-  }
-}
+// --- Main Function ---
 
 /**
  * Pure function to perform random assignment of players to nets
@@ -251,121 +196,106 @@ function randomAssign(params: IRandomAssignParams): IRandomAssignResult {
     currRound,
     myTeam,
     currMatch,
+    myPlayers,
+    teamAPlayerRanking,
+    teamBPlayerRanking,
   } = params;
 
-  // Prepare ranking data
-  const rankingData = prepareIRankingData(params);
-  const { myRankingsMap, opRankingsMap, mySortedPlayers } = rankingData;
+  if (!myPlayers || myPlayers.length === 0) {
+    throw new Error("No players available for assignment.");
+  }
 
-  // Shuffle players for randomness
-  const randomizedPlayers = shuffleArray(mySortedPlayers);
+  // 1. Prepare ranking maps for O(1) lookups
+  const myRankingsData = myTeam === ETeam.teamA ? teamAPlayerRanking : teamBPlayerRanking;
+  const opRankingsData = myTeam === ETeam.teamA ? teamBPlayerRanking : teamAPlayerRanking;
 
-  // Track selected players
-  const selectedPlayerIds = new Set<string>();
+  const myRankingsMap = createRankMap(myRankingsData);
+  const opRankingsMap = createRankMap(opRankingsData);
 
-  // Create deep copies of nets to maintain immutability
+  // 2. Attach ranks to my players
+  let myPlayersWithRanks: IPlayerRank[] = myPlayers.map((player) => ({
+    ...player,
+    rank: myRankingsMap.get(player._id) ?? 0,
+  }));
+
+  // Sort by rank before limiting (to get the actual top ranks for overtime)
+  myPlayersWithRanks.sort((a, b) => a.rank - b.rank);
+
+  // Apply overtime limit if needed
+  if (currMatch.extendedOvertime) {
+    myPlayersWithRanks = limitPlayersForOvertime(myPlayersWithRanks);
+  }
+
+  // 3. Shuffle players for randomness (Rule 2)
+  const shuffledPlayers = shuffleArray(myPlayersWithRanks);
+
+  // 4. Build previous partner map (Rule 5)
+  const prevPartnerMap = buildPrevPartnerMap(roundList, currRound, allNets, myTeam);
+
+  // 5. Prepare result structures
   const updatedAllNets = allNets.map((net) => ({ ...net }));
   const updatedCurrRoundNets: INetRelatives[] = [];
+  const selectedPlayerIds = new Set<string>();
 
-  // Process each net in current round
-  for (let netIndex = 0; netIndex < currRoundNets.length; netIndex += 1) {
-    const currentNet = currRoundNets[netIndex];
-
-    // Filter available players (not selected and active)
-    const availablePlayers = randomizedPlayers.filter(
+  // 6. Assign players to each net sequentially
+  for (const currentNet of currRoundNets) {
+    const availablePlayers = shuffledPlayers.filter(
       (player) => !selectedPlayerIds.has(player._id) && player.status === EPlayerStatus.ACTIVE
     );
 
-    try {
-      validateAvailablePlayers(availablePlayers.length);
-    } catch (error) {
-      console.error('Assignment error:', error);
+    // Rule 4: Stop if no players are left
+    if (availablePlayers.length === 0) {
       break;
     }
 
-    // Initial player selection
-    let selectedPlayerA = availablePlayers[0];
-    let selectedPlayerB = availablePlayers[1];
+    let playerA: IPlayerRank | null = null;
+    let playerB: IPlayerRank | null = null;
 
-    // Check previous partner constraint
-    const previousPartnerId = findPrevPartner({
-      roundList,
-      currRound,
-      allNets,
-      myTeamE: myTeam,
-      net: currentNet
-    });
-
-    // Get opponent pair score for matchup optimization
-    let opponentTotalScore = 0;
-    if (matchUp) {
-      const opponentScores = getIOpponentPairScore(
-        currRoundNets,
-        netIndex,
-        myTeam,
-        params.opPlayers,
-        opRankingsMap
-      );
-      opponentTotalScore = opponentScores?.totalScore ?? 0;
-    }
-
-    // Avoid pairing with previous round's partner
-    if (matchUp && previousPartnerId && selectedPlayerB?._id === previousPartnerId) {
-      const [newPlayerA, newPlayerB] = findOptimalPairByScore(
-        availablePlayers,
-        opponentTotalScore,
-        opRankingsMap,
-        'max'
-      );
-      selectedPlayerA = newPlayerA || selectedPlayerA;
-      selectedPlayerB = newPlayerB || selectedPlayerB;
-    }
-
-    // Apply net variance constraints if applicable
-    if (currMatch.netVariance && opponentTotalScore > 0) {
-      const playerAScore = myRankingsMap.get(selectedPlayerA._id) ?? 0;
-      const playerBScore = myRankingsMap.get(selectedPlayerB._id) ?? 0;
-      const pairScore = playerAScore + playerBScore;
-
-      const maxScore = opponentTotalScore + currMatch.netVariance;
-      const minScore = Math.max(0, opponentTotalScore - currMatch.netVariance);
-
-      if (pairScore > maxScore && matchUp) {
-        const alternativePartner = findAlternativePartnerWithinVariance(
-          selectedPlayerA,
-          availablePlayers,
-          myRankingsMap,
-          opponentTotalScore,
-          currMatch.netVariance,
-          true
-        );
-        if (alternativePartner) {
-          selectedPlayerB = alternativePartner;
+    if (availablePlayers.length === 1) {
+      // Rule 4: Assign single player if only one is left
+      playerA = availablePlayers[0];
+    } else {
+      // Determine target score if matchUp is true (Rule 6)
+      let targetScore: number | null = null;
+      if (matchUp) {
+        const opponentScore = getOpponentPairScore(currentNet, myTeam, opRankingsMap);
+        if (opponentScore !== null) {
+          targetScore = opponentScore;
         }
-      } else if (pairScore < minScore && matchUp) {
-        const alternativePartner = findAlternativePartnerWithinVariance(
-          selectedPlayerA,
+      }
+
+      const variance = currMatch.netVariance ?? 0;
+
+      try {
+        [playerA, playerB] = findValidPair(
           availablePlayers,
-          myRankingsMap,
-          opponentTotalScore,
-          currMatch.netVariance,
-          false
+          prevPartnerMap,
+          targetScore,
+          variance
         );
-        if (alternativePartner) {
-          selectedPlayerB = alternativePartner;
-        }
+      } catch (error) {
+        console.error(`Assignment error for Net ${currentNet.num}:`, error);
+        throw error; // Re-throw to halt process as per instruction
       }
     }
 
-    // Update net with selected players
-    const updatedNet = updateNetWithPlayers(currentNet, selectedPlayerA, selectedPlayerB, myTeam);
+    // Update the net with selected players (Rule 1 & 3)
+    const updatedNet = { ...currentNet };
+    if (myTeam === ETeam.teamA) {
+      updatedNet.teamAPlayerA = playerA?._id ?? null;
+      updatedNet.teamAPlayerB = playerB?._id ?? null;
+    } else {
+      updatedNet.teamBPlayerA = playerA?._id ?? null;
+      updatedNet.teamBPlayerB = playerB?._id ?? null;
+    }
+
     updatedCurrRoundNets.push(updatedNet);
 
-    // Mark players as selected
-    selectedPlayerIds.add(selectedPlayerA._id);
-    selectedPlayerIds.add(selectedPlayerB._id);
+    // Mark as selected
+    if (playerA) selectedPlayerIds.add(playerA._id);
+    if (playerB) selectedPlayerIds.add(playerB._id);
 
-    // Update in all nets clone
+    // Update in allNets clone
     const allNetsIndex = updatedAllNets.findIndex((net) => net._id === currentNet._id);
     if (allNetsIndex !== -1) {
       updatedAllNets[allNetsIndex] = updatedNet;
@@ -375,17 +305,9 @@ function randomAssign(params: IRandomAssignParams): IRandomAssignResult {
   return {
     updatedAllNets,
     updatedCurrRoundNets,
-    selectedPlayerIds: Array.from(selectedPlayerIds)
+    selectedPlayerIds: Array.from(selectedPlayerIds),
   };
 }
 
 export default randomAssign;
 export type { IRandomAssignParams, IRandomAssignResult };
-
-
-
-/*
- dispatch(setCurrentRoundNets(newCurrRoundNets));
-  dispatch(setNets(allNetsClone));
-  dispatch(setDisabledPlayerIds(Array.from(selectedPlayerIds)));
- */

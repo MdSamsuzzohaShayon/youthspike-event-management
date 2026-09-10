@@ -30,12 +30,12 @@ import { canAccessRoundRunner, excludeMovedPlayers, filterActivePlayers, getMove
 import TeamRosterHeader from "./TeamRosterHeader";
 import TeamPlayers from "@/components/player/TeamPlayers";
 import NotTieBreaker from "@/components/ActionBoxes/NotTieBreaker";
-import VerifyLineup from "@/components/ActionBoxes/VerifyLineup";
 import NetScoreOfRound from "./NetScoreOfRound";
 import LineupStrategy from "../LineupStrategy";
 import RoundRunner from "../RoundRunner";
 import SelectTeamDialog from "../SelectTeamDialog";
 import MatchSponsors from "./MatchSponsors";
+import VerifyLineup from "@/components/verify-lineup/VerifyLineup";
 
 interface ICaptainMatchViewProps {
   currMatch: IMatchRelatives;
@@ -346,15 +346,7 @@ function CaptainMatchView({
           <div className="verify-strategy-main-points">
             {verifyLineup ? (
               <VerifyLineup
-                currentRound={currRound}
-                currentRoundNets={currRoundNets}
-                match={currMatch}
-                myPlayers={myPlayers}
-                myTeamE={myTeamE}
-                roundList={roundList}
-                teamA={teamA}
-                teamB={teamB}
-              />
+            />
             ) : (
               <>
                 {currRound && (
@@ -369,7 +361,7 @@ function CaptainMatchView({
                 {user?.info && (
                   <div className="line-up-strategy w-full">
                     <LineupStrategy
-                      myTeamE={myTeamE}
+                      myTeamEnum={myTeamE}
                       currRound={currRound}
                       myPlayers={myPlayers}
                       opPlayers={opPlayers}

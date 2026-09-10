@@ -137,7 +137,7 @@ export function getAssignedPlayerIds(nets: INetRelatives[]): Set<string> {
  * (`.has`), so a Set of ids is enough — no need to keep a Map of the
  * full player objects around just to answer a yes/no question.
  */
-export function getMovedPlayerIds(teamA: ITeam | null, teamB: ITeam | null): Set<string> {
+export function getMovedPlayerIds(teamA: ITeam | null | undefined, teamB: ITeam | null | undefined): Set<string> {
   const movedIds = new Set<string>();
   teamA?.moved?.forEach((player) => movedIds.add(player._id));
   teamB?.moved?.forEach((player) => movedIds.add(player._id));

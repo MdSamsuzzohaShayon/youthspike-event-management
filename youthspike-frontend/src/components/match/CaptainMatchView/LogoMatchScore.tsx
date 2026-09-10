@@ -64,7 +64,7 @@ export default function LogoMatchScore({
 
         {/* Score Section */}
         <div className="w-3/5 flex flex-col justify-center items-center gap-y-2">
-          <span className="text-[10px] md:text-xs tracking-[0.2em] uppercase font-bold text-yellow-logo text-center">
+          <span className={`text-[10px] md:text-xs tracking-[0.2em] uppercase font-bold ${dark ? "text-yellow-logo" : "text-black"} text-center`}>
             Match Score
           </span>
           
