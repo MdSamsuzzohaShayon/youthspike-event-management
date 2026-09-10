@@ -246,7 +246,7 @@ function NetPointCard({
           />
 
           <div className="text-center flex-1">
-            <span className="text-xs md:text-lg uppercase">
+            <span className="text-[10px] md:text-lg uppercase">
               Net {net?.num}
             </span>
             {net?.netType === ETieBreaker.TIE_BREAKER_NET && (

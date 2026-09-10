@@ -1,126 +1,258 @@
+import React, { useCallback, useMemo, useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setclosePSCAvailable, setDisabledPlayerIds } from '@/redux/slices/matchesSlice';
 import { setCurrentRoundNets, setNets } from '@/redux/slices/netSlice';
-import { IMatchRelatives, INetRelatives, IPlayer, IRoundRelatives } from '@/types';
+import {
+  IMatchRelatives,
+  INetRelatives,
+  IPlayer,
+  IRoundRelatives,
+} from '@/types';
 import { EAssignStrategies } from '@/types/elements';
 import { EActionProcess } from '@/types/room';
 import { ETeam } from '@/types/team';
 import anchorAssign from '@/utils/assignStrategies/anchorAssign';
 import hierarchyAssign from '@/utils/assignStrategies/hierarchyAssign';
 import randomAssign from '@/utils/assignStrategies/randomAssign';
-import React, { useCallback, useState } from 'react';
 
-interface ILineupProps {
-  myTeamE: ETeam;
+// --- Types & Interfaces ---
+
+interface ILineupStrategyProps {
+  currMatch: IMatchRelatives;
+  myTeamEnum: ETeam;
   currRound: IRoundRelatives | null;
   myPlayers: IPlayer[];
   opPlayers: IPlayer[];
   currRoundNets: INetRelatives[];
   allNets: INetRelatives[];
   roundList: IRoundRelatives[];
-  currMatch: IMatchRelatives;
 }
 
-function LineupStrategy({ currMatch, myTeamE, currRound, myPlayers, opPlayers, currRoundNets, allNets, roundList }: ILineupProps) {
-  const dispatch = useAppDispatch();
-  // Local State
-  const [openPasControl, setOpenPasControl] = useState<boolean>(false); // pas = Player Assign Strategy
+interface IAssignStrategyMenuProps {
+  strategies: EAssignStrategies[];
+  onSelect: (event: React.MouseEvent<HTMLLIElement>, strategy: EAssignStrategies) => void;
+}
 
-  const playerAssignStrategies = useAppSelector((state) => state.elements.playerAssignStrategy);
+
+// --- Pure Helper Functions ---
+
+/**
+ * Determines if the strategy assignment component should be visible.
+ */
+const checkAssignAvailability = (
+  currRound: IRoundRelatives | null,
+  myTeamEnum: ETeam,
+  currMatch: IMatchRelatives
+): boolean => {
+  if (!currRound) return false;
+
+  const { teamAProcess, teamBProcess, teamAScore, teamBScore, firstPlacing } = currRound;
+
+  if (teamAProcess === EActionProcess.LINEUP && teamBProcess === EActionProcess.LINEUP) {
+    return false;
+  }
+
+  if (myTeamEnum === ETeam.teamA) {
+    if (firstPlacing === ETeam.teamA) {
+      if (teamAProcess !== EActionProcess.CHECKIN || teamAScore) return false;
+    } else if (teamBProcess !== EActionProcess.LINEUP || teamBScore) {
+      return false;
+    }
+  } else if (firstPlacing === ETeam.teamB) {
+    if (teamBProcess !== EActionProcess.CHECKIN || teamBScore) return false;
+  } else if (teamAProcess !== EActionProcess.LINEUP || teamAScore) {
+    if (!currMatch.extendedOvertime) return false;
+  }
+
+  return true;
+};
+
+/**
+ * Filters out moved players from the provided player lists.
+ */
+const getAvailablePlayers = (
+  myPlayers: IPlayer[],
+  opPlayers: IPlayer[],
+  movedPlayers: IPlayer[]
+): {
+  availableMyPlayers: IPlayer[];
+  availableOpPlayers: IPlayer[];
+} => {
+  const movedPlayerIds = new Set(movedPlayers.map((player) => player._id));
+
+  return {
+    availableMyPlayers: myPlayers.filter((player) => !movedPlayerIds.has(player._id)),
+    availableOpPlayers: opPlayers.filter((player) => !movedPlayerIds.has(player._id)),
+  };
+};
+
+/**
+ * Checks if a team's current process is either CHECKIN or LINEUP.
+ */
+const isProcessCheckInOrLineup = (process: EActionProcess): boolean => {
+  return process === EActionProcess.CHECKIN || process === EActionProcess.LINEUP;
+};
+
+
+// --- Subcomponents ---
+
+const AssignStrategyMenu: React.FC<IAssignStrategyMenuProps> = ({ strategies, onSelect }) => {
+  return (
+    <ul
+      className="player-select-strategy bg-gray-800 w-fit absolute bottom-6 inset-x-0 z-20"
+      style={{ left: '50%', transform: 'translate(-50%)' }}
+    >
+      {strategies.map((strategy) => (
+        <li
+          className="p-2 border-b border-yellow-logo capitalize cursor-pointer hover:bg-gray-700"
+          key={strategy}
+          role="presentation"
+          onClick={(e) => onSelect(e, strategy)}
+        >
+          {strategy}
+        </li>
+      ))}
+    </ul>
+  );
+};
+
+
+// --- Main Component ---
+
+const LineupStrategy: React.FC<ILineupStrategyProps> = ({
+  currMatch,
+  myTeamEnum,
+  currRound,
+  myPlayers,
+  opPlayers,
+  currRoundNets,
+  allNets,
+  roundList,
+}) => {
+  const dispatch = useAppDispatch();
+  
+  // Local State
+  const [isStrategyMenuOpen, setIsStrategyMenuOpen] = useState<boolean>(false);
+
+  // Redux State
+  const playerAssignStrategies = useAppSelector(
+    (state) => state.elements.playerAssignStrategy as EAssignStrategies[]
+  );
   const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
   const { teamA, teamB } = useAppSelector((state) => state.teams);
 
-  const handlePASSelect = (e: React.SyntheticEvent, pas: EAssignStrategies) => {
-    // PAS = Player Assign Strategies
-    e.preventDefault();
-    setOpenPasControl((prevState) => !prevState);
+  // Memoized Values
+  const isAssignAvailable = useMemo(
+    () => checkAssignAvailability(currRound, myTeamEnum, currMatch),
+    [currRound, myTeamEnum, currMatch]
+  );
 
-    // Check first assign or match up
-    const matchUp = currRound?.firstPlacing !== myTeamE;
-
-    // Remove moved players from myPlayers and opPlayers
-    const movedPlayersMap = new Map(
-      [...(teamA?.moved ?? []), ...(teamB?.moved ?? [])].map((p) => [p._id, p])
+  const shouldShowStrategyButton = useMemo(() => {
+    if (!currRound) return false;
+    return (
+      isProcessCheckInOrLineup(currRound.teamAProcess) &&
+      isProcessCheckInOrLineup(currRound.teamBProcess)
     );
+  }, [currRound]);
 
-    const newOpPlayers = opPlayers.filter((p) => !movedPlayersMap.has(p._id));
-    const newMyPlayers = myPlayers.filter((p) => !movedPlayersMap.has(p._id));
+  // Event Handlers
+  const handleStrategySelect = useCallback(
+    (event: React.MouseEvent , strategy: EAssignStrategies) => {
+      event.preventDefault();
+      setIsStrategyMenuOpen((prevState) => !prevState);
 
-    // Make sure selecting all players subbed previously
-    switch (pas) {
-      case EAssignStrategies.RANDOM:
-        const { updatedAllNets, updatedCurrRoundNets, selectedPlayerIds } = randomAssign({
-          currMatch, matchUp, allNets, currRoundNets, myPlayers: newMyPlayers,
-          opPlayers: newOpPlayers, roundList, currRound, myTeam: myTeamE, teamAPlayerRanking: teamAPlayerRanking, teamBPlayerRanking: teamBPlayerRanking
-        });
-        dispatch(setCurrentRoundNets(updatedCurrRoundNets));
-        dispatch(setNets(updatedAllNets));
-        dispatch(setDisabledPlayerIds(selectedPlayerIds));
-        break;
+      if (!currRound) {
+        console.error('Cannot execute strategy assignment: Current round is missing.');
+        return;
+      }
 
-      case EAssignStrategies.ANCHOR:
-        // Ancher: Pair rank 1 player with last rank player, rank 2 player with 2nd last rank player and so on
-        anchorAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers: newMyPlayers, opPlayers: newOpPlayers, roundList, currRound, myTeamE, dispatch, tapr: teamAPlayerRanking, tbpr: teamBPlayerRanking });
-        break;
+      const matchUp = currRound.firstPlacing !== myTeamEnum;
+      const movedPlayers = [...(teamA?.moved ?? []), ...(teamB?.moved ?? [])];
+      
+      const { availableMyPlayers, availableOpPlayers } = getAvailablePlayers(
+        myPlayers,
+        opPlayers,
+        movedPlayers
+      );
 
-      case EAssignStrategies.HIERARCHY:
-        // Hierarchy: Pair rank 1 player with rank 2 player, rank 3 player with rank 4 player and so on
-        hierarchyAssign({ currMatch, matchUp, allNets, currRoundNets, myPlayers: newMyPlayers, opPlayers: newOpPlayers, roundList, currRound, myTeamE, dispatch, tapr: teamAPlayerRanking, tbpr: teamBPlayerRanking });
-        break;
+      const sharedAssignProps = {
+        currMatch,
+        matchUp,
+        allNets,
+        currRoundNets,
+        myPlayers: availableMyPlayers,
+        opPlayers: availableOpPlayers,
+        roundList,
+        currRound,
+      };
 
-      default:
-        break;
-    }
-
-    dispatch(setclosePSCAvailable(true));
-  };
-
-  const availableAssign: boolean = useCallback(() => {
-    if (currRound?.teamAProcess === EActionProcess.LINEUP && currRound?.teamBProcess === EActionProcess.LINEUP) {
-      return false;
-    }
-
-    if (myTeamE === ETeam.teamA) {
-      if (currRound?.firstPlacing === ETeam.teamA) {
-        if (currRound.teamAProcess !== EActionProcess.CHECKIN || currRound.teamAScore) {
-          return false;
+      // Execute the selected strategy
+      switch (strategy) {
+        case EAssignStrategies.RANDOM: {
+          const { updatedAllNets, updatedCurrRoundNets, selectedPlayerIds } = randomAssign({
+            ...sharedAssignProps,
+            myTeam: myTeamEnum,
+            teamAPlayerRanking,
+            teamBPlayerRanking,
+          });
+          dispatch(setCurrentRoundNets(updatedCurrRoundNets));
+          dispatch(setNets(updatedAllNets));
+          dispatch(setDisabledPlayerIds(selectedPlayerIds));
+          break;
         }
-      } else if (currRound?.teamBProcess !== EActionProcess.LINEUP || currRound.teamBScore) {
-        return false;
-      }
-    } else if (currRound?.firstPlacing === ETeam.teamB) {
-      if (currRound.teamBProcess !== EActionProcess.CHECKIN || currRound.teamBScore) {
-        return false;
-      }
-    } else if (currRound?.teamAProcess !== EActionProcess.LINEUP || currRound.teamAScore) {
-      if (!currMatch.extendedOvertime) return false;
-    }
-    return true;
-  }, [currMatch, currRound, myTeamE])();
 
-  if (!availableAssign) return null;
+        case EAssignStrategies.ANCHOR: {
+          anchorAssign({
+            ...sharedAssignProps,
+            myTeamE: myTeamEnum,
+            dispatch,
+            tapr: teamAPlayerRanking,
+            tbpr: teamBPlayerRanking,
+          });
+          break;
+        }
+
+        case EAssignStrategies.HIERARCHY: {
+          hierarchyAssign({
+            ...sharedAssignProps,
+            myTeamE: myTeamEnum,
+            dispatch,
+            tapr: teamAPlayerRanking,
+            tbpr: teamBPlayerRanking,
+          });
+          break;
+        }
+
+        default:
+          break;
+      }
+
+      dispatch(setclosePSCAvailable(true));
+    },
+    [currMatch, currRound, currRoundNets, allNets, myPlayers, opPlayers, roundList, myTeamEnum, teamA, teamB, teamAPlayerRanking, teamBPlayerRanking, dispatch]
+  );
+
+  if (!isAssignAvailable) return null;
 
   return (
     <div className="w-full flex justify-center items-center relative text-white">
-      {(currRound?.teamAProcess === EActionProcess.CHECKIN || currRound?.teamAProcess === EActionProcess.LINEUP) &&
-        (currRound?.teamBProcess === EActionProcess.CHECKIN || currRound?.teamBProcess === EActionProcess.LINEUP) && (
-          <div className="h-6 w-6 border-0 rounded-full bg-yellow-logo text-black flex justify-center items-center">
-            <button type="button" onClick={() => setOpenPasControl((prevState) => !prevState)}>
-              A
-            </button>
-          </div>
-        )}
-      {openPasControl && (
-        <ul className="player-select-strategy bg-gray-800 w-fit absolute bottom-6 inset-x-0 z-20" style={{ left: '50%', transform: 'translate(-50%)' }}>
-          {playerAssignStrategies.map((pas) => (
-            <li className="p-2 border-b border-yellow-logo capitalize" key={pas} role="presentation" onClick={(e) => handlePASSelect(e, pas)}>
-              {pas}
-            </li>
-          ))}
-        </ul>
+      {shouldShowStrategyButton && (
+        <div className="h-6 w-6 border-0 rounded-full bg-yellow-logo text-black flex justify-center items-center">
+          <button
+            type="button"
+            onClick={() => setIsStrategyMenuOpen((prevState) => !prevState)}
+            aria-label="Open Player Assignment Strategy Menu"
+          >
+            A
+          </button>
+        </div>
+      )}
+      
+      {isStrategyMenuOpen && (
+        <AssignStrategyMenu strategies={playerAssignStrategies} onSelect={handleStrategySelect} />
       )}
     </div>
   );
-}
+};
 
 export default LineupStrategy;

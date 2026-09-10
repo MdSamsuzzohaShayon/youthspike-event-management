@@ -23,7 +23,7 @@ const PlayerSelectionPanel: React.FC<IPlayerSelectionPanelProps> = ({
   return (
     <div
       id="left-drop-down"
-      className="drop-down-select w-3/6 overflow-y-scroll text-black-logo bg-white border border-gray-300"
+      className="drop-down-select w-full overflow-y-scroll text-black-logo bg-white border border-gray-300"
     >
       <div className="flex justify-end p-2">
         <Image
