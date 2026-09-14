@@ -553,7 +553,7 @@ export default function ServerReceiver({
                 <div>
                   <Link
                     href={`/matches/${matchData._id}`}
-                    className="inline-block text-sm px-4 py-2 rounded-full bg-yellow-400 text-black font-semibold shadow-md hover:bg-yellow-300 transition"
+                    className="btn-info"
                   >
                     ← Go back to captain
                   </Link>
@@ -584,7 +584,7 @@ export default function ServerReceiver({
             <div className="net-items overflow-x-auto pb-2 -mx-4 px-4">
               <div className="flex gap-2 min-w-max">
                 {currRoundNets.map((n) => (
-                  <div key={n._id} className="w-40 md:w-4/12 flex-shrink-0">
+                  <div key={n._id} className="w-44 sm:w-56 md:w-4/12 flex-shrink-0">
                     {/* Fixed width for consistent sizing */}
                     <NetInputItem
                       onNetChange={handleNetChange}
