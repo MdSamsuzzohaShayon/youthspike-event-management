@@ -1,3 +1,193 @@
+Here is y event resolvers:
+
+```
+import { UseGuards } from '@nestjs/common';
+import { Args, Context, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
+import { Roles } from 'src/shared/auth/roles.decorator';
+import { RolesGuard } from 'src/shared/auth/roles.guard';
+import { UserRole } from 'src/user/user.schema';
+import { Event } from './event.schema';
+import { EventMutations } from './resolvers/event.mutations';
+import { EventQueries } from './resolvers/event.queries';
+import { EventFields } from './resolvers/event.fields';
+import { FileUpload } from 'graphql-upload/processRequest.mjs';
+import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
+const GraphQLUpload = GraphQLUploadModule.default;
+
+import {
+  CreateEventInput,
+  EventSponsorInput,
+  EventSponsorStringInput,
+  ProStatsInput,
+  UpdateEventInput,
+  UpdateProStatsInput,
+} from './resolvers/event.input';
+import {
+  CreateOrUpdateEventResponse,
+  GetArchiveEventsResponse,
+  GetEventResponse,
+  GetEventsResponse,
+  GetEventWithGroupsAndUnassignedPlayersResponse,
+  GetPlayerEventSettingResponse,
+} from './resolvers/event.response';
+import { Player } from 'src/player/player.schema';
+
+@Resolver((of) => Event)
+export class EventResolver {
+  constructor(
+    private eventMutations: EventMutations,
+    private eventQueries: EventQueries,
+    private eventFields: EventFields,
+  ) {}
+
+  // Mutations
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((_returns) => CreateOrUpdateEventResponse)
+  async createEvent(
+    @Args('sponsorsInput', { type: () => [EventSponsorInput] }) sponsorsInput: EventSponsorInput[],
+    @Args('input') input: CreateEventInput,
+    @Context() context: any,
+    @Args('multiplayerInput', { nullable: true }) multiplayerInput?: ProStatsInput,
+    @Args('weightInput', { nullable: true }) weightInput?: ProStatsInput,
+    @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true })
+    logo?: Promise<FileUpload>,
+  ) {
+    return this.eventMutations.createEvent({
+      sponsorsInput,
+      input,
+      context,
+      multiplayerInput,
+      weightInput,
+      logo,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((_returns) => CreateOrUpdateEventResponse)
+  async updateEvent(
+    @Args('sponsorsInput', { type: () => [EventSponsorInput] }) sponsorsInput: EventSponsorInput[],
+    @Args('updateInput') updateInput: UpdateEventInput,
+    @Args('eventId') eventId: string,
+    @Context() context: any,
+    @Args('sponsorsStringInput', { nullable: true, type: () => [EventSponsorStringInput] })
+    sponsorsStringInput?: EventSponsorStringInput[],
+    @Args('multiplayerInput', { nullable: true }) multiplayerInput?: UpdateProStatsInput,
+    @Args('weightInput', { nullable: true }) weightInput?: UpdateProStatsInput,
+    @Args({ name: 'logo', type: () => GraphQLUpload, nullable: true }) logo?: Promise<FileUpload>,
+  ) {
+    return this.eventMutations.updateEvent({
+      sponsorsInput,
+      updateInput,
+      eventId,
+      context,
+      sponsorsStringInput,
+      multiplayerInput,
+      weightInput,
+      logo,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((_returns) => CreateOrUpdateEventResponse)
+  async cloneEvent(@Args({ name: 'eventId', type: () => String }) eventId: string, @Args('updateInput') updateInput: UpdateEventInput) {
+    return this.eventMutations.cloneEvent(eventId, updateInput);
+  }
+
+  // Temporary
+  @Mutation((_returns) => CreateOrUpdateEventResponse)
+  async updateEventCache(@Args({ name: 'eventId', type: () => String }) eventId: string) {
+    return this.eventMutations.updateEventCache(eventId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((_returns) => GetEventResponse)
+  async deleteEvent(@Context() context: any, @Args({ name: 'eventId', type: () => String }) eventId: string) {
+    return this.eventMutations.deleteEvent(context, eventId);
+  }
+
+  
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((_returns) => GetEventResponse)
+  async restoreEvent(@Context() context: any, @Args({ name: 'eventId', type: () => String }) eventId: string) {
+    return this.eventMutations.restoreEvent(context, eventId);
+  }
+
+  // Queries
+  @Query((__returns) => GetEventsResponse)
+  async getEvents(@Context() context: any, @Args('directorId', { nullable: true }) directorId?: string) {
+    return this.eventQueries.getEvents(context, directorId);
+  }
+
+  @Query((__returns) => GetArchiveEventsResponse)
+  async getArchivedEvents(@Context() context: any, @Args('directorId', { nullable: true }) directorId?: string) {
+    return this.eventQueries.getArchivedEvents(context, directorId);
+  }
+
+  
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Query((__returns) => GetEventWithGroupsAndUnassignedPlayersResponse)
+  async getEventWithGroupsAndUnassignedPlayers(
+    @Context() context: any,
+    @Args('ldoId', { nullable: true}) ldoId?: string,
+  ) {
+    return this.eventQueries.getEventWithGroupsAndUnassignedPlayers(context, ldoId);
+  }
+
+  @Query((__returns) => GetPlayerEventSettingResponse)
+  async getPlayerEventSetting(@Context() context: any, @Args('eventId', { nullable: true }) eventId: string) {
+    return this.eventQueries.getPlayerEventSetting(context, eventId);
+  }
+
+  @Query((_returns) => GetEventResponse)
+  async getEvent(@Args('eventId') eventId: string) {
+    return this.eventQueries.getEvent(eventId);
+  }
+
+  // Field resolvers
+  @ResolveField()
+  async ldo(@Parent() event: Event) {
+    return this.eventFields.ldo(event);
+  }
+
+  @ResolveField()
+  async teams(@Parent() event: Event) {
+    return this.eventFields.teams(event);
+  }
+
+  @ResolveField()
+  async groups(@Parent() event: Event) {
+    return this.eventFields.groups(event);
+  }
+
+  @ResolveField()
+  async sponsors(@Parent() event: Event) {
+    return this.eventFields.sponsors(event);
+  }
+
+  @ResolveField(() => [Player])
+  async players(@Parent() event: Event) {
+    return this.eventFields.players(event);
+  }
+
+  @ResolveField()
+  async matches(@Parent() event: Event) {
+    return this.eventFields.matches(event);
+  }
+}
+
+
+```
+
+Here is my event mutation:
+
+```
 import { HttpStatus, Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { ConfigService } from '@nestjs/config';
@@ -427,19 +617,11 @@ export class EventMutations implements IEventMutations {
       const statsUpdatePromises = [];
       if (multiplayerInput && Object.entries(multiplayerInput).length > 0) {
         statsUpdatePromises.push(
-          this.playerStatsService.proStatUpdateOne(
-            { _id: String(typeof eventExist.multiplayer === 'string' ? eventExist.multiplayer : eventExist.multiplayer?._id) },
-            multiplayerInput,
-          ),
+          this.playerStatsService.proStatUpdateOne({ _id: eventExist.multiplayer }, multiplayerInput),
         );
       }
       if (weightInput && Object.entries(weightInput).length > 0) {
-        statsUpdatePromises.push(
-          this.playerStatsService.proStatUpdateOne(
-            { _id: String(typeof eventExist.weight === 'string' ? eventExist.weight : eventExist.weight?._id) },
-            weightInput,
-          ),
-        );
+        statsUpdatePromises.push(this.playerStatsService.proStatUpdateOne({ _id: eventExist.weight }, weightInput));
       }
 
       await Promise.all([...statsUpdatePromises, this.eventService.updateOne({ _id: eventId }, eventData)]);
@@ -561,12 +743,7 @@ export class EventMutations implements IEventMutations {
       );
 
       // Update ldo
-      updatePromises.push(
-        this.ldoService.updateOne(
-          { _id: String(typeof newEvent.ldo === 'string' ? newEvent.ldo : newEvent.ldo?._id) },
-          { $addToSet: { events: newEvent._id } },
-        ),
-      );
+      updatePromises.push(this.ldoService.updateOne({ _id: newEvent.ldo }, { $addToSet: { events: newEvent._id } }));
 
       await Promise.all(updatePromises);
 
@@ -1308,3 +1485,861 @@ export class EventMutations implements IEventMutations {
 
 
 }
+
+
+```
+
+
+Here is my event query:
+
+```
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { QueryFilter } from 'mongoose';
+import { ConfigService } from '@nestjs/config';
+import { EventService } from '../event.service';
+import { TeamService } from 'src/team/team.service';
+import { LdoService } from 'src/ldo/ldo.service';
+import { PlayerService } from 'src/player/player.service';
+import { SponsorService } from 'src/sponsor/sponsor.service';
+import { GroupService } from 'src/group/group.service';
+import { UserService } from 'src/user/user.service';
+import { PlayerStatsService } from 'src/player-stats/player-stats.service';
+import { AppResponse } from 'src/shared/response';
+import { UserRole } from 'src/user/user.schema';
+import { tokenToUser } from 'src/utils/helper';
+import { Event } from '../event.schema';
+import {
+  GetArchiveEventsResponse,
+  GetEventResponse,
+  GetEventsResponse, GetEventWithGroupsAndUnassignedPlayersResponse, GetPlayerEventSettingResponse
+} from './event.response';
+import { IEventQueries } from '../resolvers/event.types';
+import { Net } from 'src/net/net.schema';
+import { CustomPlayerStats } from 'src/player-stats/resolvers/player-stats.response';
+import { CustomTeam } from 'src/team/resolvers/team.response';
+import { Group } from 'src/group/group.schema';
+import { Player } from 'src/player/player.schema';
+import { CustomGroup } from 'src/match/resolvers/match.response';
+import { CustomPlayer } from 'src/player/resolvers/player.response';
+import { ArchiveEventService, ArchiveGroupService, ArchiveMatchService, ArchiveSponsorService, ArchiveTeamService, ArchiveTemplateService } from 'src/archive/archive.service';
+import { ArchiveEvent } from 'src/archive/archive.schema';
+import { BadgeService } from 'src/badge/badge.service';
+import { CustomBadge } from 'src/badge/badge.response';
+
+@Injectable()
+export class EventQueries implements IEventQueries {
+  constructor(
+    private configService: ConfigService,
+    private eventService: EventService,
+    private teamService: TeamService,
+    private ldoService: LdoService,
+    private playerService: PlayerService,
+    private playerStatsService: PlayerStatsService,
+    private userService: UserService,
+    private groupService: GroupService,
+    private sponsorService: SponsorService,
+    private badgeService: BadgeService,
+
+    private archiveEventService: ArchiveEventService,
+    private archiveTeamService: ArchiveTeamService,
+    private archiveTemplateService: ArchiveTemplateService,
+    private archiveMatchService: ArchiveMatchService,
+    private archiveGroupService: ArchiveGroupService,
+    private archiveSponsorService: ArchiveSponsorService,
+  ) { }
+
+  async getEvents(context: any, directorId?: string): Promise<GetEventsResponse> {
+    try {
+      const secret = this.configService.get<string>('JWT_SECRET');
+      const userPayload = tokenToUser(context, secret);
+
+      // Get logged in user
+      const loggedUser = userPayload?._id ? await this.userService.findById(userPayload._id) : null;
+
+      // Determine director ID based on user role
+      let newDirectorId = null;
+      if (loggedUser) {
+        switch (loggedUser.role) {
+          case UserRole.director:
+            newDirectorId = loggedUser._id;
+            break;
+          /*
+          case UserRole.admin:
+          if (!directorId) {
+            return AppResponse.handleError({
+              success: false,
+              message: 'You must select a director in order to get all events!',
+            });
+          }
+          newDirectorId = directorId;
+          break;
+          */
+          default:
+            break;
+        }
+      }
+
+      // Filter events based on director ID
+      const filter: QueryFilter<Event> = {};
+      if (newDirectorId) {
+        const ldoExist = await this.ldoService.findByDirectorId(newDirectorId);
+        if (ldoExist) {
+          filter.ldo = ldoExist._id;
+        }
+      }
+
+      const events = await this.eventService.find(filter);
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: "All events",
+        data: events,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  async getArchivedEvents(
+    context: any,
+    directorId?: string
+  ): Promise<GetArchiveEventsResponse> {
+    try {
+
+
+      // Fetch archived events with pagination
+      const archivedEvents = await this.archiveEventService.find({});
+
+      // Optionally include related data counts
+      const enrichedEvents = await Promise.all(
+        (archivedEvents as ArchiveEvent[]).map(async (event) => {
+          const originalId = event.originalId || event._id?.toString();
+
+          const [
+            templatesCount,
+            matchesCount,
+            groupsCount,
+            sponsorsCount,
+          ] = await Promise.all([
+            this.archiveTemplateService.count({ event: originalId }),
+            this.archiveMatchService.count({ event: originalId }),
+            this.archiveGroupService.count({ event: originalId }),
+            this.archiveSponsorService.count({ event: originalId }),
+          ]);
+
+          return {
+            ...event,
+            relatedCounts: {
+              templates: templatesCount,
+              matches: matchesCount,
+              groups: groupsCount,
+              sponsors: sponsorsCount,
+            },
+          };
+        })
+      );
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'Archived events fetched successfully',
+        data: enrichedEvents,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+
+
+  async getEventWithGroupsAndUnassignedPlayers(
+    context: any,
+    ldoId?: string,
+  ): Promise<GetEventWithGroupsAndUnassignedPlayersResponse> {
+    try {
+      const secret = this.configService.get<string>('JWT_SECRET');
+
+      // Decode token
+      const userPayload = tokenToUser(context, secret);
+
+      if (!userPayload?._id) {
+        return AppResponse.unauthorized();
+      }
+
+      // Only fetch fields we actually need
+      const loggedUser = await this.userService.findOne(
+        { _id: userPayload._id }
+      );
+
+      if (!loggedUser) {
+        return AppResponse.unauthorized();
+      }
+
+      let events = [];
+
+
+
+      /**
+       * CASE 1:
+       * Admin requesting events from specific LDO
+       */
+      if (ldoId && loggedUser.role === UserRole.admin) {
+        const ldo = await this.ldoService.findByDirectorId(ldoId);
+
+        if (ldo?.events?.length) {
+          events = await this.eventService.find({
+            _id: { $in: ldo.events as string[] },
+          });
+        }
+      }
+
+      /**
+       * CASE 2:
+       * Director requesting own events
+       */
+      else if (loggedUser.role === UserRole.director) {
+        const ldo = await this.ldoService.findOne({
+          director: loggedUser._id,
+        });
+
+        if (ldo?.events?.length) {
+          events = await this.eventService.find({
+            _id: { $in: ldo.events as string[] },
+          });
+        }
+      }
+
+      const resolvedEventIds = events.map((event) => event._id);
+
+      /**
+       * Build queries
+       */
+      const groupQuery: QueryFilter<Group> = {};
+
+      const playerQuery: QueryFilter<Player> = {
+        $or: [
+          { teams: { $size: 0 } },
+          { teams: { $exists: false } },
+          { teams: null },
+        ],
+      };
+
+      // Only add event filters when events exist
+      if (resolvedEventIds.length > 0) {
+        groupQuery.event = {
+          $in: resolvedEventIds,
+        };
+
+        playerQuery.events = {
+          $in: resolvedEventIds,
+        };
+      }
+
+      /**
+       * Parallel DB queries
+       */
+      const [groups, players, badges] = await Promise.all([
+        this.groupService.find(groupQuery),
+        this.playerService.find(playerQuery),
+        this.badgeService.find({event: {$in: resolvedEventIds}})
+      ]);
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'events, players, groups',
+        data: {
+          events,
+          groups: groups as CustomGroup[],
+          players: players as CustomPlayer[],
+          badges: badges as CustomBadge[],
+        },
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+
+
+  async getPlayerEventSetting(context: any, eventId: string): Promise<GetPlayerEventSettingResponse> {
+    try {
+      // Return any one of them between player and event
+      const secret = this.configService.get<string>('JWT_SECRET');
+      const userPayload = tokenToUser(context, secret);
+
+      // Get user
+      const loggedUser = await this.userService.findById(userPayload?._id);
+
+      const teams = await this.teamService.find({ events: eventId });
+      if (
+        loggedUser?.role === UserRole.captain ||
+        loggedUser?.role === UserRole.co_captain ||
+        loggedUser?.role === UserRole.player
+      ) {
+        const playerExist = await this.playerService.findOne({
+          $or: [{ _id: loggedUser.captainplayer }, { _id: loggedUser.cocaptainplayer }, { _id: loggedUser.player }],
+        });
+        if (!playerExist) return AppResponse.notFound('Player');
+        return {
+          code: HttpStatus.OK,
+          success: true,
+          message: 'event, teams, ldo, sponsors, multiplayer, weight, stats',
+          data: {
+            player: {
+              ...playerExist,
+              badge: String(playerExist.badge) as string,
+              teams: playerExist.teams?.map((t) => (typeof t === 'object' ? t._id : t)) || [],
+              captainofteams:
+                playerExist.captainofteams?.map((t: any) =>
+                  typeof t === 'object' ? t._id : t?.toString?.() || String(t),
+                ) || [],
+              cocaptainofteams:
+                playerExist.cocaptainofteams?.map((t: any) =>
+                  typeof t === 'object' ? t._id : t?.toString?.() || String(t),
+                ) || [],
+            },
+            teams: teams as CustomTeam[],
+          },
+        };
+      }
+
+      // Assuming matchService is injected in your class
+      const [event, ldo, sponsors] = await Promise.all([
+        this.eventService.findById(eventId),
+        this.ldoService.findOne({ events: { $in: [eventId] } }),
+        this.sponsorService.find({ event: eventId }),
+      ]);
+
+      const [multiplayer, weight, badges] = await Promise.all([
+        this.playerStatsService.proStatFindOne({ _id: event.multiplayer }),
+        this.playerStatsService.proStatFindOne({ _id: event.weight }),
+        this.badgeService.find({event: eventId})
+      ]);
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        message: 'event, teams, ldo, sponsors, multiplayer, weight',
+        data: {
+          event,
+          teams: teams as CustomTeam[],
+          ldo,
+          sponsors,
+          badges: badges as CustomBadge[],
+          multiplayer,
+          weight,
+        },
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  async getEvent(eventId: string): Promise<GetEventResponse> {
+    try {
+      // Check if the event is in the cache
+
+      // If not cached, fetch from the database
+      const eventExist = await this.eventService.findById(eventId);
+      if (!eventExist) return AppResponse.notFound('Event');
+
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        data: eventExist,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+}
+
+
+```
+
+
+Here is event input:
+
+```
+// events.dto.ts
+import { Field, Float, InputType, Int, ObjectType, OmitType, PartialType } from '@nestjs/graphql';
+import { EEventItem } from '../event.schema';
+import { FileUpload } from 'graphql-upload/processRequest.mjs';
+import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
+import { Badge, EBadgeFor } from 'src/badge/badge.schema';
+const GraphQLUpload = GraphQLUploadModule.default;
+
+@InputType()
+export class EventSponsorInput {
+  @Field()
+  company: string;
+
+  @Field(() => GraphQLUpload)
+  logo: Promise<FileUpload>;
+}
+
+@InputType()
+export class EventBadgeInput {
+  @Field()
+  name: string;
+
+  @Field(() => String)
+  icon: string;
+
+  @Field(() => EBadgeFor)
+  badgeFor: EBadgeFor;
+
+  @Field(() => String)
+  description: string;
+}
+
+@InputType()
+export class UpdateBadgeInput extends PartialType(EventBadgeInput) {
+  @Field(() => String, { nullable: true })
+  _id?: string;
+}
+
+@InputType()
+export class EventSponsorStringInput {
+  @Field()
+  company: string;
+
+  @Field(() => String,{nullable: true})
+  logo: string;
+}
+
+
+
+
+@InputType()
+export class ProStatsInput{
+  @Field(() => Float, { nullable: true })
+  servingPercentage: number; // serving %
+
+  @Field(() => Float, { nullable: true })
+  acePercentage: number; // Ace %
+
+  @Field(() => Float, { nullable: true })
+  receivingPercentage: number; // Receiving %
+
+  @Field(() => Float, { nullable: true })
+  hittingPercentage: number; // Hiting %
+
+  @Field(() => Float, { nullable: true })
+  settingPercentage: number; // Setting %
+
+  @Field(() => Float, { nullable: true })
+  defensiveConversionPercentage: number; // DC%
+}
+
+
+@InputType()
+export class UpdateProStatsInput extends PartialType(ProStatsInput) {}
+
+@InputType()
+export class CreateEventInput {
+  @Field()
+  name: string;
+
+  @Field(() => String)
+  startDate: string;
+
+  @Field(() => String)
+  endDate: string;
+
+
+  @Field(()=> [EventBadgeInput])
+  badges?: EventBadgeInput[];
+
+  @Field()
+  active: boolean;
+
+  // Default properties
+  @Field()
+  divisions: string;
+
+  @Field(() => Int)
+  nets: number;
+
+  @Field(() => Int)
+  rounds: number;
+
+  @Field(() => Int)
+  playerLimit: number;
+
+  @Field(() => Int)
+  netVariance: number;
+
+  @Field({ nullable: true })
+  homeTeam: string; // Make it required
+
+  @Field({ nullable: true })
+  autoAssign: boolean;
+
+  @Field({ nullable: true, defaultValue: true })
+  includeStats: boolean;
+
+  @Field({ nullable: true })
+  autoAssignLogic: string;
+
+  @Field({ nullable: true })
+  tieBreaking: string;
+
+  @Field({ nullable: true })
+  rosterLock: string;
+
+  @Field(() => Int, { nullable: true })
+  timeout: number;
+
+  @Field({ nullable: false })
+  coachPassword: string;
+
+  @Field({ nullable: true })
+  fwango?: string;
+
+  @Field({ nullable: true })
+  defaulted?: boolean;
+
+  @Field({ nullable: false })
+  description: string;
+
+  @Field({ nullable: false })
+  location: string;
+
+  @Field({ nullable: true })
+  accessCode: string;
+
+  @Field(() => String,{nullable: true})
+  ldo?: string;
+
+  @Field(() => String,{nullable: true})
+  id?: string;
+
+  @Field({ nullable: true, defaultValue: true })
+  defaultSponsor: boolean;
+}
+
+
+@InputType()
+export class EventFilterInput {
+  @Field(()=> EEventItem, {nullable: true})
+  item: EEventItem;
+  
+  @Field(()=> String, {nullable: true})
+  search?: string;
+
+  @Field(() => String, {nullable: true})
+  division?: string;
+
+  @Field(() => String, {nullable: true})
+  group?: string;
+
+  @Field(() => Int, {nullable: true})
+  limit?: number;
+}
+
+@InputType()
+export class UpdateDivision{
+  @Field(() => String, {nullable: true})
+  prev?: string;
+
+  @Field(() => String, {nullable: true})
+  new?: string;
+}
+
+@InputType()
+export class UpdateEventInput extends PartialType(
+  OmitType(CreateEventInput, ['badges'] as const),
+) {
+  @Field(() => [String], { nullable: true })
+  newteams?: string[];
+
+  @Field(()=> [UpdateDivision], {nullable: true})
+  updatedivisions?: UpdateDivision[];
+
+  @Field(()=> [UpdateBadgeInput], {nullable: true})
+  badges?: UpdateBadgeInput[];
+}
+
+
+@ObjectType()
+export class CreateEventBody {
+  @Field(() => [EventSponsorInput], { nullable: true })
+  sponsorsInput?: EventSponsorInput[];
+
+
+  @Field(() => CreateEventInput)
+  input: CreateEventInput;
+
+  context: any;
+
+  
+  @Field(() => ProStatsInput, { nullable: true })
+  multiplayerInput?: ProStatsInput;
+
+  @Field(() => ProStatsInput, { nullable: true })
+  weightInput?: ProStatsInput;
+
+  @Field(() => GraphQLUpload, { nullable: true })
+  logo?: Promise<FileUpload>;
+
+}
+
+@ObjectType()
+export class UpdateEventBody{
+  @Field(() => [EventSponsorInput], { nullable: true })
+  sponsorsInput?: EventSponsorInput[];
+
+  @Field(() => UpdateEventInput)
+  updateInput: UpdateEventInput;
+
+  @Field()
+  eventId: string;
+
+  context: any;
+
+  @Field(() => [EventSponsorStringInput], { nullable: true })
+  sponsorsStringInput?: EventSponsorStringInput[];
+
+  @Field(() => UpdateProStatsInput, { nullable: true })
+  multiplayerInput?: UpdateProStatsInput;
+
+  @Field(() => UpdateProStatsInput, { nullable: true })
+  weightInput?: UpdateProStatsInput;
+  
+  @Field(() => GraphQLUpload, { nullable: true })
+  logo?: Promise<FileUpload>;
+}
+
+
+```
+
+Here is event schema:
+
+```
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import mongoose from 'mongoose';
+import { Badge } from 'src/badge/badge.schema';
+import { Emailsender } from 'src/emailsender/emailsernder.schema';
+import { Group } from 'src/group/group.schema';
+import { LDO } from 'src/ldo/ldo.schema';
+import { Match } from 'src/match/match.schema';
+import { ProStats } from 'src/player-stats/player-stats.schema';
+import { Player } from 'src/player/player.schema';
+import { AppDocument } from 'src/shared/schema/document.schema';
+import { Sponsor } from 'src/sponsor/sponsor.schema';
+import { Team } from 'src/team/team.schema';
+import { Template } from 'src/template/template.schema';
+
+
+// For filtering
+export enum EEventItem {
+  PLAYER = "PLAYER",
+  MATCH = "MATCH",
+  TEAM = "STANDINGS",
+}
+
+registerEnumType(EEventItem, {
+  name: 'EEventItem',
+});
+
+
+
+export enum ETieBreakingStrategy {
+  TWO_POINTS_NET = 'TWO_POINTS_NET',
+  OVERTIME_ROUND = 'OVERTIME_ROUND',
+  MATCH_TIE = 'MATCH_TIE',
+}
+
+registerEnumType(ETieBreakingStrategy, {
+  name: 'ETieBreakingStrategy',
+});
+
+
+export enum ERosterLock {
+  FIRST_ROSTER_SUBMIT = 'FIRST_ROSTER_SUBMIT',
+  PICK_A_DATE = 'PICK_A_DATE',
+}
+
+registerEnumType(ERosterLock, {
+  name: 'ERosterLock',
+});
+
+/**
+ * Event
+ * https://docs.nestjs.com/techniques/mongodb#model-injection
+ * https://docs.nestjs.com/graphql/resolvers#object-types
+ */
+@ObjectType()
+@Schema({ timestamps: true })
+export class Event extends AppDocument {
+  /**
+   * Base properties
+   */
+  @Field()
+  @Prop({ required: true })
+  name: string;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  logo?: string;
+
+  @Field((type) => String)
+  @Prop({ required: true })
+  startDate: string;
+
+  @Field((type) => String)
+  @Prop({ required: true })
+  endDate: string;
+
+  @Field()
+  @Prop({ required: true })
+  active: boolean;
+
+  @Field({ nullable: true })
+  @Prop({ required: false, default: false })
+  sendCredentials: boolean;
+
+  @Field((type) => Int)
+  @Prop({ required: true })
+  playerLimit?: number;
+
+  // fwango
+  @Field({ nullable: true })
+  @Prop({ required: false, })
+  fwango?: string;
+
+  // Default event
+  @Field(() => Boolean, { nullable: true, defaultValue: false })
+  @Prop({ required: false, default: false })
+  defaulted?: boolean;
+
+  /**
+   * Database Relationship
+   */
+  @Field(() => LDO, { nullable: false })
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: LDO.name })
+  ldo: string | LDO;
+
+  @Field(() => [Player], { nullable: false })
+  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Player' }] })
+  players: Player[] | string[];
+
+  @Field(() => [Team], { nullable: false })
+  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }] })
+  teams: Team[] | string[];
+
+  @Field(() => [Match], { nullable: false })
+  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Match' }] })
+  matches: Match[] | string[];
+
+  @Field(() => [Group], { nullable: false })
+  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }] })
+  groups: Group[] | string[];
+
+  @Field(() => [Sponsor], { nullable: false })
+  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Sponsor' }] })
+  sponsors: Sponsor[] | string[];
+
+  @Field(() => ProStats, { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: ProStats.name })
+  multiplayer?: string | ProStats;
+
+  @Field(() => ProStats, { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: ProStats.name })
+  weight?: string | ProStats;
+
+  @Field(() => [Template], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Template' }] })
+  templates: Template[] | string[];
+
+  @Field(() => [Emailsender], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Emailsender' }] })
+  emailsenders: Emailsender[] | string[];
+
+  @Field(() => [Badge], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Badge' }] })
+  badges?: Badge[] | string[];
+
+
+  /**
+   * Default properties for match
+   */
+  @Field({ nullable: false })
+  @Prop({ required: true })
+  divisions: string;
+
+  @Field({ nullable: false })
+  @Prop({ required: true })
+  nets: number;
+
+  @Field({ nullable: false })
+  @Prop({ required: true })
+  rounds: number;
+
+  @Field({ nullable: false })
+  @Prop({ required: true })
+  netVariance: number;
+
+  @Field({ nullable: false })
+  @Prop({ required: true })
+  homeTeam: string;
+
+  @Field({ nullable: false })
+  @Prop({ required: true })
+  autoAssign: boolean;
+
+  @Field({ nullable: false })
+  @Prop({ required: true })
+  autoAssignLogic: string;
+
+  @Field({ nullable: false })
+  @Prop({ required: true })
+  rosterLock: ERosterLock | string;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  tieBreaking: ETieBreakingStrategy | string;
+
+  @Field({ nullable: false })
+  @Prop({ required: true })
+  timeout: number;
+
+  @Field({ nullable: false })
+  @Prop({ required: true })
+  coachPassword: string;
+
+  @Field({ nullable: true })
+  @Prop({ required: true })
+  description: string;
+
+  @Field({ nullable: true })
+  @Prop({ required: true })
+  location: string;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  accessCode?: string;
+
+  @Field({ nullable: true, defaultValue: false })
+  @Prop({ required: false, default: false })
+  defaultSponsor: boolean;
+}
+
+export const EventSchema = SchemaFactory.createForClass(Event);
+export const EventSchemaFactory = async () => {
+  return EventSchema;
+};
+
+
+```
+
+
+Now according to this, create all necessary tests. 
+Make all tests industry standard. 
+If you need any extra file, let me know.
+How is this approach? Give suggations  if you think some part need to be updated.
+Add as many tests as needed to cover necessary things

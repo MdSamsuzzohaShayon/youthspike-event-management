@@ -1,0 +1,311 @@
+I have a backend project with nest.js, graphql, typescript, mongodb, and redis. 
+THe project is very big.
+I am going to implement automated tests. 
+I am basically going to implement unit test, integration test, and end to end test. 
+Here is my project structure:
+
+```
+shayon@shayon-B560M-H-V2:~/Documents/web/youthspike-event-management/youthspike-nest-backend$
+$ ls -la
+total 848
+drwxrwxr-x   8 shayon shayon   4096 Sep 14 22:34 .
+drwxrwxr-x  12 shayon shayon   4096 Jul  3 03:26 ..
+drwxrwxr-x  25 shayon shayon   4096 Sep 14 21:49 dist
+-rw-rw-r--   1 shayon shayon     88 Mar 30 18:33 dump.rdb
+-rw-rw-r--   1 shayon shayon   1633 Mar 30 11:48 ecosystem.config.js
+-rw-rw-r--   1 shayon shayon   1299 Jun 25 21:50 .env
+-rw-rw-r--   1 shayon shayon    953 Jun 25 21:51 .env.example
+-rw-rw-r--   1 shayon shayon   1243 Jun 25 21:51 .env.prod
+-rw-rw-r--   1 shayon shayon    831 Mar 30 11:48 .eslintrc.js
+-rw-rw-r--   1 shayon shayon  16141 Jun 27 04:09 example.txt
+-rw-rw-r--   1 shayon shayon    391 Mar 30 11:48 .gitignore
+-rw-rw-r--   1 shayon shayon    470 Aug 21 05:50 mongosh.js
+-rw-rw-r--   1 shayon shayon    171 Mar 30 11:48 nest-cli.json
+drwxrwxr-x 830 shayon shayon  32768 Aug 14 15:28 node_modules
+-rw-rw-r--   1 shayon shayon   4036 Mar 30 11:48 package.json
+-rw-rw-r--   1 shayon shayon 710755 Aug 14 15:28 package-lock.json
+-rw-rw-r--   1 shayon shayon    116 Mar 30 11:48 .prettierrc
+drwxrwxr-x   2 shayon shayon   4096 Sep 14 22:35 prompts
+-rw-rw-r--   1 shayon shayon   3413 Jun 26 05:33 README.md
+-rwxrwxr-x   1 shayon shayon   5245 Mar 30 11:48 redis_cluster.sh
+-rw-rw-r--   1 shayon shayon   1488 Aug 16 01:11 run.sh
+drwxrwxr-x  26 shayon shayon   4096 Jul 16 18:28 src
+drwxrwxr-x   2 shayon shayon   4096 Mar 30 11:48 test
+-rw-rw-r--   1 shayon shayon    221 Mar 30 11:48 tsconfig.app.json
+-rw-rw-r--   1 shayon shayon     97 Mar 30 11:48 tsconfig.build.json
+-rw-rw-r--   1 shayon shayon    627 Mar 30 11:48 tsconfig.json
+drwxrwxr-x   2 shayon shayon   4096 May  4 05:04 uploads
+shayon@shayon-B560M-H-V2:~/Documents/web/youthspike-event-management/youthspike-nest-backend$
+$ ls -la src
+total 164
+drwxrwxr-x 26 shayon shayon  4096 Jul 16 18:28 .
+drwxrwxr-x  8 shayon shayon  4096 Sep 14 22:34 ..
+drwxrwxr-x  2 shayon shayon  4096 Mar 30 11:48 about
+-rw-rw-r--  1 shayon shayon   617 Mar 30 11:48 app.controller.spec.ts
+-rw-rw-r--  1 shayon shayon   195 Mar 30 11:48 app.controller.ts
+-rw-rw-r--  1 shayon shayon  2885 Jul 16 18:42 app.module.ts
+-rw-rw-r--  1 shayon shayon    87 Mar 30 11:48 app.service.ts
+drwxrwxr-x  2 shayon shayon  4096 Mar 30 18:33 archive
+drwxrwxr-x  2 shayon shayon  4096 Jul 16 18:39 badge
+drwxrwxr-x  3 shayon shayon  4096 Mar 30 11:48 email
+drwxrwxr-x  2 shayon shayon  4096 Jul 11 19:40 emailsender
+drwxrwxr-x  3 shayon shayon  4096 Mar 30 18:33 event
+drwxrwxr-x  4 shayon shayon  4096 Mar 30 18:33 gateway
+drwxrwxr-x  2 shayon shayon  4096 Mar 30 11:48 group
+drwxrwxr-x  2 shayon shayon  4096 Mar 30 18:33 ldo
+-rw-rw-r--  1 shayon shayon  2534 Mar 30 11:48 main.ts
+drwxrwxr-x  3 shayon shayon  4096 Mar 30 18:33 match
+drwxrwxr-x  2 shayon shayon  4096 Mar 30 11:48 net
+drwxrwxr-x  3 shayon shayon  4096 Mar 30 18:33 player
+drwxrwxr-x  2 shayon shayon  4096 Mar 30 18:33 player-ranking
+drwxrwxr-x  3 shayon shayon  4096 Mar 30 18:33 player-stats
+drwxrwxr-x  2 shayon shayon  4096 Mar 30 11:48 redis
+drwxrwxr-x  2 shayon shayon  4096 Mar 30 18:33 room
+drwxrwxr-x  2 shayon shayon  4096 Mar 30 11:48 round
+-rw-rw-r--  1 shayon shayon 39365 Sep 14 21:49 schema.gql
+drwxrwxr-x  2 shayon shayon  4096 Mar 30 18:33 server-receiver-on-net
+drwxrwxr-x  5 shayon shayon  4096 Mar 30 18:33 shared
+drwxrwxr-x  2 shayon shayon  4096 Mar 30 11:48 sponsor
+drwxrwxr-x  3 shayon shayon  4096 Jun 27 04:09 team
+drwxrwxr-x  3 shayon shayon  4096 Mar 30 18:33 template
+drwxrwxr-x  2 shayon shayon  4096 Jun 27 04:09 user
+drwxrwxr-x  2 shayon shayon  4096 Mar 30 18:33 utils
+shayon@shayon-B560M-H-V2:~/Documents/web/youthspike-event-management/youthspike-nest-backend$
+$  ls -ls tests
+ls: cannot access 'tests': No such file or directory
+shayon@shayon-B560M-H-V2:~/Documents/web/youthspike-event-management/youthspike-nest-backend$
+$ ls -la test/
+total 16
+drwxrwxr-x 2 shayon shayon 4096 Mar 30 11:48 .
+drwxrwxr-x 8 shayon shayon 4096 Sep 14 22:34 ..
+-rw-rw-r-- 1 shayon shayon  630 Mar 30 11:48 app.e2e-spec.ts
+-rw-rw-r-- 1 shayon shayon  183 Mar 30 11:48 jest-e2e.json
+shayon@shayon-B560M-H-V2:~/Documents/web/youthspike-event-management/youthspike-nest-backend$
+$ cat src/main.ts 
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { IoAdapter } from '@nestjs/platform-socket.io';
+import { createAdapter } from '@socket.io/redis-adapter';
+import { RedisService } from './redis/redis.service';
+import * as GraphqlUploadExpressModule from 'graphql-upload/graphqlUploadExpress.mjs';
+import { EEnv, NODE_ENV } from './utils/keys';
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { ServerOptions } from 'socket.io';
+const graphqlUploadExpress = GraphqlUploadExpressModule.default;
+
+class RedisIoAdapter extends IoAdapter {
+  private adapterConstructor: any;
+
+  constructor(app: any, private redisService: RedisService) {
+    super(app);
+  }
+
+  async connectToRedis() {
+    const pubClient = this.redisService.getPubClient();
+    const subClient = this.redisService.getSubClient();
+    this.adapterConstructor = createAdapter(pubClient, subClient);
+  }
+
+  createIOServer(port: number, options?: ServerOptions): any {
+    const server = super.createIOServer(port, {
+      ...options,
+      cors: {
+        origin: NODE_ENV === EEnv.PRODUCTION
+          ? ['https://admin.aslsquads.com', 'https://aslsquads.com']
+          : ['http://localhost:3000', 'http://localhost:3001'],
+        methods: ['GET', 'POST'],
+        credentials: true,
+      },
+      transports: ['websocket', 'polling'],
+      allowEIO3: true, // For v2 client compatibility if needed
+      cookie: false, // Important for load balancing
+    });
+  
+    server.adapter(this.adapterConstructor);
+    return server;
+  }
+}
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  const logger = new Logger('Bootstrap');
+
+  const origin =
+    NODE_ENV === EEnv.PRODUCTION
+      ? ['https://admin.aslsquads.com', 'https://aslsquads.com', 'https://studio.apollographql.com']
+      : ['http://localhost:3000', 'http://localhost:3001', 'https://studio.apollographql.com'];
+
+  app.enableCors({
+    origin,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
+
+  app.use(graphqlUploadExpress({ maxFiles: 10, maxFileSize: 10_000_000 }));
+
+
+  // Get RedisService instance
+  const redisService = app.get(RedisService);
+
+  // Set up RedisIoAdapter
+  const redisAdapter = new RedisIoAdapter(app, redisService);
+  await redisAdapter.connectToRedis(); // important!
+  app.useWebSocketAdapter(redisAdapter);
+
+  const PORT = process.env.PORT || 4000;
+  await app.listen(PORT);
+  logger.log(`🚀 Server running on port ${PORT} in ${NODE_ENV} mode`);
+}
+
+bootstrap();
+
+
+```
+
+ANd here is my package.json file:
+
+```
+{
+  "name": "server",
+  "version": "0.0.1",
+  "description": "Node based server for Spikeball game dashboard",
+  "author": "Md Samsuzzoha <mdsamsuzzoha@gmail.com>",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "build": "export NODE_ENV=production && nest build",
+    "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
+    "start": "nest start",
+    "dev": "export NODE_ENV=development && nest start --watch",
+    "load-balancer": "nodemon load-balancer.js",
+    "start:debug": "nest start --debug --watch",
+    "start:prod": "node dist/apps/server/main",
+    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
+    "test:e2e": "jest --config ./apps/server/test/jest-e2e.json",
+    "dev:pm2:start": "pm2 start ecosystem.dev.config.js",
+    "dev:pm2:stop": "pm2 delete ecosystem.dev.config.js",
+    "dev:pm2:list": "pm2 list",
+    "dev:pm2:logs": "pm2 logs",
+    "dev:pm2:status": "pm2 status",
+    "dev:pm2:restart": "pm2 restart all",
+    "update": "npx npm-check-updates -u"
+  },
+  "dependencies": {
+    "@as-integrations/express5": "^1.1.2",
+    "@nestjs-modules/mailer": "^2.3.7",
+    "@nestjs/apollo": "^14.0.0",
+    "@nestjs/common": "^12.0.2",
+    "@nestjs/config": "^12.0.0",
+    "@nestjs/core": "^12.0.2",
+    "@nestjs/graphql": "^14.0.0",
+    "@nestjs/jwt": "^12.0.2",
+    "@nestjs/mapped-types": "*",
+    "@nestjs/mongoose": "^12.0.0",
+    "@nestjs/passport": "^12.0.0",
+    "@nestjs/platform-express": "^12.0.2",
+    "@nestjs/platform-socket.io": "12.0.2",
+    "@nestjs/platform-ws": "^12.0.2",
+    "@nestjs/websockets": "^12.0.2",
+    "@socket.io/redis-adapter": "^8.3.0",
+    "@types/html-to-text": "^9.0.4",
+    "bcrypt": "^6.0.0",
+    "class-validator": "^0.15.1",
+    "cloudinary": "^2.11.0",
+    "connect-redis": "^10.0.0",
+    "cookie-parser": "^1.4.7",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "express-socket.io-session": "^1.3.5",
+    "graphql": "^17.0.2",
+    "graphql-subscriptions": "^3.0.0",
+    "graphql-upload": "^18.0.0",
+    "handlebars": "^4.7.9",
+    "html-to-text": "^10.0.1",
+    "i": "^0.3.7",
+    "ioredis": "^6.0.0",
+    "isomorphic-dompurify": "^4.2.0",
+    "mongoose": "^9.10.0",
+    "nodemailer": "^10.0.10",
+    "npm": "^12.0.2",
+    "papaparse": "^5.7.0",
+    "passport": "^0.7.0",
+    "passport-jwt": "^4.0.1",
+    "redis": "^6.2.1",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.2",
+    "socket.io": "^4.8.3",
+    "socket.io-redis": "^6.1.1",
+    "uninstall": "^0.0.0"
+  },
+  "devDependencies": {
+    "@apollo/server": "^5.5.1",
+    "@faker-js/faker": "^10.6.0",
+    "@nestjs/cli": "^12.0.1",
+    "@nestjs/microservices": "^12.0.2",
+    "@nestjs/schematics": "^12.0.2",
+    "@nestjs/testing": "^12.0.2",
+    "@types/bcrypt": "^6.0.0",
+    "@types/express": "^5.0.6",
+    "@types/graphql-upload": "^17.0.0",
+    "@types/jest": "30.0.0",
+    "@types/node": "26.5.1",
+    "@types/passport-jwt": "^4.0.1",
+    "@types/supertest": "^7.2.1",
+    "@typescript-eslint/eslint-plugin": "^8.70.0",
+    "@typescript-eslint/parser": "^8.70.0",
+    "concurrently": "^10.0.5",
+    "cross-env": "^10.1.0",
+    "eslint": "^10.10.0",
+    "eslint-config-nestjs": "^0.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.6",
+    "http-proxy": "^1.18.1",
+    "ioredis-mock": "^8.13.1",
+    "jest": "30.5.1",
+    "mongodb-memory-server": "^11.2.0",
+    "nodemon": "^3.1.14",
+    "pm2": "^7.0.4",
+    "prettier": "^3.9.6",
+    "source-map-support": "^0.5.21",
+    "supertest": "^7.2.2",
+    "ts-jest": "29.4.12",
+    "ts-loader": "^9.6.2",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^7.0.2"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "js",
+      "json",
+      "ts"
+    ],
+    "rootDir": ".",
+    "testRegex": ".*\\.spec\\.ts$",
+    "transform": {
+      "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "**/*.(t|j)s"
+    ],
+    "coverageDirectory": "./coverage",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/apps/"
+    ]
+  }
+}
+
+
+```
+
+You are going to create all tests for me, I will share detail of my queries.
+Do not implement any unnecessary tests, only implement essentials tests.
+Since the project is very big, I want to implement test step by step. 
+
+first of all, industry standard structure folders for testing, then create necessary files with command, nest cli or linux commands. 
+Then save this project informations, I will share detail of query, you will all tests for me and help me to test properly 

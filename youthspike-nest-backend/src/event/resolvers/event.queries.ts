@@ -283,7 +283,27 @@ export class EventQueries implements IEventQueries {
         loggedUser?.role === UserRole.player
       ) {
         const playerExist = await this.playerService.findOne({
-          $or: [{ _id: loggedUser.captainplayer }, { _id: loggedUser.cocaptainplayer }, { _id: loggedUser.player }],
+          $or: [
+            {
+              _id: String(
+                typeof loggedUser.captainplayer === 'string'
+                  ? loggedUser.captainplayer
+                  : loggedUser.captainplayer?._id,
+              ),
+            },
+            {
+              _id: String(
+                typeof loggedUser.cocaptainplayer === 'string'
+                  ? loggedUser.cocaptainplayer
+                  : loggedUser.cocaptainplayer?._id,
+              ),
+            },
+            {
+              _id: String(
+                typeof loggedUser.player === 'string' ? loggedUser.player : loggedUser.player?._id,
+              ),
+            },
+          ],
         });
         if (!playerExist) return AppResponse.notFound('Player');
         return {
@@ -317,9 +337,13 @@ export class EventQueries implements IEventQueries {
       ]);
 
       const [multiplayer, weight, badges] = await Promise.all([
-        this.playerStatsService.proStatFindOne({ _id: event.multiplayer }),
-        this.playerStatsService.proStatFindOne({ _id: event.weight }),
-        this.badgeService.find({event: eventId})
+        this.playerStatsService.proStatFindOne({
+          _id: String(typeof event.multiplayer === 'string' ? event.multiplayer : event.multiplayer?._id),
+        }),
+        this.playerStatsService.proStatFindOne({
+          _id: String(typeof event.weight === 'string' ? event.weight : event.weight?._id),
+        }),
+        this.badgeService.find({ event: eventId }),
       ]);
 
       return {

@@ -16,9 +16,13 @@
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./apps/server/test/jest-e2e.json",
+    "test:unit": "jest --config ./test/jest-unit.json",
+    "test:unit:watch": "jest --config ./test/jest-unit.json --watch",
+    "test:integration": "jest --config ./test/jest-integration.json --runInBand",
+    "test:e2e": "jest --config ./test/jest-e2e.json --runInBand",
+    "test:cov": "jest --config ./test/jest-unit.json --coverage",
+    "test:all": "npm run test:unit && npm run test:integration && npm run test:e2e",
     "dev:pm2:start": "pm2 start ecosystem.dev.config.js",
     "dev:pm2:stop": "pm2 delete ecosystem.dev.config.js",
     "dev:pm2:list": "pm2 list",
@@ -62,7 +66,7 @@
     "ioredis": "^5.8.2",
     "isomorphic-dompurify": "^3.0.0",
     "mongoose": "^9.0.1",
-    "nodemailer": "^7.0.11",
+    "nodemailer": "^8.0.11",
     "npm": "^11.7.0",
     "papaparse": "^5.5.3",
     "passport": "^0.7.0",
@@ -75,6 +79,7 @@
     "uninstall": "^0.0.0"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.6.0",
     "@nestjs/cli": "^11.0.14",
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/testing": "^11.1.9",
@@ -94,7 +99,9 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "http-proxy": "^1.18.1",
+    "ioredis-mock": "^8.13.1",
     "jest": "30.2.0",
+    "mongodb-memory-server": "^11.2.0",
     "nodemon": "^3.1.11",
     "pm2": "^6.0.14",
     "prettier": "^3.7.4",
@@ -118,12 +125,16 @@
       "^.+\\.(t|j)s$": "ts-jest"
     },
     "collectCoverageFrom": [
-      "**/*.(t|j)s"
+      "src/**/*.(t|j)s"
     ],
     "coverageDirectory": "./coverage",
     "testEnvironment": "node",
     "roots": [
-      "<rootDir>/apps/"
-    ]
+      "<rootDir>/src/",
+      "<rootDir>/test/"
+    ],
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/src/$1"
+    }
   }
 }
