@@ -48,6 +48,7 @@ import Link from "next/link";
 import ServerReceiverDialog from "../elements/Dialog/ServerReceiverDialog";
 import SessionStorageService from "@/utils/SessionStorageService";
 import { PLAY_STRATEGY } from "@/utils/constant";
+import ParticleButton from "../elements/ParticleButton";
 
 /* ───────────────────────────────────────────── */
 interface IServerReceiverProps {
@@ -493,7 +494,7 @@ export default function ServerReceiver({
   if (
     finalRoundIncomplete &&
     currMatch.tieBreaking !== ETieBreakingStrategy.OVERTIME_ROUND &&
-    currMatch.tieBreaking !== ETieBreakingStrategy.MATCH_TIE // Allow match tie 
+    currMatch.tieBreaking !== ETieBreakingStrategy.MATCH_TIE // Allow match tie
   ) {
     return (
       <div className="w-full">
@@ -648,21 +649,23 @@ export default function ServerReceiver({
           {/* Handle action for each button pressed  */}
           <div className="scrollable-action-handler w-full">
             <div className="hidden md:flex w-full items-center justify-center gap-x-2">
-              <button
-                onClick={(_e) => {
+              <ParticleButton
+                variant="default"
+                size="md"
+                onClick={() => {
                   changePlayEl?.current?.showModal();
                 }}
-                className="btn-info"
               >
                 {`${toOrdinal(currServerReceiver?.mutate || 1)} play`}
-              </button>
+              </ParticleButton>
               {currPlays.length > 0 && (
-                <button
-                  className="btn-info"
+                <ParticleButton
+                  variant="default"
+                  size="md"
                   onClick={() => revertPlayEl.current?.showModal()}
                 >
                   Revert Play
-                </button>
+                </ParticleButton>
               )}
             </div>
             <div
@@ -705,25 +708,44 @@ export default function ServerReceiver({
             />
           </div>
 
-          <div className="mt-4 flex flex-wrap justify-center items-center gap-2">
-            <button
-              onClick={handleUpdateScore}
+          {/* Primary CTA — bigger, distinct, yellow/black/white scheme */}
+          <div className="mt-5 flex justify-center">
+            <ParticleButton
+              variant="primary"
+              size="lg"
               type="button"
-              className="btn-info"
+              onClick={handleUpdateScore}
+              className="min-w-[280px] sm:min-w-[320px]"
+              particleCount={26}
             >
-              Update score, only at the end of game
-            </button>
-            <button onClick={openResetConfirm} className="btn-info">
+              <span className="flex flex-col items-start leading-tight">
+                <span className="text-base font-extrabold tracking-wide uppercase">
+                  Update Score
+                </span>
+                <span className="text-xs font-semibold opacity-80">
+                  Tap when scorekeeping is done
+                </span>
+              </span>
+            </ParticleButton>
+          </div>
+
+          <div className="mt-3 flex flex-wrap justify-center items-center gap-2">
+            <ParticleButton
+              variant="default"
+              size="md"
+              onClick={openResetConfirm}
+            >
               Reset
-            </button>
-            <button
+            </ParticleButton>
+            <ParticleButton
+              variant="default"
+              size="md"
               onClick={() => {
                 srChangerEl.current?.showModal();
               }}
-              className="btn-info"
             >
               Change Server/Receiver
-            </button>
+            </ParticleButton>
           </div>
         </div>
       ) : (
@@ -766,36 +788,40 @@ export default function ServerReceiver({
                   currServerReceiver?.server &&
                   currServerReceiver.receiver && (
                     <div className="my-6 flex gap-x-2 justify-center">
-                      <button
+                      <ParticleButton
+                        variant="default"
+                        size="sm"
                         onClick={handleSetPlayers}
-                        className="inline-block text-sm btn-info"
                       >
                         Confirm Order
-                      </button>
-                      <button
-                        onClick={() => setActionPreview(false)}
+                      </ParticleButton>
+                      <ParticleButton
+                        variant="default"
+                        size="sm"
                         type="button"
-                        className="inline-block text-sm btn-info"
+                        onClick={() => setActionPreview(false)}
                       >
                         Server/Receiver
-                      </button>
+                      </ParticleButton>
                     </div>
                   )}
 
                 {currPlays.length > 0 && (
                   <>
-                    <button
+                    <ParticleButton
+                      variant="default"
+                      size="sm"
                       onClick={openResetConfirm}
-                      className="inline-block text-sm btn-info"
                     >
                       Reset
-                    </button>
-                    <button
+                    </ParticleButton>
+                    <ParticleButton
+                      variant="default"
+                      size="sm"
                       onClick={() => setActionPreview(true)}
-                      className="inline-block text-sm btn-info"
                     >
                       Action Preview
-                    </button>
+                    </ParticleButton>
                   </>
                 )}
               </div>
@@ -807,15 +833,17 @@ export default function ServerReceiver({
 
       {serverReceiversOnNet.length > 8 && serverReceiversOnNet.find((sr) => sr.net === selectedNet?._id) && (
         <div className="w-full mt-4 flex justify-center items-center">
-          <button
-            className="btn-info flex flex-col flex-wrap items-center justify-center"
+          <ParticleButton
+            variant="default"
+            size="md"
+            className="flex-col flex-wrap"
             onClick={() => window.location.reload()}
           >
-            <span>If score doesn’t update, REFRESH before advancing.</span>
+            <span>If score doesn't update, REFRESH before advancing.</span>
             <span className="font-normal text-xs capitalize">
               If you leave the screen you will need to refresh FIRST.
             </span>
-          </button>
+          </ParticleButton>
         </div>
       )}
 
