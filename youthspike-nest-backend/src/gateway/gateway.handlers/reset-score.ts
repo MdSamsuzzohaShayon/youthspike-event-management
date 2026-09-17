@@ -4,7 +4,7 @@ import { ResetScoreInput, RoomLocal } from '../gateway.types';
 import { GatewayService } from '../gateway.service';
 import { GatewayRedisService } from '../gateway.redis';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
-import { singlePlayKey } from 'src/utils/helper';
+import { getId, singlePlayKey } from 'src/utils/helper';
 import { ValidationHelper } from '../gateway.helpers/validation.helper';
 
 export class ResetScoreHandler {
@@ -12,7 +12,7 @@ export class ResetScoreHandler {
     private readonly gatewayService: GatewayService,
     private readonly validationHelper: ValidationHelper,
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
-  ) {}
+  ) { }
 
   async handle(
     @ConnectedSocket() client: Socket,
@@ -99,7 +99,7 @@ export class ResetScoreHandler {
         await Promise.all([
           playerService.updateMany({ _id: { $in: playerIds } }, { $pull: { serverReceiverOnNet: srId } }),
           matchService.updateOne({ _id: body.match }, { $pull: { serverReceiverOnNet: srId } }),
-          roundService.updateOne({ _id: net.round }, { $pull: { serverReceiverOnNet: srId } }),
+          roundService.updateOne({ _id: getId(net.round) }, { $pull: { serverReceiverOnNet: srId } }),
           netService.updateOne({ _id: body.net }, { $set: { serverReceiverOnNet: null } }),
         ]);
       }
@@ -123,7 +123,7 @@ export class ResetScoreHandler {
         ]);
       }
 
-      await serverReceiverOnNetService.deleteManySinglePlay({net: body.net});
+      await serverReceiverOnNetService.deleteManySinglePlay({ net: body.net });
 
       // Notify room
       await this.scoreKeeperHelper.publishRoom(body.room, 'reset-score-from-server', {

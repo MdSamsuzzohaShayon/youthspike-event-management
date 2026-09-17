@@ -14,6 +14,7 @@ import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
 import { RolesGuard } from 'src/shared/auth/roles.guard';
 import { GetNetResponse, GetNetsResponse } from './net.response';
 import { MatchService } from 'src/match/match.service';
+import { getId } from 'src/utils/helper';
 
 @Resolver((of) => Net)
 export class NetResolver {
@@ -35,7 +36,7 @@ export class NetResolver {
        */
       const netExist = await this.netService.findOne({ _id: netId });
       if (!netExist) return AppResponse.notFound('Net');
-      const matchExist = await this.matchService.findOne({_id: netExist.match});
+      const matchExist = await this.matchService.findOne({_id: getId(netExist.match)});
       if (!matchExist) return AppResponse.notFound('Match');
       const teamIds = [];
       if (matchExist?.teamA) teamIds.push(matchExist.teamA);

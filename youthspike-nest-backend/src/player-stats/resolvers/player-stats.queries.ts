@@ -101,7 +101,7 @@ export class PlayerStatsQueries {
       if (!events) return AppResponse.notFound('Event');
       
       if(player.badge){
-        badge = await this.badgeService.findOne({_id: player.badge});
+        badge = await this.badgeService.findOne({_id: typeof player.badge === 'object' ? player.badge._id : player.badge});
       }
 
 

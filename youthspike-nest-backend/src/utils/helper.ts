@@ -135,3 +135,14 @@ export function randomString(length: number) {
     .toString('hex')
     .slice(0, length); // Trim to desired length
 }
+
+
+type WithId<T> = {
+  _id: T;
+};
+
+export function getId(value: string | { _id?: string }): string {
+  return typeof value === 'object' && value !== null && value._id
+    ? value._id
+    : value as string;
+}

@@ -14,6 +14,7 @@ import { GroupService } from './group.service';
 import { EventService } from 'src/event/event.service';
 import { QueryFilter, UpdateQuery } from 'mongoose';
 import { MatchService } from 'src/match/match.service';
+import { getId } from 'src/utils/helper';
 
 @ObjectType()
 class GetGroupsResponse extends AppResponse<Group[]> {
@@ -67,7 +68,7 @@ export class GroupResolver {
       const newGroup = await this.groupService.create(groupObj);
       // Update teams and event
       await Promise.all([
-        this.eventService.updateOne({ _id: newGroup.event }, { $addToSet: { groups: newGroup._id } }),
+        this.eventService.updateOne({ _id: getId(newGroup.event)}, { $addToSet: { groups: newGroup._id } }),
         this.teamService.updateMany({ _id: { $in: input.teams } }, { $addToSet: { groups: newGroup._id } }),
       ]);
 
@@ -116,7 +117,7 @@ export class GroupResolver {
       // ✅ Step 2: Validate Event (use eventId if provided)
       const targetEventId = eventId || existingGroup.event;
 
-      const event = await this.eventService.findOne({ _id: targetEventId });
+      const event = await this.eventService.findOne({ _id: getId(targetEventId) });
       if (!event) return AppResponse.notFound("Event");
 
       // ✅ Step 3: Prepare groupIds to remove (other groups in same event)
@@ -237,7 +238,7 @@ export class GroupResolver {
         );
       }
 
-      deletePromises.push(this.eventService.updateOne({ _id: groupExist.event }, { $pull: { group: groupId } }));
+      deletePromises.push(this.eventService.updateOne({ _id: getId(groupExist.event) }, { $pull: { group: groupId } }));
       deletePromises.push(this.groupService.deleteOne({ _id: groupId }));
 
       await Promise.all(deletePromises);

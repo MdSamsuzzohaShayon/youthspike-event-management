@@ -19,7 +19,7 @@ export class TemplateMutations {
 
   async singleDelete(templateExist: Template) {
     const updatePromises = [];
-    updatePromises.push(this.eventService.updateOne({ _id: templateExist.event }, { $pull: { templates: templateExist._id } }));
+    updatePromises.push(this.eventService.updateOne({ _id: typeof templateExist.event === 'object' ? templateExist.event._id : templateExist.event }, { $pull: { templates: templateExist._id } }));
     updatePromises.push(this.templateService.delete({ _id: templateExist._id }));
     await Promise.all(updatePromises);
   }

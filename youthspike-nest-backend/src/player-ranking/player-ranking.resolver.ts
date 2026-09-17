@@ -263,7 +263,7 @@ export class PlayerRankingResolver {
                 await Promise.all([
                   this.teamService.updateOne({ _id: team._id }, { $addToSet: { playerRankings: newTeamARanking._id } }),
                   // Match update
-                  this.matchService.updateOne({ _id: match }, { teamARanking: newTeamARanking._id }),
+                  this.matchService.updateOne({ _id: typeof match === 'object' ? match._id : match }, { teamARanking: newTeamARanking._id }),
                 ]);
               } else if (matchExist?.teamB?.toString() === team._id) {
                 const teamBItems = await this.playerRankingService.findItems({ playerRanking: teamPlayerRanking._id });
@@ -285,7 +285,7 @@ export class PlayerRankingResolver {
                 await Promise.all([
                   this.teamService.updateOne({ _id: team._id }, { $addToSet: { playerRankings: newTeamBRanking._id } }),
                   // Match update
-                  this.matchService.updateOne({ _id: match }, { teamBRanking: newTeamBRanking._id }),
+                  this.matchService.updateOne({ _id: typeof match === 'object' ? match._id : match }, { teamBRanking: newTeamBRanking._id }),
                 ]);
               }
             }

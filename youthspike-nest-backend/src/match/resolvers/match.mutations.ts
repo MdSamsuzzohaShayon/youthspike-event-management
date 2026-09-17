@@ -7,7 +7,7 @@ import { NetService } from 'src/net/net.service';
 import { Match } from '../match.schema';
 import { RoomService } from 'src/room/room.service';
 import { RedisService } from 'src/redis/redis.service';
-import { netKey, singlePlayKey } from 'src/utils/helper';
+import { getId, netKey, singlePlayKey } from 'src/utils/helper';
 import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { PlayerService } from 'src/player/player.service';
 import { ServerReceiverOnNet } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
@@ -59,13 +59,13 @@ export class MatchMutations {
 
       // ✅ Update teams (parallel)
       updatePromises.push(
-        this.teamService.updateOne({ _id: matchExist.teamA }, { $pull: { matches: matchExist._id } }),
-        this.teamService.updateOne({ _id: matchExist.teamB }, { $pull: { matches: matchExist._id } }),
+        this.teamService.updateOne({ _id: getId(matchExist.teamA) }, { $pull: { matches: matchExist._id } }),
+        this.teamService.updateOne({ _id: getId(matchExist.teamB) }, { $pull: { matches: matchExist._id } }),
       );
 
       // ✅ Remove room + match
       updatePromises.push(
-        this.roomService.deleteOne({ _id: matchExist.room }),
+        this.roomService.deleteOne({ _id: getId(matchExist.room) }),
         this.matchService.deleteOne({ _id: matchExist._id }),
       );
 
