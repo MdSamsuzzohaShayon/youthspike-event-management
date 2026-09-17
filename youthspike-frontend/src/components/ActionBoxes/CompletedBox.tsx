@@ -13,6 +13,7 @@ import TextImg from "../elements/TextImg";
 import { CldImage } from "next-cloudinary";
 import { setMessage } from "@/redux/slices/elementSlice";
 import { useRoundNavigation } from "@/hooks/useRoundNavigation";
+import ParticleButton from "../elements/ParticleButton";
 
 interface CompletedBoxProps {
   completeDialogRef: React.RefObject<HTMLDialogElement | null>;
@@ -286,18 +287,33 @@ function CompletedBox({ completeDialogRef }: CompletedBoxProps) {
                 className="object-cover object-top"
               />
 
-              <div className="flex flex-col md:flex-row gap-2">
-                <button className="btn-light" onClick={handleNextRound}>
-                  Next Round
-                </button>
+<div className="flex flex-col md:flex-row gap-2 items-stretch md:items-center">
+  <ParticleButton
+    variant="primary"
+    size="lg"
+    onClick={handleNextRound}
+    className="min-w-[220px] sm:min-w-[240px]"
+    particleCount={26}
+  >
+    <span className="flex flex-col items-center leading-tight">
+      <span className="text-base font-extrabold tracking-wide uppercase">
+        Next Round
+      </span>
+      <span className="text-xs font-semibold opacity-80">
+        Proceed to the next round
+      </span>
+    </span>
+  </ParticleButton>
 
-                <button
-                  className="btn-light"
-                  onClick={() => completeDialogRef.current?.showModal()}
-                >
-                  {match.completed ? "Unfinish Match" : "Finish Match"}
-                </button>
-              </div>
+  <ParticleButton
+    variant="default"
+    size="sm"
+    onClick={() => completeDialogRef.current?.showModal()}
+    className="md:self-center"
+  >
+    {match.completed ? "Unfinish Match" : "Finish Match"}
+  </ParticleButton>
+</div>
             </>
           )}
         </div>

@@ -51,7 +51,7 @@ function RoundInputBox({currMatch, roundList, currRound, allNets, myTeamE, dispa
   return (
     <div className="w-full mb-6">
       {/* Desktop View - Horizontal Tabs */}
-      <div className="hidden md:flex items-center justify-center space-x-1 bg-gray-800 p-2 rounded-lg shadow-lg">
+      <div className="hidden md:flex items-center justify-center space-x-1 p-2 rounded-lg shadow-lg">
         {roundList.map((round, index) => {
           const isCurrent = round._id === currRound?._id;
           const isCompleted = round.completed;
@@ -66,10 +66,10 @@ function RoundInputBox({currMatch, roundList, currRound, allNets, myTeamE, dispa
                   relative flex flex-col items-center justify-center px-4 py-3 rounded-lg transition-all duration-200 transform hover:scale-105
                   ${
                     isCurrent
-                      ? "bg-gradient-to-r from-yellow-400 to-yellow-500 text-black shadow-lg scale-105"
+                      ? "btn-info"
                       : isCompleted
-                      ? "bg-green-600 text-white hover:bg-green-500"
-                      : "bg-gray-700 text-gray-200 hover:bg-gray-600"
+                      ? "btn-success"
+                      : "btn-primary"
                   }
                   min-w-[80px] group
                 `}

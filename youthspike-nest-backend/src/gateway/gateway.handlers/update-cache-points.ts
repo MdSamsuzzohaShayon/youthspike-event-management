@@ -11,13 +11,14 @@ import { GatewayService } from '../gateway.service';
 import { ScoreKeeperHelper } from '../gateway.helpers/score-keeper.helper';
 import { ValidationHelper } from '../gateway.helpers/validation.helper';
 import { ETieBreakingStrategy } from 'src/event/event.schema';
+import { getId } from 'src/utils/helper';
 
 export class UpdateCachePointsHandler {
   constructor(
     private readonly gatewayService: GatewayService,
     private readonly validationHelper: ValidationHelper,
     private readonly scoreKeeperHelper: ScoreKeeperHelper,
-  ) {}
+  ) { }
 
   async handle(
     @ConnectedSocket() client: Socket,
@@ -65,14 +66,14 @@ export class UpdateCachePointsHandler {
           // Pull from previous record
           serverReceiverOnNetPromises.push(
             playerService.updateOne(
-              { serverReceiverOnNet: net.server },
-              { $pull: { serverReceiverOnNet: net.server } },
+              { serverReceiverOnNet: getId(net.server) },
+              { $pull: { serverReceiverOnNet: getId(net.server) } },
             ),
           );
           // Add to new player
           serverReceiverOnNetPromises.push(
             playerService.updateOne(
-              { _id: serverReceiverOnNetExist.server },
+              { _id: getId(serverReceiverOnNetExist.server) },
               { $addToSet: { serverReceiverOnNet: net._id } },
             ),
           );
@@ -82,14 +83,14 @@ export class UpdateCachePointsHandler {
           // Pull from previous record
           serverReceiverOnNetPromises.push(
             playerService.updateOne(
-              { serverReceiverOnNet: net.servingPartner },
+              { serverReceiverOnNet: getId(net.servingPartner) },
               { $pull: { serverReceiverOnNet: net.receivingPartner } },
             ),
           );
           // Add to new player
           serverReceiverOnNetPromises.push(
             playerService.updateOne(
-              { _id: serverReceiverOnNetExist.servingPartner },
+              { _id: getId(serverReceiverOnNetExist.servingPartner) },
               { $addToSet: { serverReceiverOnNet: net._id } },
             ),
           );
@@ -99,14 +100,14 @@ export class UpdateCachePointsHandler {
           // Pull from previous record
           serverReceiverOnNetPromises.push(
             playerService.updateOne(
-              { serverReceiverOnNet: net.receiver },
+              { serverReceiverOnNet: getId(net.receiver) },
               { $pull: { serverReceiverOnNet: net.receiver } },
             ),
           );
           // Add to new player
           serverReceiverOnNetPromises.push(
             playerService.updateOne(
-              { _id: serverReceiverOnNetExist.receiver },
+              { _id: getId(serverReceiverOnNetExist.receiver) },
               { $addToSet: { serverReceiverOnNet: net._id } },
             ),
           );
@@ -116,14 +117,14 @@ export class UpdateCachePointsHandler {
           // Pull from previous record
           serverReceiverOnNetPromises.push(
             playerService.updateOne(
-              { serverReceiverOnNet: net.receivingPartner },
+              { serverReceiverOnNet: getId(net.receivingPartner) },
               { $pull: { serverReceiverOnNet: net.receivingPartner } },
             ),
           );
           // Add to new player
           serverReceiverOnNetPromises.push(
             playerService.updateOne(
-              { _id: serverReceiverOnNetExist.receivingPartner },
+              { _id: getId(serverReceiverOnNetExist.receivingPartner) },
               { $addToSet: { serverReceiverOnNet: net._id } },
             ),
           );
@@ -135,16 +136,16 @@ export class UpdateCachePointsHandler {
 
         // Update with server receiver on net
         serverReceiverOnNetPromises.push(
-          playerService.updateOne({ _id: net.server }, { $addToSet: { serverReceiverOnNet: createdSR._id } }),
+          playerService.updateOne({ _id: getId(net.server) }, { $addToSet: { serverReceiverOnNet: createdSR._id } }),
         );
         serverReceiverOnNetPromises.push(
-          playerService.updateOne({ _id: net.receiver }, { $addToSet: { serverReceiverOnNet: createdSR._id } }),
+          playerService.updateOne({ _id: getId(net.receiver) }, { $addToSet: { serverReceiverOnNet: createdSR._id } }),
         );
         serverReceiverOnNetPromises.push(
-          playerService.updateOne({ _id: net.servingPartner }, { $addToSet: { serverReceiverOnNet: createdSR._id } }),
+          playerService.updateOne({ _id: getId(net.servingPartner) }, { $addToSet: { serverReceiverOnNet: createdSR._id } }),
         );
         serverReceiverOnNetPromises.push(
-          playerService.updateOne({ _id: net.receivingPartner }, { $addToSet: { serverReceiverOnNet: createdSR._id } }),
+          playerService.updateOne({ _id: getId(net.receivingPartner) }, { $addToSet: { serverReceiverOnNet: createdSR._id } }),
         );
       }
 
@@ -174,14 +175,14 @@ export class UpdateCachePointsHandler {
             // Pull from previous record
             spPromises.push(
               playerService.updateOne(
-                { serverReceiverSinglePlay: singlePlayData.server },
+                { serverReceiverSinglePlay: getId(singlePlayData.server) },
                 { $pull: { serverReceiverSinglePlay: singlePlayData.server } },
               ),
             );
             // Add to new player
             spPromises.push(
               playerService.updateOne(
-                { _id: serverReceiverSinglePlayExist.server },
+                { _id: getId(serverReceiverSinglePlayExist.server) },
                 { $addToSet: { serverReceiverSinglePlay: singlePlayData._id } },
               ),
             );
@@ -191,14 +192,14 @@ export class UpdateCachePointsHandler {
             // Pull from previous record
             spPromises.push(
               playerService.updateOne(
-                { serverReceiverSinglePlay: singlePlayData.servingPartner },
+                { serverReceiverSinglePlay: getId(singlePlayData.servingPartner) },
                 { $pull: { serverReceiverSinglePlay: singlePlayData.receivingPartner } },
               ),
             );
             // Add to new player
             spPromises.push(
               playerService.updateOne(
-                { _id: serverReceiverSinglePlayExist.servingPartner },
+                { _id: getId(serverReceiverSinglePlayExist.servingPartner) },
                 { $addToSet: { serverReceiverSinglePlay: singlePlayData._id } },
               ),
             );
@@ -208,14 +209,14 @@ export class UpdateCachePointsHandler {
             // Pull from previous record
             serverReceiverOnNetPromises.push(
               playerService.updateOne(
-                { serverReceiverSinglePlay: singlePlayData.receiver },
+                { serverReceiverSinglePlay: getId(singlePlayData.receiver) },
                 { $pull: { serverReceiverSinglePlay: singlePlayData.receiver } },
               ),
             );
             // Add to new player
             serverReceiverOnNetPromises.push(
               playerService.updateOne(
-                { _id: serverReceiverSinglePlayExist.receiver },
+                { _id: getId(serverReceiverSinglePlayExist.receiver) },
                 { $addToSet: { serverReceiverSinglePlay: singlePlayData._id } },
               ),
             );
@@ -225,14 +226,14 @@ export class UpdateCachePointsHandler {
             // Pull from previous record
             serverReceiverOnNetPromises.push(
               playerService.updateOne(
-                { serverReceiverSinglePlay: singlePlayData.receivingPartner },
+                { serverReceiverSinglePlay: getId(singlePlayData.receivingPartner) },
                 { $pull: { serverReceiverSinglePlay: singlePlayData.receivingPartner } },
               ),
             );
             // Add to new player
             serverReceiverOnNetPromises.push(
               playerService.updateOne(
-                { _id: serverReceiverSinglePlayExist.receivingPartner },
+                { _id: getId(serverReceiverSinglePlayExist.receivingPartner) },
                 { $addToSet: { serverReceiverSinglePlay: singlePlayData._id } },
               ),
             );
@@ -243,25 +244,25 @@ export class UpdateCachePointsHandler {
           // Update for single play
           spPromises.push(
             playerService.updateOne(
-              { _id: singlePlayData.server },
+              { _id: getId(singlePlayData.server) },
               { $addToSet: { serverReceiverSinglePlay: createdSRSinglePlay._id } },
             ),
           );
           spPromises.push(
             playerService.updateOne(
-              { _id: singlePlayData.receiver },
+              { _id: getId(singlePlayData.receiver) },
               { $addToSet: { serverReceiverSinglePlay: createdSRSinglePlay._id } },
             ),
           );
           spPromises.push(
             playerService.updateOne(
-              { _id: singlePlayData.servingPartner },
+              { _id: getId(singlePlayData.servingPartner) },
               { $addToSet: { serverReceiverSinglePlay: createdSRSinglePlay._id } },
             ),
           );
           spPromises.push(
             playerService.updateOne(
-              { _id: singlePlayData.receivingPartner },
+              { _id: getId(singlePlayData.receivingPartner) },
               { $addToSet: { serverReceiverSinglePlay: createdSRSinglePlay._id } },
             ),
           );
@@ -271,12 +272,12 @@ export class UpdateCachePointsHandler {
         // singlePlayId
         spPromises.push(
           matchService.updateOne(
-            { _id: singlePlayData.match },
+            { _id: getId(singlePlayData.match) },
             { $addToSet: { serverReceiverSinglePlay: singlePlayId } },
           ),
         );
         spPromises.push(
-          netService.updateOne({ _id: singlePlayData.net }, { $addToSet: { serverReceiverSinglePlay: singlePlayId } }),
+          netService.updateOne({ _id: getId(singlePlayData.net) }, { $addToSet: { serverReceiverSinglePlay: singlePlayId } }),
         );
 
         await Promise.all(spPromises);
@@ -338,7 +339,7 @@ export class UpdateCachePointsHandler {
         // Check this is last round or not
         const lastRound = roundList.reduce((max, current) => (current.num > max.num ? current : max), roundList[0]);
 
-        
+
         if (match.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND) {
           if (match.extendedOvertime) {
             if (String(lastRound._id) === String(round._id)) {
@@ -358,10 +359,10 @@ export class UpdateCachePointsHandler {
               }
               if (teamARoundScore !== teamBRoundScore) {
                 matchCompleted = true;
-                
+
               }
             }
-          }else{
+          } else {
             if (String(lastRound._id) === String(round._id)) {
               matchCompleted = true;
             }
@@ -381,7 +382,7 @@ export class UpdateCachePointsHandler {
 
 
       for (let i = 0; i < nets.length; i++) {
-        if(!nets[i].teamAScore || !nets[i].teamBScore){
+        if (!nets[i].teamAScore || !nets[i].teamBScore) {
           matchCompleted = false;
         }
       }

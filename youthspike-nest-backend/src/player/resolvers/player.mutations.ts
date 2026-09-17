@@ -130,11 +130,11 @@ export class PlayerMutations implements IPlayerMutations {
       }
 
       if (playerExist.captainuser) {
-        updatePromises.push(this.userService.deleteOne({ _id: playerExist.captainuser }));
+        updatePromises.push(this.userService.deleteOne({ _id: typeof playerExist.captainuser === 'object' ? playerExist.captainuser._id : playerExist.captainuser }));
       }
 
       if (playerExist.cocaptainuser) {
-        updatePromises.push(this.userService.deleteOne({ _id: playerExist.cocaptainuser }));
+        updatePromises.push(this.userService.deleteOne({ _id: typeof playerExist.cocaptainuser === 'object' ? playerExist.cocaptainuser._id : playerExist.cocaptainuser }));
       }
 
       updatePromises.push(this.playerService.deleteOne({ _id: playerId }));
@@ -355,7 +355,7 @@ export class PlayerMutations implements IPlayerMutations {
           updatePromises.push(this.badgeService.updateOne({ _id: input.badge }, { $addToSet: { players: playerId } }));
         } else {
           if (String(playerExist.badge) !== input.badge) {
-            updatePromises.push(this.badgeService.updateOne({ _id: playerExist.badge }, { $pull: { players: playerId } }));
+            updatePromises.push(this.badgeService.updateOne({ _id: typeof playerExist.badge === 'object' ? playerExist.badge._id : playerExist.badge }, { $pull: { players: playerId } }));
             updatePromises.push(this.badgeService.updateOne({ _id: input.badge }, { $addToSet: { players: playerId } }));
           }
         }

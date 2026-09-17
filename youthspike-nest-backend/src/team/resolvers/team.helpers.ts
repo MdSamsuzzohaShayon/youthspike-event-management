@@ -312,14 +312,14 @@ export default class TeamHelpers {
 
     // Remove captain from players
     if (teamExist.captain) {
-      updatePromises.push(this.playerService.updateOne({ _id: teamExist.captain }, { $pull: { captainofteams: teamExist._id } }));
+      updatePromises.push(this.playerService.updateOne({ _id: String(teamExist.captain) }, { $pull: { captainofteams: teamExist._id } }));
     }
 
 
     // Remove co captain from players
     if (teamExist.cocaptain) {
       updatePromises.push(
-        this.playerService.updateOne({ _id: teamExist.cocaptain }, { $pull: { cocaptainofteams: teamExist._id } }),
+        this.playerService.updateOne({ _id: String(teamExist.cocaptain) }, { $pull: { cocaptainofteams: teamExist._id } }),
       );
     }
 

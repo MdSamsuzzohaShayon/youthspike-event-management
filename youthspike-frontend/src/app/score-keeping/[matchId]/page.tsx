@@ -1,4 +1,4 @@
-import React, { Suspense } from "react";
+import { Suspense } from "react";
 import {IAccessCode, IMatchExpRel, IUser, TParams } from "@/types";
 import Loader from "@/components/elements/Loader";
 import { PreloadQuery } from "@/lib/client";

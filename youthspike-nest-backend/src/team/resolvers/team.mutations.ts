@@ -158,7 +158,7 @@ export class TeamMutations {
           preUpdateTasks.push(this.badgeService.updateOne({ _id: input.badge }, { $addToSet: { teams: teamId } }));
         } else {
           if (String(existingTeam.badge) !== input.badge) {
-            preUpdateTasks.push(this.badgeService.updateOne({ _id: existingTeam.badge }, { $pull: { teams: teamId } }));
+            preUpdateTasks.push(this.badgeService.updateOne({ _id: typeof existingTeam.badge === 'object' ? existingTeam.badge._id : existingTeam.badge }, { $pull: { teams: teamId } }));
             preUpdateTasks.push(this.badgeService.updateOne({ _id: input.badge }, { $addToSet: { teams: teamId } }));
           }
         }
