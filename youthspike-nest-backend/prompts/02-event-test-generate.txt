@@ -2343,3 +2343,5 @@ Make all tests industry standard.
 If you need any extra file, let me know.
 How is this approach? Give suggations  if you think some part need to be updated.
 Add as many tests as needed to cover necessary things
+
+Chart reference: https://chat.z.ai/c/e46b6f23-07a5-48a6-9802-7ed6c1c640eb
