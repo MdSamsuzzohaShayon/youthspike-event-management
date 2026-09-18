@@ -500,7 +500,7 @@ export class TeamQueries {
           events,
           groups: groups as CustomGroup[],
           players: players as CustomPlayer[],
-          team: team as CustomTeam,
+          team: ({...team, groups: team?.groups ?? []}) as CustomTeam,
           badges: badges as CustomBadge[]
         }
       };
@@ -593,7 +593,7 @@ export class TeamQueries {
         data: {
           events: events as CustomEvent[],
           teams: this.teamService.normalizeTeams(teams as CustomTeam[]) as CustomTeam[],
-          badges: badges as CustomBadge[],
+          badges: badges.map((badge)=> ({...badge, badgeFor: badge.badgeFor ?? EBadgeFor.TEAM})) as CustomBadge[],
           groups: groups as CustomGroup[],
           nets: nets as CustomNet[],
           rounds: rounds as CustomRound[],
