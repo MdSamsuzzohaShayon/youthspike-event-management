@@ -5,7 +5,7 @@ import { GET_EVENT_WITH_GROUPS_AND_UNASSIGNED_PLAYERS } from '@/graphql/event';
 import TeamAddContainer from '@/components/teams/TeamAddContainer';
 
 interface INewTeamCompProps {
-  searchParams: TParams;
+  searchParams: Promise<TParams>;
 }
 
 // eventId, groupList, handleClose, setIsLoading, players, update, prevTeam, currDivision, divisions

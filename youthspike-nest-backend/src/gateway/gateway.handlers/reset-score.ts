@@ -93,7 +93,7 @@ export class ResetScoreHandler {
       // Check and remove linked serverReceiverOnNet
       const serverReceiverOnNet = await serverReceiverOnNetService.findOne({ net: body.net });
       if (serverReceiverOnNet) {
-        const srId = serverReceiverOnNet?._id;
+        const srId = getId(serverReceiverOnNet);
 
         // Batch remove from all documents
         await Promise.all([

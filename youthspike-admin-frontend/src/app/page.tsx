@@ -11,7 +11,7 @@ import { PreloadQuery } from '@/lib/client';
 import { QueryRef } from '@apollo/client/react';
 
 interface IEventsPageProps {
-  searchParams: TParams;
+  searchParams: Promise<TParams>;
 }
 
 export async function EventsPage({ searchParams }: IEventsPageProps) {

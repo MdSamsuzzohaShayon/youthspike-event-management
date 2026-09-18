@@ -267,8 +267,6 @@ export class EmailsenderResolver {
             templateHtml,
             values,
           })
-          sendPromises.push(
-          );
         } else {
           // ── Legacy fallback: HTML file on disk ────────
           renderedHtml = await this.emailSenderService.sendHtmlEmail({

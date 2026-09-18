@@ -5,7 +5,7 @@ import { GET_PLAYER_EVENT_SETTINGS } from '@/graphql/event';
 import { QueryRef } from '@apollo/client/react';
 
 interface ISettingsPageProps {
-  params: TParams;
+  params: Promise<TParams>;
 }
 
 async function SettingsPage({ params }: ISettingsPageProps) {

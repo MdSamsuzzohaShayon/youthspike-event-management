@@ -6,7 +6,7 @@ import { IGetLdoResponse, TParams } from '@/types';
 
 
 interface ILDOSinglePageProps {
-  params: TParams;
+  params: Promise<TParams>;
 }
 
 export default async function LDOSinglePage({ params }: ILDOSinglePageProps) {

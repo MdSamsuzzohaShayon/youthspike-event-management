@@ -5,8 +5,8 @@ import TeamUpdateContainer from '@/components/teams/TeamUpdateContainer';
 import { GET_TEAM_WITH_GROUPS_AND_UNASSIGNED_PLAYERS } from '@/graphql/teams';
 
 interface IUpdateTeamPageProps {
-  params: TParams;
-  searchParams: TParams;
+  params: Promise<TParams>;
+  searchParams: Promise<TParams>;
 }
 
 async function UpdateTeamPage({ params, searchParams }: IUpdateTeamPageProps) {

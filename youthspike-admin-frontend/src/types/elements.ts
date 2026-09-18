@@ -229,4 +229,4 @@ export type TMutationFunction = useMutation.MutationFunction<
   ApolloCache
 >;
 // export type TParams = { [key: string]: string | string[] | undefined };
-export type TParams = Promise<Record<string, string>>;
+export type TParams = Record<string, string>;
