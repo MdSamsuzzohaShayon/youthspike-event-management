@@ -5,7 +5,7 @@ import GroupAddContainer from '@/components/group/GroupAddContainer';
 import { QueryRef } from '@apollo/client/react';
 
 interface INewGroupProps {
-  params: TParams;
+  params: Promise<TParams>;
 }
 
 async function NewGroup({ params }: INewGroupProps) {

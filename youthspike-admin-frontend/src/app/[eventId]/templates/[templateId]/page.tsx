@@ -5,7 +5,7 @@ import { GET_TEMPLATE } from '@/graphql/templates';
 import TemplateUpdateContainer from '@/components/template/TemplateUpdateContainer';
 
 interface IProps {
-  params: TParams;
+  params: Promise<TParams>;
 }
 
 async function UpdatePlayerPage({ params }: IProps) {

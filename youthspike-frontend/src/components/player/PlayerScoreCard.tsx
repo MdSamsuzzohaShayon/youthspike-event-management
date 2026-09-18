@@ -4,7 +4,7 @@ import Image from "next/image";
 import { CldImage } from "next-cloudinary";
 import { useUser } from "@/lib/UserProvider";
 import { useAppSelector } from "@/redux/hooks";
-import { IPlayer, IPlayerRankingExpRel } from "@/types";
+import { IPlayer, IPlayerRankingExpRel, IRoundRelatives } from "@/types";
 import { ETeamPlayer } from "@/types/net";
 import { EActionProcess } from "@/types/room";
 import { ETeam } from "@/types/team";
@@ -30,6 +30,8 @@ interface PlayerImageProps {
   onTop: boolean;
   shouldShowAddPlayer: boolean;
   onImageClick: (e: React.SyntheticEvent) => void;
+  myTeamE: ETeam;
+  currRound: IRoundRelatives | null;
 }
 
 interface PlayerRankBadgeProps {
@@ -58,6 +60,8 @@ const PlayerImage: React.FC<PlayerImageProps> = ({
   onTop,
   shouldShowAddPlayer,
   onImageClick,
+  myTeamE,
+  currRound
 }) => {
   // Player has profile image
   if (player?.profile) {
@@ -74,6 +78,23 @@ const PlayerImage: React.FC<PlayerImageProps> = ({
     );
   }
 
+
+  // console.log({myTeamE, firstPlacing: currRound?.firstPlacing, tap: currRound?.teamAProcess, tbp: currRound?.teamBProcess});
+  
+  if (myTeamE !== currRound?.firstPlacing && currRound?.teamAProcess === EActionProcess.CHECKIN &&
+    currRound?.teamBProcess === EActionProcess.CHECKIN) {
+    return (
+      <Image
+        width={100}
+        height={100}
+        src="/empty-img.jpg"
+        alt="No player"
+        className="w-full h-full object-center object-cover"
+        role="presentation"
+      />
+    );
+  }
+
   // Show add player button
   if (!onTop && !player && shouldShowAddPlayer) {
     return (
@@ -83,9 +104,8 @@ const PlayerImage: React.FC<PlayerImageProps> = ({
           height={100}
           src="/icons/plus.svg"
           alt="Add player"
-          className={`${
-            onTop ? "svg-white" : "svg-black"
-          } w-5/6 md:h-full object-top object-cover`}
+          className={`${onTop ? "svg-white" : "svg-black"
+            } w-5/6 md:h-full object-top object-cover`}
           role="presentation"
           onClick={onImageClick}
         />
@@ -116,9 +136,8 @@ const PlayerRankBadge: React.FC<PlayerRankBadgeProps> = ({
 }) => {
   return (
     <div
-      className={`bg-yellow-logo text-center text-black ${
-        onTop ? "rounded-b-lg" : "rounded-t-lg"
-      }`}
+      className={`bg-yellow-logo text-center text-black ${onTop ? "rounded-b-lg" : "rounded-t-lg"
+        }`}
     >
       <p className="rank"># {playerRank}</p>
       {subbedRounds && subbedRounds.length > 0 && (
@@ -186,8 +205,8 @@ function PlayerScoreCard({
   const user = useUser();
   const currentRoom = useAppSelector((state) => state.rooms.current);
   const currentRound = useAppSelector((state) => state.rounds.current);
-  const {closePSCAvailable, myTeamE } = useAppSelector((state) => state.matches);
-  const {teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
+  const { closePSCAvailable, myTeamE } = useAppSelector((state) => state.matches);
+  const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
 
   // ============================================================================
   // Computed Values
@@ -321,9 +340,8 @@ function PlayerScoreCard({
 
       {/* Main player card */}
       <div
-        className={`wrapper w-full border border-yellow overflow-hidden flex ${
-          onTop ? "flex-col rounded-t-lg" : "flex-col-reverse rounded-b-lg"
-        } items-center bg-yellow-logo`}
+        className={`wrapper w-full border border-yellow overflow-hidden flex ${onTop ? "flex-col rounded-t-lg" : "flex-col-reverse rounded-b-lg"
+          } items-center bg-yellow-logo`}
       >
         {/* Player name section */}
         <div className="p-rank bg-yellow-logo w-full flex flex-wrap items-center justify-center">
@@ -356,6 +374,8 @@ function PlayerScoreCard({
             onTop={onTop}
             shouldShowAddPlayer={shouldShowAddPlayer || false}
             onImageClick={handleDropDown}
+            currRound={currentRound}
+            myTeamE={myTeamE}
           />
         </div>
       </div>

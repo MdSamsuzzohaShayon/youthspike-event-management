@@ -353,7 +353,7 @@ export class TeamQueries {
           playerRanking: playerRanking as CustomPlayerRanking,
           rankings: rankings as CustomPlayerRankingItem[],
           unassignedPlayers: unassignedPlayers as CustomPlayer[],
-          badges: badges.map((badge)=> ({...badge, badgeFor: badge?.badgeFor ? badge?.badgeFor: EBadgeFor.TEAM })) as CustomBadge[],
+          badges: badges.map((badge) => ({ ...badge, badgeFor: badge?.badgeFor ? badge?.badgeFor : EBadgeFor.TEAM })) as CustomBadge[],
         },
       };
     } catch (err) {
@@ -487,7 +487,7 @@ export class TeamQueries {
       const [groups, players, badges] = await Promise.all([
         this.groupService.find({ event: { $in: resolvedEventIds } }),
         this.playerService.find({ events: { $in: resolvedEventIds }, $or: [{ teams: { $size: 0 } }, { teams: { $exists: false } }, { teams: null }] }),
-        this.badgeService.find({event: {$in: resolvedEventIds}})
+        this.badgeService.find({ event: { $in: resolvedEventIds } })
       ]);
 
 
@@ -500,7 +500,7 @@ export class TeamQueries {
           events,
           groups: groups as CustomGroup[],
           players: players as CustomPlayer[],
-          team: ({...team, groups: team?.groups ?? []}) as CustomTeam,
+          team: ({ ...team, groups: (team?.groups ?? []).filter((t) => t) }) as CustomTeam,
           badges: badges as CustomBadge[]
         }
       };
@@ -584,7 +584,7 @@ export class TeamQueries {
         this.badgeService.find({ event: { $in: eventIds } })
       ]);
 
-      
+
 
 
       return {
@@ -593,7 +593,7 @@ export class TeamQueries {
         data: {
           events: events as CustomEvent[],
           teams: this.teamService.normalizeTeams(teams as CustomTeam[]) as CustomTeam[],
-          badges: badges.map((badge)=> ({...badge, badgeFor: badge.badgeFor ?? EBadgeFor.TEAM})) as CustomBadge[],
+          badges: badges.map((badge) => ({ ...badge, badgeFor: badge.badgeFor ?? EBadgeFor.TEAM })) as CustomBadge[],
           groups: groups as CustomGroup[],
           nets: nets as CustomNet[],
           rounds: rounds as CustomRound[],

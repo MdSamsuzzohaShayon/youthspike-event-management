@@ -5,7 +5,7 @@ import PlayerUpdateContainer from '@/components/player/PlayerUpdateContainer';
 import { GET_PLAYER_AND_TEAMS } from '@/graphql/players';
 
 interface IProps {
-  params: TParams;
+  params: Promise<TParams>;
 }
 
 async function UpdatePlayerPage({ params }: IProps) {

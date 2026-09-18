@@ -8,7 +8,7 @@ import PlayerAddContainer from "@/components/player/PlayerAddContainer";
 import { GET_EVENTS_WITH_TEAMS } from "@/graphql/players";
 
 interface INewPlayerPageProps {
-  searchParams: TParams;
+  searchParams: Promise<TParams>;
 }
 
 

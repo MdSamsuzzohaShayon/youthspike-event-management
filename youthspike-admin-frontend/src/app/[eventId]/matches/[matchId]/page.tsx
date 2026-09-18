@@ -6,7 +6,7 @@ import { QueryRef } from '@apollo/client/react';
 import MatchUpdateContainer from '@/components/match/MatchUpdateContainer';
 
 interface IProps {
-  params: TParams;
+  params: Promise<TParams>;
 }
 
 async function UpdateMatchPage({ params }: IProps) {

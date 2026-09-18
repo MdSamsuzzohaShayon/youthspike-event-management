@@ -5,7 +5,7 @@ import GroupMainContainer from '@/components/group/GroupMainContainer';
 import { GET_GROUPS } from '@/graphql/group';
 
 interface IGroupsPageProps {
-  params: TParams;
+  params: Promise<TParams>;
 }
 
 export default async function GroupsPage({ params }: IGroupsPageProps) {

@@ -66,15 +66,30 @@ interface ITemplateInfoParams {
 export class EmailsenderService {
   private transporter: nodemailer.Transporter;
 
-  constructor(@InjectModel(Emailsender.name) private emailsenderModel: Model<Emailsender>, @InjectModel(Emailcontent.name) private emailcontentModel: Model<Emailcontent>, private configService: ConfigService) {
+  constructor(
+    @InjectModel(Emailsender.name) private emailsenderModel: Model<Emailsender>,
+    @InjectModel(Emailcontent.name) private emailcontentModel: Model<Emailcontent>,
+    private configService: ConfigService
+  ) {
+    const emailUser = this.configService.get<string>('EMAIL_USER');
+    const emailPass = this.configService.get<string>('EMAIL_PASS');
+
+    // Debug log to ensure variables are actually loaded (Remove in production)
+    if (!emailUser || !emailPass) {
+      console.error('[EmailsenderService] Missing EMAIL_USER or EMAIL_PASS in environment variables!');
+    }
+
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com', // Explicitly set host
+      port: 465,              // Use SSL port
+      secure: true,           // true for 465, false for other ports (587)
       auth: {
-        user: this.configService.get<string>('EMAIL_USER'),
-        pass: this.configService.get<string>('EMAIL_PASS'),
+        user: emailUser,
+        pass: emailPass,
       },
     });
   }
+
 
   // ── Core renderer ─────────────────────────────────────────
 
@@ -158,6 +173,7 @@ export class EmailsenderService {
       console.log(`[EmailsenderService] Email sent to ${to.join(', ')}`);
       return renderedHtml;
     } catch (error) {
+
       console.error('[EmailsenderService] Error sending template email:', error);
       throw new Error('Failed to send template email');
     }

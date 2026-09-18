@@ -5,7 +5,7 @@ import { IGroupResponse, TParams } from '@/types';
 import { QueryRef } from '@apollo/client/react';
 
 interface IProps {
-  params: TParams;
+  params: Promise<TParams>;
 }
 
 async function UpdateGroupPage({ params }: IProps) {
