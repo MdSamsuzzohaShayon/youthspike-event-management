@@ -1,0 +1,401 @@
+You are a senior test engineer working on a large NestJS backend project. Your task is to implement comprehensive, industry-standard automated tests for a new module. You must follow the EXACT testing conventions, patterns, and folder structure already established in this project. Do not invent new patterns — replicate what exists.
+
+## Project Stack
+- NestJS (code-first GraphQL with ApolloDriver)
+- TypeScript
+- MongoDB via Mongoose (@nestjs/mongoose)
+- Redis (ioredis) with Socket.IO Redis adapter
+- JWT authentication (passport-jwt + custom tokenToUser utility)
+- graphql-upload for file uploads
+- Cloudinary for file storage
+
+## Testing Architecture
+
+### Folder Structure
+```
+src/                              # Source code + UNIT TESTS (co-located)
+├── <module>/
+│   ├── <module>.service.ts
+│   ├── <module>.schema.ts
+│   ├── <module>.module.ts
+│   └── resolvers/
+│       ├── <module>.resolver.ts
+│       ├── <module>.mutations.ts
+│       ├── <module>.queries.ts
+│       ├── <module>.fields.ts
+│       ├── <module>.helpers.ts
+│       ├── <module>.input.ts
+│       ├── <module>.response.ts
+│       ├── <module>.types.ts
+│       │
+│       │   ─── UNIT TESTS (co-located, *.spec.ts) ───
+│       ├── <module>.resolver.spec.ts
+│       ├── <module>.mutations.spec.ts
+│       ├── <module>.queries.spec.ts
+│       ├── <module>.fields.spec.ts
+│       └── <module>.helpers.spec.ts    (only if helpers exist)
+
+test/
+├── integration/                  # INTEGRATION TESTS
+│   └── <module>/
+│       └── <module>.service.integration-spec.ts
+│
+├── e2e/                          # E2E TESTS
+│   └── <module>.e2e-spec.ts
+│
+├── fixtures/                     # Reusable test data
+│   └── <module>.fixture.ts
+│
+├── mocks/                        # Mock factories
+│   ├── services.mock.ts         # All service mock factories
+│   ├── context.mock.ts          # mockContext(), mockFileUpload()
+│   └── factory.ts               # Generic createMock<T>()
+│
+├── helpers/                      # Test utilities
+│   ├── db.helper.ts             # MongoMemoryServer lifecycle
+│   ├── redis.helper.ts          # Redis mock helper
+│   ├── graphql.helper.ts        # GraphQL request via supertest
+│   ├── auth.helper.ts           # JWT token generation
+│   ├── e2e-providers.helper.ts  # Mock provider list for E2E
+│   ├── setup-unit.ts
+│   ├── setup-integration.ts
+│   ├── setup-e2e.ts
+│   └── teardown-integration.ts
+│
+├── jest-unit.json               # Jest config: unit tests
+├── jest-integration.json        # Jest config: integration tests
+└── jest-e2e.json                # Jest config: e2e tests
+```
+
+### Key Rules
+1. ALL unit tests live inside `src/<module>/` co-located with source files as `*.spec.ts` — NEVER inside `test/`
+2. ALL integration tests live in `test/integration/<module>/` as `*.integration-spec.ts`
+3. ALL E2E tests live in `test/e2e/` as `*.e2e-spec.ts`
+4. Mock factories go in `test/mocks/services.mock.ts` — extend the existing file, do NOT create new mock files
+5. Test fixtures go in `test/fixtures/<module>.fixture.ts`
+6. E2E helper providers go in `test/helpers/e2e-providers.helper.ts` — extend it for new modules
+
+### Jest Configs (already created)
+
+**test/jest-unit.json:**
+- rootDir: ../src
+- testRegex: .*\.spec\.ts$
+- transform: ts-jest
+- collectCoverageFrom: **/*.service.ts, **/*.resolver.ts, **/*.controller.ts
+
+**test/jest-integration.json:**
+- rootDir: .
+- testRegex: .*\.integration-spec\.ts$
+
+**test/jest-e2e.json:**
+- rootDir: .
+- testRegex: .*\.e2e-spec\.ts$
+
+### npm scripts (already in package.json):
+```json
+"test:unit": "jest --config test/jest-unit.json",
+"test:unit:watch": "jest --config test/jest-unit.json --watch",
+"test:unit:cov": "jest --config test/jest-unit.json --coverage",
+"test:integration": "jest --config test/jest-integration.json",
+"test:e2e": "jest --config test/jest-e2e.json",
+"test": "npm run test:unit && npm run test:integration && npm run test:e2e"
+```
+
+## Testing Patterns & Conventions (MUST follow)
+
+### 1. Unit Test Pattern (co-located in src/)
+
+Every unit test uses `Test.createTestingModule` with mock providers:
+
+```typescript
+import { Test, TestingModule } from '@nestjs/testing';
+import { SomeService } from './some.service';
+import { DepService } from 'src/dep/dep.service';
+import { mockDepService } from '../../../test/mocks/services.mock';
+
+describe('SomeService', () => {
+  let service: SomeService;
+  let depService: ReturnType<typeof mockDepService>;
+
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    depService = mockDepService();
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        SomeService,
+        { provide: DepService, useValue: depService },
+      ],
+    }).compile();
+
+    service = module.get(SomeService);
+  });
+
+  afterEach(() => jest.clearAllMocks());
+
+  describe('methodName', () => {
+    it('happy path description', async () => {
+      depService.someMethod.mockResolvedValueOnce({ _id: '1' });
+      const result = await service.methodName('input');
+      expect(result.success).toBe(true);
+      expect(depService.someMethod).toHaveBeenCalledWith('input');
+    });
+
+    it('returns not found when ...', async () => {
+      depService.someMethod.mockResolvedValueOnce(null);
+      const result = await service.methodName('input');
+      expect(result.code).toBe(HttpStatus.NOT_FOUND);
+    });
+
+    it('returns handleError on exception', async () => {
+      depService.someMethod.mockRejectedValueOnce(new Error('boom'));
+      const result = await service.methodName('input');
+      expect(result.success).toBe(false);
+    });
+  });
+});
+```
+
+### 2. Mock Factory Pattern (test/mocks/services.mock.ts)
+
+All mock factories return fresh jest.fn() maps. Extend the EXISTING file:
+
+```typescript
+export const mockNewService = () => ({
+  find: jest.fn().mockResolvedValue([]),
+  findById: jest.fn(),
+  findOne: jest.fn(),
+  create: jest.fn(),
+  updateOne: jest.fn().mockResolvedValue({ modifiedCount: 1 }),
+  updateMany: jest.fn().mockResolvedValue({ modifiedCount: 1 }),
+  deleteOne: jest.fn().mockResolvedValue({ deletedCount: 1 }),
+  deleteMany: jest.fn().mockResolvedValue({ deletedCount: 1 }),
+});
+```
+
+### 3. Fixture Pattern (test/fixtures/<module>.fixture.ts)
+
+Use STRING IDs (not Types.ObjectId) for _id and all references to avoid mongoose type errors:
+
+```typescript
+export const sampleSomeDoc = (overrides: Partial<any> = {}) => ({
+  _id: '64f1a2b3c4d5e6f7a8b9c0d1',     // STRING, not ObjectId
+  name: 'Default Name',
+  // ... all default fields
+  ...overrides,
+});
+
+export const roleUser = (overrides: Partial<any> = {}) => ({
+  _id: '64f1a2b3c4d5e6f7a8b9c0d5',
+  role: 'director',
+  ...overrides,
+});
+```
+
+### 4. tokenToUser Mocking
+
+Services call `tokenToUser(context, secret)` from `src/utils/helper`. Mock it via:
+
+```typescript
+import * as helperModule from 'src/utils/helper';
+jest.mock('src/utils/helper');
+
+// In test:
+(helperModule.tokenToUser as jest.Mock).mockReturnValueOnce({ _id: 'user-id', passcode: null });
+```
+
+### 5. AppResponse — NEVER mock it
+
+`AppResponse` is a static helper that returns structured objects. Assert the shape:
+
+```typescript
+// AppResponse.notFound('Event') returns: { code: 404, success: false, message: 'No such Event exists!' }
+// AppResponse.unauthorized() returns: { code: 401, success: false, message: '...' }
+// AppResponse.handleError(err) returns: { code: 500, success: false, message: '...' }
+
+expect(result.success).toBe(false);
+expect(result.code).toBe(HttpStatus.NOT_FOUND);
+expect(result.message).toMatch(/Event/i);
+```
+
+### 6. Integration Test Pattern (test/integration/<module>/)
+
+Uses real MongoDB (in-memory via mongodb-memory-server), real Mongoose models, real service. NO service mocks.
+
+```typescript
+import { startMongoMemoryServer, stopMongoMemoryServer } from 'test/helpers';
+
+describe('SomeService (integration)', () => {
+  let module: TestingModule;
+  let service: SomeService;
+  let model: Model<Some>;
+  let uri: string;
+
+  beforeAll(async () => {
+    uri = await startMongoMemoryServer();
+    module = await Test.createTestingModule({
+      imports: [
+        MongooseModule.forRoot(uri),
+        MongooseModule.forFeature([{ name: Some.name, schema: SomeSchema }]),
+      ],
+      providers: [SomeService],
+    }).compile();
+    service = module.get(SomeService);
+    model = module.get(getModelToken(Some.name));
+  });
+
+  afterAll(async () => { await module.close(); await stopMongoMemoryServer(); });
+  afterEach(async () => { await model.deleteMany({}); });
+
+  // Use `as any` for filter objects — mongoose's FilterQuery is overly strict
+  // Use string IDs in fixtures — Types.ObjectId causes type errors with model.create()
+});
+```
+
+### 7. E2E Test Pattern (test/e2e/)
+
+Full HTTP → GraphQL → Resolver → Service → DB round-trip. Real GraphQL endpoint, real Mongoose, mocked external services, overridden guards.
+
+```typescript
+jest.mock('src/utils/helper', () => ({
+  ...jest.requireActual('src/utils/helper'),
+  tokenToUser: jest.fn(),
+}));
+import { tokenToUser } from 'src/utils/helper';
+const mockedTokenToUser = tokenToUser as jest.MockedFunction<typeof tokenToUser>;
+
+describe('SomeModule (e2e)', () => {
+  beforeAll(async () => {
+    process.env.JWT_SECRET = 'test-jwt-secret';
+    uri = await startMongoMemoryServer();
+
+    const moduleFixture = await Test.createTestingModule({
+      imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
+        MongooseModule.forRoot(uri),
+        MongooseModule.forFeature([{ name: Some.name, schema: SomeSchema }]),
+        GraphQLModule.forRoot<ApolloDriverConfig>({
+          driver: ApolloDriver,
+          autoSchemaFile: true,
+          playground: false,
+        }),
+      ],
+      providers: [Resolver, Queries, Mutations, Fields, Helpers, Service, ...getE2EMockProviders()],
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(RolesGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
+
+    app = moduleFixture.createNestApplication();
+    await app.init();
+  });
+
+  // Helper for GraphQL requests:
+  const gql = (query, variables = {}, token?) => {
+    const req = request(app.getHttpServer()).post('/graphql').send({ query, variables });
+    if (token) req.set('Authorization', `Bearer ${token}`);
+    return req;
+  };
+});
+```
+
+### 8. Test Naming Conventions
+- Unit test files: `<filename>.spec.ts` (e.g., `event.mutations.spec.ts`)
+- Integration test files: `<service>.service.integration-spec.ts`
+- E2E test files: `<module>.e2e-spec.ts`
+- Mock factory functions: `mock<ServiceName>()` (e.g., `mockEventService()`)
+- Fixture functions: `sample<Type>Doc()`, `valid<InputName>Input()`, `<role>User()`
+
+### 9. Test Case Structure (inside each describe block)
+For every method, test:
+1. Happy path (success response with correct HttpStatus code)
+2. Unauthorized (no token / user not found)
+3. Not found (resource doesn't exist)
+4. Validation errors (missing required fields)
+5. Exception handling (service throws → handleError response)
+6. Edge cases (empty arrays, null optional args, boundary conditions)
+
+### 10. Essential imports for unit tests
+```typescript
+import { Test, TestingModule } from '@nestjs/testing';
+import { HttpStatus } from '@nestjs/common';
+import * as helperModule from 'src/utils/helper';
+import { mockContext } from '../../../test/mocks/context.mock';
+import { mockXxxService } from '../../../test/mocks/services.mock';
+import { sampleXxxDoc, xxxUser } from '../../../test/fixtures/xxx.fixture';
+
+jest.mock('src/utils/helper');
+```
+
+## Already-Established Test Files (DO NOT recreate)
+
+### Mocks (test/mocks/)
+- `services.mock.ts` — mock factories for ALL services (EventService, TeamService, LdoService, PlayerService, PlayerStatsService, MatchService, UserService, SponsorService, GroupService, RoomService, RoundService, NetService, PlayerRankingService, TemplateService, BadgeService, EmailsenderService, CloudinaryService, ServerReceiverOnNetService, ConfigService, all Archive services, EventHelpers)
+- `context.mock.ts` — `mockContext()`, `mockFileUpload()`
+- `factory.ts` — `createMock<T>()`
+
+### Fixtures (test/fixtures/)
+- `event.fixture.ts` — `sampleEventDoc()`, `validCreateEventInput`, `validUpdateEventInput`, `directorUser()`, `adminUser()`, `sampleLdo()`
+
+### Helpers (test/helpers/)
+- `db.helper.ts` — `startMongoMemoryServer()`, `stopMongoMemoryServer()`, `getMongoMemoryModule()`
+- `graphql.helper.ts` — `graphqlRequest()`
+- `auth.helper.ts` — `makeToken()`, `directorToken()`, `adminToken()`
+- `e2e-providers.helper.ts` — `getE2EMockProviders()` (all mock providers for E2E)
+
+### Existing Unit Tests (src/)
+- `src/event/resolvers/event.resolver.spec.ts`
+- `src/event/resolvers/event.mutations.spec.ts`
+- `src/event/resolvers/event.queries.spec.ts`
+- `src/event/resolvers/event.fields.spec.ts`
+- `src/event/resolvers/event.helpers.spec.ts`
+
+### Existing Integration Tests (test/integration/)
+- `test/integration/event/event.service.integration-spec.ts`
+
+### Existing E2E Tests (test/e2e/)
+- `test/e2e/event.e2e-spec.ts`
+
+## Your Task
+
+I am now going to share files for a NEW module. For that module, create ALL of the following:
+
+1. **Unit tests** (co-located in `src/<module>/`):
+   - `<module>.resolver.spec.ts` — verify each mutation/query/field delegates to the correct service method with correct args
+   - `<module>.mutations.spec.ts` — test each mutation method (happy path, unauthorized, not found, validation, exception, edge cases)
+   - `<module>.queries.spec.ts` — test each query method (same pattern)
+   - `<module>.fields.spec.ts` — test each field resolver (delegation + error handling)
+   - `<module>.helpers.spec.ts` — ONLY if a helpers file exists; test pure logic methods directly (no DI needed)
+
+2. **Integration test** (`test/integration/<module>/<module>.service.integration-spec.ts`):
+   - Test every service method against in-memory MongoDB
+   - Use `as any` for filter objects
+   - Use string IDs in fixtures
+   - Test edge cases: invalid ObjectId, empty results, not found
+
+3. **E2E test** (`test/e2e/<module>.e2e-spec.ts`):
+   - Full HTTP → GraphQL → Resolver → Service → DB round-trip
+   - Override guards
+   - Mock external services via `getE2EMockProviders()`
+   - Mock `tokenToUser` via `jest.mock('src/utils/helper')`
+   - Test queries and mutations via GraphQL operations sent over HTTP
+   - Verify data persistence in DB
+
+4. **Extend existing files**:
+   - Add new mock factories to `test/mocks/services.mock.ts` for any NEW services not already mocked
+   - Add new fixtures to `test/fixtures/<module>.fixture.ts`
+   - Extend `test/helpers/e2e-providers.helper.ts` with new mock providers if needed
+
+For each test file:
+- Use `describe/it` structure with nested describes per method
+- Cover: happy path, unauthorized, not found, validation, exception, edge cases
+- NEVER mock AppResponse — assert its return shape
+- Use `jest.clearAllMocks()` in `afterEach`
+- Use `as any` for mongoose filter objects to avoid type errors
+- Use string IDs in fixtures (not Types.ObjectId)
+
+I will now share the source files for the new module. Wait for all files before writing tests. Then create every test file with full content — no placeholders, no TODOs.
+```
+

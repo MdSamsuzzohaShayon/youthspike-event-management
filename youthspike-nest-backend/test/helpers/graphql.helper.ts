@@ -20,3 +20,20 @@ export async function gqlRequest(app: INestApplication, opts: GqlRequestOptions)
 
   return req.send({ query: opts.query, variables: opts.variables });
 }
+
+
+
+/** Sends a GraphQL query/mutation via HTTP for E2E testing. */
+export async function graphqlRequest(
+  app: INestApplication,
+  query: string,
+  variables: Record<string, any> = {},
+  token?: string,
+) {
+  const req = request(app.getHttpServer())
+    .post('/graphql')
+    .send({ query, variables });
+
+  if (token) req.set('Authorization', `Bearer ${token}`);
+  return req;
+}

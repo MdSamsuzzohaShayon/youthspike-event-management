@@ -1,6 +1,24 @@
 ### Database operation
 
- None for now
+
+### Testing
+
+```
+# Unit tests (all event specs)
+npm run test:unit -- src/event
+
+# Unit tests with coverage
+npm run test:unit:cov -- src/event
+
+# Integration tests
+npm run test:integration -- event.service
+
+# E2E tests
+npm run test:e2e -- event
+
+# Everything
+npm run test
+```
 
 ---
 

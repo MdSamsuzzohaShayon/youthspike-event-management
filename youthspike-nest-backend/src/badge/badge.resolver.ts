@@ -1,5 +1,5 @@
 import { HttpStatus, UseGuards } from '@nestjs/common';
-import { Args, Context, Mutation, Resolver } from '@nestjs/graphql';
+import { Args, Context, GqlExecutionContext, Mutation, Resolver } from '@nestjs/graphql';
 import { EventService } from 'src/event/event.service';
 import { PlayerService } from 'src/player/player.service';
 import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
@@ -33,7 +33,7 @@ export class BadgeResolver {
   @Roles(UserRole.admin, UserRole.director)
   @Mutation((_returns) => AppResponse)
   async createBadge(
-    @Context() context: any,
+    @Context() context: GqlExecutionContext,
     @Args('eventId') eventId: string,
   ): Promise<AppResponse> {
     try {

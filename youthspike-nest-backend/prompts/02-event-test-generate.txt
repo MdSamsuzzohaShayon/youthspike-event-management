@@ -1,4 +1,4 @@
-Here is y event resolvers:
+Here is my event resolvers:
 
 ```
 import { UseGuards } from '@nestjs/common';
