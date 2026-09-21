@@ -102,7 +102,7 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
         <td className="py-3 px-4 text-center whitespace-nowrap">
           <div className="flex flex-col">
             <span className="font-bold text-xl">
-              {hasScores ? `${teamScores.groupWins}-${teamScores.totalMatches - (teamScores.groupWins + teamScores.groupLoses)}-${teamScores.groupLoses}` : '0-0'}
+              {hasScores ? `${teamScores.groupWins}-${teamScores.groupMatches - (teamScores.groupWins + teamScores.groupLoses)}-${teamScores.groupLoses}` : '0-0'}
             </span>
           </div>
         </td>

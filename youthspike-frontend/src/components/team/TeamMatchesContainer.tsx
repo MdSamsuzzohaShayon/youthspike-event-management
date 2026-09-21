@@ -21,7 +21,6 @@ interface TeamMatchesContainerProps {
 
 function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
   const { data } = useReadQuery(queryRef);
-  const pathname = usePathname();
   const { ldoIdUrl } = useLdoId();
 
   if (!data?.getTeamMatches?.data) {
@@ -30,6 +29,9 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
 
   const { team, matches, nets, rounds, oponents, events } =
     data.getTeamMatches.data;
+
+  console.log({ gm: matches.filter((m)=> m.group), m: matches.filter((m)=> !m.group) });
+
 
   const teamMap = useMemo(() => {
     return new Map<string, ITeam>(oponents.map((t) => [t._id, t]));
