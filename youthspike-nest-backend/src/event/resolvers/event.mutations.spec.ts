@@ -1,3 +1,9 @@
+import { mockEventSchema } from '../../../test/mocks/schema.mock';
+jest.mock('../event.schema', () => mockEventSchema);
+
+// ADD THIS — prevents emailsender.service.ts from loading jsdom
+jest.mock('src/emailsender/emailsender.service');
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { HttpStatus } from '@nestjs/common';
 import { EventMutations } from './event.mutations';
@@ -39,8 +45,7 @@ import {
   mockMatchService, mockUserService, mockSponsorService, mockGroupService, mockRoomService,
   mockRoundService, mockNetService, mockTemplateService, mockPlayerRankingService, mockBadgeService,
   mockEmailsenderService, mockCloudinaryService, mockConfigService, mockArchiveServices,
-  mockEventHelpers,
-  mockServerReceiverOnNetService,
+  mockEventHelpers, mockServerReceiverOnNetService,
 } from '../../../test/mocks/services.mock';
 
 jest.mock('src/utils/helper'); // mock tokenToUser
@@ -59,7 +64,6 @@ describe('EventMutations', () => {
   let groupService: ReturnType<typeof mockGroupService>;
   let eventHelpers: ReturnType<typeof mockEventHelpers>;
   let archives: ReturnType<typeof mockArchiveServices>;
-  let configService: ReturnType<typeof mockConfigService>;
 
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -76,12 +80,11 @@ describe('EventMutations', () => {
     groupService = mockGroupService();
     eventHelpers = mockEventHelpers();
     archives = mockArchiveServices();
-    configService = mockConfigService();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         EventMutations,
-        { provide: ConfigService, useValue: configService },
+        { provide: ConfigService, useValue: mockConfigService() },
         { provide: EventService, useValue: eventService },
         { provide: TeamService, useValue: teamService },
         { provide: LdoService, useValue: ldoService },
@@ -175,6 +178,9 @@ describe('EventMutations', () => {
       cloudinaryService.uploadFiles.mockResolvedValue('logo-url');
       sponsorService.insertMany.mockResolvedValue([{ _id: 'sponsor-1' }]);
       eventService.create.mockResolvedValue(sampleEventDoc());
+      // FIX: proStatCreate must return an object with _id, otherwise
+      // source code crashes at: multiplayer._id (undefined._id)
+      playerStatsService.proStatCreate.mockResolvedValue({ _id: 'ps-1' });
 
       const res = await service.createEvent({
         ...baseBody,
@@ -188,7 +194,7 @@ describe('EventMutations', () => {
       expect(cloudinaryService.uploadFiles).toHaveBeenCalledTimes(1);
       expect(sponsorService.insertMany).toHaveBeenCalledTimes(1);
       expect(eventService.create).toHaveBeenCalled();
-      expect(playerStatsService.proStatCreate).toHaveBeenCalledTimes(2); // multiplayer + weight
+      expect(playerStatsService.proStatCreate).toHaveBeenCalledTimes(2);
       expect(ldoService.update).toHaveBeenCalled();
       expect(eventService.updateOne).toHaveBeenCalled();
       expect(res.success).toBe(true);
@@ -270,7 +276,7 @@ describe('EventMutations', () => {
       ldoService.findByDirectorId.mockResolvedValueOnce(sampleLdo());
       badgeService.find.mockResolvedValueOnce([]);
       eventService.updateOne.mockResolvedValueOnce({ modifiedCount: 1 });
-      eventService.findById.mockResolvedValueOnce(sampleEventDoc()); // second call returns updated
+      eventService.findById.mockResolvedValueOnce(sampleEventDoc());
 
       const res = await service.updateEvent(baseBody as any);
 
@@ -324,7 +330,6 @@ describe('EventMutations', () => {
         updateInput: { ...validUpdateEventInput, updatedivisions: [{ prev: 'A', new: 'AA' }] } as any,
       } as any);
 
-      // 4 modules updated: team, player, group, match
       expect(teamService.updateMany).toHaveBeenCalled();
       expect(groupService.updateMany).toHaveBeenCalled();
       expect(matchService.updateMany).toHaveBeenCalled();
@@ -398,7 +403,6 @@ describe('EventMutations', () => {
       matchService.find.mockResolvedValueOnce([{ _id: 'm1' }]);
       groupService.find.mockResolvedValueOnce([{ _id: 'g1' }]);
       sponsorService.find.mockResolvedValueOnce([{ _id: 's1' }]);
-      mockTemplateService; // templateService injected via provider; we just verify calls
 
       const res = await service.deleteEvent(mockContext(), 'event-id');
 
@@ -435,7 +439,6 @@ describe('EventMutations', () => {
         originalId: 'event-id',
         name: 'restored-event',
       });
-      // Make all archive.find return at least one item so restore paths execute
       archives.archiveMatchService.find.mockResolvedValueOnce([{ originalId: 'm1' }]);
       archives.archiveGroupService.find.mockResolvedValueOnce([{ originalId: 'g1' }]);
       archives.archiveSponsorService.find.mockResolvedValueOnce([{ originalId: 's1' }]);
@@ -488,7 +491,6 @@ describe('EventMutations', () => {
       eventService.findOne.mockResolvedValueOnce(sampleEventDoc());
       matchService.find.mockResolvedValueOnce([{ _id: 'm1', completed: false }]);
       const res = await service.updateEventCache('event-id');
-      // Stub returns undefined (no error path) — function returns undefined
       expect(res).toBeUndefined();
     });
   });

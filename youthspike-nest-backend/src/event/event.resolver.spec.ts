@@ -1,3 +1,9 @@
+import { mockEventSchema } from '../../test/mocks/schema.mock';
+jest.mock('./event.schema', () => mockEventSchema);
+
+// ADD THIS — prevents emailsender.service.ts from loading jsdom
+jest.mock('src/emailsender/emailsender.service');
+
 import { Test, TestingModule } from '@nestjs/testing';
 import { EventResolver } from './event.resolver';
 import { EventMutations } from './resolvers/event.mutations';

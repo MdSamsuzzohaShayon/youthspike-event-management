@@ -15,7 +15,8 @@
     },
     "testEnvironment": "node",
     "moduleNameMapper": {
-        "^src/(.*)$": "<rootDir>/src/$1"
+        "^src/(.*)$": "<rootDir>/src/$1",
+        "^graphql-upload/(.*)\\.mjs$": "<rootDir>/test/mocks/graphql-upload.mock.ts"
     },
     "setupFiles": [
         "<rootDir>/test/setup.ts"

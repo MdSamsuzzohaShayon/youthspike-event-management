@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { LDO } from 'src/ldo/ldo.schema';
-import { AppResponse } from '../shared/response';
 import { QueryFilter, Model, UpdateQuery } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 

@@ -94,14 +94,16 @@ describe('EventQueries', () => {
     });
 
     it('filters events by ldo when director is logged in', async () => {
-      (helperModule.tokenToUser as jest.Mock).mockReturnValueOnce({ _id: 'director-id' });
+      (helperModule.tokenToUser as jest.Mock).mockReturnValueOnce({ _id: 'director-id', passcode: null } as any);
       userService.findById.mockResolvedValueOnce(directorUser());
       ldoService.findByDirectorId.mockResolvedValueOnce(sampleLdo());
       eventService.find.mockResolvedValueOnce([sampleEventDoc()]);
 
       const res = await queries.getEvents(mockContext());
 
-      expect(ldoService.findByDirectorId).toHaveBeenCalledWith('director-id');
+      // FIX: getEvents uses loggedUser._id from DB lookup, NOT token _id
+      // directorUser()._id = '64f1a2b3c4d5e6f7a8b9c0d5'
+      expect(ldoService.findByDirectorId).toHaveBeenCalledWith(directorUser()._id);
       expect(eventService.find).toHaveBeenCalledWith({ ldo: sampleLdo()._id });
       expect(res.success).toBe(true);
     });
@@ -179,14 +181,16 @@ describe('EventQueries', () => {
     });
 
     it('CASE 2: director returns own events', async () => {
-      (helperModule.tokenToUser as jest.Mock).mockReturnValueOnce({ _id: 'director-id' });
+      (helperModule.tokenToUser as jest.Mock).mockReturnValueOnce({ _id: 'director-id', passcode: null } as any);
       userService.findOne.mockResolvedValueOnce(directorUser());
       ldoService.findOne.mockResolvedValueOnce(sampleLdo({ events: ['e1'] }));
       eventService.find.mockResolvedValueOnce([sampleEventDoc()]);
 
       const res = await queries.getEventWithGroupsAndUnassignedPlayers(mockContext());
 
-      expect(ldoService.findOne).toHaveBeenCalledWith({ director: 'director-id' });
+      // FIX: code uses loggedUser._id from DB, NOT token _id
+      // directorUser()._id = '64f1a2b3c4d5e6f7a8b9c0d5'
+      expect(ldoService.findOne).toHaveBeenCalledWith({ director: directorUser()._id });
       expect(res.success).toBe(true);
     });
 
