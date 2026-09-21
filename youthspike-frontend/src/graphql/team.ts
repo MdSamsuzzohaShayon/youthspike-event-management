@@ -378,6 +378,7 @@ query GetTeamMatches($teamId: String!, $eventIds: [String!]){
         teamBP
         tieBreaking
         timeout
+        group
       }
       nets {
         _id

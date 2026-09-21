@@ -87,7 +87,9 @@ export function computeTeamScore(
     let totalNets = 0;
     let totalGroupMatches = 0;
 
-    teamMatches.forEach((match) => {
+
+    for (let i = 0; i < teamMatches.length; i+=1) {
+        const match = teamMatches[i];
         const isTeamA = getEntityId(match.teamA) === teamId;
         const matchNets = netsByMatch.get(match._id) ?? [];
         const matchRounds = roundsByMatch.get(match._id) ?? [];
@@ -114,7 +116,8 @@ export function computeTeamScore(
             score.overallLoses += 1;
             if (isGroupMatch) score.groupLoses += 1;
         }
-    });
+        
+    }
 
     score.totalMatches = teamMatches.length;
     score.groupMatches = totalGroupMatches;
