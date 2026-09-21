@@ -43,7 +43,7 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
 
       const groupPoints = teamScores.groupWins * MATCH_WIN_POINTS + groupDraws;
 
-      return groupPoints;
+      return groupPoints / teamScores.groupMatches;
     },
     [selectedGroup, teamScores]
   );
@@ -113,13 +113,13 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
 
 
       {/* Total Points */}
-      <td className="py-3 px-4 text-center whitespace-nowrap">
+      {/* <td className="py-3 px-4 text-center whitespace-nowrap">
         <div className="flex flex-col">
           <span className="font-bold text-xl">
             {hasScores ? teamPoints : '0'}
           </span>
         </div>
-      </td>
+      </td> */}
 
       {/* Overall record */}
       <td className="py-3 px-4 text-center whitespace-nowrap">
