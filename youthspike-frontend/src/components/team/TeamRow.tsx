@@ -2,10 +2,7 @@
 import React, { useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { IBadge, ITeam, ITeamScore } from '@/types';
-import TextImg from '../elements/TextImg';
-import { CldImage } from 'next-cloudinary';
 import { MATCH_WIN_POINTS } from '@/utils/constant';
-import LogoBadge from '../badge/LogoWithBadge';
 import LogoWithBadge from '../badge/LogoWithBadge';
 
 interface ITeamRowProps {
@@ -24,15 +21,29 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
     () => {
       if (!teamScores) return 0;
       // totalMatches: number, wins: number, loss: number
-      const totalMatches = selectedGroup ? teamScores.groupMatches : teamScores.totalMatches;
-      const wins = selectedGroup ? teamScores.groupWins : teamScores.overallWins;
-      const loss = selectedGroup ? teamScores.groupLoses : teamScores.overallLoses;
+      const totalMatches =teamScores.totalMatches;
+      const wins = teamScores.overallWins;
+      const loss = teamScores.overallLoses;
 
       const draws = Math.max(0, totalMatches - wins - loss);
 
       const points = wins * MATCH_WIN_POINTS + draws;
 
       return points;
+    },
+    [teamScores]
+  );
+
+
+  const teamGroupPoints = useMemo(
+    () => {
+      if (!teamScores || !selectedGroup) return 0;
+
+      const groupDraws = Math.max(0, teamScores.groupMatches - teamScores.groupWins - teamScores.groupLoses);
+
+      const groupPoints = teamScores.groupWins * MATCH_WIN_POINTS + groupDraws;
+
+      return groupPoints;
     },
     [selectedGroup, teamScores]
   );
@@ -77,9 +88,31 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
         </div>
       </td>
 
+      {/* Group Points per match  */}
+      {selectedGroup && (
+        <td className="py-3 px-4 text-center whitespace-nowrap">
+          <div className="flex flex-col">
+            <span className="font-bold text-xl">
+            {hasScores ? teamGroupPoints : 0}
+            </span>
+          </div>
+        </td>
+      )}
+
+      {/* Group record */}
+      {selectedGroup && (
+        <td className="py-3 px-4 text-center whitespace-nowrap">
+          <div className="flex flex-col">
+            <span className="font-bold text-xl">
+              {hasScores ? `${teamScores.groupWins}-${teamScores.groupMatches - (teamScores.groupWins + teamScores.groupLoses)}-${teamScores.groupLoses}` : '0-0'}
+            </span>
+          </div>
+        </td>
+      )}
 
 
-      {/* Points */}
+
+      {/* Total Points */}
       <td className="py-3 px-4 text-center whitespace-nowrap">
         <div className="flex flex-col">
           <span className="font-bold text-xl">
@@ -97,16 +130,7 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
         </div>
       </td>
 
-      {/* Group record */}
-      {selectedGroup && (
-        <td className="py-3 px-4 text-center whitespace-nowrap">
-          <div className="flex flex-col">
-            <span className="font-bold text-xl">
-              {hasScores ? `${teamScores.groupWins}-${teamScores.groupMatches - (teamScores.groupWins + teamScores.groupLoses)}-${teamScores.groupLoses}` : '0-0'}
-            </span>
-          </div>
-        </td>
-      )}
+
 
       {/* Matches */}
       <td className="py-3 px-4 text-center whitespace-nowrap">

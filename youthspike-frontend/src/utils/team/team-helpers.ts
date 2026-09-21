@@ -88,7 +88,7 @@ export function computeTeamScore(
     let totalGroupMatches = 0;
 
 
-    for (let i = 0; i < teamMatches.length; i+=1) {
+    for (let i = 0; i < teamMatches.length; i += 1) {
         const match = teamMatches[i];
         const isTeamA = getEntityId(match.teamA) === teamId;
         const matchNets = netsByMatch.get(match._id) ?? [];
@@ -116,7 +116,7 @@ export function computeTeamScore(
             score.overallLoses += 1;
             if (isGroupMatch) score.groupLoses += 1;
         }
-        
+
     }
 
     score.totalMatches = teamMatches.length;
@@ -140,24 +140,78 @@ export function compareTeams(
 ): number {
     const scoreA = teamScores.get(teamA._id);
     const scoreB = teamScores.get(teamB._id);
+
     if (!scoreA || !scoreB) return 0;
 
-    const pointsA = (selectedGroup ? scoreA.groupWins : scoreA.overallWins) * MATCH_WIN_POINTS;
-    const pointsB = (selectedGroup ? scoreB.groupWins : scoreB.overallWins) * MATCH_WIN_POINTS;
-    if (pointsA !== pointsB) return pointsB - pointsA;
 
-    const matchesA = selectedGroup ? scoreA.groupMatches : scoreA.totalMatches;
-    const matchesB = selectedGroup ? scoreB.groupMatches : scoreB.totalMatches;
-    const drawsA = Math.max(0, matchesA - scoreA.overallWins - scoreA.overallLoses);
-    const drawsB = Math.max(0, matchesB - scoreB.overallWins - scoreB.overallLoses);
-    if (drawsA !== drawsB) return drawsB - drawsA;
+    if (selectedGroup) {
+        const groupDrawsA = Math.max(
+            0,
+            scoreA.groupMatches - scoreA.groupWins - scoreA.groupLoses
+        );
 
-    const lossesA = selectedGroup ? scoreA.groupLoses : scoreA.overallLoses;
-    const lossesB = selectedGroup ? scoreB.groupLoses : scoreB.overallLoses;
-    if (lossesA !== lossesB) return lossesA - lossesB;
+        const groupDrawsB = Math.max(
+            0,
+            scoreB.groupMatches - scoreB.groupWins - scoreB.groupLoses
+        );
 
-    if (scoreA.matchAvgDiff !== scoreB.matchAvgDiff) return scoreB.matchAvgDiff - scoreA.matchAvgDiff;
-    if (scoreA.gameAvgDiff !== scoreB.gameAvgDiff) return scoreB.gameAvgDiff - scoreA.gameAvgDiff;
+        const groupPointsA =
+            scoreA.groupWins * MATCH_WIN_POINTS + groupDrawsA;
+
+        const groupPointsB =
+            scoreB.groupWins * MATCH_WIN_POINTS + groupDrawsB;
+
+        if (groupPointsA !== groupPointsB) {
+            return groupPointsB - groupPointsA;
+        }
+
+
+        if (groupDrawsA !== groupDrawsB) {
+            return groupDrawsB - groupDrawsA;
+        }
+
+
+        if (scoreA.groupLoses !== scoreB.groupLoses) {
+            return scoreA.groupLoses - scoreB.groupLoses;
+        }
+    } else {
+        const drawsA = Math.max(
+            0,
+            scoreA.totalMatches - scoreA.overallWins - scoreA.overallLoses
+        );
+
+        const drawsB = Math.max(
+            0,
+            scoreB.totalMatches - scoreB.overallWins - scoreB.overallLoses
+        );
+
+        const pointsA =
+            scoreA.overallWins * MATCH_WIN_POINTS + drawsA;
+
+        const pointsB =
+            scoreB.overallWins * MATCH_WIN_POINTS + drawsB;
+
+        if (pointsA !== pointsB) {
+            return pointsB - pointsA;
+        }
+
+        if (drawsA !== drawsB) {
+            return drawsB - drawsA;
+        }
+
+
+        if (scoreA.overallLoses !== scoreB.overallLoses) {
+            return scoreA.overallLoses - scoreB.overallLoses;
+        }
+    }
+
+    if (scoreA.matchAvgDiff !== scoreB.matchAvgDiff) {
+        return scoreB.matchAvgDiff - scoreA.matchAvgDiff;
+    }
+
+    if (scoreA.gameAvgDiff !== scoreB.gameAvgDiff) {
+        return scoreB.gameAvgDiff - scoreA.gameAvgDiff;
+    }
 
     return 0;
 }

@@ -66,9 +66,11 @@ function TeamStandings({
                   <th className="py-3 px-3 sticky left-0 top-0 shadow-md z-20 bg-yellow-logo min-w-[120px] max-w-[120px]">
                     Team
                   </th>
-                  <th className="py-3 px-4 text-center whitespace-nowrap">Points</th>
-                  <th className="py-3 px-4 text-center whitespace-nowrap">Overall</th>
+
+                  {selectedGroup && <th className="py-3 px-4 text-center whitespace-nowrap">Group Points</th>}
                   {selectedGroup && <th className="py-3 px-4 text-center whitespace-nowrap">Group Record</th>}
+                  <th className="py-3 px-4 text-center whitespace-nowrap">Total Points</th>
+                  <th className="py-3 px-4 text-center whitespace-nowrap">Overall Records</th>
                   <th className="py-3 px-4 text-center whitespace-nowrap">Matches</th>
                   <th className="py-3 px-4 text-center whitespace-nowrap">Match PT DIFF/AVG</th>
                   <th className="py-3 px-4 text-center whitespace-nowrap">GM PT DIFF/AVG</th>
