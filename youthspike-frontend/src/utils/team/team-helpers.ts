@@ -143,7 +143,6 @@ export function compareTeams(
 
     if (!scoreA || !scoreB) return 0;
 
-
     if (selectedGroup) {
         const groupDrawsA = Math.max(
             0,
@@ -161,16 +160,32 @@ export function compareTeams(
         const groupPointsB =
             scoreB.groupWins * MATCH_WIN_POINTS + groupDrawsB;
 
+        // 1. Group points per match
+        const groupPointsPerMatchA =
+            scoreA.groupMatches > 0
+                ? groupPointsA / scoreA.groupMatches
+                : 0;
+
+        const groupPointsPerMatchB =
+            scoreB.groupMatches > 0
+                ? groupPointsB / scoreB.groupMatches
+                : 0;
+
+        if (groupPointsPerMatchA !== groupPointsPerMatchB) {
+            return groupPointsPerMatchB - groupPointsPerMatchA;
+        }
+
+        // 2. Group points
         if (groupPointsA !== groupPointsB) {
             return groupPointsB - groupPointsA;
         }
 
-
+        // 3. Group draws
         if (groupDrawsA !== groupDrawsB) {
             return groupDrawsB - groupDrawsA;
         }
 
-
+        // 4. Group losses
         if (scoreA.groupLoses !== scoreB.groupLoses) {
             return scoreA.groupLoses - scoreB.groupLoses;
         }
@@ -191,24 +206,28 @@ export function compareTeams(
         const pointsB =
             scoreB.overallWins * MATCH_WIN_POINTS + drawsB;
 
+        // 1. Overall points
         if (pointsA !== pointsB) {
             return pointsB - pointsA;
         }
 
+        // 2. Overall draws
         if (drawsA !== drawsB) {
             return drawsB - drawsA;
         }
 
-
+        // 3. Overall losses
         if (scoreA.overallLoses !== scoreB.overallLoses) {
             return scoreA.overallLoses - scoreB.overallLoses;
         }
     }
 
+    // Match PT DIFF/AVG
     if (scoreA.matchAvgDiff !== scoreB.matchAvgDiff) {
         return scoreB.matchAvgDiff - scoreA.matchAvgDiff;
     }
 
+    // GM PT DIFF/AVG
     if (scoreA.gameAvgDiff !== scoreB.gameAvgDiff) {
         return scoreB.gameAvgDiff - scoreA.gameAvgDiff;
     }
