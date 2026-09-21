@@ -67,7 +67,7 @@ function TeamStandings({
                     Team
                   </th>
 
-                  {selectedGroup && <th className="py-3 px-4 text-center whitespace-nowrap">Ponts/match</th>}
+                  {selectedGroup && <th className="py-3 px-4 text-center whitespace-nowrap">Points/match</th>}
                   {selectedGroup && <th className="py-3 px-4 text-center whitespace-nowrap">Group Record</th>}
                   {/* <th className="py-3 px-4 text-center whitespace-nowrap">Total Points</th> */}
                   <th className="py-3 px-4 text-center whitespace-nowrap">Overall Records</th>
