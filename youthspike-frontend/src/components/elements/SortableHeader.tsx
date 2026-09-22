@@ -1,13 +1,13 @@
 // components/elements/SortableHeader.tsx
 import React from "react";
 import Image from "next/image";
-import { EPlayerStatType } from "@/types";
+import { EPlayerStatType, ETeamStatType } from "@/types";
 
 interface SortableHeaderProps {
   label: string;
-  sortKey: EPlayerStatType;
+  sortKey: EPlayerStatType | ETeamStatType;
   currentSort: { key: string; direction: 'asc' | 'desc' };
-  onSort: (key: EPlayerStatType) => void;
+  onSort: (key: EPlayerStatType | ETeamStatType) => void;
   icon?: string;
 }
 

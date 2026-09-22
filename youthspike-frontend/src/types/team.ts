@@ -121,3 +121,14 @@ export enum ETeam {
   // eslint-disable-next-line no-unused-vars
   teamB = 'teamB',
 }
+
+
+export enum ETeamStatType {
+  Team = 'team',
+  GroupPointsPerMatch = 'groupPointsPerMatch',
+  GroupRecord = 'groupRecord',
+  OverallRecord = 'overallRecord',
+  GroupMatches = 'groupMatches',
+  MatchAvgDiff = 'matchAvgDiff',
+  GameAvgDiff = 'gameAvgDiff',
+}
