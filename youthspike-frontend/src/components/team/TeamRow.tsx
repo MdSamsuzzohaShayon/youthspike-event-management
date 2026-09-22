@@ -21,7 +21,7 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
     () => {
       if (!teamScores) return 0;
       // totalMatches: number, wins: number, loss: number
-      const totalMatches =teamScores.totalMatches;
+      const totalMatches = teamScores.totalMatches;
       const wins = teamScores.overallWins;
       const loss = teamScores.overallLoses;
 
@@ -93,7 +93,7 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
         <td className="py-3 px-4 text-center whitespace-nowrap">
           <div className="flex flex-col">
             <span className="font-bold text-xl">
-            {hasScores ? teamGroupPoints : 0}
+              {hasScores ? teamGroupPoints : 0}
             </span>
           </div>
         </td>
@@ -110,17 +110,6 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
         </td>
       )}
 
-
-
-      {/* Total Points */}
-      {/* <td className="py-3 px-4 text-center whitespace-nowrap">
-        <div className="flex flex-col">
-          <span className="font-bold text-xl">
-            {hasScores ? teamPoints : '0'}
-          </span>
-        </div>
-      </td> */}
-
       {/* Overall record */}
       <td className="py-3 px-4 text-center whitespace-nowrap">
         <div className="flex flex-col">
@@ -132,14 +121,16 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
 
 
 
-      {/* Matches */}
-      <td className="py-3 px-4 text-center whitespace-nowrap">
-        <div className="flex flex-col">
-          <span className="font-bold text-xl">
-            {hasScores ? teamScores.totalMatches : '0'}
-          </span>
-        </div>
-      </td>
+      {/* Group Matches */}
+      {selectedGroup && (
+        <td className="py-3 px-4 text-center whitespace-nowrap">
+          <div className="flex flex-col">
+            <span className="font-bold text-xl">
+              {hasScores ? teamScores.groupMatches : '0'}
+            </span>
+          </div>
+        </td>
+      )}
 
       {/* Match PT DIFF/AVG */}
       <td className="py-3 px-4 text-center whitespace-nowrap">
