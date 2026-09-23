@@ -43,7 +43,7 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
 
       const groupPoints = teamScores.groupWins * MATCH_WIN_POINTS + groupDraws;
 
-      return (groupPoints / teamScores.groupMatches).toFixed(2);
+      return (groupPoints / (teamScores.groupMatches + teamScores.teammatchabsencescount)).toFixed(2);
     },
     [selectedGroup, teamScores]
   );

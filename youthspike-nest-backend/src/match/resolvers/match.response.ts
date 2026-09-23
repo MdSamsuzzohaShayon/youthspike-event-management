@@ -4,8 +4,8 @@ import { Event } from 'src/event/event.schema';
 import { Team } from 'src/team/team.schema';
 import { LDO } from 'src/ldo/ldo.schema';
 import { Group } from 'src/group/group.schema';
-import { Match } from '../match.schema';
-import { CustomMatch, CustomNet, CustomRound, CustomTeam } from 'src/team/resolvers/team.response';
+import { Match, TeamMatchAbsence } from '../match.schema';
+import { CustomNet, CustomRound, CustomTeam } from 'src/team/resolvers/team.response';
 
 
 @ObjectType()
@@ -22,11 +22,35 @@ export class GetMatchResponse extends AppResponse<Match> {
 
 
 @ObjectType()
-export class AccessCode{
-  @Field((_type)=> String, {nullable: false})
+export class CustomTeamMatchAbsense extends TeamMatchAbsence {
+
+  @Field((_type) => String, { nullable: true })
+  match?: string;
+
+  @Field((_type) => String, { nullable: false })
+  team: string;
+}
+
+@ObjectType()
+export class GetTeamMatchAbsenseResponse extends AppResponse<CustomTeamMatchAbsense> {
+  @Field((_type) => CustomTeamMatchAbsense, { nullable: true })
+  data?: CustomTeamMatchAbsense | null;
+}
+
+
+
+@ObjectType()
+export class GetMultipleTeamMatchAbsenseResponse extends AppResponse<CustomTeamMatchAbsense[]> {
+  @Field(() => [CustomTeamMatchAbsense], { nullable: true })
+  data?: CustomTeamMatchAbsense[] | null;
+}
+
+@ObjectType()
+export class AccessCode {
+  @Field((_type) => String, { nullable: false })
   accessCode: string;
-  
-  @Field((_type)=> String, {nullable: false})
+
+  @Field((_type) => String, { nullable: false })
   match: string;
 }
 
@@ -39,6 +63,26 @@ export class GetAccessCodeResponse extends AppResponse<AccessCode> {
 
 
 
+@ObjectType()
+export class CustomMatch extends Match {
+  @Field((_type) => String, { nullable: true })
+  group: string;
+
+  @Field((_type) => String, { nullable: false })
+  event: string;
+
+  @Field((_type) => [String], { nullable: true })
+  rounds: string[];
+
+  @Field((_type) => [String], { nullable: true })
+  nets: string[];
+
+  @Field((_type) => String, { nullable: true })
+  teamA: string;
+
+  @Field((_type) => String, { nullable: true })
+  teamB: string;
+}
 
 @ObjectType()
 export class CustomGroup extends Group {

@@ -7,7 +7,7 @@ import { Badge } from 'src/badge/badge.schema';
 import { Emailcontent } from 'src/emailsender/emailsernder.schema';
 import { Event } from 'src/event/event.schema';
 import { Group } from 'src/group/group.schema';
-import { Match } from 'src/match/match.schema';
+import { Match, TeamMatchAbsence } from 'src/match/match.schema';
 import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
 import { Player } from 'src/player/player.schema';
 import { AppDocument } from 'src/shared/schema/document.schema';
@@ -87,6 +87,10 @@ export class Team extends AppDocument {
   @Field((_type) => Badge, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Badge' })
   badge?: Badge | string;
+
+  @Field((_type) => [TeamMatchAbsence], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'TeamMatchAbsence' }] })
+  teammatchabsences?: TeamMatchAbsence[] | string[]; 
 }
 
 export const TeamSchema = SchemaFactory.createForClass(Team);

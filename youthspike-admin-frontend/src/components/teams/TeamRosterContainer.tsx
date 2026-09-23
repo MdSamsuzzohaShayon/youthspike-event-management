@@ -31,7 +31,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
     notFound();
   }
 
-  const { team, players, rankings, events, playerRanking, unassignedPlayers, badges } = data.getTeamRoster.data;
+  const { team, players, rankings, events, playerRanking, unassignedPlayers, badges, teammatchabsencescount } = data.getTeamRoster.data;
 
 
 
@@ -97,7 +97,7 @@ function TeamRosterContainer({ queryRef, teamId }: TeamRosterContainerProps) {
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-yellow-600/5 rounded-full blur-3xl animate-pulse delay-1000" />
       </div>
 
-      <TeamNavigation events={events} ldoIdUrl={ldoIdUrl} team={team} totalPlayers={playerList.length} />
+      <TeamNavigation events={events} ldoIdUrl={ldoIdUrl} team={team} teammatchabsencescount={teammatchabsencescount} totalPlayers={playerList.length} />
 
       <div className="relative z-10">
 

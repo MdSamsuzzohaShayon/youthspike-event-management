@@ -238,6 +238,7 @@ query GetTeamRoster($teamId: String!) {
         captain
         cocaptain
         badge
+        teammatchabsencescount
       }
       playerRanking {
         _id
@@ -363,6 +364,7 @@ query GetTeams ($eventIds: [String!], $limit: Float, $offset: Float) {
       _id
       name
       division
+      teammatchabsencescount
       players{
         _id
       }

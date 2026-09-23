@@ -20,9 +20,9 @@ import { QueryFilter } from 'mongoose';
 import { Team } from '../team.schema';
 import { MatchService } from 'src/match/match.service';
 import { Match } from 'src/match/match.schema';
-import { CustomMatch, CustomNet, CustomRound, GetTeamSearchResponse, GetTeamRosterResponse, GetTeamMatchesResponse, GetPlayerStatsResponse, CustomTeam, GetTeamWithGroupsAndUnAssignedPlayersResponse } from './team.response';
+import { CustomNet, CustomRound, GetTeamSearchResponse, GetTeamRosterResponse, GetTeamMatchesResponse, GetPlayerStatsResponse, CustomTeam, GetTeamWithGroupsAndUnAssignedPlayersResponse } from './team.response';
 import { CustomEvent } from 'src/event/resolvers/event.response';
-import { CustomGroup } from 'src/match/resolvers/match.response';
+import { CustomGroup, CustomMatch } from 'src/match/resolvers/match.response';
 import { CustomPlayer, CustomPlayerRanking, CustomPlayerRankingItem } from 'src/player/resolvers/player.response';
 import { LdoService } from 'src/ldo/ldo.service';
 import { ConfigService } from '@nestjs/config';
@@ -31,10 +31,10 @@ import { UserRole } from 'src/user/user.schema';
 import { EPlayerStatus } from 'src/player/player.schema';
 import { PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
 import { EmailsenderService } from 'src/emailsender/emailsender.service';
-import { CustomEmailcontent, CustomEmailsender } from 'src/emailsender/emailsender.response';
+import { CustomEmailcontent } from 'src/emailsender/emailsender.response';
 import { BadgeService } from 'src/badge/badge.service';
 import { CustomBadge } from 'src/badge/badge.response';
-import { Badge, EBadgeFor } from 'src/badge/badge.schema';
+import { EBadgeFor } from 'src/badge/badge.schema';
 
 // ITeamQueries
 
@@ -67,15 +67,15 @@ export class TeamQueries {
         query = { events: { $in: eventIds } };
       }
 
-      // temp
-      // const tempLimit = 5000;
       const teams = await this.teamService.find(query, offset, limit);
+
+      const teamList = await this.teamService.teamsWithAbsense(teams);
 
       return {
         code: HttpStatus.OK,
         success: true,
         message: 'List of teams!',
-        data: teams,
+        data: teamList as CustomTeam[],
       };
     } catch (error) {
       return AppResponse.handleError(error);
@@ -343,17 +343,21 @@ export class TeamQueries {
 
       const eventList = this.eventService.sanitizeEvents(events as CustomEvent[]);
 
+
+      const teammatchabsencescount = await this.matchService.teamMatchAbsenseCountDocuments({ team: teamId });
+
       return {
         code: HttpStatus.OK,
         success: true,
         data: {
           events: eventList as CustomEvent[],
-          team: team as CustomTeam,
+          team: {...team, teammatchabsencescount} as CustomTeam,
           players: playerList as CustomPlayer[],
           playerRanking: playerRanking as CustomPlayerRanking,
           rankings: rankings as CustomPlayerRankingItem[],
           unassignedPlayers: unassignedPlayers as CustomPlayer[],
           badges: badges.map((badge) => ({ ...badge, badgeFor: badge?.badgeFor ? badge?.badgeFor : EBadgeFor.TEAM })) as CustomBadge[],
+          
         },
       };
     } catch (err) {
@@ -549,6 +553,8 @@ export class TeamQueries {
         team.events.forEach((t) => eventIdTeamsSet.add(String(t)));
       }
 
+      const teamList = await this.teamService.teamsWithAbsense(teams);
+
       const matchIds = Array.from(matchIdSet);
       const captainIds = Array.from(captainIdSet);
       const matchQuery: QueryFilter<Match> = { _id: { $in: matchIds } };
@@ -592,7 +598,7 @@ export class TeamQueries {
         success: true,
         data: {
           events: events as CustomEvent[],
-          teams: this.teamService.normalizeTeams(teams as CustomTeam[]) as CustomTeam[],
+          teams: this.teamService.normalizeTeams(teamList as CustomTeam[]) as CustomTeam[],
           badges: badges.map((badge) => ({ ...badge, badgeFor: badge.badgeFor ?? EBadgeFor.TEAM })) as CustomBadge[],
           groups: groups as CustomGroup[],
           nets: nets as CustomNet[],

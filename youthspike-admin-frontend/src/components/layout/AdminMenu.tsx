@@ -13,6 +13,7 @@ import { getUserFromCookie, removeCookie } from '@/utils/clientCookie';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { CURRENT_EVENT, CURRENT_EVENT_ID, DIVISION } from '@/utils/constant';
 import { FRONTEND_URL } from '@/utils/keys';
+import { useUser } from '@/lib/UserProvider';
 
 
 
@@ -22,12 +23,16 @@ const AdminMenu = () => {
   const params = useParams();
   const pathname = usePathname();
   const { ldoIdUrl, ldoId } = useLdoId();
+  const user = useUser();
+
 
   // ===== Local State =====
   const [eventId, setEventId] = useState<string | null>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement | null>(null);
-  const [user, setUser] = useState<IUserContext | null>(null);
+
+
+  const { info, token } = user;
 
   const handleLogout = (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -44,11 +49,7 @@ const AdminMenu = () => {
 
 
     let eventId: any = params?.eventId || null;
-    const userDetail = getUserFromCookie();
-
-    if (userDetail && userDetail.token) {
-      setUser(userDetail);
-    }
+    // const userDetail = getUserFromCookie();
 
     if (!eventId) {
       eventId = SessionStorageService.getItem(CURRENT_EVENT);
@@ -73,13 +74,14 @@ const AdminMenu = () => {
     setIsMenuOpen(false);
   };
 
-  if (!user || !user.token) return null;
+
+  // if (!info || !token) return null;
 
   return (
     <div className="container mx-auto px-4">
       {/* Open Menu Button */}
       <button onClick={() => setIsMenuOpen(true)} className="menu-button rounded-md">
-        <img src="/icons/menu.svg" alt="Open Menu" className="w-10 mt-4 svg-white" />
+        <Image src="/icons/menu.svg" alt="Open Menu" height={20} width={20} className="w-10 mt-4 svg-white" />
       </button>
 
       {/* Backdrop */}
@@ -105,15 +107,15 @@ const AdminMenu = () => {
               <Image height={100} width={100} src="/free-logo.png" alt="User Avatar" className="w-16 h-16 mx-auto rounded-full border-2 border-yellow" />
             </Link>
 
-            <h1 className="text-2xl text-yellow mt-4 capitalize">{`${user.info?.firstName} ${user.info?.lastName}`}</h1>
-            {user.info?.team && <h3 className="text-sm text-yellow-500 text-gray-400">{user.info.team}</h3>}
-            <p className="uppercase text-yellow text-sm mt-2">{user?.info?.role}</p>
+            <h1 className="text-2xl text-yellow mt-4 capitalize">{`${info?.firstName} ${info?.lastName}`}</h1>
+            {info?.team && <h3 className="text-sm text-yellow-500 text-gray-400">{info.team}</h3>}
+            <p className="uppercase text-yellow text-sm mt-2">{info?.role}</p>
           </div>
 
           {/* Menu Links */}
           <ul className="menu-list space-y-6 ">
-            {user.info?.role === UserRole.admin ||
-              (user.info?.role === UserRole.director && (
+            {info?.role === UserRole.admin ||
+              (info?.role === UserRole.director && (
                 <li className="text-lg capitalize">
                   <Link onClick={() => setIsMenuOpen(false)} href="/" className="flex items-center text-yellow hover:text-yellow-500 transition-all">
                     <img src="/icons/home.svg" alt="Home" className="w-6 mr-4 svg-white" />
@@ -129,7 +131,7 @@ const AdminMenu = () => {
                     Settings
                   </Link>
                 </li>
-                {user.info?.role !== UserRole.player && (
+                {info?.role !== UserRole.player && (
                   <li className="text-lg capitalize">
                     <Link onClick={() => setIsMenuOpen(false)} href={`${FRONTEND_URL}/events/${eventId}/teams/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
                       <img src="/icons/teams.svg" alt="Settings" className="w-6 mr-4 svg-white" />
@@ -137,8 +139,8 @@ const AdminMenu = () => {
                     </Link>
                   </li>
                 )}
-                {(user.info?.role === UserRole.admin ||
-                  user.info?.role === UserRole.director) && (
+                {(info?.role === UserRole.admin ||
+                  info?.role === UserRole.director) && (
                     <React.Fragment>
                       <li className="text-lg capitalize">
                         <Link onClick={() => setIsMenuOpen(false)} href={`/${eventId}/teams/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
@@ -161,7 +163,7 @@ const AdminMenu = () => {
                     </React.Fragment>
                   )}
                 <li className="text-lg capitalize">
-                  <Link onClick={() => setIsMenuOpen(false)} href={(user.info?.role === UserRole.captain || user.info?.role === UserRole.co_captain) && user.info.teamId ? `/teams/${user.info.teamId}/roster/${ldoIdUrl}` : `/${eventId}/players/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
+                  <Link onClick={() => setIsMenuOpen(false)} href={(info?.role === UserRole.captain || info?.role === UserRole.co_captain) && info.teamId ? `/teams/${info.teamId}/roster/${ldoIdUrl}` : `/${eventId}/players/${ldoIdUrl}`} className="flex items-center text-yellow hover:text-yellow-500 transition-all">
                     <Image height={20} width={20} src="/icons/players.svg" alt="Roster" className="w-6 mr-4 svg-white" />
                     Roster
                   </Link>
@@ -175,7 +177,7 @@ const AdminMenu = () => {
               </>
             )}
 
-            {user?.info?.role === UserRole.director && (
+            {info?.role === UserRole.director && (
               <li className="text-lg capitalize">
                 <Link onClick={() => setIsMenuOpen(false)} href="/account" className="flex items-center text-yellow hover:text-yellow-500 transition-all">
                   <Image height={20} width={20} src="/icons/account.svg" alt="Account" className="w-6 mr-4 svg-white" />
@@ -184,7 +186,7 @@ const AdminMenu = () => {
               </li>
             )}
 
-            {user?.info?.role === UserRole.admin && (
+            {info?.role === UserRole.admin && (
               <>
                 <li className="text-lg capitalize">
                   <Link onClick={() => setIsMenuOpen(false)} href="/admin/directors" className="flex items-center text-yellow hover:text-yellow-500 transition-all">

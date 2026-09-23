@@ -1,4 +1,4 @@
-import { EPlayerStatus, IBadge, IEmailcontent, IGroup, IOption, ITeam, TUpdateGroup, TUpdateTeam, UserRole } from '@/types';
+import { EPlayerStatus, IBadge, IEmailcontent, IGroup, ITeam, TUpdateGroup, TUpdateTeam, UserRole } from '@/types';
 import Link from 'next/link';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { CldImage } from 'next-cloudinary';
@@ -7,16 +7,13 @@ import SelectInput from '../elements/forms/SelectInput';
 import CheckboxInput from '../elements/forms/CheckboxInput';
 import { useLdoId } from '@/lib/LdoProvider';
 import { UPDATE_GROUP } from '@/graphql/group';
-import { AnimatePresence, motion } from 'motion/react';
-import { menuVariants } from '@/utils/animation';
 import TextImg from '../elements/TextImg';
 import { useMutation } from '@apollo/client/react';
-import { checkGroupIsWithinTheEvent, getLatestEmailContent } from '@/utils/helper';
+import { checkGroupIsWithinTheEvent } from '@/utils/helper';
 import routerService from '@/lib/router-service';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { CURRENT_EVENT } from '@/utils/constant';
 import { UPDATE_TEAM } from '@/graphql/teams';
-import { formatEmailSentTime, readDate } from '@/utils/datetime';
 import BadgeSelect from '../elements/forms/BadgeSelect';
 import TeamCardHeaderSection from './TeamCardHeaderSection';
 import TeamInfoSection from './TeamInfoSection';
@@ -38,11 +35,14 @@ interface ITeamCardProps {
   onCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
   onMoveTeamOpen: (e: React.SyntheticEvent, team: ITeam) => void;
   onDeleteTeamOpen: (e: React.SyntheticEvent, team: ITeam) => void;
+  onAddAbsenceOpen: (e: React.SyntheticEvent, team: ITeam) => void; 
+  onBulkAbsenceMatchOpen: (e: React.SyntheticEvent, team: ITeam) => void; 
 }
 
 
 
-function TeamCard({ team, eventId, groupList, isChecked, emailcontents, badge, badges, onCheckedTeam, onSendCredential, onUpdateTeam, onMoveTeamOpen, onDeleteTeamOpen }: ITeamCardProps) {
+function TeamCard({ team, eventId, groupList, isChecked, emailcontents, badge, badges, onCheckedTeam, onSendCredential, 
+  onUpdateTeam, onMoveTeamOpen, onDeleteTeamOpen, onAddAbsenceOpen, onBulkAbsenceMatchOpen }: ITeamCardProps) {
   // Hooks
   const { ldoIdUrl } = useLdoId();
   const user = useUser();
@@ -53,6 +53,8 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, badge, b
   // References
   const actionEl = useRef<null | HTMLUListElement>(null);
   const [actionOpen, setActionOpen] = useState<boolean>(false);
+  const addAbsenceDialogRef = useRef<HTMLDialogElement | null>(null);
+  const [selectedTeamForAbsence, setSelectedTeamForAbsence] = useState<ITeam | null>(null);
 
   // Local State
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
@@ -133,6 +135,17 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, badge, b
     const inputEl = e.target as HTMLInputElement;
     onUpdateTeam(e, { badge: inputEl.value }, team._id);
   }
+
+  const handleAddAbsenceOpen = (e: React.SyntheticEvent, team: ITeam) => {
+    onAddAbsenceOpen(e, team);
+    setActionOpen(false);
+  };
+
+  const handleBulkAbsenceMatchOpen = (e: React.SyntheticEvent, team: ITeam) => {
+    onBulkAbsenceMatchOpen(e, team);
+    setActionOpen(false);
+  };
+  
 
 
   // Memoization
@@ -299,6 +312,8 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, badge, b
               onSendCredential={onSendCredential}
               onMoveTeamOpen={handleMoveTeamOpen}
               onDeleteTeamOpen={handleDeleteTeamOpen}
+              onAddAbsenceOpen={handleAddAbsenceOpen}
+              onBulkAbsenceMatchOpen={handleBulkAbsenceMatchOpen} 
             />
           </div>
         </div>

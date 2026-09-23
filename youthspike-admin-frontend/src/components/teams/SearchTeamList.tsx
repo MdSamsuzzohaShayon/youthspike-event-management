@@ -22,6 +22,9 @@ import DeleteConfirmDialog from './DeleteConfirmDialog';
 import MoveTeamDialog from './MoveTeamDialog';
 import ChangeGroupDialog from './ChangeGroupDialog';
 import updateTeam from '@/utils/request-handlers/updateTeam';
+import { CREATE_MULTIPLE_TEAM_MATCH_ABSENSE, TEAMMATCHABSENSE_CREATE } from '@/graphql/matches';
+import AddAbsenceMatchDialog from '../match/AddAbsenceMatchDialog';
+import BulkAbsenceMatchDialog from '../match/BulkAbsenceMatchDialog';
 
 interface ISearchTeamListProps {
   event: IEvent | null;
@@ -61,8 +64,14 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
   const changeGroupDialogRef = useRef<HTMLDialogElement | null>(null);
   const moveTeamDialogRef = useRef<HTMLDialogElement | null>(null);
   const deleteDialogRef = useRef<HTMLDialogElement | null>(null);
+  const addAbsenceDialogRef = useRef<HTMLDialogElement | null>(null);
+  // References
+  const bulkAbsenceMatchDialogRef = useRef<HTMLDialogElement | null>(null);
+
 
   // Local State
+  const [selectedTeamForBulkAbsence, setSelectedTeamForBulkAbsence] = useState<ITeam | null>(null);
+  const [selectedTeamForAbsence, setSelectedTeamForAbsence] = useState<ITeam | null>(null);
   const [isFilterMenuVisible, setIsFilterMenuVisible] = useState<boolean>(false);
   const [isBulkActionMenuVisible, setIsBulkActionMenuVisible] = useState<boolean>(false);
   const [checkedTeamsMap, setCheckedTeamsMap] = useState<Map<string, boolean>>(new Map());
@@ -80,6 +89,11 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
   const [mutateTeam] = useMutation<{ updateTeam: IGetTeamResponse }>(UPDATE_TEAM);
   const [moveTeamsMutation] = useMutation<{ updateTeams: ITeamsUpdateResponse }>(UPDATE_TEAMS);
   const [deleteTeam] = useMutation<{ deleteTeam: ITeamUpdateResponse }>(DELETE_TEAM);
+  const [createTeamMatchAbsense] = useMutation<{ createTeamMatchAbsense: ITeamUpdateResponse }>(TEAMMATCHABSENSE_CREATE);
+  // Mutations (add this alongside your other mutations)
+  const [createMultipleTeamMatchAbsense] = useMutation<{ createMultipleTeamMatchAbsense: IResponse }>(CREATE_MULTIPLE_TEAM_MATCH_ABSENSE);
+
+  // TEAMMATCHABSENSE_CREATE
 
 
   // Utility: Extract checked team IDs
@@ -96,6 +110,13 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
     setIsFilterMenuVisible(false);
     setIsBulkActionMenuVisible(false);
   };
+
+  const handleBulkAbsenceMatchOpen = (e: React.SyntheticEvent, team: ITeam): void => {
+    e.preventDefault();
+    setSelectedTeamForBulkAbsence(team);
+    bulkAbsenceMatchDialogRef.current?.showModal();
+  };
+
 
   // Handlers: Checkbox
   const handleTeamCheckboxToggle = (e: React.SyntheticEvent, teamId: string): void => {
@@ -119,6 +140,40 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
   };
 
   // Handlers: Bulk Action Menu
+
+  const handleBulkAbsenceMatchSubmit = async (input: {
+    team: string;
+    count: number;
+    reason?: string;
+    notes?: string;
+  }): Promise<void> => {
+    try {
+      setIsLoading(true);
+      const response = await createMultipleTeamMatchAbsense({
+        variables: {
+          input: {
+            team: input.team,
+            count: input.count,
+            reason: input.reason || undefined,
+            notes: input.notes || undefined,
+          },
+        },
+      });
+      const isSuccessful = await handleResponseCheck(
+        response.data?.createMultipleTeamMatchAbsense,
+        setMessage
+      );
+      if (isSuccessful) {
+        setSelectedTeamForBulkAbsence(null);
+        if (refetchFunc) await refetchFunc();
+      }
+    } catch (error) {
+      handleError({ error, setMessage });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleBulkActionMenuToggle = (e: React.SyntheticEvent): void => {
     e.preventDefault();
     setIsBulkActionMenuVisible(!isBulkActionMenuVisible);
@@ -338,6 +393,49 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
     // Implementation pending
   };
 
+  const handleAddAbsenceOpen = (e: React.SyntheticEvent, team: ITeam): void => {
+    e.preventDefault();
+    setSelectedTeamForAbsence(team);
+    addAbsenceDialogRef.current?.showModal();
+  };
+
+  const handleAddAbsenceSubmit = async (input: {
+    team: string;
+    match?: string | null;
+    reason?: string;
+    notes?: string;
+  }): Promise<void> => {
+    try {
+      setIsLoading(true);
+
+      const response = await createTeamMatchAbsense({
+        variables: {
+          input: {
+            team: input.team,
+            match: input.match ?? null,
+            reason: input.reason ?? null,
+            notes: input.notes ?? null,
+          },
+        },
+      });
+
+      const isSuccessful = await handleResponseCheck(
+        response.data?.createTeamMatchAbsense,
+        setMessage
+      );
+
+      if (isSuccessful && refetchFunc) {
+        await refetchFunc();
+      }
+
+      setSelectedTeamForAbsence(null);
+    } catch (error) {
+      handleError({ error, setMessage });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleUpdateTeam = async (e: React.SyntheticEvent, update: Partial<TUpdateTeam>, teamId: string) => {
     const prevTeam = teamList.find((team) => team._id === teamId);
     if (!prevTeam) {
@@ -415,7 +513,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
   }, [selectedGroupIdFilter, groupList]);
 
   const badgeMap = useMemo(() => createBadgeMap(badges), [badges]);
-  const teamBadges = useMemo(()=> {return badges.filter((badge)=> badge.badgeFor && badge.badgeFor === EBadgeFor.TEAM)}, [badges]);
+  const teamBadges = useMemo(() => { return badges.filter((badge) => badge.badgeFor && badge.badgeFor === EBadgeFor.TEAM) }, [badges]);
 
   const emailcontentsMapByTeam = useMemo(() => {
     const map = new Map<string, IEmailcontent[]>();
@@ -516,6 +614,8 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
             onMoveTeamOpen={handleOpenMoveTeamDialog}
             onCheckedTeam={handleTeamCheckboxToggle}
             onDeleteTeamOpen={handleDeleteTeamOpen}
+            onAddAbsenceOpen={handleAddAbsenceOpen}
+            onBulkAbsenceMatchOpen={handleBulkAbsenceMatchOpen}
           />
         ))}
       </div>
@@ -538,6 +638,21 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
         dialogRef={changeGroupDialogRef}
         groupList={groupList}
         onBulkGroupChange={handleBulkChangeGroup}
+      />
+
+      <AddAbsenceMatchDialog
+        dialogRef={addAbsenceDialogRef}
+        selectedTeam={selectedTeamForAbsence}
+        eventId={event._id}
+        onClose={() => setSelectedTeamForAbsence(null)}
+        onSubmit={handleAddAbsenceSubmit}
+      />
+
+      <BulkAbsenceMatchDialog
+        dialogRef={bulkAbsenceMatchDialogRef}
+        selectedTeamId={selectedTeamForBulkAbsence?._id ?? null}
+        onClose={() => bulkAbsenceMatchDialogRef.current?.close()}
+        onSubmit={handleBulkAbsenceMatchSubmit}
       />
     </div>
   );

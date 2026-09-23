@@ -141,6 +141,23 @@ export class FilterQueryInput {
   location?: string;
 }
 
+
+
+@InputType()
+export class FilterTeamMatchAbsenseInput {
+  @Field({ nullable: true })
+  team?: string;
+
+  @Field({ nullable: true })
+  match?: string;
+
+  @Field(() => Int, { nullable: true, defaultValue: 30 })
+  limit?: number;
+
+  @Field(() => Int, { nullable: true, defaultValue: 0 })
+  offset?: number;
+}
+
 @InputType()
 export class SearchFilterInput {
   @Field({ nullable: true })
@@ -170,3 +187,37 @@ export class AccessCodeInput{
   @Field({nullable: false})
   matchId: string;
 }
+
+
+@InputType()
+export class CreateTeamMatchAbsenseInput {
+  @Field({ nullable: false })
+  team: string;
+
+  @Field({ nullable: true })
+  match: string;
+
+  @Field({ nullable: true })
+  reason: string;
+
+  @Field({ nullable: true })
+  notes: string;
+
+}
+
+
+@InputType()
+export class CreateMultipleTeamMatchAbsenseInput {
+  @Field({ nullable: false })
+  team: string;
+
+  @Field(() => Int, { nullable: false })
+  count: number;
+
+  @Field({ nullable: true })
+  reason?: string;
+
+  @Field({ nullable: true })
+  notes?: string;
+}
+

@@ -396,6 +396,9 @@ const SEARCH_MATCHES = gql`
   }
 `;
 
+
+
+
 /**
  * MUTATIONS
  * ===========================================================================================
@@ -443,6 +446,46 @@ const DELETE_MATCHES = gql`
   }
 `;
 
+
+const TEAMMATCHABSENSE_CREATE_RAW = `
+mutation CreateTeamMatchAbsense($input: CreateTeamMatchAbsenseInput!){
+  createTeamMatchAbsense(input: $input){
+    code
+    success
+    message
+    __typename
+    data{
+      _id
+      createdAt
+      updatedAt
+      team
+      match
+      reason
+      notes
+    }
+  }
+}
+`;
+const TEAMMATCHABSENSE_CREATE = gql`${TEAMMATCHABSENSE_CREATE_RAW}`;
+
+
+const CREATE_MULTIPLE_TEAM_MATCH_ABSENSE = gql`
+  mutation CreateMultipleTeamMatchAbsense($input: CreateMultipleTeamMatchAbsenseInput!) {
+    createMultipleTeamMatchAbsense(input: $input) {
+      code
+      success
+      message
+      __typename
+      data {
+        _id
+        team 
+        reason
+        notes
+      }
+    }
+  }
+`;
+
 export {
   CREATE_MATCH,
   GET_EVENT_WITH_MATCHES_RAW,
@@ -455,4 +498,6 @@ export {
   GET_MATCHES_MIN_RAW,
   SEARCH_MATCHES,
   GET_A_MATCH_LIGHT,
+  TEAMMATCHABSENSE_CREATE,
+  CREATE_MULTIPLE_TEAM_MATCH_ABSENSE
 };

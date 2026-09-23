@@ -12,8 +12,8 @@ import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { PlayerService } from 'src/player/player.service';
 import { ServerReceiverOnNet } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { ServerReceiverOnNetService } from 'src/server-receiver-on-net/server-receiver-on-net.service';
-import { AccessCodeInput, CreateMatchInput, UpdateMatchInput } from './match.input';
-import { GetMatchResponse } from './match.response';
+import { AccessCodeInput, CreateMatchInput, CreateMultipleTeamMatchAbsenseInput, CreateTeamMatchAbsenseInput, UpdateMatchInput } from './match.input';
+import { CustomTeamMatchAbsense, GetMatchResponse, GetMultipleTeamMatchAbsenseResponse, GetTeamMatchAbsenseResponse } from './match.response';
 import { AppResponse } from 'src/shared/response';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { EActionProcess, ETeam, Round } from 'src/round/round.schema';
@@ -34,7 +34,7 @@ export class MatchMutations {
     private playerService: PlayerService,
     private serverReceiverOnNetService: ServerReceiverOnNetService,
     private playerRankingService: PlayerRankingService,
-  ) {}
+  ) { }
 
   async deleteSingle(matchExist: Match) {
     try {
@@ -141,7 +141,7 @@ export class MatchMutations {
       if (!event) {
         return AppResponse.notFound('Event');
       }
-  
+
       /**
        * ---------------------------------------------------------
        * 2. Prepare Match Defaults From Event
@@ -149,7 +149,7 @@ export class MatchMutations {
        */
       const numberOfRounds = input.numberOfRounds ?? event.rounds;
       const numberOfNets = input.numberOfNets ?? event.nets;
-  
+
       const matchData: Match = {
         ...input,
         completed: false,
@@ -172,7 +172,7 @@ export class MatchMutations {
         teamBP: input.teamBP ?? 0,
         extendedOvertime: false,
       };
-  
+
       /**
        * ---------------------------------------------------------
        * 3. Create Room
@@ -182,16 +182,16 @@ export class MatchMutations {
         teamA: input.teamA,
         teamB: input.teamB,
       });
-  
+
       matchData.room = room._id;
-  
+
       /**
        * ---------------------------------------------------------
        * 4. Create Match
        * ---------------------------------------------------------
        */
       const match = await this.matchService.create(matchData);
-  
+
       /**
        * ---------------------------------------------------------
        * 5. Fetch Team Rankings
@@ -200,16 +200,16 @@ export class MatchMutations {
       const rankingQuery = {
         $or: [{ match: { $exists: false } }, { match: null }],
       };
-  
+
       const [teamARanking, teamBRanking] = await Promise.all([
         this.playerRankingService.findOne({ team: input.teamA, ...rankingQuery }),
         this.playerRankingService.findOne({ team: input.teamB, ...rankingQuery }),
       ]);
-  
+
       if (!teamARanking || !teamBRanking) {
         return AppResponse.notFound('Player Ranking');
       }
-  
+
       /**
        * ---------------------------------------------------------
        * 6. Fetch Ranking Items
@@ -219,7 +219,7 @@ export class MatchMutations {
         this.playerRankingService.findItems({ playerRanking: teamARanking._id }),
         this.playerRankingService.findItems({ playerRanking: teamBRanking._id }),
       ]);
-  
+
       /**
        * ---------------------------------------------------------
        * 7. Clone Rankings For This Match
@@ -229,12 +229,12 @@ export class MatchMutations {
         player: item.player,
         rank: item.rank,
       }));
-  
+
       const teamBRankings = teamBRankingItems.map((item) => ({
         player: item.player,
         rank: item.rank,
       }));
-  
+
       const [newTeamARanking, newTeamBRanking] = await Promise.all([
         this.playerRankingService.create({
           rankings: teamARankings as PlayerRankingItem[],
@@ -249,7 +249,7 @@ export class MatchMutations {
           match: match._id,
         }),
       ]);
-  
+
       /**
        * ---------------------------------------------------------
        * 8. Update Match + Teams With Ranking IDs
@@ -272,7 +272,7 @@ export class MatchMutations {
           },
         ),
       ]);
-  
+
       /**
        * ---------------------------------------------------------
        * 9. Create Rounds + Nets
@@ -281,9 +281,9 @@ export class MatchMutations {
       const roundIds: string[] = [];
       const netIds: string[] = [];
       const updatePromises: Promise<any>[] = [];
-  
+
       let firstPlacing: ETeam = ETeam.teamA;
-  
+
       for (let roundIndex = 0; roundIndex < numberOfRounds; roundIndex++) {
         const roundData = {
           match: match._id,
@@ -302,13 +302,13 @@ export class MatchMutations {
           firstPlacing,
           completed: false,
         };
-  
+
         const round = await this.roundService.create(roundData);
         roundIds.push(round._id);
-  
+
         firstPlacing =
           firstPlacing === ETeam.teamA ? ETeam.teamB : ETeam.teamA;
-  
+
         /**
          * Create nets for the round
          */
@@ -327,12 +327,12 @@ export class MatchMutations {
             pairRange: 0,
           }),
         );
-  
+
         const createdNets = await this.netService.createMany(netsForRound);
-  
+
         const roundNetIds = createdNets.map((net) => net._id);
         netIds.push(...roundNetIds);
-  
+
         updatePromises.push(
           this.roundService.updateOne(
             { _id: round._id },
@@ -340,7 +340,7 @@ export class MatchMutations {
           ),
         );
       }
-  
+
       /**
        * ---------------------------------------------------------
        * 10. Final Updates
@@ -352,30 +352,30 @@ export class MatchMutations {
           { $addToSet: { matches: match._id } },
         ),
       );
-  
+
       updatePromises.push(
         this.roomService.updateOne(
           { _id: room._id },
           { match: match._id },
         ),
       );
-  
+
       updatePromises.push(
         this.eventService.updateOne(
           { _id: input.event },
           { $addToSet: { matches: match._id } },
         ),
       );
-  
+
       updatePromises.push(
         this.matchService.updateOne(
           { _id: match._id },
           { nets: netIds, rounds: roundIds },
         ),
       );
-  
+
       await Promise.all(updatePromises);
-  
+
       /**
        * ---------------------------------------------------------
        * 11. Return Response
@@ -387,7 +387,7 @@ export class MatchMutations {
         success: true,
         message: 'Match Created successfully!',
       };
-  
+
     } catch (error) {
       return AppResponse.handleError(error);
     }
@@ -572,6 +572,75 @@ export class MatchMutations {
         data: null,
         code: HttpStatus.NO_CONTENT,
         message: 'Match Deleted successfully!',
+        success: true,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  async createTeamMatchAbsense(input: CreateTeamMatchAbsenseInput): Promise<GetTeamMatchAbsenseResponse> {
+    try {
+      const newTeamMatchAbsense = await this.matchService.teamMatchAbsenseCreate(input);
+
+      const updatePromises: Promise<unknown>[] = [
+        this.teamService.updateOne(
+          { _id: input.team },
+          { $addToSet: { teammatchabsences: newTeamMatchAbsense._id } },
+        ),
+      ];
+      if (input.match) {
+        updatePromises.push(
+          this.matchService.updateOne(
+            { _id: input.match },
+            { $addToSet: { teammatchabsences: newTeamMatchAbsense._id } },
+          ),
+        );
+      }
+      await Promise.all(updatePromises);
+
+      return {
+        data: newTeamMatchAbsense as CustomTeamMatchAbsense,
+        code: HttpStatus.CREATED,
+        message: 'Team Match Absense Created successfully!',
+        success: true,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+  async createMultipleTeamMatchAbsense(
+    input: CreateMultipleTeamMatchAbsenseInput,
+  ): Promise<GetMultipleTeamMatchAbsenseResponse> {
+    try {
+      const { team, count, reason, notes } = input;
+
+      // Create an array of promises for creating multiple absences concurrently
+      const createPromises = Array.from({ length: count }, () =>
+        this.matchService.teamMatchAbsenseCreate({
+          team,
+          reason,
+          notes,
+        }),
+      );
+
+      // Execute all create operations concurrently
+      const newAbsences = await Promise.all(createPromises);
+
+      // Extract the IDs of the newly created absences
+      const absenceIds = newAbsences.map((absence) => absence._id);
+
+      // Update the team with all new absence IDs in a single database operation
+      await this.teamService.updateOne(
+        { _id: team },
+        { $addToSet: { teammatchabsences: { $each: absenceIds } } },
+      );
+
+      return {
+        data: newAbsences as CustomTeamMatchAbsense[],
+        code: HttpStatus.CREATED,
+        message: `${count} Team Match Absences Created successfully!`,
         success: true,
       };
     } catch (err) {

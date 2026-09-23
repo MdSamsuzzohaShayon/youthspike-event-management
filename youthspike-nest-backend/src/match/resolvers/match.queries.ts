@@ -7,7 +7,7 @@ import { GroupService } from 'src/group/group.service';
 
 // import { IMatchQueries } from '../resolvers/event.types';
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { FilterQueryInput, SearchFilterInput } from './match.input';
+import { FilterQueryInput, FilterTeamMatchAbsenseInput, SearchFilterInput } from './match.input';
 import { AppResponse } from 'src/shared/response';
 import { EventService } from 'src/event/event.service';
 import { ConfigService } from '@nestjs/config';
@@ -15,8 +15,8 @@ import { tokenToUser } from 'src/utils/helper';
 import { UserService } from 'src/user/user.service';
 import { ETieBreakingStrategy } from 'src/event/event.schema';
 import { QueryFilter } from 'mongoose';
-import { EMatchStatus, Match } from '../match.schema';
-import { CustomGroup, GetEventWithMatchesResponse, GetMatchesResponse } from './match.response';
+import { EMatchStatus, Match, TeamMatchAbsence } from '../match.schema';
+import { CustomGroup, CustomMatch, CustomTeamMatchAbsense, GetEventWithMatchesResponse, GetMatchesResponse, GetMultipleTeamMatchAbsenseResponse } from './match.response';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
 import { PlayerService } from 'src/player/player.service';
 import { EPlayerStatus } from 'src/player/player.schema';
@@ -25,7 +25,7 @@ import { Team } from 'src/team/team.schema';
 import { LDO } from 'src/ldo/ldo.schema';
 import { Group } from 'src/group/group.schema';
 import { User } from 'src/user/user.schema';
-import { CustomMatch, CustomNet, CustomRound, CustomTeam } from 'src/team/resolvers/team.response';
+import { CustomNet, CustomRound, CustomTeam } from 'src/team/resolvers/team.response';
 
 // IMatchQueries
 
@@ -81,6 +81,57 @@ export class MatchQueries {
       return AppResponse.handleError(err);
     }
   }
+
+
+    // Make sure to import QueryFilter from mongoose and TeamMatchAbsence from your schema
+    async searchTeamMatchAbsenses(
+      filter: FilterTeamMatchAbsenseInput,
+    ): Promise<GetMultipleTeamMatchAbsenseResponse> {
+      try {
+        const limit = filter?.limit ?? 30;
+        const offset = filter?.offset ?? 0;
+  
+        /**
+         * ---------------------------------------------------------
+         * 1. Build Team Match Absense Filter
+         * ---------------------------------------------------------
+         */
+        const matchAbsenseFilter: QueryFilter<TeamMatchAbsence> = {};
+  
+        if (filter?.team) {
+          matchAbsenseFilter.team = filter.team;
+        }
+  
+        if (filter?.match) {
+          matchAbsenseFilter.match = filter.match;
+        }
+  
+        /**
+         * ---------------------------------------------------------
+         * 2. Fetch Absenses
+         * ---------------------------------------------------------
+         */
+        const absenses = await this.matchService.teamMatchAbsenseFind(
+          matchAbsenseFilter,
+          offset,
+          limit,
+        );
+  
+        /**
+         * ---------------------------------------------------------
+         * 3. Return Response
+         * ---------------------------------------------------------
+         */
+        return {
+          code: HttpStatus.OK,
+          success: true,
+          message: 'List of team match absences',
+          data: absenses as CustomTeamMatchAbsense[],
+        };
+      } catch (error) {
+        return AppResponse.handleError(error);
+      }
+    }
 
   async searchMatches(
     context: unknown,

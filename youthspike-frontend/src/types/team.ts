@@ -18,6 +18,7 @@ export interface ITeam {
   name: string;
   logo?: string | null;
   division: string;
+  teammatchabsencescount?: number;
   group: IGroup;
   events: IEvent[];
   matches: IMatchExpRel[];
@@ -40,6 +41,7 @@ export interface ITeamScore {
   matchAvgDiff: number;
   gameAvgDiff: number;
   groupMatches: number;
+  teammatchabsencescount: number;
 }
 
 export interface ITeamFilter {

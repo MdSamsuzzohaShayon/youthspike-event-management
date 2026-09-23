@@ -165,18 +165,59 @@ export class Match extends AppDocument {
   @Field((_type) => [PlayerStats], { nullable: true })
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PlayerStats' }] })
   playerstats?: PlayerStats[] | string[];
+
+  @Field((_type) => [TeamMatchAbsence], { nullable: true })
+  @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'TeamMatchAbsence' }] })
+  teammatchabsences?: TeamMatchAbsence[] | string[]; 
+}
+
+@ObjectType()
+@Schema({ timestamps: true })
+export class TeamMatchAbsence extends AppDocument {
+  @Field((_type) => Team)
+  @Prop({
+    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team',
+  })
+  team: string | Team;
+
+  @Field((_type) => Match, {nullable: true})
+  @Prop({
+    required: false,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Match',
+  })
+  match?: string | Match;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  reason?: string;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  notes?: string;
+
 }
 
 export const MatchSchema = SchemaFactory.createForClass(Match);
+export const TeamMatchAbsenceSchema = SchemaFactory.createForClass(TeamMatchAbsence);
 
 MatchSchema.index({event: 1});
 // Compound index
 MatchSchema.index({ event: 1, division: 1, group: 1 });
 MatchSchema.index({ event: 1, name: 1 });
+// Create text index
 MatchSchema.index({ description: 1});
 MatchSchema.index({ location: 1});
-// Create text index
+
+TeamMatchAbsenceSchema.index({ team: 1});
+TeamMatchAbsenceSchema.index({ match: 1});
 
 export const MatchSchemaFactory = async () => {
   return MatchSchema;
+};
+
+export const TeamMatchAbsenceSchemaFactory = async () => {
+  return TeamMatchAbsenceSchema;
 };

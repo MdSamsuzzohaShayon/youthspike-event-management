@@ -13,6 +13,7 @@ export const EMPTY_TEAM_SCORE: ITeamScore = {
     groupLoses: 0,
     matchAvgDiff: 0,
     gameAvgDiff: 0,
+    teammatchabsencescount: 0,
 };
 
 /**
@@ -79,6 +80,7 @@ export function computeTeamScore(
     netsByMatch: Map<string, INetRelatives[]>,
     roundsByMatch: Map<string, IRoundRelatives[]>,
     selectedGroup?: string | null,
+    teammatchabsencescount?: number
 ): ITeamScore {
     const score: ITeamScore = { ...EMPTY_TEAM_SCORE };
 
@@ -86,6 +88,7 @@ export function computeTeamScore(
     let totalGameDiff = 0;
     let totalNets = 0;
     let totalGroupMatches = 0;
+    let matchAbsense = 0;
 
 
     for (let i = 0; i < teamMatches.length; i += 1) {
@@ -119,9 +122,11 @@ export function computeTeamScore(
 
     }
 
+
     score.totalMatches = teamMatches.length;
     score.groupMatches = totalGroupMatches;
     score.matchAvgDiff = totalGroupMatches > 0 ? totalMatchDiff / totalGroupMatches : 0;
+    score.teammatchabsencescount = teammatchabsencescount || 0;
     // Guard against divide-by-zero -> NaN when a team has group matches but no recorded nets.
     score.gameAvgDiff = totalNets > 0 ? totalGameDiff / totalNets : 0;
 
