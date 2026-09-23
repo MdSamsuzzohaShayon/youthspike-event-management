@@ -39,6 +39,7 @@ interface ITeamNavigationProps {
   events: IEvent[];
   ldoIdUrl: string;
   totalPlayers: number;
+  teammatchabsencescount?: number;
 }
 
 interface TeamNavItem {
@@ -137,9 +138,10 @@ const TeamLogo: React.FC<{ team: ITeam }> = ({ team }) => {
   );
 };
 
-const TeamStats: React.FC<{ totalPlayers: number; eventsCount: number }> = ({
+const TeamStats: React.FC<{ totalPlayers: number; eventsCount: number; teammatchabsencescount?: number }> = ({
   totalPlayers,
-  eventsCount
+  eventsCount,
+  teammatchabsencescount,
 }) => (
   <div className="flex items-center gap-3 mt-1">
     <span className="flex items-center gap-1 text-[11px] text-gray-400">
@@ -150,10 +152,13 @@ const TeamStats: React.FC<{ totalPlayers: number; eventsCount: number }> = ({
       <Trophy className="w-3 h-3 text-gray-500" />
       {eventsCount} events
     </span>
-    <span className="flex items-center gap-1">
-      <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-      <span className="text-[11px] text-gray-500">Active</span>
-    </span>
+    {teammatchabsencescount && (
+      <span className="flex items-center gap-1">
+        {/* <span className="w-1.5 h-1.5 bg-green-500 rounded-full" /> */}
+        <span className="text-[11px] text-gray-500">Absense</span>
+        <span className="text-[11px] text-gray-500">{teammatchabsencescount}</span>
+      </span>
+    )}
   </div>
 );
 
@@ -164,7 +169,7 @@ const EventSelector: React.FC<{
   onOpenModal: () => void;
 }> = ({ selectedEvent, events, ldoIdUrl, onOpenModal }) => {
   const currentEventId = SessionStorageService.getItem(CURRENT_EVENT);
-  
+
   if (selectedEvent) {
     return (
       <button
@@ -320,7 +325,8 @@ const TeamNavigation: React.FC<ITeamNavigationProps> = ({
   team,
   events,
   ldoIdUrl,
-  totalPlayers
+  totalPlayers,
+  teammatchabsencescount
 }) => {
   const pathname = usePathname();
   const user = useUser();
@@ -387,6 +393,7 @@ const TeamNavigation: React.FC<ITeamNavigationProps> = ({
                 <TeamStats
                   totalPlayers={totalPlayers}
                   eventsCount={events?.length ?? 0}
+                  teammatchabsencescount={teammatchabsencescount}
                 />
               </div>
             </div>

@@ -3,10 +3,14 @@ import { InjectModel } from '@nestjs/mongoose';
 import { QueryFilter, Model, UpdateQuery } from 'mongoose';
 import { Team } from 'src/team/team.schema';
 import { CustomTeam } from './resolvers/team.response';
+import { MatchService } from 'src/match/match.service';
 
 @Injectable()
 export class TeamService {
-  constructor(@InjectModel(Team.name) private teamModel: Model<Team>) { }
+  constructor(
+    @InjectModel(Team.name) private teamModel: Model<Team>,
+    private readonly matchService: MatchService
+  ) { }
 
   async query(filter: QueryFilter<Team>) {
     return this.teamModel.find(filter).sort({ name: 1 });
@@ -97,6 +101,8 @@ export class TeamService {
     return this.teamModel.countDocuments();
   }
 
+
+  // Extras
   normalizeTeams(teams: CustomTeam[]): CustomTeam[] {
     const list: CustomTeam[] = [];
     for (const team of teams) {
@@ -113,5 +119,47 @@ export class TeamService {
       list.push(teamObj);
     }
     return list;
+  }
+
+  async teamsWithAbsense(teams: Team[]): Promise<CustomTeam[]> {
+    // 1. Create an array of promises to fetch counts concurrently using for...of
+    // We wrap the promise so it always returns the teamId alongside the count
+    const countPromises = [];
+    for (const team of teams) {
+      countPromises.push(
+        this.matchService
+          .teamMatchAbsenseCountDocuments({ team: team._id })
+          .then((count) => ({ teamId: String(team._id), count: count || 0 }))
+          .catch(() => ({ teamId: String(team._id), count: 0 })) // Safely default to 0 if one fails
+      );
+    }
+
+    // 2. Wait for all count queries to finish.
+    const resolvedCounts = await Promise.all(countPromises);
+
+    // 3. Create a Map hooking the count to the teamId
+    const absenceCountsMap = new Map<string, number>();
+    for (const resolved of resolvedCounts) {
+      absenceCountsMap.set(resolved.teamId, resolved.count);
+    }
+
+    // 4. Build the final teamList using a for...of loop
+    const teamList = [];
+    for (const team of teams) {
+      // Use toObject() if team is a Mongoose document, otherwise spread the plain object
+      // const teamObj = typeof team.toObject === 'function' ? team.toObject() : { ...team };
+      const teamIdStr = String(team._id);
+
+      teamList.push({
+        ...team,
+        // Look up the count by team ID, defaulting to 0 if not found in the map
+        teammatchabsencescount: absenceCountsMap.has(teamIdStr)
+          ? absenceCountsMap.get(teamIdStr)
+          : 0,
+      });
+    }
+
+
+    return teamList;
   }
 }

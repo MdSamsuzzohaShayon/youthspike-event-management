@@ -14,8 +14,8 @@ import {
 } from 'src/server-receiver-on-net/server-receiver-on-net.schema';
 import { MatchFields } from './resolvers/match.fields';
 import { MatchQueries } from './resolvers/match.queries';
-import { GetAccessCodeResponse, GetEventWithMatchesResponse, GetMatchesResponse, GetMatchResponse } from './resolvers/match.response';
-import { AccessCodeInput, CreateMatchInput, FilterQueryInput, SearchFilterInput, UpdateMatchInput } from './resolvers/match.input';
+import { GetAccessCodeResponse, GetEventWithMatchesResponse, GetMatchesResponse, GetMatchResponse, GetMultipleTeamMatchAbsenseResponse, GetTeamMatchAbsenseResponse } from './resolvers/match.response';
+import { AccessCodeInput, CreateMatchInput, CreateMultipleTeamMatchAbsenseInput, CreateTeamMatchAbsenseInput, FilterQueryInput, FilterTeamMatchAbsenseInput, SearchFilterInput, UpdateMatchInput } from './resolvers/match.input';
 import { MatchMutations } from './resolvers/match.mutations';
 
 @Resolver((_of) => Match)
@@ -66,6 +66,23 @@ export class MatchResolver {
     return this.matchMutations.deleteMatches(matchIds);
   }
 
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((_returns) => GetTeamMatchAbsenseResponse)
+  async createTeamMatchAbsense(@Args('input') input: CreateTeamMatchAbsenseInput): Promise<GetTeamMatchAbsenseResponse> {
+    return this.matchMutations.createTeamMatchAbsense(input);
+  }
+
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(UserRole.admin, UserRole.director)
+  @Mutation((_returns) => GetMultipleTeamMatchAbsenseResponse)
+  async createMultipleTeamMatchAbsense(
+    @Args('input') input: CreateMultipleTeamMatchAbsenseInput,
+  ): Promise<GetMultipleTeamMatchAbsenseResponse> {
+    return this.matchMutations.createMultipleTeamMatchAbsense(input);
+  }
+
   /**
    * QUERIES
    * ===============================================================================================
@@ -73,6 +90,13 @@ export class MatchResolver {
   @Query((_returns) => GetMatchesResponse)
   async getMatches(@Args('filter', { nullable: true }) filter?: FilterQueryInput) {
     return this.matchQueries.getMatches(filter)
+  }
+
+  @Query((_returns) => GetMultipleTeamMatchAbsenseResponse)
+  async searchTeamMatchAbsenses(
+    @Args('filter', { nullable: true }) filter: FilterTeamMatchAbsenseInput,
+  ): Promise<GetMultipleTeamMatchAbsenseResponse> {
+    return this.matchQueries.searchTeamMatchAbsenses(filter);
   }
 
   @Query((_returns) => GetEventWithMatchesResponse)

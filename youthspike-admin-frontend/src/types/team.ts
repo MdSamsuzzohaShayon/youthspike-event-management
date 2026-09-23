@@ -37,6 +37,7 @@ interface ITeamCommon{
   rankLock: boolean; // Not for add team
   division?: string | null;
   sendCredentials: boolean;
+  teammatchabsencescount?: number;
   num: number; // Not for add team
 }
 
@@ -68,17 +69,7 @@ export interface ITeamRelatives extends ITeamCommon{
 export type TAddTeam = Omit<ITeamRelatives, '_id' | 'num' | 'rankLock' | 'playerRankings' | 'createdAt' | 'updatedAt'>;
 export type TUpdateTeam = Omit<ITeamRelatives, '_id' | 'num' | 'rankLock' | 'playerRankings'>;
 
-export interface ITeamScore {
-  rank: number;
-  totalMatches: number;
-  groupMatches: number;
-  overallWins: number;
-  overallLoses: number;
-  groupWins: number;
-  groupLoses: number;
-  matchAvgDiff: number;
-  gameAvgDiff: number;
-}
+
 
 
 export interface IGetTeamsResponse extends IResponse {
@@ -94,6 +85,7 @@ interface ITeamRoster {
   rankings: IPlayerRankingItemExpRel[];
   playerRanking: IPlayerRankingExpRel;
   badges: IBadge[];
+  teammatchabsencescount?: number;
 }
 
 interface ITeamStats {

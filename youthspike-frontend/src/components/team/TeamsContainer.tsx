@@ -13,7 +13,6 @@ import {
   ITeam,
   IRoundRelatives,
   ISearchFilter,
-  ITeamCaptain,
   IGroup,
   INetRelatives,
   ISearchTeamResponse,
@@ -28,10 +27,6 @@ import FilterContent from "../event/FilterContent";
 import { SEARCH_TEAMS } from "@/graphql/team";
 import SearchTeamList from "./SearchTeamList";
 import ActiveFiltersBar from "../event/ActiveFiltersBar";
-import TabsNav from "../event/TabsNav";
-import { readDate } from "@/utils/datetime";
-import Link from "next/link";
-import EventWrapper from "../event/EventWrapper";
 import BadgeTable from "../badge/BadgeTable";
 import EventHeader from "../event/EventHeader";
 

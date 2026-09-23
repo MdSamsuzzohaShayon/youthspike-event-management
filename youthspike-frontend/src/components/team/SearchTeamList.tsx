@@ -1,11 +1,8 @@
 // components/team/SearchTeamList.tsx
-import { EPlayerStatType, ETeamStatType, IBadge, IMatch, IMatchExpRel, INetRelatives, IPlayer, IRoundRelatives, ITeam } from '@/types';
-import React, { useCallback, useMemo, useState } from 'react';
-import { motion } from 'motion/react';
+import { EPlayerStatType, ETeamStatType, IBadge, IMatchExpRel, INetRelatives, IRoundRelatives, ITeam } from '@/types';
+import { useCallback, useMemo, useState } from 'react';
 import { ITeamScore } from '@/types/team';
 import TeamRow from './TeamRow';
-import { tableVariant } from '@/utils/animation';
-import { calcScore } from '@/utils/scoreCalc';
 import { MATCH_WIN_POINTS } from '@/utils/constant';
 import {
   buildMatchesByTeam,
@@ -25,8 +22,6 @@ const DEFAULT_SORT_CONFIG: { key: ETeamStatType; direction: 'asc' | 'desc' } = {
   key: ETeamStatType.Team,
   direction: 'desc',
 };
-
-const TOnSortType = (key: EPlayerStatType | ETeamStatType): void => {};
 
 interface ITeamStandingsProps {
   nets?: INetRelatives[];
@@ -69,7 +64,7 @@ function TeamStandings({
       const teamMatches = matchesByTeam.get(team._id) ?? [];
       scores.set(
         team._id,
-        computeTeamScore(team._id, teamMatches, netsByMatch, roundsByMatch, selectedGroup)
+        computeTeamScore(team._id, teamMatches, netsByMatch, roundsByMatch, selectedGroup, team?.teammatchabsencescount)
       );
     });
 

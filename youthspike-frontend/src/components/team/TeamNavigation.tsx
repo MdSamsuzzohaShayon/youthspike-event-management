@@ -104,6 +104,13 @@ const TeamNavigation = ({ team, events, ldoIdUrl, totalPlayers, badge }: ITeamNa
             <div className="flex items-center gap-4 lg:gap-6">
               <div className="h-12 w-px bg-gradient-to-b from-transparent via-gray-700 to-transparent hidden lg:block" />
               <div className="flex gap-4 lg:gap-6">
+              <StatCard 
+                  label="Absense Matches" 
+                  value={team.teammatchabsencescount || 0} 
+                  icon={<Users className="w-4 h-4" />}
+                  trend="Match Absenses"
+                />
+               
                 <StatCard 
                   label="Roster Size" 
                   value={totalPlayers} 

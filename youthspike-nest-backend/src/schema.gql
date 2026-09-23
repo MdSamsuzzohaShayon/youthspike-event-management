@@ -251,6 +251,17 @@ type Match {
   teamBRanking: PlayerRanking
   group: Group
   playerstats: [PlayerStats!]
+  teammatchabsences: [TeamMatchAbsence!]
+}
+
+type TeamMatchAbsence {
+  _id: String
+  createdAt: String
+  updatedAt: String
+  team: Team!
+  match: Match
+  reason: String
+  notes: String
 }
 
 type Group {
@@ -395,6 +406,7 @@ type Team {
   playerRankings: [PlayerRanking!]
   groups: [Group!]!
   badge: Badge
+  teammatchabsences: [TeamMatchAbsence!]
   playerRanking: PlayerRanking
   rankings: [PlayerRankingItem!]!
   player: PlayerRankingItem!
@@ -559,9 +571,11 @@ type CustomTeam {
   playerRankings: [PlayerRanking!]
   groups: [String!]
   badge: String
+  teammatchabsences: [TeamMatchAbsence!]
   playerRanking: PlayerRanking
   rankings: [PlayerRankingItem!]!
   player: PlayerRankingItem!
+  teammatchabsencescount: Int
 }
 
 type CreateOrUpdateTeamResponse {
@@ -582,7 +596,7 @@ type GetTeamsResponse {
   code: Int!
   success: Boolean!
   message: String
-  data: [Team!]
+  data: [CustomTeam!]
 }
 
 type TeamWithStringPlayers {
@@ -605,6 +619,7 @@ type TeamWithStringPlayers {
   playerRankings: [PlayerRanking!]
   groups: [Group!]!
   badge: Badge
+  teammatchabsences: [TeamMatchAbsence!]
   playerRanking: PlayerRanking
   rankings: [PlayerRankingItem!]!
   player: PlayerRankingItem!
@@ -711,45 +726,6 @@ type CustomNet {
   teamBScore: Int
   pairRange: Int!
   streamUrl: String
-}
-
-type CustomMatch {
-  _id: String
-  createdAt: String
-  updatedAt: String
-  date: String!
-  division: String
-  numberOfNets: Int!
-  numberOfRounds: Int!
-  netVariance: Float
-  homeTeam: String
-  autoAssign: Boolean
-  includeStats: Boolean
-  autoAssignLogic: String
-  rosterLock: String
-  tieBreaking: String
-  timeout: Float
-  location: String
-  accessCode: String
-  description: String
-  fwango: String
-  streamUrl: String
-  completed: Boolean
-  extendedOvertime: Boolean
-  teamAP: Int
-  teamBP: Int
-  event: String!
-  nets: [String!]
-  serverReceiverOnNet: [ServerReceiverOnNet!]
-  serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
-  rounds: [String!]
-  teamA: String
-  teamB: String
-  room: Room
-  teamARanking: PlayerRanking
-  teamBRanking: PlayerRanking
-  group: String
-  playerstats: [PlayerStats!]
 }
 
 type CaptainPlayer {
@@ -924,6 +900,30 @@ type GetMatchResponse {
   data: Match
 }
 
+type CustomTeamMatchAbsense {
+  _id: String
+  createdAt: String
+  updatedAt: String
+  team: String!
+  match: String
+  reason: String
+  notes: String
+}
+
+type GetTeamMatchAbsenseResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: CustomTeamMatchAbsense
+}
+
+type GetMultipleTeamMatchAbsenseResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [CustomTeamMatchAbsense!]
+}
+
 type AccessCode {
   accessCode: String!
   match: String!
@@ -934,6 +934,46 @@ type GetAccessCodeResponse {
   success: Boolean!
   message: String
   data: AccessCode
+}
+
+type CustomMatch {
+  _id: String
+  createdAt: String
+  updatedAt: String
+  date: String!
+  division: String
+  numberOfNets: Int!
+  numberOfRounds: Int!
+  netVariance: Float
+  homeTeam: String
+  autoAssign: Boolean
+  includeStats: Boolean
+  autoAssignLogic: String
+  rosterLock: String
+  tieBreaking: String
+  timeout: Float
+  location: String
+  accessCode: String
+  description: String
+  fwango: String
+  streamUrl: String
+  completed: Boolean
+  extendedOvertime: Boolean
+  teamAP: Int
+  teamBP: Int
+  event: String!
+  nets: [String!]
+  serverReceiverOnNet: [ServerReceiverOnNet!]
+  serverReceiverSinglePlay: [ServerReceiverSinglePlay!]
+  rounds: [String!]
+  teamA: String
+  teamB: String
+  room: Room
+  teamARanking: PlayerRanking
+  teamBRanking: PlayerRanking
+  group: String
+  playerstats: [PlayerStats!]
+  teammatchabsences: [TeamMatchAbsence!]
 }
 
 type CustomGroup {
@@ -1614,6 +1654,7 @@ type Query {
   searchTeams(eventIds: [String!], filter: TeamSearchFilter): GetTeamSearchResponse!
   getTeamWithGroupsAndUnassignedPlayers(teamId: String!, ldoId: String): GetTeamWithGroupsAndUnAssignedPlayersResponse!
   getMatches(filter: FilterQueryInput): GetMatchesResponse!
+  searchTeamMatchAbsenses(filter: FilterTeamMatchAbsenseInput): GetMultipleTeamMatchAbsenseResponse!
   searchMatches(filter: SearchFilterInput, eventId: String): GetEventWithMatchesResponse!
   getEventWithMatches(eventId: String!): GetEventWithMatchesResponse!
   getMatch(matchId: String!): GetMatchResponse!
@@ -1670,6 +1711,13 @@ input FilterQueryInput {
   location: String
 }
 
+input FilterTeamMatchAbsenseInput {
+  team: String
+  match: String
+  limit: Int = 30
+  offset: Int = 0
+}
+
 input SearchFilterInput {
   search: String
   division: String
@@ -1718,6 +1766,8 @@ type Mutation {
   deleteMatch(matchId: String!): GetMatchResponse!
   accessCodeValidation(input: AccessCodeInput!): GetAccessCodeResponse!
   deleteMatches(matchIds: [String!]!): GetMatchResponse!
+  createTeamMatchAbsense(input: CreateTeamMatchAbsenseInput!): GetTeamMatchAbsenseResponse!
+  createMultipleTeamMatchAbsense(input: CreateMultipleTeamMatchAbsenseInput!): GetMultipleTeamMatchAbsenseResponse!
   updateRound(updateInput: UpdateRoundInput!): CreateOrUpdateRoundResponse!
   updateNet(input: UpdateNetInput!, netId: String!): GetNetResponse!
   updateNets(input: [UpdateMultipleNetInput!]!): GetNetsResponse!
@@ -1869,6 +1919,20 @@ input UpdateMatchInput {
 input AccessCodeInput {
   accessCode: String!
   matchId: String!
+}
+
+input CreateTeamMatchAbsenseInput {
+  team: String!
+  match: String
+  reason: String
+  notes: String
+}
+
+input CreateMultipleTeamMatchAbsenseInput {
+  team: String!
+  count: Int!
+  reason: String
+  notes: String
 }
 
 input UpdateRoundInput {

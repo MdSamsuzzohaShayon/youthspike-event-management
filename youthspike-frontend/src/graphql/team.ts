@@ -218,6 +218,7 @@ query GetTeamRoster($teamId: String!) {
         badge
         logo
         sendCredentials
+        teammatchabsencescount
       }
       playerRanking {
         _id
@@ -316,6 +317,7 @@ query SearchTeams($eventIds: [String!], $filter: TeamSearchFilter) {
         num
         matches
         division
+        teammatchabsencescount
       }
       badges{
         _id

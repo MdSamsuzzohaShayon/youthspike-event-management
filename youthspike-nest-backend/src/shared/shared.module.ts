@@ -5,7 +5,7 @@ import { JwtModule, JwtService } from '@nestjs/jwt';
 import { MongooseModule, SchemaFactory } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { Event, EventSchemaFactory } from 'src/event/event.schema';
-import { Match, MatchSchemaFactory } from 'src/match/match.schema';
+import { Match, MatchSchemaFactory, TeamMatchAbsence, TeamMatchAbsenceSchemaFactory } from 'src/match/match.schema';
 import { Net, NetSchemaFactory } from 'src/net/net.schema';
 import { Round, RoundSchemaFactory } from 'src/round/round.schema';
 import { Team, TeamSchemaFactory } from 'src/team/team.schema';
@@ -129,6 +129,10 @@ import { Badge, BadgeSchemaFactory } from 'src/badge/badge.schema';
       {
         name: Match.name,
         useFactory: MatchSchemaFactory,
+      },
+      {
+        name: TeamMatchAbsence.name,
+        useFactory: TeamMatchAbsenceSchemaFactory,
       },
       {
         name: Round.name,
