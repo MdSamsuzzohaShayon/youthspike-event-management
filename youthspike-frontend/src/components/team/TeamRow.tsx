@@ -35,18 +35,45 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
   );
 
 
-  const teamGroupPoints = useMemo(
-    () => {
-      if (!teamScores || !selectedGroup) return 0;
+  const teamGroupPoints = useMemo(() => {
+    if (!teamScores || !selectedGroup) return 0;
+  
+    const groupDraws = Math.max(
+      0,
+      teamScores.groupMatches -
+        teamScores.groupWins -
+        teamScores.groupLoses
+    );
+  
+    const groupPoints =
+      teamScores.groupWins * MATCH_WIN_POINTS + groupDraws;
+  
+    const totalMatches =
+      teamScores.groupMatches + teamScores.teammatchabsencescount;
+  
+    const points = groupPoints / totalMatches;
+  
+    return Number.isNaN(points) ? 0 : points.toFixed(2);
+  }, [selectedGroup, teamScores]);
 
-      const groupDraws = Math.max(0, teamScores.groupMatches - teamScores.groupWins - teamScores.groupLoses);
+  const totalGroupPoints = useMemo(() => {
+    if (!teamScores || !selectedGroup) return 0;
+  
+    const groupDraws = Math.max(
+      0,
+      teamScores.groupMatches -
+        teamScores.groupWins -
+        teamScores.groupLoses
+    );
+  
+    const groupPoints =
+      teamScores.groupWins * MATCH_WIN_POINTS + groupDraws;
+  
+  
+    return groupPoints;
+  }, [selectedGroup, teamScores]);
 
-      const groupPoints = teamScores.groupWins * MATCH_WIN_POINTS + groupDraws;
 
-      return (groupPoints / (teamScores.groupMatches + teamScores.teammatchabsencescount)).toFixed(2);
-    },
-    [selectedGroup, teamScores]
-  );
 
 
   return (
@@ -121,12 +148,23 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
 
 
 
+      {/* Total Group Points */}
+      {selectedGroup && (
+        <td className="py-3 px-4 text-center whitespace-nowrap">
+          <div className="flex flex-col">
+            <span className="font-bold text-xl">
+              {hasScores ? totalGroupPoints: '0'}
+            </span>
+          </div>
+        </td>
+      )}
+
       {/* Group Matches */}
       {selectedGroup && (
         <td className="py-3 px-4 text-center whitespace-nowrap">
           <div className="flex flex-col">
             <span className="font-bold text-xl">
-              {hasScores ? teamScores.groupMatches : '0'}
+              {hasScores ? teamScores.groupMatches + teamScores.teammatchabsencescount : '0'}
             </span>
           </div>
         </td>

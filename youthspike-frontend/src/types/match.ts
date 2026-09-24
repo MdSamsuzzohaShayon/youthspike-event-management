@@ -170,3 +170,16 @@ export interface IUpdateMatchResponse {
     message: string;
   };
 }
+
+
+export interface IMatchSettingDetail{
+  date: string;
+  description: string | undefined;
+  location: string | undefined;
+  netVariance: number | undefined;
+  numberOfNets: number | undefined;
+  numberOfRounds: number | undefined;
+  tieBreaking: string | undefined;
+  teamAP: number;
+  teamBP: number;
+}
