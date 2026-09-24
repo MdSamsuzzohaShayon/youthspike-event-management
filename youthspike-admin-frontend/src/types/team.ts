@@ -10,20 +10,12 @@ import {
   IMatchExpRel,
   INetRelatives,
   IPlayer,
-  IPlayerExpRel,
-  IPlayerRanking,
-  IPlayerRankingExpRel,
-  IPlayerRankingItem,
-  IPlayerRankingItemExpRel,
-  IPlayerStats,
-  IResponse,
-  IRoundRelatives,
-  TMutationFunction,
-  IMatchRelatives,
+  IPlayerExpRel, IPlayerRankingExpRel, IPlayerRankingItemExpRel, IResponse,
+  IRoundRelatives, IMatchRelatives,
   IEmailcontent,
-  IBadge,
+  IBadge
 } from '.';
-// @ts-ignore
+
 import { ApolloCache } from '@apollo/client';
 
 

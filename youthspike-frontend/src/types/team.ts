@@ -133,4 +133,5 @@ export enum ETeamStatType {
   GroupMatches = 'groupMatches',
   MatchAvgDiff = 'matchAvgDiff',
   GameAvgDiff = 'gameAvgDiff',
+  TotalGroupPoints = 'totalGroupPoints',
 }

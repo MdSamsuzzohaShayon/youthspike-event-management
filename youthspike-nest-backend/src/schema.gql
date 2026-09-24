@@ -1914,6 +1914,8 @@ input UpdateMatchInput {
   streamUrl: String
   currRound: String
   completed: Boolean
+  teamAScore: Int
+  teamBScore: Int
 }
 
 input AccessCodeInput {

@@ -149,6 +149,8 @@ export function compareTeams(
     if (!scoreA || !scoreB) return 0;
 
     if (selectedGroup) {
+        const scoreAGroupMatchesAbsense = scoreA.groupMatches + scoreA.teammatchabsencescount;
+        const scoreBGroupMatchesAbsense = scoreB.groupMatches + scoreB.teammatchabsencescount;
         const groupDrawsA = Math.max(
             0,
             scoreA.groupMatches - scoreA.groupWins - scoreA.groupLoses
@@ -167,15 +169,16 @@ export function compareTeams(
 
         // 1. Group points per match
         const groupPointsPerMatchA =
-            scoreA.groupMatches > 0
-                ? groupPointsA / scoreA.groupMatches
+        scoreAGroupMatchesAbsense > 0
+                ? groupPointsA / scoreAGroupMatchesAbsense
                 : 0;
 
         const groupPointsPerMatchB =
-            scoreB.groupMatches > 0
-                ? groupPointsB / scoreB.groupMatches
+            scoreBGroupMatchesAbsense > 0
+                ? groupPointsB / scoreBGroupMatchesAbsense
                 : 0;
 
+                
         if (groupPointsPerMatchA !== groupPointsPerMatchB) {
             return groupPointsPerMatchB - groupPointsPerMatchA;
         }

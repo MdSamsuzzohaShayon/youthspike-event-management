@@ -1,11 +1,10 @@
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import Image from 'next/image';
-import { EPlayerStatus, INetRelatives, IRoom } from '@/types';
+import { INetRelatives, IRoom } from '@/types';
 import { EActionProcess } from '@/types/room';
 import { ETeam, ITeam } from '@/types/team';
 import React, { useMemo } from 'react';
 import PointText from './PointText';
-import EmitEvents from '@/utils/socket/EmitEvents';
 import { useSocket } from '@/lib/SocketProvider';
 import { useUser } from '@/lib/UserProvider';
 import submitLineup from '@/utils/match/submitLineup';

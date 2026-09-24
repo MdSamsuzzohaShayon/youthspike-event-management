@@ -401,6 +401,10 @@ export class MatchMutations {
       const currRoundId = input?.currRound;
       delete input?.currRound;
 
+      // Temp
+      delete input?.teamAScore;
+      delete input?.teamBScore;
+
       // Update incompleted rounds → completed
       if (!matchExist.completed && input.completed) {
         const [roundListDocs, allNetsDocs] = await Promise.all([

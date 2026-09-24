@@ -204,6 +204,8 @@ function TeamStandings({
                     Team
                   </th>
 
+
+
                   {selectedGroup && (
                     <SortableHeader
                       label="GP Points/Match"
@@ -228,6 +230,15 @@ function TeamStandings({
                     currentSort={currentSort}
                     onSort={(key: ETeamStatType | EPlayerStatType) => handleSort(key as ETeamStatType)}
                   />
+
+                  {selectedGroup && (
+                    <SortableHeader
+                      label="Total Points"
+                      sortKey={ETeamStatType.TotalGroupPoints}
+                      currentSort={currentSort}
+                      onSort={(key: ETeamStatType | EPlayerStatType) => handleSort(key as ETeamStatType)}
+                    />
+                  )}
 
                   {selectedGroup && (
                     <SortableHeader
