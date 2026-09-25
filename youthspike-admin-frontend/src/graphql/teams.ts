@@ -365,13 +365,8 @@ query GetTeams ($eventIds: [String!], $limit: Float, $offset: Float) {
       name
       division
       teammatchabsencescount
-      players{
-        _id
-      }
-      groups {
-        _id
-        name
-      }
+      players
+      groups
     }
   }
 }

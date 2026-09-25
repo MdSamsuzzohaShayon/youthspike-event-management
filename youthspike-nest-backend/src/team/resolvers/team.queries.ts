@@ -75,7 +75,7 @@ export class TeamQueries {
         code: HttpStatus.OK,
         success: true,
         message: 'List of teams!',
-        data: teamList as CustomTeam[],
+        data: teamList.map((t)=> ({...t, groups: (t.groups?.filter((g)=> g)) || []})) as CustomTeam[],
       };
     } catch (error) {
       return AppResponse.handleError(error);

@@ -476,7 +476,6 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
   // Memoization
   const badgeMap = useMemo(()=>createBadgeMap(badges), [badges]);
   const playerBadges = useMemo(()=>{return badges.filter((badge)=> badge.badgeFor && badge.badgeFor === EBadgeFor.PLAYER)}, [badges]);
-  console.log({badges});
   
 
 
