@@ -10,7 +10,6 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import Loader from "../elements/Loader";
 import { setMessage } from "@/redux/slices/elementSlice";
 import { useSocket } from "@/lib/SocketProvider";
-import { calcScore } from "@/utils/scoreCalc";
 import {
   setMatchScore,
   setRoundMap,
@@ -18,6 +17,7 @@ import {
 import useMatchSocket from "@/hooks/match/useMatchSocket";
 import useNetMaps from "@/hooks/score-keeping/useNetMaps";
 import CaptainMatchView from "./CaptainMatchView/CaptainMatchView";
+import scoreCalc from "@/utils/scoreCalc";
 
 interface IMatchContainerProps {
   queryRef: QueryRef<{ getMatch: { data: IMatchExpRel } }>;
@@ -128,7 +128,7 @@ export function MatchContainer({ queryRef }: IMatchContainerProps) {
   }, [match, organizeData]);
 
   useEffect(() => {
-    const { matchScore, roundMap } = calcScore(allNets, roundList);
+    const { matchScore, roundMap } = scoreCalc(match, allNets, roundList);
     
     dispatch(setMatchScore(matchScore));
     dispatch(setRoundMap(roundMap));

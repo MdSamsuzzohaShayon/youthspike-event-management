@@ -83,10 +83,10 @@ const initialState: MatchesState = {
 
 
   matchScore: {
-    teamAMPlusMinus: 0,
-    teamAMScore: 0,
-    teamBMPlusMinus: 0,
-    teamBMScore: 0,
+    teamAPlusMinus: 0,
+    teamAScore: 0,
+    teamBPlusMinus: 0,
+    teamBScore: 0,
   },
   roundMap: {},
 };
@@ -159,7 +159,7 @@ export const matchesSlice = createSlice({
 
 
 
-    //   matchScore: {teamAMPlusMinus: 0, teamAMScore: 0, teamBMPlusMinus: 0, teamBMScore: 0},
+    //   matchScore: {teamAMPlusMinus: 0, teamAScore: 0, teamBMPlusMinus: 0, teamBMScore: 0},
     // roundMap: {},
     setMatchScore: (state, action: PayloadAction<IMatchScore>) => {
       state.matchScore = action.payload;

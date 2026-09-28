@@ -424,8 +424,8 @@ export class MatchMutations {
         const sortedRounds = roundListDocs.sort((a, b) => a.num - b.num);
 
         // Separate completed vs incomplete rounds
-        const completedRounds: any[] = [];
-        const incompleteRounds: any[] = [];
+        const completedRounds: typeof roundListDocs = [];
+        const incompleteRounds: typeof roundListDocs = [];
         for (const round of sortedRounds) {
           if (round.completed) completedRounds.push(round);
           else incompleteRounds.push(round);
@@ -452,6 +452,9 @@ export class MatchMutations {
         // Prepare all update promises (O(n))
         const roundUpdatePromises: Promise<any>[] = [];
         for (const inRound of incompleteRounds) {
+          if(input.teamBFScore && input.teamAFScore){
+            continue;
+          }
           const nets = netsByRound.get(String(inRound._id)) || [];
           const roundTeamAScore = netTeamAScore * nets.length;
           const roundTeamBScore = netTeamBScore * nets.length;

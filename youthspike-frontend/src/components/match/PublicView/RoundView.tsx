@@ -140,14 +140,14 @@ const RoundView = ({
           teamId={teamA?._id || ""}
           name={teamA?.name || ""}
           teamLogo={teamA?.logo || null}
-          score={matchScore.teamAMScore}
+          score={matchScore.teamAScore}
           penalty={match?.teamAP || 0}
         />
         <ScoreBox
           teamId={teamB?._id || ""}
           name={teamB?.name || ""}
           teamLogo={teamB?.logo || null}
-          score={matchScore.teamBMScore}
+          score={matchScore.teamBScore}
           penalty={match?.teamBP || 0}
         />
       </div>
@@ -197,7 +197,7 @@ const RoundView = ({
             teamId={teamA?._id || ""}
             name={teamA?.name || ""}
             teamLogo={teamA?.logo || null}
-            score={matchScore.teamAMScore}
+            score={matchScore.teamAScore}
             penalty={match?.teamAP || 0}
           />
         </div>
@@ -222,7 +222,7 @@ const RoundView = ({
             teamId={teamB?._id || ""}
             name={teamB?.name || ""}
             teamLogo={teamB?.logo || null}
-            score={matchScore.teamBMScore}
+            score={matchScore.teamBScore}
             penalty={match?.teamBP || 0}
           />
         </div>

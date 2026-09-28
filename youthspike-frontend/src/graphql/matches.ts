@@ -82,6 +82,8 @@ query GetMatch($matchId: String!) {
       extendedOvertime
       teamAP
       teamBP
+      teamAFScore
+      teamBFScore
       serverReceiverSinglePlay {
         _id
         matchId
@@ -211,6 +213,8 @@ query SearchMatches($eventId: String!, $filter: SearchFilterInput) {
         description
         completed
         autoAssign
+        teamAFScore
+        teamBFScore
       }
       nets {
         _id

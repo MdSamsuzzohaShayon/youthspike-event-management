@@ -72,7 +72,7 @@ function RoundRunner({
       isFinalRound &&
       currentRound?.completed &&
       match.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND &&
-      matchScore.teamAMScore === matchScore.teamBMScore
+      matchScore.teamAScore === matchScore.teamBScore
     ) {
       return (
         <AskOvertimeScore

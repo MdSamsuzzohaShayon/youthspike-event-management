@@ -16,9 +16,11 @@ interface IForfeitMatchProps {
 function ForfeitMatch({ match, currRound }: IForfeitMatchProps) {
     const user = useUser();
     const dispatch = useAppDispatch();
-    const [showForm, setShowForm] = useState(false);
-    const [teamAScore, setTeamAScore] = useState("");
-    const [teamBScore, setTeamBScore] = useState("");
+
+    // Local state
+    const [showForm, setShowForm] = useState<boolean>(false);
+    const [teamAFScore, setTeamAFScore] = useState<string>("");
+    const [teamBFScore, setTeamBFScore] = useState<string>("");
 
     const [mutateMatch, { loading }] = useMutation<IUpdateMatchResponse>(UPDATE_MATCH);
 
@@ -44,8 +46,8 @@ function ForfeitMatch({ match, currRound }: IForfeitMatchProps) {
     const handleCancel = (e: React.SyntheticEvent) => {
         e.preventDefault();
         setShowForm(false);
-        setTeamAScore("");
-        setTeamBScore("");
+        setTeamAFScore("");
+        setTeamBFScore("");
     };
 
     const handleForfeit = async (e: React.SyntheticEvent) => {
@@ -58,8 +60,8 @@ function ForfeitMatch({ match, currRound }: IForfeitMatchProps) {
             const completed = true;
             const input: Record<string, any> = {
                 completed,
-                teamAScore: Number(teamAScore),
-                teamBScore: Number(teamBScore),
+                teamAFScore: Number(teamAFScore),
+                teamBFScore: Number(teamBFScore),
             };
             if (!completed) {
                 input.currRound = currRoundId;
@@ -142,40 +144,40 @@ function ForfeitMatch({ match, currRound }: IForfeitMatchProps) {
                 </div>
 
                 {/* Form */}
-                <form onSubmit={handleForfeit} className="space-y-4">
+                <form onSubmit={handleForfeit} className="w-full">
                     {/* Score Inputs */}
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <div className="w-full flex justify-between items-center gap-x-2">
                         {/* Team A Score */}
-                        <div className="space-y-1.5">
+                        <div className="w-full">
                             <InputField
-                                name="teamAScore"
+                                name="teamAFScore"
                                 type="number"
                                 label={teamA?.name || ''}
-                                value={teamAScore || ''}
+                                value={teamAFScore || ''}
                                 handleInputChange={(e: React.SyntheticEvent) => {
-                                    setTeamAScore((e.target as HTMLInputElement).value);
+                                    setTeamAFScore((e.target as HTMLInputElement).value);
                                 }}
-                                className="w-full md:w-2/6"
+                                className="w-full"
                             />
                         </div>
 
                         {/* Team B Score */}
-                        <div className="space-y-1.5">
+                        <div className="w-full">
                             <InputField
-                                name="teamBScore"
+                                name="teamBFScore"
                                 type="number"
                                 label={`${teamB?.name || ''}`}
-                                value={teamBScore || ''}
+                                value={teamBFScore || ''}
                                 handleInputChange={(e: React.SyntheticEvent) => {
-                                    setTeamBScore((e.target as HTMLInputElement).value);
+                                    setTeamBFScore((e.target as HTMLInputElement).value);
                                 }}
-                                className="w-full md:w-2/6"
+                                className="w-full"
                             />
                         </div>
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-3 pt-1">
+                    <div className="w-full flex justify-start items-center gap-x-2 mt-2">
                         <button
                             type="submit"
                             disabled={loading}

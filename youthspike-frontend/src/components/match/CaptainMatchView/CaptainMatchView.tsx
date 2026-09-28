@@ -287,9 +287,9 @@ function CaptainMatchView({
   }, [mainRef]);
 
   const myScore =
-    myTeamE === ETeam.teamA ? matchScore.teamAMScore : matchScore.teamBMScore;
+    myTeamE === ETeam.teamA ? matchScore.teamAScore : matchScore.teamBScore;
   const opponentScore =
-    myTeamE === ETeam.teamB ? matchScore.teamAMScore : matchScore.teamBMScore;
+    myTeamE === ETeam.teamB ? matchScore.teamAScore : matchScore.teamBScore;
   const isOpponentLeading = myScore < opponentScore && currMatch.completed;
   const opponentTeamE = getOpponentTeamE(myTeamE);
 

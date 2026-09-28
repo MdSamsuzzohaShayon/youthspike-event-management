@@ -286,6 +286,8 @@ query SearchTeams($eventIds: [String!], $filter: TeamSearchFilter) {
         teamB
         teamAP
         teamBP
+        teamAFScore
+        teamBFScore
       }
       nets {
         _id
@@ -378,6 +380,8 @@ query GetTeamMatches($teamId: String!, $eventIds: [String!]){
         teamB
         teamAP
         teamBP
+        teamAFScore
+        teamBFScore
         tieBreaking
         timeout
         group

@@ -3,253 +3,196 @@ import {
   IMatchExpRel,
   IMatchScore,
   INetRelatives,
-  IPlayer,
-  IPlayerRecord,
   IRoundRelatives,
   IRoundScore,
-  ITeam,
 } from "@/types";
 
 /**
- * Calculate match score and plus-minus for a specific team in a round.
+ * Result type for calcScore — explicit instead of inline anonymous object.
  */
-const calcScore = (
-  nets: INetRelatives[],
-  rounds: IRoundRelatives[]
-): { roundMap: Record<string, IRoundScore>; matchScore: IMatchScore } => {
-  // Serialized round scores (no Map)
-  const roundMap: Record<string, IRoundScore> = {};
-
-  let teamAMScore = 0;
-  let teamBMScore = 0;
-  let teamAMPlusMinus = 0;
-  let teamBMPlusMinus = 0;
-
-  // Group nets by round
-  const netsByRound: Record<string, INetRelatives[]> = {};
-
-  for (const net of nets) {
-    const roundId = net.round;
-    if (!netsByRound[roundId]) {
-      netsByRound[roundId] = [];
-    }
-    netsByRound[roundId].push(net);
-  }
-
-  // Calculate scores
-  for (const round of rounds) {
-    const nets = netsByRound[round._id];
-    if (!nets) continue;
-
-    let teamARScore = 0;
-    let teamBRScore = 0;
-
-    let teamATotal = 0;
-    let teamBTotal = 0;
-
-    for (const net of nets) {
-      const a = net.teamAScore ?? 0;
-      const b = net.teamBScore ?? 0;
-
-      if (a > b) teamARScore += net.points;
-      else if (b > a) teamBRScore += net.points;
-
-      teamATotal += a;
-      teamBTotal += b;
-    }
-
-    const diff = teamATotal - teamBTotal;
-    
-
-    const teamARPlusMinus = diff;
-    const teamBRPlusMinus = -diff;
-
-    roundMap[round._id] = {
-      teamARScore,
-      teamBRScore,
-      teamARPlusMinus,
-      teamBRPlusMinus,
-    };
-
-    teamAMScore += teamARScore;
-    teamBMScore += teamBRScore;
-    teamAMPlusMinus += diff ;
-    teamBMPlusMinus += (-diff);
-  }
-
-  // Final serialized match score
-  const matchScore: {
-    roundMap: Record<string, IRoundScore>;
-    matchScore: IMatchScore;
-  } = {
-    roundMap,
-    matchScore: {
-      teamAMScore,
-      teamBMScore,
-      teamAMPlusMinus,
-      teamBMPlusMinus,
-    },
-  };
-  return matchScore;
-};
-
-
-
-/**
- * Calculate the combined score of two players.
- */
-function calcPairScore(
-  playerA: number | null | undefined,
-  playerB: number | null | undefined
-): number {
-  return (playerA || 0) + (playerB || 0);
+interface ICalcScoreResult {
+  roundMap: Record<string, IRoundScore>;
+  matchScore: IMatchScore;
 }
 
 /**
- * Utility to calculate player stats.
+ * Default zero-score result, used as a safe fallback.
  */
-const calculatePlayerRecords = (
-  playerList: IPlayer[],
-  matchList: IMatchExpRel[],
-  teamMap?: Map<string, ITeam>,
-  rankingMap?: Map<string, number>
-): IPlayerRecord[] => {
-  // Filter out invalid players first
-  const validPlayers = playerList.filter(
-    (player) =>
-      player &&
-      player._id &&
-      typeof player._id === "string" &&
-      player.firstName !== undefined
-  );
+const createEmptyScoreResult = (): ICalcScoreResult => ({
+  roundMap: {},
+  matchScore: {
+    teamAScore: 0,
+    teamBScore: 0,
+    teamAPlusMinus: 0,
+    teamBPlusMinus: 0,
+  },
+});
 
-  if (validPlayers.length === 0) return [];
+/**
+ * Determines whether the match has pre-finalized scores (e.g. manually set).
+ * Uses explicit null-check so a legitimate score of 0 is still considered finalized.
+ */
+const isMatchFinalized = (match: IMatchExpRel): boolean =>
+  match?.teamAFScore != null && match?.teamBFScore != null;
 
-  // Precompute match lookups to reduce redundant iterations
-  const matchLookup = new Map<string, IMatchExpRel[]>();
-  matchList.forEach((match) => {
-    if (!match) return;
+/**
+ * Builds a match-score result from finalized (manually entered) scores.
+ */
+const buildFinalizedScoreResult = (match: IMatchExpRel): ICalcScoreResult => {
+  const teamAScore: number = match.teamAFScore ?? 0;
+  const teamBScore: number = match.teamBFScore ?? 0;
+  const scoreDifference: number = teamAScore - teamBScore;
 
-    const teamAId = match?.teamA?._id;
-    const teamBId = match?.teamB?._id;
-
-    if (teamAId) {
-      if (!matchLookup.has(teamAId)) matchLookup.set(teamAId, []);
-      matchLookup.get(teamAId)!.push(match);
-    }
-
-    if (teamBId) {
-      if (!matchLookup.has(teamBId)) matchLookup.set(teamBId, []);
-      matchLookup.get(teamBId)!.push(match);
-    }
-  });
-
-  return validPlayers.map((player) => {
-    let myScore = 0;
-    let opScore = 0;
-    let numOfGames = 0;
-    let wins = 0;
-    let losses = 0;
-    let running = 0;
-
-    const rank = rankingMap?.get(player._id) ?? null;
-
-    // Safely get team IDs with null checking
-    const playerTeamIds: string[] = [];
-    if (player.teams && Array.isArray(player.teams)) {
-      player.teams.forEach((team) => {
-        if (typeof team === "string" && team) {
-          playerTeamIds.push(team);
-        } else if (team && typeof team === "object" && team._id) {
-          playerTeamIds.push(team._id);
-        }
-      });
-    }
-
-    // Get relevant matches with null checking
-    const relevantMatches: IMatchExpRel[] = [];
-    playerTeamIds.forEach((teamId) => {
-      const matches = matchLookup.get(teamId);
-      if (matches && Array.isArray(matches)) {
-        const team = teamMap ? teamMap.get(teamId) : null;
-        if (!team) {
-          relevantMatches.push(
-            ...matches.filter((match) => match !== undefined)
-          );
-        } else {
-          if (team?.group) {
-            relevantMatches.push(
-              ...matches.filter(
-                (match) => match !== undefined && match.group === team.group
-              )
-            );
-          }
-        }
-      }
-    });
-
-    relevantMatches.forEach((match) => {
-      if (!match) return;
-
-      const isTeamA = playerTeamIds.includes(match?.teamA?._id);
-      const isTeamB = playerTeamIds.includes(match?.teamB?._id);
-
-      if (!isTeamA && !isTeamB) return; // Skip if the player is not in the match
-
-      if (!match.completed) {
-        running += 1;
-        return;
-      }
-
-      if (!match.nets || !Array.isArray(match.nets)) return;
-
-      match.nets.forEach((net) => {
-        if (!net) return;
-
-        const isPlayerInNet = [
-          net.teamAPlayerA,
-          net.teamAPlayerB,
-          net.teamBPlayerA,
-          net.teamBPlayerB,
-        ].includes(player._id);
-
-        if (!isPlayerInNet) return;
-
-        const teamAScore = net.teamAScore ?? 0;
-        const teamBScore = net.teamBScore ?? 0;
-
-        if (isTeamA) {
-          myScore += teamAScore;
-          opScore += teamBScore;
-          wins += teamAScore > teamBScore ? 1 : 0;
-          losses += teamAScore < teamBScore ? 1 : 0;
-        } else if (isTeamB) {
-          myScore += teamBScore;
-          opScore += teamAScore;
-          wins += teamBScore > teamAScore ? 1 : 0;
-          losses += teamBScore < teamAScore ? 1 : 0;
-        }
-        numOfGames += 1;
-      });
-    });
-
-    const averagePointsDiff =
-      numOfGames > 0 ? (myScore - opScore) / numOfGames : 0;
-
-    return {
-      ...player,
-      numOfGame: numOfGames,
-      running,
-      losses,
-      wins,
-      averagePointsDiff,
-      rank,
-    };
-  });
+  return {
+    roundMap: {},
+    matchScore: {
+      teamAScore,
+      teamBScore,
+      teamAPlusMinus: scoreDifference,
+      teamBPlusMinus: -scoreDifference,
+    },
+  };
 };
 
-export {
-  calcPairScore,
-  calculatePlayerRecords,
-  calcScore
+/**
+ * Groups a flat list of nets by their `round` id for O(n) lookup during iteration.
+ */
+const groupNetsByRoundId = (
+  nets: INetRelatives[]
+): Record<string, INetRelatives[]> => {
+  const netsByRoundId: Record<string, INetRelatives[]> = {};
+
+  for (const net of nets) {
+    if (!net || !net.round) continue;
+
+    const roundId: string = net.round;
+    if (!netsByRoundId[roundId]) {
+      netsByRoundId[roundId] = [];
+    }
+    netsByRoundId[roundId].push(net);
+  }
+
+  return netsByRoundId;
 };
+
+/**
+ * Pure helper: computes aggregate score and plus-minus for a single round's nets.
+ */
+const computeRoundScore = (roundNets: INetRelatives[]): IRoundScore => {
+  let teamARoundScore = 0;
+  let teamBRoundScore = 0;
+  let teamATotalPoints = 0;
+  let teamBTotalPoints = 0;
+
+  for (const net of roundNets) {
+    if (!net) continue;
+
+    const teamAScore: number = net.teamAScore ?? 0;
+    const teamBScore: number = net.teamBScore ?? 0;
+    const netPoints: number = net.points ?? 0;
+
+    if (teamAScore > teamBScore) {
+      teamARoundScore += netPoints;
+    } else if (teamBScore > teamAScore) {
+      teamBRoundScore += netPoints;
+    }
+
+    teamATotalPoints += teamAScore;
+    teamBTotalPoints += teamBScore;
+  }
+
+  const totalDifference: number = teamATotalPoints - teamBTotalPoints;
+
+  return {
+    teamARScore: teamARoundScore,
+    teamBRScore: teamBRoundScore,
+    teamARPlusMinus: totalDifference,
+    teamBRPlusMinus: -totalDifference,
+  };
+};
+
+/**
+ * Aggregates round scores into a full match score, including any match-level
+ * bonus points (teamAP / teamBP).
+ */
+const buildScoreResultFromRounds = (
+  match: IMatchExpRel,
+  nets: INetRelatives[],
+  rounds: IRoundRelatives[]
+): ICalcScoreResult => {
+  const roundMap: Record<string, IRoundScore> = {};
+  const netsByRoundId = groupNetsByRoundId(nets);
+
+  let teamAScoreTotal = 0;
+  let teamBScoreTotal = 0;
+  let teamAPlusMinusTotal = 0;
+  let teamBPlusMinusTotal = 0;
+
+  for (const round of rounds) {
+    if (!round || !round._id) continue;
+
+    const roundId: string = round._id;
+    const roundNets: INetRelatives[] | undefined = netsByRoundId[roundId];
+
+    if (!roundNets || roundNets.length === 0) continue;
+
+    const roundScore: IRoundScore = computeRoundScore(roundNets);
+
+    roundMap[roundId] = roundScore;
+
+    teamAScoreTotal += roundScore.teamARScore;
+    teamBScoreTotal += roundScore.teamBRScore;
+    teamAPlusMinusTotal += roundScore.teamARPlusMinus;
+    teamBPlusMinusTotal += roundScore.teamBRPlusMinus;
+  }
+
+  // Apply match-level bonus points (teamAP / teamBP) — separate concerns clearly.
+  const teamABonusPoints: number = match?.teamAP ?? 0;
+  const teamBBonusPoints: number = match?.teamBP ?? 0;
+  teamAScoreTotal += teamABonusPoints;
+  teamBScoreTotal += teamBBonusPoints;
+
+  return {
+    roundMap,
+    matchScore: {
+      teamAScore: teamAScoreTotal,
+      teamBScore: teamBScoreTotal,
+      teamAPlusMinus: teamAPlusMinusTotal,
+      teamBPlusMinus: teamBPlusMinusTotal,
+    },
+  };
+};
+
+/**
+ * Calculate match score and plus-minus for a specific team across rounds.
+ *
+ * Strategy:
+ *  - If the match has finalized scores (teamAFScore/teamBFScore), use them directly.
+ *  - Otherwise, aggregate per-round scores from individual net results.
+ *  - Bonus points (teamAP/teamBP) are only applied in the aggregated path,
+ *    matching the original business logic.
+ */
+const scoreCalc = (
+  match: IMatchExpRel,
+  nets: INetRelatives[],
+  rounds: IRoundRelatives[]
+): ICalcScoreResult => {
+  // Defensive: guard against a missing match object entirely.
+  if (!match) {
+    return createEmptyScoreResult();
+  }
+
+  // Defensive: ensure arrays exist to avoid runtime errors downstream.
+  const safeNets: INetRelatives[] = Array.isArray(nets) ? nets : [];
+  const safeRounds: IRoundRelatives[] = Array.isArray(rounds) ? rounds : [];
+
+  if (isMatchFinalized(match)) {
+    return buildFinalizedScoreResult(match);
+  }
+
+  return buildScoreResultFromRounds(match, safeNets, safeRounds);
+};
+
+export default scoreCalc;
+
+

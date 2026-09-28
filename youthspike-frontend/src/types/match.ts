@@ -45,6 +45,10 @@ export interface IDefaultMatch {
   tieBreaking: ETieBreakingStrategy;
   fwango?: string | null;
   streamUrl?: string | null;
+
+  // Forefeit score
+  teamAFScore?: number;
+  teamBFScore?: number;
 }
 
 export interface IDefaultMatchProps extends IDefaultMatch {
@@ -110,10 +114,10 @@ export interface IRoundScore {
 }
 
 export interface IMatchScore {
-  teamAMScore: number;
-  teamBMScore: number;
-  teamAMPlusMinus: number;
-  teamBMPlusMinus: number;
+  teamAScore: number;
+  teamBScore: number;
+  teamAPlusMinus: number;
+  teamBPlusMinus: number;
 }
 
 interface ISearchMatchData {
