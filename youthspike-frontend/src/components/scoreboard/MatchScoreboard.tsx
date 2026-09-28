@@ -13,7 +13,6 @@ import { useAppDispatch, useAppSelector } from "@/redux/hooks";
 import Loader from "../elements/Loader";
 import { setMessage } from "@/redux/slices/elementSlice";
 import { useSocket } from "@/lib/SocketProvider";
-import { calcScore } from "@/utils/scoreCalc";
 import { setMatchScore, setRoundMap } from "@/redux/slices/matchesSlice";
 import useMatchSocket from "@/hooks/match/useMatchSocket";
 import useNetMaps from "@/hooks/score-keeping/useNetMaps";
@@ -23,6 +22,7 @@ import QRCode from "../elements/QRCode.tsx";
 import { FRONTEND_URL } from "@/utils/keys";
 import Image from "next/image";
 import Link from "next/link";
+import scoreCalc from "@/utils/scoreCalc";
 
 // ============================================================================
 // Types
@@ -443,10 +443,10 @@ export function MatchScoreBoard({ queryRef, matchId }: IMatchScoreBoardProps) {
 
   // Calculate and update scores
   useEffect(() => {
-    const { matchScore, roundMap } = calcScore(allNets, roundList);
+    const { matchScore, roundMap } = scoreCalc(match, allNets, roundList);
     dispatch(setMatchScore(matchScore));
     dispatch(setRoundMap(roundMap));
-  }, [allNets, roundList, dispatch]);
+  }, [match, allNets, roundList, dispatch]);
 
   // ============================================================================
   // Render Guards

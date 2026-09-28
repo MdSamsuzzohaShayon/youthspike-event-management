@@ -1,6 +1,6 @@
 import { IMatch, IMatchExpRel, INetRelatives, IRoundRelatives, ITeam, ITeamScore } from "@/types";
-import { calcScore } from "../scoreCalc";
 import { MATCH_WIN_POINTS } from "../constant";
+import scoreCalc from "../scoreCalc";
 
 
 export const EMPTY_TEAM_SCORE: ITeamScore = {
@@ -97,18 +97,18 @@ export function computeTeamScore(
         const matchNets = netsByMatch.get(match._id) ?? [];
         const matchRounds = roundsByMatch.get(match._id) ?? [];
 
-        const { matchScore } = calcScore(matchNets, matchRounds);
+        const { matchScore } = scoreCalc(match, matchNets, matchRounds);
         const matchGroupId = getMatchGroupId(match);
 
-        const teamScore = isTeamA ? matchScore.teamAMScore : matchScore.teamBMScore;
-        const opponentScore = isTeamA ? matchScore.teamBMScore : matchScore.teamAMScore;
+        const teamScore = isTeamA ? matchScore.teamAScore : matchScore.teamBScore;
+        const opponentScore = isTeamA ? matchScore.teamBScore : matchScore.teamAScore;
         const isSelectedGroupMatch = !selectedGroup || selectedGroup === matchGroupId;
         const isGroupMatch = Boolean(matchGroupId) && matchGroupId === selectedGroup;
 
         if (isSelectedGroupMatch) {
             totalGroupMatches += 1;
             totalMatchDiff += teamScore - opponentScore;
-            totalGameDiff += isTeamA ? matchScore.teamAMPlusMinus : matchScore.teamBMPlusMinus;
+            totalGameDiff += isTeamA ? matchScore.teamAPlusMinus : matchScore.teamBPlusMinus;
             totalNets += match.nets?.length ?? 0;
         }
 

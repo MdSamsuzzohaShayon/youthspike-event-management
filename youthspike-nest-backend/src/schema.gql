@@ -239,6 +239,8 @@ type Match {
   extendedOvertime: Boolean
   teamAP: Int
   teamBP: Int
+  teamAFScore: Int
+  teamBFScore: Int
   event: Event!
   nets: [Net!]!
   serverReceiverOnNet: [ServerReceiverOnNet!]
@@ -961,6 +963,8 @@ type CustomMatch {
   extendedOvertime: Boolean
   teamAP: Int
   teamBP: Int
+  teamAFScore: Int
+  teamBFScore: Int
   event: String!
   nets: [String!]
   serverReceiverOnNet: [ServerReceiverOnNet!]
@@ -1916,6 +1920,8 @@ input UpdateMatchInput {
   completed: Boolean
   teamAScore: Int
   teamBScore: Int
+  teamAFScore: Int
+  teamBFScore: Int
 }
 
 input AccessCodeInput {

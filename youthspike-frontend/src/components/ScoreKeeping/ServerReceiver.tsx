@@ -526,7 +526,7 @@ export default function ServerReceiver({
     isFinalRound &&
     currRound?.completed &&
     currMatch.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND &&
-    matchScore.teamAMScore === matchScore.teamBMScore
+    matchScore.teamAScore === matchScore.teamBScore
   ) {
     return (
       <div className="w-full">

@@ -114,7 +114,15 @@ export class Match extends AppDocument {
 
   @Field((_type) => Int, {nullable: true})
   @Prop({ type: Number, required: false })
-  teamBP?: number; // Plus minus point for team A
+  teamBP?: number; // Plus minus point for team V
+
+  @Field((_type) => Int, {nullable: true})
+  @Prop({ type: Number, required: false })
+  teamAFScore?: number; // forefeit score for team A
+
+  @Field((_type) => Int, {nullable: true})
+  @Prop({ type: Number, required: false })
+  teamBFScore?: number; // forefeit score for team B
 
   // Relations
   @Field((_type) => Event, { nullable: false })
@@ -144,6 +152,8 @@ export class Match extends AppDocument {
   @Field((_type) => Team, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Team' })
   teamB?: string | Team;
+
+  
 
   @Field((_type) => Room, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Room' })

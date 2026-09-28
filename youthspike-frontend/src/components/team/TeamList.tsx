@@ -13,7 +13,7 @@ import {
   createNetMapByMatch,
   createRoundMapByMatch,
 } from "@/utils/match/mapByMatch";
-import { calcScore } from "@/utils/scoreCalc";
+import scoreCalc from "@/utils/scoreCalc";
 
 interface ITeamCaptain extends ITeam {
   captain: IPlayer;
@@ -114,6 +114,7 @@ function TeamList({
         groupLoses: 0,
         matchAvgDiff: 0,
         gameAvgDiff: 0,
+        teammatchabsencescount: 0
       };
 
       let totalMatchDiff = 0;
@@ -127,17 +128,25 @@ function TeamList({
         const roundList = roundMapByMatch.get(match._id) || [];
         const allNets = netMapByMatch.get(match._id) || [];
 
-        const { matchScore } = calcScore(allNets, roundList);
+        const { matchScore } = scoreCalc(match, allNets, roundList)
 
-        const ts = isTeamA ? matchScore.teamAMScore : matchScore.teamBMScore;
-        const os = !isTeamA ? matchScore.teamAMScore : matchScore.teamBMScore;
+
         const teamPlusMinus =
-          matchScore.teamAMPlusMinus > matchScore.teamBMPlusMinus
-            ? matchScore.teamAMPlusMinus
-            : matchScore.teamBMPlusMinus;
+          matchScore.teamAPlusMinus > matchScore.teamBPlusMinus
+            ? matchScore.teamAPlusMinus
+            : matchScore.teamBPlusMinus;
 
-        const teamScore = ts + (isTeamA ? match?.teamAP || 0 : 0),
-          oponentScore = os + (isTeamA ? match?.teamBP || 0 : 0);
+
+
+        const teamScore =
+          isTeamA
+            ? matchScore.teamAScore
+            : matchScore.teamBScore;
+        const oponentScore =
+          isTeamA
+            ? matchScore.teamBScore
+            : matchScore.teamAScore;
+
 
         totalMatchDiff += teamScore - oponentScore;
         totalGameDiff += teamPlusMinus;

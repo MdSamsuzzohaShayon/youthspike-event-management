@@ -22,9 +22,9 @@ export default function LogoMatchScore({
   const { matchScore } = useAppSelector((state) => state.matches);
 
   // Extract scores based on team perspective
-  const myScore = teamE === ETeam.teamA ? matchScore.teamAMScore : matchScore.teamBMScore;
-  const opScore = teamE === ETeam.teamA ? matchScore.teamBMScore : matchScore.teamAMScore;
-  const plusMinus = teamE === ETeam.teamA ? matchScore.teamAMPlusMinus : matchScore.teamBMPlusMinus;
+  const myScore = teamE === ETeam.teamA ? matchScore.teamAScore : matchScore.teamBScore;
+  const opScore = teamE === ETeam.teamA ? matchScore.teamBScore : matchScore.teamAScore;
+  const plusMinus = teamE === ETeam.teamA ? matchScore.teamAPlusMinus : matchScore.teamBPlusMinus;
   
   // Determine if this team is winning
   const isWinning = completed && (myScore + penalty) > opScore;

@@ -39,7 +39,8 @@ const RoundDetailPanel: React.FC<IRoundDetailPanelProps> = ({
           team={opTeam}
           teamE={opTeamE}
           completed={match.completed}
-          penalty={getTeamPenalty(opTeamE)}
+          // penalty={getTeamPenalty(opTeamE)}
+          penalty={0}
         />
 
         <div className="w-full">
@@ -85,7 +86,8 @@ const RoundDetailPanel: React.FC<IRoundDetailPanelProps> = ({
             team={myTeam}
             teamE={myTeamE}
             completed={match.completed}
-            penalty={getTeamPenalty(myTeamE)}
+            // penalty={getTeamPenalty(myTeamE)}
+            penalty={0}
           />
         </div>
       </div>

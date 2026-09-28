@@ -309,6 +309,8 @@ query GetTeamMatches($teamId: String!) {
         teamB
         teamAP 
         teamBP
+        teamAFScore
+        teamBFScore
         tieBreaking
         timeout
       }

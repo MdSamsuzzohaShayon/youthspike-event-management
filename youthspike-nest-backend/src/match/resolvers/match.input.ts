@@ -93,6 +93,12 @@ export class UpdateMatchInput extends PartialType(CreateMatchInput) {
 
   @Field(() => Int, { nullable: true })
   teamBScore?: number;
+
+  @Field(() => Int, { nullable: true })
+  teamAFScore?: number;
+
+  @Field(() => Int, { nullable: true })
+  teamBFScore?: number;
 }
 
 @InputType()

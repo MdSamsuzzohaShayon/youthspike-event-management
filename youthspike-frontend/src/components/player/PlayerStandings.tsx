@@ -8,12 +8,12 @@ import {
   IPlayerStats,
   ITeam,
 } from "@/types";
-import { calculatePlayerRecords } from "@/utils/scoreCalc";
 import { useAppSelector } from "@/redux/hooks";
 import PlayerRow from "./PlayerRow";
 import Pagination from "../elements/Pagination";
 import SortableHeader from "../elements/SortableHeader";
 import { aggregatePlayerStats } from "@/utils/helper";
+import calculatePlayerRecords from "@/utils/calcPairRecords";
 
 interface IPlayerStandingsProps {
   playerList: IPlayer[];

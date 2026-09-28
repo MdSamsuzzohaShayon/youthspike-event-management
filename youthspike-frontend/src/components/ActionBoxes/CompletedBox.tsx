@@ -1,40 +1,28 @@
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useMemo } from "react";
 import { ADMIN_FRONTEND_URL } from "@/utils/keys";
-import { EMessage, ITeam } from "@/types";
+import { EMessage } from "@/types";
 import { useLdoId } from "@/lib/LdoProvider";
 import Image from "next/image";
-import { setCurrentRoundNets } from "@/redux/slices/netSlice";
-import { ETeam } from "@/types/team";
-import { EActionProcess } from "@/types/room";
-import { setCurrentRound, setRoundList } from "@/redux/slices/roundSlice";
-import LocalStorageService from "@/utils/LocalStorageService";
-import TextImg from "../elements/TextImg";
-import { CldImage } from "next-cloudinary";
 import { setMessage } from "@/redux/slices/elementSlice";
 import { useRoundNavigation } from "@/hooks/useRoundNavigation";
 import ParticleButton from "../elements/ParticleButton";
+import TeamScore from "./TeamScore";
 
 interface CompletedBoxProps {
   completeDialogRef: React.RefObject<HTMLDialogElement | null>;
 }
 
-interface ScoreResult {
-  teamATotal: number;
-  teamBTotal: number;
-}
 
 function CompletedBox({ completeDialogRef }: CompletedBoxProps) {
   const dispatch = useAppDispatch();
   const { ldoIdUrl } = useLdoId();
 
 
-  const [teamATotalPoints, setTeamATotalPoints] = useState(0);
-  const [teamBTotalPoints, setTeamBTotalPoints] = useState(0);
-  const [winningTeamId, setWinningTeamId] = useState<string | null>(null);
+
 
   const { match, myTeamE } = useAppSelector((s) => s.matches);
-  const { currentRoundNets, nets } = useAppSelector((s) => s.nets);
+  const { nets } = useAppSelector((s) => s.nets);
   const { teamA, teamB } = useAppSelector((s) => s.teams);
   const { current: currentRound, roundList } = useAppSelector((s) => s.rounds);
 
@@ -46,46 +34,9 @@ function CompletedBox({ completeDialogRef }: CompletedBoxProps) {
     match,
   });
 
-  // =========================
-  // Helpers
-  // =========================
 
-  const calculateScores = useCallback((): ScoreResult => {
-    if (!currentRound) return { teamATotal: 0, teamBTotal: 0 };
 
-    const playedRounds = roundList.filter(
-      (r) => r.num <= currentRound.num
-    );
 
-    let teamATotal = 0;
-    let teamBTotal = 0;
-
-    for (const round of playedRounds) {
-      const netsInRound = nets.filter((n) => n.round === round._id);
-
-      for (const net of netsInRound) {
-        const aScore = net.teamAScore ?? 0;
-        const bScore = net.teamBScore ?? 0;
-
-        if (aScore > bScore) {
-          teamATotal += net.points;
-        } else {
-          teamBTotal += net.points;
-        }
-      }
-    }
-
-    return { teamATotal, teamBTotal };
-  }, [currentRound, roundList, nets]);
-
-  const getWinningTeamId = (
-    teamATotal: number,
-    teamBTotal: number
-  ): string | null => {
-    if (teamATotal > teamBTotal) return teamA?._id ?? null;
-    if (teamBTotal > teamATotal) return teamB?._id ?? null;
-    return null;
-  };
 
   const getNextRoundIndex = (): number => {
     if (!currentRound) return -1;
@@ -94,40 +45,6 @@ function CompletedBox({ completeDialogRef }: CompletedBoxProps) {
     );
   };
 
-  const switchToRound = (roundIndex: number) => {
-    const targetRound = roundList[roundIndex];
-    if (!targetRound) return;
-
-    const updatedRound = { ...targetRound };
-
-    const netsForRound = nets.filter(
-      (n) => n.round === updatedRound._id
-    );
-
-    dispatch(setCurrentRoundNets(netsForRound));
-
-    if (myTeamE === ETeam.teamA) {
-      if (updatedRound.teamAProcess === EActionProcess.INITIATE) {
-        updatedRound.teamAProcess = EActionProcess.CHECKIN;
-      }
-    } else {
-      if (updatedRound.teamBProcess === EActionProcess.INITIATE) {
-        updatedRound.teamBProcess = EActionProcess.CHECKIN;
-      }
-    }
-
-    LocalStorageService.setMatch(updatedRound.match, updatedRound._id);
-
-    dispatch(setCurrentRound(updatedRound));
-
-    const updatedRoundList = roundList
-      .filter((r) => r._id !== updatedRound._id)
-      .concat(updatedRound);
-
-    dispatch(setRoundList(updatedRoundList));
-
-   
-  };
 
   // =========================
   // Handlers
@@ -178,53 +95,54 @@ function CompletedBox({ completeDialogRef }: CompletedBoxProps) {
     // dispatch(setPrevPartner(null));
   };
 
-  // =========================
-  // Effects
-  // =========================
+  
+// Memomization
+  const { teamAPoints, teamBPoints } = useMemo(() => {
 
-  useEffect(() => {
-    const { teamATotal, teamBTotal } = calculateScores();
 
-    setTeamATotalPoints(teamATotal);
-    setTeamBTotalPoints(teamBTotal);
-    setWinningTeamId(getWinningTeamId(teamATotal, teamBTotal));
-  }, [calculateScores, currentRoundNets]);
+    if (match.teamAFScore && match.teamAFScore) {
+      return { teamAPoints: match.teamAFScore, teamBPoints: (match?.teamBFScore || 0) };
+    }
 
-  // =========================
-  // UI Helpers
-  // =========================
 
-  const renderTeamScore = (team: ITeam | null, points: number) => {
-    const isWinner = winningTeamId === team?._id;
+    if (!currentRound) return { teamAPoints: 0, teamBPoints: 0 };
 
-    return (
-      <div className="flex flex-col items-center gap-2 w-full">
-        {team?.logo ? (
-          <div className="w-20">
-            <CldImage
-              alt={team.name}
-              width="200"
-              height="200"
-              className="w-full"
-              crop="fit"
-              src={team.logo}
-            />
-          </div>
-        ) : (
-          <TextImg fullText={team?.name} className="w-20 h-20 rounded-lg" />
-        )}
-
-        <h2 className="text-sm font-bold uppercase">{team?.name}</h2>
-
-        <div
-          className={`w-20 h-20 rounded-lg flex items-center justify-center ${isWinner ? "bg-green-500 text-white" : "bg-white text-black"
-            }`}
-        >
-          <h2 className="text-4xl">{points}</h2>
-        </div>
-      </div>
+    const playedRounds = roundList.filter(
+      (r) => r.num <= currentRound.num
     );
-  };
+
+    let tas: number = 0;
+    let tbs: number = 0;
+
+    for (const round of playedRounds) {
+      const netsInRound = nets.filter((n) => n.round === round._id);
+
+      for (const net of netsInRound) {
+        const aScore = net.teamAScore ?? 0;
+        const bScore = net.teamBScore ?? 0;
+
+        if (aScore > bScore) {
+          tas += net.points;
+        } else {
+          tbs += net.points;
+        }
+      }
+    }
+
+    tas + (match?.teamAP ?? 0)
+    tbs + (match?.teamBP ?? 0)
+
+    return { teamAPoints: tas, teamBPoints: tbs };
+  }, [match, currentRound, nets]);
+
+
+
+  const winningTeamId = useMemo(() => {
+    if (teamAPoints > teamBPoints) return teamA?._id ?? null;
+    if (teamBPoints > teamAPoints) return teamB?._id ?? null;
+    return null;
+  }, [teamAPoints, teamBPoints])
+
 
   // =========================
   // Render
@@ -235,7 +153,7 @@ function CompletedBox({ completeDialogRef }: CompletedBoxProps) {
       <div className="container mx-auto px-4 flex justify-between items-end gap-1">
         {/* Team A */}
         <div className="w-2/6 md:w-1/6">
-          {renderTeamScore(teamA || null, teamATotalPoints + (match?.teamAP ?? 0))}
+          <TeamScore team={teamA || null} points={teamAPoints} winningTeamId={winningTeamId} />
         </div>
 
         {/* Middle */}
@@ -287,40 +205,40 @@ function CompletedBox({ completeDialogRef }: CompletedBoxProps) {
                 className="object-cover object-top"
               />
 
-<div className="flex flex-col md:flex-row gap-2 items-stretch md:items-center">
-  <ParticleButton
-    variant="primary"
-    size="lg"
-    onClick={handleNextRound}
-    className="min-w-[220px] sm:min-w-[240px]"
-    particleCount={26}
-  >
-    <span className="flex flex-col items-center leading-tight">
-      <span className="text-base font-extrabold tracking-wide uppercase">
-        Next Round
-      </span>
-      <span className="text-xs font-semibold opacity-80">
-        Proceed to the next round
-      </span>
-    </span>
-  </ParticleButton>
+              <div className="flex flex-col md:flex-row gap-2 items-stretch md:items-center">
+                <ParticleButton
+                  variant="primary"
+                  size="lg"
+                  onClick={handleNextRound}
+                  className="min-w-[220px] sm:min-w-[240px]"
+                  particleCount={26}
+                >
+                  <span className="flex flex-col items-center leading-tight">
+                    <span className="text-base font-extrabold tracking-wide uppercase">
+                      Next Round
+                    </span>
+                    <span className="text-xs font-semibold opacity-80">
+                      Proceed to the next round
+                    </span>
+                  </span>
+                </ParticleButton>
 
-  <ParticleButton
-    variant="default"
-    size="sm"
-    onClick={() => completeDialogRef.current?.showModal()}
-    className="md:self-center"
-  >
-    {match.completed ? "Unfinish Match" : "Finish Match"}
-  </ParticleButton>
-</div>
+                <ParticleButton
+                  variant="default"
+                  size="sm"
+                  onClick={() => completeDialogRef.current?.showModal()}
+                  className="md:self-center"
+                >
+                  {match.completed ? "Unfinish Match" : "Finish Match"}
+                </ParticleButton>
+              </div>
             </>
           )}
         </div>
 
         {/* Team B */}
         <div className="w-2/6 md:w-1/6">
-          {renderTeamScore(teamB || null, teamBTotalPoints + (match?.teamBP ?? 0))}
+          <TeamScore team={teamB || null} points={teamBPoints} winningTeamId={winningTeamId} />
         </div>
       </div>
     </div>

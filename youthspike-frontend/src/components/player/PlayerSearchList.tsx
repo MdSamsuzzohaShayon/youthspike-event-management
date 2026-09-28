@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 import {
   EBadgeFor,
   EPlayerStatType,
+  ETeamStatType,
   IBadge,
   IMatch,
   IMatchExpRel,
@@ -10,12 +11,12 @@ import {
   IPlayerStats,
   ITeam,
 } from "@/types";
-import { calculatePlayerRecords } from "@/utils/scoreCalc";
 import { useAppSelector } from "@/redux/hooks";
 import PlayerRow from "./PlayerRow";
 import SortableHeader from "../elements/SortableHeader";
 import { aggregatePlayerStats } from "@/utils/helper";
 import { createBadgeMap } from "@/utils/badge/badge-helpers";
+import calculatePlayerRecords from "@/utils/calcPairRecords";
 
 interface IPlayerSearchListProps {
   badges: IBadge[],
@@ -210,49 +211,49 @@ function PlayerSearchList({
                     label="Serve %"
                     sortKey={EPlayerStatType.ServePercentage}
                     currentSort={sortConfig}
-                    onSort={handleSort}
+                    onSort={handleSort as (key: EPlayerStatType | ETeamStatType) => void}
                   />
                   
                   <SortableHeader
                     label="+/-"
                     sortKey={EPlayerStatType.PlusMinus}
                     currentSort={sortConfig}
-                    onSort={handleSort}
+                    onSort={handleSort as (key: EPlayerStatType | ETeamStatType) => void}
                   />
                   
                   <SortableHeader
                     label="Ace %"
                     sortKey={EPlayerStatType.AcePercentage}
                     currentSort={sortConfig}
-                    onSort={handleSort}
+                    onSort={handleSort as (key: EPlayerStatType | ETeamStatType) => void}
                   />
                   
                   <SortableHeader
                     label="Receive %"
                     sortKey={EPlayerStatType.ReceivePercentage}
                     currentSort={sortConfig}
-                    onSort={handleSort}
+                    onSort={handleSort as (key: EPlayerStatType | ETeamStatType) => void}
                   />
                   
                   <SortableHeader
                     label="Hitting %"
                     sortKey={EPlayerStatType.HittingPercentage}
                     currentSort={sortConfig}
-                    onSort={handleSort}
+                    onSort={handleSort as (key: EPlayerStatType | ETeamStatType) => void}
                   />
                   
                   <SortableHeader
                     label="Set Assists %"
                     sortKey={EPlayerStatType.SetAssistsPercentage}
                     currentSort={sortConfig}
-                    onSort={handleSort}
+                    onSort={handleSort as (key: EPlayerStatType | ETeamStatType) => void}
                   />
                   
                   <SortableHeader
                     label="Defense %"
                     sortKey={EPlayerStatType.DefensePercentage}
                     currentSort={sortConfig}
-                    onSort={handleSort}
+                    onSort={handleSort as (key: EPlayerStatType | ETeamStatType) => void}
                   />
                 </tr>
               </thead>

@@ -136,6 +136,8 @@ const GET_A_MATCH_LIGHT = gql`
         extendedOvertime
         teamAP
         teamBP
+        teamAFScore
+        teamBFScore
         event{
           _id
           name
@@ -346,6 +348,8 @@ const SEARCH_MATCHES = gql`
           teamA
           teamAP
           teamBP
+          teamAFScore
+          teamBFScore
           date
           location
           group

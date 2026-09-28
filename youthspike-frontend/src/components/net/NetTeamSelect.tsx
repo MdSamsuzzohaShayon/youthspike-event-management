@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { EPlayerStatus, IPlayer } from "@/types";
 import { ETeam } from "@/types/team";
-import { calcPairScore } from "@/utils/scoreCalc";
 import { ETeamPlayer, INetRelatives } from "@/types/net";
 import { useUser } from "@/lib/UserProvider";
 import { useAppDispatch, useAppSelector } from "@/redux/hooks";
@@ -20,6 +19,7 @@ import findPrevPartner from "@/utils/match/findPrevPartner";
 import findOutOfRange from "@/utils/match/findOutOfRange";
 import PlayerScoreCard from "../player/PlayerScoreCard";
 import { getNetPlayerId, updateNetPlayer } from "@/utils/netHelpers";
+import calcPairScore from "@/utils/calcPairScore";
 
 interface Props {
   teamE: ETeam;

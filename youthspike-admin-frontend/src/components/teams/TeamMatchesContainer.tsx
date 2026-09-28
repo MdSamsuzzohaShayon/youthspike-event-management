@@ -5,16 +5,13 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useReadQuery } from '@apollo/client/react';
 import { QueryRef } from '@apollo/client/react';
 import { IGetTeamMatchesResponse, INetRelatives, IRoundRelatives, ITeam } from '@/types';
-import { CldImage } from 'next-cloudinary';
-import TextImg from '../elements/TextImg';
 import { usePathname } from 'next/navigation';
 import { useLdoId } from '@/lib/LdoProvider';
 import MatchCard from '../match/MatchCard';
 import { useMessage } from '@/lib/MessageProvider';
 import TeamNavigation from './TeamNavigation';
 import SessionStorageService from '@/utils/SessionStorageService';
-import { TEAM } from '@/utils/constant';
-import { Calendar, Trophy, Swords, Frown } from 'lucide-react';
+import { CURRENT_EVENT, TEAM } from '@/utils/constant';
 
 interface TeamMatchesContainerProps {
   queryRef: QueryRef<{ getTeamMatches: IGetTeamMatchesResponse }>;
@@ -113,6 +110,16 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
   }, [team]);
 
 
+  const eventId: string = useMemo(() => {
+    const currentEvent = SessionStorageService.getItem(CURRENT_EVENT);
+    if (currentEvent) return currentEvent as string;
+
+    const firstEvent = events[0];
+
+    if (!firstEvent) return '';
+
+    return typeof firstEvent === 'object' ? firstEvent._id : firstEvent;
+  }, [events]);
 
 
 
@@ -131,20 +138,21 @@ function TeamMatchesContainer({ queryRef, teamId }: TeamMatchesContainerProps) {
 
         {/* Page Content with Fade-in Animation */}
         <div className="animate-fadeInUp">
-        {sortedMatches.map((match, i) => (
-              <div
-                key={match._id}
-                className="transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
-              >
-                <MatchCard
-                  setMessage={setMessage}
-                  handleSelectMatch={handleSelectMatch}
-                  isChecked={false}
-                  match={match}
-                  sl={i + 1}
-                />
-              </div>
-            ))}
+          {sortedMatches.map((match, i) => (
+            <div
+              key={match._id}
+              className="transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl"
+            >
+              <MatchCard
+                setMessage={setMessage}
+                handleSelectMatch={handleSelectMatch}
+                isChecked={false}
+                match={match}
+                eventId={eventId}
+                sl={i + 1}
+              />
+            </div>
+          ))}
         </div>
       </div>
     </div>

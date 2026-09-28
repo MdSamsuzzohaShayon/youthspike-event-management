@@ -23,6 +23,8 @@ export interface IDefaultMatch extends ICommonMatchEvent {
   extendedOvertime?: boolean;
   teamAP?: number; // Plus minus points of teamA
   teamBP?: number; // Plus minus points of teamB
+  teamAFScore?: number; // Forefeit points of teamA
+  teamBFScore?: number; // Forefeit points of teamB
 }
 
 export interface IDefaultMatchProps extends IDefaultMatch {
