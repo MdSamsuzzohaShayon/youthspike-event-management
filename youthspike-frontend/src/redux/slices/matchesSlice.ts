@@ -5,6 +5,7 @@ import {
   IPlayer,
   IMatchScore,
   IRoundScore,
+  IGroup,
 } from "@/types";
 import { ETeamPlayer, INetRelatives } from "@/types/net";
 import { ETeam } from "@/types/team";
@@ -36,6 +37,8 @@ interface MatchesState  {
 
   matchScore: IMatchScore;
   roundMap: Record<string, IRoundScore>;
+
+  matchGroup: null | IGroup,
 }
 
 const initialState: MatchesState = {
@@ -89,6 +92,7 @@ const initialState: MatchesState = {
     teamBScore: 0,
   },
   roundMap: {},
+  matchGroup: null
 };
 
 export const matchesSlice = createSlice({
@@ -167,6 +171,11 @@ export const matchesSlice = createSlice({
     setRoundMap: (state, action: PayloadAction<Record<string, IRoundScore>>) => {
       state.roundMap = action.payload;
     },
+
+    // Match Group
+    setMatchGroup: (state, action: PayloadAction<IGroup>) => {
+      state.matchGroup = action.payload;
+    },
   },
 });
 
@@ -191,6 +200,8 @@ export const {
 
   setMatchScore,
   setRoundMap,
+
+  setMatchGroup,
 } = matchesSlice.actions;
 
 export default matchesSlice.reducer;

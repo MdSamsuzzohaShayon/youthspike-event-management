@@ -36,7 +36,6 @@ import ForfeitMatch from "./MatchSettings/ForfeitMatch";
 interface IMatchSettingProps {
   match: IMatchRelatives;
   myTeam: ITeam | null;
-  opTeam: ITeam | null;
   currRoom: IRoom | null;
   currRound: IRoundRelatives | null;
   myTeamE: ETeam;
@@ -45,11 +44,11 @@ interface IMatchSettingProps {
 function MatchSetting({
   match,
   myTeam,
-  opTeam,
   currRoom,
   currRound,
   myTeamE,
 }: IMatchSettingProps) {
+
   // Hooks
   const dispatch = useAppDispatch();
   const user = useUser();
@@ -66,11 +65,13 @@ function MatchSetting({
     teamAPlayerRanking,
     teamBPlayerRanking,
     rounds: roundList,
+    matchGroup,
   } = useAppSelector((state) => ({
     ldo: state.events.ldo,
     teamAPlayerRanking: state.playerRanking.teamAPlayerRanking,
     teamBPlayerRanking: state.playerRanking.teamBPlayerRanking,
     rounds: state.rounds.roundList,
+    matchGroup: state.matches.matchGroup,
   }));
 
   // Local state and refs
@@ -150,8 +151,9 @@ function MatchSetting({
       tieBreaking: match.tieBreaking?.replace(/_/, " "),
       teamAP: match?.teamAP || 0,
       teamBP: match?.teamBP || 0,
+      group: matchGroup
     }),
-    [match]
+    [match, matchGroup]
   );
 
   const eventLogo = useMemo(
@@ -248,7 +250,7 @@ function MatchSetting({
 
             {/* Match Details */}
             <div className="w-full">
-              <MatchConfiguration matchDetails={matchDetails} />
+              <MatchConfiguration matchDetails={matchDetails}  />
             </div>
 
             <div className="w-full">

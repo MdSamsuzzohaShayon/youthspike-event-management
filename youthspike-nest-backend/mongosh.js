@@ -1,30 +1,17 @@
-const eventId = ObjectId("6a3c355236b002d89afc4a49");
+// P1-west
 
-const team = db.teams.findOne(
-  { name: "Idaho Falls Freeze Minor B" },
-  { _id: 1 }
+const groupId = ObjectId("6a3d808d0aa1fcc941fdc795");
+const matchId = ObjectId("6a3f69a119d66ed17919f1ba");
+
+const groupResult = db.groups.updateOne(
+  { _id: groupId },
+  { $addToSet: { matches: matchId } }
 );
 
-if (!team) {
-  throw new Error("Team not found: Idaho Falls Freeze Minor B");
-}
-
-// Add event to the team
-db.teams.updateOne(
-  { _id: team._id },
-  {
-    $addToSet: {
-      events: eventId
-    }
-  }
+const matchResult = db.matches.updateOne(
+  { _id: matchId },
+  { $set: { group: groupId } }
 );
 
-// Add team to the event
-db.events.updateOne(
-  { _id: eventId },
-  {
-    $addToSet: {
-      teams: team._id
-    }
-  }
-);
+print("Group updated:", groupResult.modifiedCount);
+print("Match updated:", matchResult.modifiedCount);

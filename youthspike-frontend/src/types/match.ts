@@ -186,4 +186,5 @@ export interface IMatchSettingDetail{
   tieBreaking: string | undefined;
   teamAP: number;
   teamBP: number;
+  group?: IGroup | null;
 }

@@ -227,6 +227,7 @@ function TeamAdd({ groupList, handleClose, setIsLoading, players, update, prevTe
 
 
 
+
   useEffect(() => {
     const currentEvent = SessionStorageService.getItem(CURRENT_EVENT);
     if (currentEvent) {
