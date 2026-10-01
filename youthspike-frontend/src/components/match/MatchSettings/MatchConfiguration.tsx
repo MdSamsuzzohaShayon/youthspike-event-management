@@ -26,6 +26,12 @@ function MatchConfiguration({matchDetails}: {matchDetails: IMatchSettingDetail})
         label="Tie Breaking"
         value={matchDetails.tieBreaking as string}
       />
+      {matchDetails.group && (
+        <DetailItem
+        label="Match Group"
+        value={matchDetails.group.name as string}
+      />
+      )}
     </div>
   </InfoCard>
   )

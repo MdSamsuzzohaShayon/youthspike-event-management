@@ -25,7 +25,7 @@ function TeamUpdateContainer({ eventId, queryRef }: TeamUpdateContainerProps) {
   // --------------------------
   // Memoized unique divisions
   // --------------------------
-  
+
 
   // --------------------------
   // Loading state

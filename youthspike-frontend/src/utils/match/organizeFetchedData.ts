@@ -6,6 +6,7 @@ import {
 } from "@/redux/slices/eventSlice";
 import {
   setAvailablePlayers,
+  setMatchGroup,
   setMatchInfo,
   setMyPlayers,
   setMyTeam,
@@ -91,6 +92,9 @@ const organizeFetchedData = async ({
   matchId,
   dispatch,
 }: IOrganizeFetchedDataProps): Promise<void> => {
+
+
+  
   const {
     _id,
     description,
@@ -119,6 +123,7 @@ const organizeFetchedData = async ({
     teamBRanking,
     serverReceiverOnNet, // Bound to net
     serverReceiverSinglePlay,
+    group
   } = matchData;
 
   const CURRENT_NET_NUM = 1;
@@ -364,6 +369,12 @@ const organizeFetchedData = async ({
       // teamBProcess: selectedRound.teamBProcess,
     })
   );
+
+
+  // Setting group
+  if(group){
+    dispatch(setMatchGroup(group));
+  }
 
   // Setting Match
   const matchObj = {

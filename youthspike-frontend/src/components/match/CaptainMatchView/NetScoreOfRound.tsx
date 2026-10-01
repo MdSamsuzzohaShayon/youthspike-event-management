@@ -21,7 +21,6 @@ const NetScoreOfRound = () => {
         <MatchSetting
           match={match}
           myTeam={myTeam}
-          opTeam={opTeam}
           currRoom={currRoom}
           currRound={currentRound}
           myTeamE={myTeamE}
@@ -40,7 +39,6 @@ const NetScoreOfRound = () => {
         <MatchSetting
           match={match}
           myTeam={myTeam}
-          opTeam={opTeam}
           currRoom={currRoom}
           currRound={currentRound}
           myTeamE={myTeamE}

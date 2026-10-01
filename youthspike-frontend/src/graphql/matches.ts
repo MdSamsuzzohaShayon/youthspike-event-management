@@ -84,6 +84,11 @@ query GetMatch($matchId: String!) {
       teamBP
       teamAFScore
       teamBFScore
+      group{
+        _id
+        name
+        division
+      }
       serverReceiverSinglePlay {
         _id
         matchId

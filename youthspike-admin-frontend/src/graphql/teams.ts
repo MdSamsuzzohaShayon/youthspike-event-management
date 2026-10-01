@@ -417,6 +417,7 @@ query GetTeamWithGroupsAndUnassignedPlayers($teamId: String!, $ldoId: String){
         event
         teams
         players
+        badgeFor
       }
     }
   }
