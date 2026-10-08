@@ -39,6 +39,9 @@ export class CustomTeam extends Team {
   @Field((_type) => Int, { nullable: true })
   teammatchabsencescount?: number;
 
+  @Field((_type) => Int, { nullable: true })
+  grouppoints?: number;
+
 }
 
 

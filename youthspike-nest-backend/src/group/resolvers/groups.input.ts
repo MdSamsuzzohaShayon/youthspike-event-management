@@ -1,6 +1,6 @@
 // events.dto.ts
-import { Field, InputType, PartialType } from '@nestjs/graphql';
-import { EGroupRule } from './group.schema';
+import { Field, InputType, Int, PartialType } from '@nestjs/graphql';
+import { EGroupRule } from '../group.schema';
 
 @InputType()
 export class CreateGroupInput {
@@ -33,4 +33,26 @@ export class UpdateGroupInput extends PartialType(CreateGroupInput) {
 
   @Field((_type) => [String], {nullable: true})
   removeteams: string[];
+}
+
+
+@InputType()
+export class CreateGroupPointsInput {
+  @Field(()=> String, {nullable: false})
+  team: string;
+
+  @Field({ nullable: true })
+  event?: string;
+
+  @Field(() => Int)
+  points: number;
+
+  @Field({ nullable: true })
+  notes?: string;
+}
+
+@InputType()
+export class UpdateGroupPointsInput extends PartialType(CreateGroupPointsInput) {
+  @Field()
+  _id: string;
 }

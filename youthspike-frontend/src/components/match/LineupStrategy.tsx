@@ -202,24 +202,29 @@ const LineupStrategy: React.FC<ILineupStrategyProps> = ({
         }
 
         case EAssignStrategies.ANCHOR: {
-          anchorAssign({
+          const { updatedAllNets, updatedCurrRoundNets, selectedPlayerIds } = anchorAssign({
             ...sharedAssignProps,
             myTeamE: myTeamEnum,
-            dispatch,
-            tapr: teamAPlayerRanking,
-            tbpr: teamBPlayerRanking,
+            teamAPlayerRanking,
+            teamBPlayerRanking,
           });
+          dispatch(setCurrentRoundNets(updatedCurrRoundNets));
+          dispatch(setNets(updatedAllNets));
+          dispatch(setDisabledPlayerIds(selectedPlayerIds));
           break;
         }
 
+        // Inside LineupStrategy.tsx -> handleStrategySelect
         case EAssignStrategies.HIERARCHY: {
-          hierarchyAssign({
+          const { updatedAllNets, updatedCurrRoundNets, selectedPlayerIds } = hierarchyAssign({
             ...sharedAssignProps,
             myTeamE: myTeamEnum,
-            dispatch,
-            tapr: teamAPlayerRanking,
-            tbpr: teamBPlayerRanking,
+            teamAPlayerRanking,
+            teamBPlayerRanking,
           });
+          dispatch(setCurrentRoundNets(updatedCurrRoundNets));
+          dispatch(setNets(updatedAllNets));
+          dispatch(setDisabledPlayerIds(selectedPlayerIds));
           break;
         }
 

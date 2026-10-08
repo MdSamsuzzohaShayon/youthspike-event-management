@@ -320,6 +320,7 @@ query SearchTeams($eventIds: [String!], $filter: TeamSearchFilter) {
         matches
         division
         teammatchabsencescount
+        grouppoints
       }
       badges{
         _id

@@ -1,0 +1,763 @@
+I am creating a project with nest.js, mongoose, and graphql. 
+
+My schema:
+
+```
+import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import mongoose from 'mongoose';
+import { Event } from 'src/event/event.schema';
+import { Match } from 'src/match/match.schema';
+import { AppDocument } from 'src/shared/schema/document.schema';
+import { Team } from 'src/team/team.schema';
+
+export enum EGroupRule {
+  CAN_PLAY_EACH_OTHER = 'CAN_PLAY_EACH_OTHER',
+  CAN_NOT_PLAY_EACH_OTHER = 'CAN_NOT_PLAY_EACH_OTHER',
+}
+
+registerEnumType(EGroupRule, {
+  name: 'EGroupRule',
+});
+
+/**
+ * Group
+ */
+@ObjectType()
+@Schema({ timestamps: true })
+export class Group extends AppDocument {
+  /**
+   * Base properties
+   */
+  @Field()
+  @Prop({ required: true })
+  name: string;
+
+  @Field({ defaultValue: true })
+  @Prop({ required: true, default: true })
+  active: boolean;
+
+  @Field({ nullable: false })
+  @Prop({ required: true })
+  division: string;
+
+  @Field({ nullable: false, defaultValue: EGroupRule })
+  @Prop({ required: true, default: EGroupRule })
+  rule: EGroupRule;
+
+  @Field(() => [Team], { nullable: false })
+  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Team' }] })
+  teams: Team[] | string[];
+
+  @Field(() => [Match], { nullable: false })
+  @Prop({ required: true, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Match' }] })
+  matches: Match[] | string[];
+
+  @Field(() => Event, { nullable: false })
+  @Prop({ required: true, type: mongoose.Schema.Types.ObjectId, ref: 'Event' })
+  event: string | Event;
+
+
+  // @Field(() => Group, { nullable: true })
+  // @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Group', default: null })
+  // parentGroup: string | Group | null;
+
+
+  // @Field(() => [Group], { nullable: true })
+  // @Prop({ type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Group' }], default: [] })
+  // childGroups: (string | Group)[];
+}
+
+
+// This is very similar to TeamMatchAbsence
+@ObjectType()
+@Schema({ timestamps: true })
+export class GroupPoints extends AppDocument {
+  @Field((_type) => Team)
+  @Prop({
+    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team',
+  })
+  team: string | Team;
+
+  @Field((_type) => Event, {nullable: true})
+  @Prop({
+    required: false,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Event',
+  })
+  event: string | Event;
+
+  @Field(()=> Int, { nullable: false })
+  @Prop({ required: true })
+  points: number;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  notes?: string;
+
+}
+
+export const GroupSchema = SchemaFactory.createForClass(Group);
+export const GroupSchemaFactory = async () => {
+  return GroupSchema;
+};
+
+
+export const GroupPointsSchema = SchemaFactory.createForClass(GroupPoints);
+export const GroupPointsFactory = async () => {
+  return GroupPointsSchema;
+};
+
+
+```
+
+Here is my resolvers file:
+
+```
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { UseGuards } from '@nestjs/common';
+import { Args, Context, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { JwtAuthGuard } from 'src/shared/auth/jwt.guard';
+import { Roles } from 'src/shared/auth/roles.decorator';
+import { RolesGuard } from 'src/shared/auth/roles.guard';
+import { UserRole } from 'src/user/user.schema';
+import { Group } from './group.schema';
+import { GroupFields } from './resolvers/groups.fields';
+import { GroupQueries } from './resolvers/groups.queries';
+import { GroupMutations } from './resolvers/groups.mutations';
+import { GetGroupResponse, GetGroupsResponse } from './resolvers/groups.response';
+import { CreateGroupInput, UpdateGroupInput } from './resolvers/groups.input';
+
+
+
+@Resolver((of) => Group)
+export class GroupResolver {
+  constructor(
+    private groupFields: GroupFields,
+    private groupQueries: GroupQueries,
+    private groupMutations: GroupMutations,
+  ) { }
+
+
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((_returns) => GetGroupResponse)
+  async createGroup(@Args('input') input: CreateGroupInput): Promise<GetGroupResponse> {
+    return this.groupMutations.createGroup(input);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation(() => GetGroupResponse)
+  async updateGroup(
+    @Args('updateInput') updateInput: UpdateGroupInput,
+    @Args('eventId', { nullable: true }) eventId?: string,
+  ): Promise<GetGroupResponse> {
+    return this.groupMutations.updateGroup(updateInput, eventId);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation((_returns) => GetGroupResponse)
+  async deleteGroup(
+    @Context() context: any,
+    @Args('groupId', { nullable: true }) groupId: string,
+  ): Promise<GetGroupResponse> {
+   return this.groupMutations.deleteGroup(context, groupId);
+  }
+
+  @Query((_returns) => GetGroupsResponse)
+  async getGroups(@Context() context: any, @Args('eventId', { nullable: true }) eventId?: string) {
+    return this.groupQueries.getGroups(context, eventId);
+  }
+
+  @Query((_returns) => GetGroupResponse)
+  async getGroup(@Args('groupId') groupId: string) {
+    return this.groupQueries.getGroup(groupId);
+  }
+
+  /**
+   * POPULATE
+   * ===============================================================================================
+   */
+
+  @ResolveField()
+  async teams(@Parent() group: Group) {
+    return this.groupFields.teams(group);
+  }
+
+  @ResolveField()
+  async matches(@Parent() group: Group) {
+    return this.groupFields.matches(group);
+  }
+
+  @ResolveField()
+  async event(@Parent() group: Group) {
+    return this.groupFields.event(group);
+  }
+}
+
+
+```
+
+
+Here is my mutations file:
+
+```
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { TeamService } from 'src/team/team.service';
+import { GroupService } from '../group.service';
+
+import { GetGroupResponse } from './groups.response';
+import { AppResponse } from 'src/shared/response';
+import { getId } from 'src/utils/helper';
+import { CreateGroupInput, UpdateGroupInput } from './groups.input';
+import { MatchService } from 'src/match/match.service';
+
+
+
+@Injectable()
+export class GroupMutations {
+    constructor(
+        private readonly configService: ConfigService,
+        private readonly groupService: GroupService,
+        private readonly eventService: GroupService,
+        private readonly teamService: TeamService,
+        private readonly matchService: MatchService
+    ) { }
+
+
+
+    // Helpers
+    /**
+    * Helper to synchronize team and group relationships efficiently.
+    * Preserves the required sequence of operations (pull before push) to avoid 
+    * MongoDB race conditions, while parallelizing operations across different 
+    * collections to improve time and space complexity.
+    */
+    private async syncTeamGroupRelations(eventId: string, groupId: string, newTeamIds: string[]): Promise<void> {
+        const groups = await this.groupService.find({ event: eventId });
+        const groupSet = new Set([groupId]);
+        if (groups.length) {
+            for (const group of groups) {
+                if (group) {
+                    groupSet.add(String(group._id));
+                }
+            }
+        }
+        // 1. Break existing relationships (Parallelized across different collections)
+        // Removes groupId from any of the newTeams' groups array
+        // Removes any of the newTeams from the group's teams array
+        await Promise.all([
+            // Remove all groups of the event
+            this.teamService.updateMany(
+                { _id: { $in: newTeamIds } },
+                { $pull: { groups: { $in: [...groupSet] } } }
+            ),
+            // Remove all teams of the event
+            this.groupService.updateMany(
+                { _id: { $in: [...groupSet] } },
+                { $pull: { teams: { $in: newTeamIds } } }
+            ),
+        ]);
+
+        // 2. Build new relationships (Parallelized across different collections)
+        // Adds groupId to the newTeams' groups array
+        // Adds newTeams to the group's teams array
+        await Promise.all([
+            this.teamService.updateMany(
+                { _id: { $in: newTeamIds } },
+                { $addToSet: { groups: groupId } }
+            ),
+            this.groupService.updateOne(
+                { _id: groupId },
+                { $addToSet: { teams: newTeamIds } }
+            ),
+        ]);
+    }
+
+
+    /**
+    * Helper to remove team and group relationships efficiently.
+    * Pulls the specified teams from all groups in the event and 
+    * removes the event's groups from the specified teams.
+    */
+    private async removeTeamGroupRelations(eventId: string, groupId: string, removeTeamIds: string[]): Promise<void> {
+        const groups = await this.groupService.find({ event: eventId });
+        const groupSet = new Set<string>([groupId]);
+
+        if (groups.length) {
+            for (const group of groups) {
+                if (group) {
+                    groupSet.add(String(group._id));
+                }
+            }
+        }
+
+        await Promise.all([
+            // Remove teams from all groups of the event
+            this.groupService.updateMany(
+                { _id: { $in: [...groupSet] } },
+                { $pull: { teams: { $in: removeTeamIds } } }
+            ),
+            // Remove all groups of the event from the teams being removed
+            this.teamService.updateMany(
+                { _id: { $in: removeTeamIds } },
+                { $pull: { groups: { $in: [...groupSet] } } }
+            ),
+        ]);
+    }
+
+
+
+
+    async createGroup(input: CreateGroupInput): Promise<GetGroupResponse> {
+        try {
+            /**
+             * TODO:
+             *  Step-1: Get user id from token if not logged in as admin
+             */
+
+            const groupExist = await this.groupService.findOne({
+                name: {
+                    $regex: `^${input.name}$`,
+                    $options: 'i',
+                },
+                event: input.event,
+            });
+            if (groupExist) {
+                return AppResponse.handleError({
+                    code: 406,
+                    success: false,
+                    message: 'There is already a group exist with this name in this event!',
+                });
+            }
+
+            const groupObj = { ...input, matches: [] };
+            if (input.matches) groupObj.matches;
+            const newGroup = await this.groupService.create(groupObj);
+            // Update teams and event
+            await Promise.all([
+                this.eventService.updateOne({ _id: getId(newGroup.event) }, { $addToSet: { groups: newGroup._id } }),
+                this.teamService.updateMany({ _id: { $in: input.teams } }, { $addToSet: { groups: newGroup._id } }),
+            ]);
+
+            return {
+                data: newGroup,
+                success: true,
+                message: 'Group has been created successfully.',
+                code: HttpStatus.CREATED,
+            };
+        } catch (err) {
+            return AppResponse.handleError(err);
+        }
+    }
+
+
+    async updateGroup(
+        updateInput: UpdateGroupInput,
+        eventId?: string,
+    ): Promise<GetGroupResponse> {
+        try {
+            const { _id: groupId, teams: newTeamIds, removeteams, ...restUpdateData } = updateInput;
+
+            // ✅ Step 1: Validate Group
+            const existingGroup = await this.groupService.findOne({ _id: groupId });
+            if (!existingGroup) return AppResponse.notFound("Group");
+
+            if (updateInput.name) {
+                const groupNameExist = await this.groupService.findOne({
+                    name: {
+                        $regex: `^${updateInput.name}$`,
+                        $options: 'i',
+                    },
+                    event: eventId,
+                });
+                if (groupNameExist) {
+                    return AppResponse.handleError({
+                        code: 406,
+                        success: false,
+                        message: 'There is already a group exist with this name in this event!',
+                    });
+                }
+            }
+
+            // ✅ Step 2: Validate Event (use eventId if provided)
+            const targetEventId = eventId || existingGroup.event;
+
+            const event = await this.eventService.findOne({ _id: getId(targetEventId) });
+            if (!event) return AppResponse.notFound("Event");
+
+            // ✅ Step 3: Prepare groupIds to remove (other groups in same event)
+            // const otherGroupIds = event.groups
+            //     .filter((g) => String(g) !== String(groupId)) as string[];
+
+            const updateOperations: Promise<any>[] = [];
+
+            // ✅ Step 4: Handle Teams in BULK (no loop queries)
+            if (newTeamIds?.length) {
+                await this.syncTeamGroupRelations(eventId, groupId, newTeamIds);
+            }
+
+            if (removeteams?.length) {
+                await this.removeTeamGroupRelations(eventId, groupId, removeteams);
+            }
+
+            // ✅ Step 5: Update group fields
+            if (Object.entries(restUpdateData).length > 0) {
+                updateOperations.push(
+                    this.groupService.updateOne(
+                        { _id: groupId },
+                        { $set: restUpdateData }
+                    )
+                );
+            }
+
+            // ✅ Execute all in parallel
+            await Promise.all(updateOperations);
+
+            const updatedGroup = await this.groupService.findOne({ _id: groupId });
+
+            return {
+                data: updatedGroup,
+                success: true,
+                message: 'Group has been updated successfully.',
+                code: HttpStatus.ACCEPTED,
+            };
+
+        } catch (err) {
+            return AppResponse.handleError(err);
+        }
+    }
+
+    async deleteGroup(
+        context: any,
+        groupId: string,
+    ): Promise<GetGroupResponse> {
+        try {
+            const groupExist = await this.groupService.findById(groupId);
+            if (!groupExist) {
+                return AppResponse.notFound('Group');
+            }
+            // Teams, matches, event
+            const deletePromises = [];
+            if (groupExist.teams.length > 0) {
+                deletePromises.push(
+                    this.teamService.updateMany(
+                        { _id: { $in: groupExist.teams.map(g => String(g)) } },
+                        { $pull: { groups: groupId } }),
+                );
+            }
+
+            if (groupExist.matches.length > 0) {
+                deletePromises.push(
+                    this.matchService.updateMany({ _id: { $in: groupExist.matches.map(m => String(m)) } }, { $pull: { group: groupId } }),
+                );
+            }
+
+            deletePromises.push(this.eventService.updateOne({ _id: getId(groupExist.event) }, { $pull: { group: groupId } }));
+            deletePromises.push(this.groupService.deleteOne({ _id: groupId }));
+
+            await Promise.all(deletePromises);
+            return {
+                success: true,
+                message: 'Group has been deleted successfully.',
+                code: HttpStatus.NO_CONTENT,
+            };
+        } catch (err) {
+            return AppResponse.handleError(err);
+        }
+    }
+
+
+    async createGroupPoints(){}
+    async updateGroupPoints(){}
+    async deleteGroupPoints(){}
+
+}
+
+
+```
+
+Here is my group service file:
+
+```
+import { Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { QueryFilter, Model, UpdateQuery } from 'mongoose';
+import { Types } from 'mongoose';
+import { Group } from './group.schema';
+
+@Injectable()
+export class GroupService {
+  constructor(@InjectModel(Group.name) private groupModal: Model<Group>) {}
+
+  async findById(id: string) {
+    if (!Types.ObjectId.isValid(id)) {
+      return null;
+    }
+    return this.groupModal.findById(id);
+  }
+
+  async findOne(query: any) {
+    return this.groupModal.findOne(query).lean();
+  }
+
+  // async find(filter: QueryFilter<Group>) {
+  //   return this.groupModal.find(filter);
+  // }
+
+  async find(filter: QueryFilter<Group>, limit?: number, offset?: number) {
+    let query = this.groupModal.find(filter).sort({ date: -1 }); // always sort for stable pagination
+
+    if (typeof offset === 'number') {
+      query = query.skip(offset);
+    }
+
+    if (typeof limit === 'number') {
+      query = query.limit(limit);
+    }
+
+    return query.lean().exec();
+  }
+
+  async create(event: Group): Promise<Group> {
+    return this.groupModal.create({
+      ...event,
+      active: true,
+    });
+  }
+
+  async updateOne(filter: QueryFilter<Group>, updateData: UpdateQuery<Group>) {
+    const updateGroup = await this.groupModal.updateOne(filter, updateData);
+    return updateGroup;
+  }
+
+  async updateMany(filter: QueryFilter<Group>, updateData: UpdateQuery<Group>) {
+    const updateGroup = await this.groupModal.updateMany(filter, updateData);
+    return updateGroup;
+  }
+
+  async insertMany(groups: Group[]) {
+    return this.groupModal.insertMany(groups);
+  }
+
+  async deleteMany(filter: QueryFilter<Group>) {
+    return this.groupModal.deleteMany(filter);
+  }
+
+  async deleteOne(filter: QueryFilter<Group>) {
+    return this.groupModal.deleteOne(filter);
+  }
+
+
+
+  // Services for group match points
+  async pointsFindById(id: string) {
+    if (!Types.ObjectId.isValid(id)) {
+      return null;
+    }
+    return this.groupModal.findById(id);
+  }
+
+  async pointsFindOne(query: any) {
+    return this.groupModal.findOne(query).lean();
+  }
+
+
+  async pointsFind(filter: QueryFilter<Group>, limit?: number, offset?: number) {
+    let query = this.groupModal.find(filter).sort({ date: -1 }); // always sort for stable pagination
+
+    if (typeof offset === 'number') {
+      query = query.skip(offset);
+    }
+
+    if (typeof limit === 'number') {
+      query = query.limit(limit);
+    }
+
+    return query.lean().exec();
+  }
+
+  async pointsCreate(event: Group): Promise<Group> {
+    return this.groupModal.create({
+      ...event,
+      active: true,
+    });
+  }
+
+  async pointsUpdateOne(filter: QueryFilter<Group>, updateData: UpdateQuery<Group>) {
+    const updateGroup = await this.groupModal.updateOne(filter, updateData);
+    return updateGroup;
+  }
+
+  async pointsUpdateMany(filter: QueryFilter<Group>, updateData: UpdateQuery<Group>) {
+    const updateGroup = await this.groupModal.updateMany(filter, updateData);
+    return updateGroup;
+  }
+
+  async pointsInsertMany(groups: Group[]) {
+    return this.groupModal.insertMany(groups);
+  }
+
+  async pointsDeleteMany(filter: QueryFilter<Group>) {
+    return this.groupModal.deleteMany(filter);
+  }
+
+  async pointsDeleteOne(filter: QueryFilter<Group>) {
+    return this.groupModal.deleteOne(filter);
+  }
+}
+
+
+```
+
+Here is my queries file:
+
+```
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { GroupService } from '../group.service';
+import { TeamService } from 'src/team/team.service';
+import { EventService } from 'src/event/event.service';
+import { QueryFilter } from 'mongoose';
+import { Group } from '../group.schema';
+import { AppResponse } from 'src/shared/response';
+
+@Injectable()
+export class GroupQueries  {
+  constructor(
+    private configService: ConfigService,
+    private eventService: EventService,
+    private teamService: TeamService,
+    private groupService: GroupService,
+  ) { }
+
+
+  async getGroups(context: any, eventId?: string) {
+    try {
+      const queryParams: QueryFilter<Group> = {};
+      if (eventId) queryParams.event = eventId;
+      const groupList = await this.groupService.find(queryParams);
+      return {
+        code: HttpStatus.OK,
+        success: true,
+        data: groupList,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+
+  async getGroup(groupId: string) {
+    try {
+      const findGroup = await this.groupService.findById(groupId);
+      return {
+        code: findGroup ? HttpStatus.OK : HttpStatus.NOT_FOUND,
+        success: findGroup ? true : false,
+        data: findGroup ?? null,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
+
+  async getGroupPoints(groupId: string){}
+  async getGroupsPoints(groupId: string){}
+}
+
+
+```
+
+Here are my inputs:
+
+```
+// events.dto.ts
+import { Field, InputType, PartialType } from '@nestjs/graphql';
+import { EGroupRule } from '../group.schema';
+
+@InputType()
+export class CreateGroupInput {
+  @Field()
+  name: string;
+
+  @Field()
+  active: boolean;
+
+  @Field()
+  division: string;
+
+  @Field({ defaultValue: EGroupRule.CAN_PLAY_EACH_OTHER })
+  rule: EGroupRule;
+
+  @Field()
+  event: string;
+
+  @Field((_type) => [String])
+  teams: string[];
+
+  @Field((_type) => [String], {nullable: true})
+  matches?: string[];
+}
+
+@InputType()
+export class UpdateGroupInput extends PartialType(CreateGroupInput) {
+  @Field()
+  _id: string;
+
+  @Field((_type) => [String], {nullable: true})
+  removeteams: string[];
+}
+
+
+```
+
+Here are my group fields:
+
+```
+import { Injectable } from '@nestjs/common';
+import { Parent } from '@nestjs/graphql';
+import { TeamService } from 'src/team/team.service';
+import { MatchService } from 'src/match/match.service';
+import { Group } from '../group.schema';
+import { EventService } from 'src/event/event.service';
+
+
+@Injectable()
+export class GroupFields {
+  constructor(
+    private eventService: EventService,
+    private teamService: TeamService,
+    private matchService: MatchService,
+  ) {}
+
+  async teams(@Parent() group: Group) {
+    const teamList = await this.teamService.find({ _id: { $in: group.teams.map(g => String(g)) } });
+    return teamList;
+  }
+
+
+  async matches(@Parent() group: Group) {
+    const matchList = await this.matchService.find({ _id: { $in: group.matches.map(m => String(m)) } });
+    return matchList;
+  }
+
+
+  async event(@Parent() group: Group) {
+    const eventExist = await this.eventService.findOne({ _id: group.event.toString() });
+    return eventExist;
+  }
+}
+
+
+```
+
+Now, you need to complete getGroupPoints, getGroupsPoints, createGroupPoints, updateGroupPoints, deleteGroupPoints and create all necessary fields for this schema.
+Make sure to do relationships properly. 
+Important: DO not change schema design

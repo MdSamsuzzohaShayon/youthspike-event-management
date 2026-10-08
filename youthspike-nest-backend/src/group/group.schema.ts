@@ -1,4 +1,4 @@
-import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { Event } from 'src/event/event.schema';
@@ -63,7 +63,44 @@ export class Group extends AppDocument {
   // childGroups: (string | Group)[];
 }
 
+
+// This is very similar to TeamMatchAbsence
+@ObjectType()
+@Schema({ timestamps: true })
+export class GroupPoints extends AppDocument {
+  @Field((_type) => Team)
+  @Prop({
+    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team',
+  })
+  team: string | Team;
+
+  @Field((_type) => Event, {nullable: true})
+  @Prop({
+    required: false,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Event',
+  })
+  event: string | Event;
+
+  @Field(()=> Int, { nullable: false })
+  @Prop({ required: true })
+  points: number;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  notes?: string;
+
+}
+
 export const GroupSchema = SchemaFactory.createForClass(Group);
 export const GroupSchemaFactory = async () => {
   return GroupSchema;
+};
+
+
+export const GroupPointsSchema = SchemaFactory.createForClass(GroupPoints);
+export const GroupPointsFactory = async () => {
+  return GroupPointsSchema;
 };

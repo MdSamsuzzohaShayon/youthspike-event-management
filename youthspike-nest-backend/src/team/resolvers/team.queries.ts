@@ -68,8 +68,15 @@ export class TeamQueries {
       }
 
       const teams = await this.teamService.find(query, offset, limit);
+      // Group points
+      const groupPoints = await this.groupService.pointsFind({team: {$in: teams.map(t => String(t._id))}}, offset, limit);
+      const groupPointsMap = new Map<string, number>();
+      for (const groupPoint of groupPoints) {
+        groupPointsMap.set(String(groupPoint.team), groupPoint.points);
+        
+      }
 
-      const teamList = await this.teamService.teamsWithAbsense(teams);
+      const teamList = await this.teamService.teamsWithAbsense(teams, groupPointsMap);
 
       return {
         code: HttpStatus.OK,
@@ -542,6 +549,23 @@ export class TeamQueries {
 
       const teams = await this.teamService.find(teamQuery, offset, limit);
 
+      // Group points
+      const teamIds = teams.map(t => String(t._id));
+      const groupPoints = teamIds.length
+    ? await this.groupService.pointsFind(
+          {
+              team: { $in: teamIds },
+          },
+          offset,
+          limit,
+      )
+    : [];
+      const groupPointsMap = new Map<string, number>();
+      for (const groupPoint of groupPoints) {
+        groupPointsMap.set(String(groupPoint.team), groupPoint.points);
+        
+      }
+
       // 🔹 Extract IDs (optimized loop)
       const matchIdSet = new Set<string>();
       const captainIdSet = new Set<string>();
@@ -553,7 +577,7 @@ export class TeamQueries {
         team.events.forEach((t) => eventIdTeamsSet.add(String(t)));
       }
 
-      const teamList = await this.teamService.teamsWithAbsense(teams);
+      const teamList = await this.teamService.teamsWithAbsense(teams, groupPointsMap);
 
       const matchIds = Array.from(matchIdSet);
       const captainIds = Array.from(captainIdSet);
@@ -606,7 +630,6 @@ export class TeamQueries {
           matches: matches as CustomMatch[],
           captains: captains as CustomPlayer[],
           emailcontents: (emailcontents || []) as CustomEmailcontent[],
-          // emailsenders
         },
       };
     } catch (error) {

@@ -35,26 +35,22 @@ interface ITeamCardProps {
   onCheckedTeam: (e: React.SyntheticEvent, teamId: string) => void;
   onMoveTeamOpen: (e: React.SyntheticEvent, team: ITeam) => void;
   onDeleteTeamOpen: (e: React.SyntheticEvent, team: ITeam) => void;
-  onAddAbsenceOpen: (e: React.SyntheticEvent, team: ITeam) => void; 
   onBulkAbsenceMatchOpen: (e: React.SyntheticEvent, team: ITeam) => void; 
 }
 
 
 
 function TeamCard({ team, eventId, groupList, isChecked, emailcontents, badge, badges, onCheckedTeam, onSendCredential, 
-  onUpdateTeam, onMoveTeamOpen, onDeleteTeamOpen, onAddAbsenceOpen, onBulkAbsenceMatchOpen }: ITeamCardProps) {
+  onUpdateTeam, onMoveTeamOpen, onDeleteTeamOpen, onBulkAbsenceMatchOpen }: ITeamCardProps) {
   // Hooks
   const { ldoIdUrl } = useLdoId();
   const user = useUser();
 
   const [mutateGroup] = useMutation(UPDATE_GROUP);
-  const [mutateTeam] = useMutation(UPDATE_TEAM);
 
   // References
   const actionEl = useRef<null | HTMLUListElement>(null);
   const [actionOpen, setActionOpen] = useState<boolean>(false);
-  const addAbsenceDialogRef = useRef<HTMLDialogElement | null>(null);
-  const [selectedTeamForAbsence, setSelectedTeamForAbsence] = useState<ITeam | null>(null);
 
   // Local State
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
@@ -136,10 +132,7 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, badge, b
     onUpdateTeam(e, { badge: inputEl.value }, team._id);
   }
 
-  const handleAddAbsenceOpen = (e: React.SyntheticEvent, team: ITeam) => {
-    onAddAbsenceOpen(e, team);
-    setActionOpen(false);
-  };
+
 
   const handleBulkAbsenceMatchOpen = (e: React.SyntheticEvent, team: ITeam) => {
     onBulkAbsenceMatchOpen(e, team);
@@ -312,7 +305,6 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, badge, b
               onSendCredential={onSendCredential}
               onMoveTeamOpen={handleMoveTeamOpen}
               onDeleteTeamOpen={handleDeleteTeamOpen}
-              onAddAbsenceOpen={handleAddAbsenceOpen}
               onBulkAbsenceMatchOpen={handleBulkAbsenceMatchOpen} 
             />
           </div>

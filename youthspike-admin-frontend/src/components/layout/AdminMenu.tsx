@@ -75,7 +75,7 @@ const AdminMenu = () => {
   };
 
 
-  // if (!info || !token) return null;
+  if (!info || !token) return null;
 
   return (
     <div className="container mx-auto px-4">

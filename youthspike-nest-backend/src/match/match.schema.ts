@@ -2,7 +2,7 @@ import { Field, Int, ObjectType, registerEnumType } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose from 'mongoose';
 import { ERosterLock, ETieBreakingStrategy, Event } from 'src/event/event.schema';
-import { Group } from 'src/group/group.schema';
+import { Group, GroupPoints } from 'src/group/group.schema';
 import { Net } from 'src/net/net.schema';
 import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
 import { PlayerStats } from 'src/player-stats/player-stats.schema';
@@ -179,6 +179,11 @@ export class Match extends AppDocument {
   @Field((_type) => [TeamMatchAbsence], { nullable: true })
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'TeamMatchAbsence' }] })
   teammatchabsences?: TeamMatchAbsence[] | string[]; 
+
+
+  @Field((_type) => GroupPoints, { nullable: true })
+  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'GroupPoints'  })
+  groupPoints?: GroupPoints; 
 }
 
 @ObjectType()
@@ -209,6 +214,9 @@ export class TeamMatchAbsence extends AppDocument {
   notes?: string;
 
 }
+
+
+
 
 export const MatchSchema = SchemaFactory.createForClass(Match);
 export const TeamMatchAbsenceSchema = SchemaFactory.createForClass(TeamMatchAbsence);

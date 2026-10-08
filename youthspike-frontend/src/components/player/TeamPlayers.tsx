@@ -16,7 +16,7 @@ interface ITeamPlayersProps {
 
 function TeamPlayers({ teamPlayers, roundList, onTop, teamE }: ITeamPlayersProps) {
   const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((state) => state.playerRanking);
-  const {ldoIdUrl} = useLdoId();
+  const { ldoIdUrl } = useLdoId();
 
   /**
    * ✅ Memoized sorted players (no duplicate loop, Set used inline).
@@ -29,7 +29,7 @@ function TeamPlayers({ teamPlayers, roundList, onTop, teamE }: ITeamPlayersProps
 
     const { sortedPlayers: sortedPlayerList } = sortPlayerRanking(teamPlayers, rankings);
 
-    
+
 
     const seen = new Set<string>();
     return sortedPlayerList.filter((p) => {
@@ -62,12 +62,13 @@ function TeamPlayers({ teamPlayers, roundList, onTop, teamE }: ITeamPlayersProps
     <div className="py-4">
       <div className="container px-4 mx-auto">
         <div
-          className={`player-list flex ${
-            onTop ? 'items-end' : 'items-start'
-          } justify-between overflow-x-auto gap-x-1`}
+          className={`player-list flex ${onTop ? 'items-end' : 'items-start'
+            } justify-between overflow-x-auto gap-x-1`}
         >
           {sortedPlayers.map((player) => (
-            <Link href={`/players/${player._id}/${ldoIdUrl}`} className="player-card w-20 flex-shrink-0" key={player._id}>
+            <Link href={`/players/${player._id}/${ldoIdUrl}`}
+              className="player-card w-20 min-w-[60px] flex-shrink"
+              key={player._id}>
               <PlayerScoreCard
                 player={player}
                 onTop={onTop}

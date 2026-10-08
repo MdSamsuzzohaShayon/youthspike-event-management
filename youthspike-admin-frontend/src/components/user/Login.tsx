@@ -19,9 +19,6 @@ interface LoginFormData {
   passcode?: string;
 }
 
-const { initial: headingInitial, animate: headingAnimateState, exit: headingExit } = headingAnimate;
-const { initial: cardInitial, animate: cardAnimateState, exit: cardExit } = cardAnimate;
-
 // Extracted SVG Background Component
 const BackgroundSVG = () => (
   <div className="fixed inset-0 overflow-hidden pointer-events-none">

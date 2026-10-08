@@ -1,0 +1,383 @@
+Here is my component:
+
+```
+import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
+import { ITeam } from '@/types';
+
+interface IBulkAbsenceMatchDialogProps {
+    dialogRef: React.RefObject<HTMLDialogElement | null>;
+    selectedTeam: ITeam | null;
+    onClose: () => void;
+    onSubmit: (input: {
+        team: string;
+        count: number;
+        reason?: string;
+        notes?: string;
+    }) => Promise<void>;
+}
+
+function BulkAbsenceMatchDialog({
+    dialogRef,
+    selectedTeam,
+    onClose,
+    onSubmit,
+}: IBulkAbsenceMatchDialogProps) {
+    const [count, setCount] = useState<number>(1);
+    const [reason, setReason] = useState<string>('');
+    const [notes, setNotes] = useState<string>('');
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+    useEffect(() => {
+        const dialog = dialogRef.current;
+        if (!dialog) return;
+
+        const handleClose = () => {
+            setCount(1);
+            setReason('');
+            setNotes('');
+        };
+
+        dialog.addEventListener('close', handleClose);
+        return () => {
+            dialog.removeEventListener('close', handleClose);
+        };
+    }, [dialogRef]);
+
+    const handleSubmit = async (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        if (count < 1) {
+            console.error("At least one match is required.");
+            return;
+        }
+        
+        if (!selectedTeam?._id) {
+            console.error("Please select a team first.");
+            return;
+        }
+
+        try {
+            setIsSubmitting(true);
+            await onSubmit({
+                team: selectedTeam._id,
+                count,
+                reason: reason.trim() || undefined,
+                notes: notes.trim() || undefined,
+            });
+            dialogRef.current?.close();
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleClose = (e: React.SyntheticEvent) => {
+        e.preventDefault();
+        onClose();
+    };
+
+    return (
+        <dialog
+            ref={dialogRef}
+            className="modal-dialog"
+        >
+            <form onSubmit={handleSubmit} className="flex flex-col">
+                {/* Header */}
+                <div className="flex items-center justify-between p-4 border-b border-gray-700">
+                    <h3 className="text-lg font-semibold">Add Multiple Absences</h3>
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-700"
+                        aria-label="Close"
+                    >
+                        <Image
+                            src="/icons/close.svg"
+                            alt="Close"
+                            width={16}
+                            height={16}
+                            className="svg-white"
+                        />
+                    </button>
+                </div>
+
+                {/* Body */}
+                <div className="p-4 flex flex-col gap-4">
+                    {/* Team (read-only display) */}
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm text-gray-400">Team</label>
+                        <p className='w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-sm'>{selectedTeam?.name}</p>
+                    </div>
+
+                    {/* Count */}
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm text-gray-400">
+                            Number of Absences <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                            type="number"
+                            min={1}
+                            max={100}
+                            value={count}
+                            onChange={(e) => setCount(Math.max(1, parseInt(e.target.value, 10) || 1))}
+                            className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-yellow-500"
+                            required
+                        />
+                    </div>
+
+                    {/* Reason */}
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm text-gray-400">
+                            Reason <span className="text-gray-500">(optional)</span>
+                        </label>
+                        <input
+                            type="text"
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                            placeholder="Reason for absence"
+                            className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-yellow-500"
+                        />
+                    </div>
+
+                    {/* Notes */}
+                    <div className="flex flex-col gap-1">
+                        <label className="text-sm text-gray-400">
+                            Notes <span className="text-gray-500">(optional)</span>
+                        </label>
+                        <textarea
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            placeholder="Additional notes"
+                            rows={3}
+                            className="w-full bg-gray-700 border border-gray-600 rounded-md px-3 py-2 text-sm focus:outline-none focus:border-yellow-500 resize-none"
+                        />
+                    </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-700">
+                    <button
+                        type="button"
+                        onClick={handleClose}
+                        className="btn-danger"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        type="submit"
+                        disabled={isSubmitting || !selectedTeam?._id || count < 1}
+                        className="btn-info"
+                    >
+                        {isSubmitting ? 'Saving...' : `Create ${count} Absence${count > 1 ? 's' : ''}`}
+                    </button>
+                </div>
+            </form>
+        </dialog>
+    );
+}
+
+export default BulkAbsenceMatchDialog;
+
+```
+
+
+In there component I want:
+ - 3 tabs, one for list of match absences, one for creating absences, one for creating and updating group points
+ - Initially we will show new absence create, and form for that will be same as current form
+ - In the match absence list, I want to show number of absences then delete them or update them
+ - All fetching will be later after showing the form. 
+ - Use fetching and caching so it will be faster
+ - And use graphql apollo client caching like write cache, or write fragment, etc
+
+
+
+Here is create group points mutation:
+
+```
+mutation CreateGroupPoints($input: CreateGroupPointsInput!){
+  createGroupPoints(input:$input){
+    code
+    success
+    message
+    data{
+      _id
+      __typename
+      points
+    }
+  }
+}
+
+```
+
+
+Here is input:
+
+```
+{
+  "input": {
+    "team": "",
+    "event": "",
+    "points": 12,
+    "notes": "A note"
+  }
+}
+
+```
+
+
+Here is group points mutation:
+
+```
+
+mutation UpdateGroupPoints($updateInput: UpdateGroupPointsInput!){
+  updateGroupPoints(updateInput:$updateInput){
+    code
+    success
+    message
+    data{
+      _id
+      __typename
+      points
+    }
+  }
+}
+```
+
+
+Here is updateInput:
+
+```
+{
+  "updateInput": {
+    "_id": "",
+    "team": "",
+    "event": "",
+    "points": 12,
+    "notes": "A note"
+  }
+}
+```
+
+
+Here is the query to get a group point:
+
+```
+query GetGroupPoints($groupPointsId: String!){
+  getGroupPoints(groupPointsId:$groupPointsId){
+    code
+    success
+    message
+    data{
+      _id
+      __typename
+      points
+    }
+  }
+}
+
+```
+
+
+Params:
+
+```
+{
+  "groupPointsId": ""
+}
+
+```
+
+
+Here is match absence data type:
+
+```
+@ObjectType()
+@Schema({ timestamps: true })
+export class TeamMatchAbsence extends AppDocument {
+  @Field((_type) => Team)
+  @Prop({
+    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team',
+  })
+  team: string | Team;
+
+  @Field((_type) => Match, {nullable: true})
+  @Prop({
+    required: false,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Match',
+  })
+  match?: string | Match;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  reason?: string;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  notes?: string;
+
+}
+
+
+
+@ObjectType()
+export class CustomTeamMatchAbsense extends TeamMatchAbsence {
+
+  @Field((_type) => String, { nullable: true })
+  match?: string;
+
+  @Field((_type) => String, { nullable: false })
+  team: string;
+}
+
+
+
+```
+
+
+Here is group points data type:
+
+```
+@ObjectType()
+@Schema({ timestamps: true })
+export class GroupPoints extends AppDocument {
+  @Field((_type) => Team)
+  @Prop({
+    required: true,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team',
+  })
+  team: string | Team;
+
+  @Field((_type) => Event, {nullable: true})
+  @Prop({
+    required: false,
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Event',
+  })
+  event: string | Event;
+
+  @Field(()=> Int, { nullable: false })
+  @Prop({ required: true })
+  points: number;
+
+  @Field({ nullable: true })
+  @Prop({ required: false })
+  notes?: string;
+
+}
+
+```
+
+
+Follow those coding rules:
+1. Use clear, meaningful, and self-explanatory names for all variables and functions.
+2. Apply the KISS (Keep It Simple) and DRY (Don’t Repeat Yourself) principles to ensure the code is clean, readable, and maintainable.
+3. Add proper TypeScript typings to improve type safety and reduce potential runtime errors. Try not to use any type
+4. Optimize the implementation for better time and space complexity, ensuring improved performance and scalability where possible.
+5. Identify and fix any existing errors so the code runs correctly, without altering the original business logic.
+6. Break down complex logic into smaller helper functions or subcomponents where it improves readability and structure. Try to make pure functions if possible. Must Apply Single Responsibility Principle (SRP)
+7. Implement robust and clean error handling, ensuring edge cases are handled gracefully.

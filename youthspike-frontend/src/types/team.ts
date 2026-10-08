@@ -19,6 +19,7 @@ export interface ITeam {
   logo?: string | null;
   division: string;
   teammatchabsencescount?: number;
+  grouppoints?: number;
   group: IGroup;
   events: IEvent[];
   matches: IMatchExpRel[];

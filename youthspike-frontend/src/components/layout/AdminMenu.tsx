@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import { removeCookie } from "@/utils/cookie";
 import { useParams, useRouter, usePathname } from "next/navigation";
 import { useLdoId } from "@/lib/LdoProvider";
-import { IUserContext, UserRole } from "@/types/user";
+import { IUser, IUserContext, UserRole } from "@/types/user";
 import Image from "next/image";
 import Link from "next/link";
 import { ADMIN_FRONTEND_URL } from "@/utils/keys";
@@ -10,10 +10,11 @@ import LocalStorageService from "@/utils/LocalStorageService";
 import { CURRENT_EVENT_ID } from "@/utils/constant";
 
 interface IAdminMenuProps {
-  user: IUserContext | null;
+  info: IUser | null;
+  token: string | null;
 }
 
-function AdminMenu({ user }: IAdminMenuProps) {
+function AdminMenu({ info, token }: IAdminMenuProps) {
   // ===== Hooks =====
   const router = useRouter();
   const params = useParams();
@@ -78,7 +79,7 @@ function AdminMenu({ user }: IAdminMenuProps) {
     }, 300); // Match this with your animation duration
   };
 
-  if (!user || !user.token) return null;
+  if (!token) return null;
 
   return (
     <div className="container mx-auto px-2">
@@ -146,19 +147,19 @@ function AdminMenu({ user }: IAdminMenuProps) {
                 className="w-16 h-16 mx-auto rounded-full border-2 border-yellow"
               />
             </Link>
-            <h1 className="text-2xl text-yellow mt-4 capitalize">{`${user.info?.firstName} ${user.info?.lastName}`}</h1>
-            {user.info?.team && (
-              <h3 className="text-sm text-gray-400">{user.info.team}</h3>
+            <h1 className="text-2xl text-yellow mt-4 capitalize">{`${info?.firstName} ${info?.lastName}`}</h1>
+            {info?.team && (
+              <h3 className="text-sm text-gray-400">{info.team}</h3>
             )}
             <p className="uppercase text-yellow text-sm mt-2">
-              {user?.info?.role}
+              {info?.role}
             </p>
           </div>
 
           {/* Menu Links */}
           <ul className="menu-list space-y-6">
-            {(user.info?.role === UserRole.admin ||
-              user.info?.role === UserRole.director) && (
+            {(info?.role === UserRole.admin ||
+              info?.role === UserRole.director) && (
               <li className="text-lg capitalize transition-transform duration-200 hover:translate-x-1">
                 <Link
                   onClick={() => setIsMenuOpen(false)}
@@ -195,7 +196,7 @@ function AdminMenu({ user }: IAdminMenuProps) {
                   </Link>
                 </li>
 
-                {user.info?.role !== UserRole.player && (
+                {info?.role !== UserRole.player && (
                   <li className="text-lg capitalize transition-transform duration-200 hover:translate-x-1 delay-150">
                     <Link
                       onClick={() => setIsMenuOpen(false)}
@@ -213,8 +214,8 @@ function AdminMenu({ user }: IAdminMenuProps) {
                     </Link>
                   </li>
                 )}
-                {(user.info?.role === UserRole.admin ||
-                  user.info?.role === UserRole.director) && (
+                {(info?.role === UserRole.admin ||
+                  info?.role === UserRole.director) && (
                   <li className="text-lg capitalize transition-transform duration-200 hover:translate-x-1 delay-200">
                     <Link
                       onClick={() => setIsMenuOpen(false)}
@@ -267,7 +268,7 @@ function AdminMenu({ user }: IAdminMenuProps) {
               </>
             )}
 
-            {user?.info?.role === UserRole.director && (
+            {info?.role === UserRole.director && (
               <li className="text-lg capitalize transition-transform duration-200 hover:translate-x-1 delay-350">
                 <Link
                   onClick={() => setIsMenuOpen(false)}
@@ -286,7 +287,7 @@ function AdminMenu({ user }: IAdminMenuProps) {
               </li>
             )}
 
-            {user?.info?.role === UserRole.admin && (
+            {info?.role === UserRole.admin && (
               <>
                 <li className="text-lg capitalize transition-transform duration-200 hover:translate-x-1 delay-400">
                   <Link
