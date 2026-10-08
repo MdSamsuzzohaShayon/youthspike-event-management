@@ -15,7 +15,6 @@ interface IActionMenuProps {
     onSendCredential: (e: React.SyntheticEvent, teamId: string) => void;
     onMoveTeamOpen: (e: React.SyntheticEvent, team: ITeam) => void;
     onDeleteTeamOpen: (e: React.SyntheticEvent, team: ITeam) => void;
-    onAddAbsenceOpen: (e: React.SyntheticEvent, team: ITeam) => void;
     onBulkAbsenceMatchOpen: (e: React.SyntheticEvent, team: ITeam) => void; 
 }
 
@@ -30,7 +29,6 @@ function ActionMenu({
     onSendCredential,
     onMoveTeamOpen,
     onDeleteTeamOpen,
-    onAddAbsenceOpen,
     onBulkAbsenceMatchOpen,
 }: IActionMenuProps) {
     const handleEditRedirect = (e: React.SyntheticEvent) => {
@@ -72,18 +70,7 @@ function ActionMenu({
                 <span className="text-sm">{sendCredentialLabel} Credential</span>
             </li>
 
-            {/* NEW: Add Absence Match */}
-            {/* <li
-                onClick={(e) => {
-                    onClose();
-                    onAddAbsenceOpen(e, team);
-                }}
-                className="flex items-center gap-3 px-4 py-3 hover:bg-gray-200 hover:bg-gray-700 cursor-pointer"
-                role="presentation"
-            >
-                <Image src="/icons/plus.svg" alt="Add Absence Match" width={16} height={16} className="svg-white" />
-                <span className="text-sm">Add Absence Match</span>
-            </li> */}
+
 
             <li
                 onClick={(e) => {
@@ -94,7 +81,7 @@ function ActionMenu({
                 role="presentation"
             >
                 <Image src="/icons/plus.svg" alt="Add Absences" width={16} height={16} className="svg-white" />
-                <span className="text-sm">Add Absences</span>
+                <span className="text-sm">Absences / Group points</span>
             </li>
 
 

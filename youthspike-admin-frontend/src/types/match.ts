@@ -181,3 +181,35 @@ export interface ISearchLimitFilter extends ISearchFilter {
   limit: number;
   offset: number;
 }
+
+
+export interface IMatchAbsence{
+  _id: string;
+  team: string;
+  count: number;
+  reason?: string;
+  notes?: string;
+}
+
+export type TAddMatchAbsence = Omit<IMatchAbsence, '_id'>;
+
+
+export interface IBulkAbsenceMatchDialogProps {
+  dialogRef: React.RefObject<HTMLDialogElement | null>;
+  selectedTeam: ITeam | null;
+  onClose: () => void;
+  onSubmit: (input: TAddMatchAbsence) => Promise<void>;
+}
+
+
+export interface IMatchAbsencesResponse extends IResponse{
+  data?: IMatchAbsence[];
+}
+
+export type GetTeamMatchAbsencesQuery = {
+  searchTeamMatchAbsenses: IMatchAbsencesResponse;
+};
+
+export type UpdateTeamMatchAbsenceMutation = {
+  updateTeamMatchAbsence: IResponse & { data?: IMatchAbsence };
+};

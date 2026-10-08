@@ -1,3 +1,4 @@
+// EventAddUpdate.tsx
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
@@ -7,7 +8,17 @@ import { UserRole } from '@/types/user';
 import { useLdoId } from '@/lib/LdoProvider';
 
 import { useEventForm } from '@/hooks/useEventForm';
-import { TAddBadge, IBadge, ICreateEventResponse, IEvent, IEventExpRel, IEventSponsor, IProStats, IResponse } from '@/types';
+import {
+  TAddBadge,
+  TAddSponsor,
+  IBadge,
+  ICreateEventResponse,
+  IEvent,
+  IEventExpRel,
+  IEventSponsor,
+  IProStats,
+  IResponse,
+} from '@/types';
 
 import Loader from '../elements/Loader';
 import EventFormSections from './EventFormSections';
@@ -15,8 +26,8 @@ import { useMessage } from '@/lib/MessageProvider';
 import { useApolloClient, useMutation } from '@apollo/client/react';
 import { ADD_EVENT, UPDATE_EVENT } from '@/graphql/event';
 import { createEvent } from '@/utils/request-handlers/createEvent';
-import SponsorManager from './SponsorManager';
 import BadgeInput from '../elements/forms/BadgeInput';
+import SponsorInput from '../elements/forms/SponsorInput';
 import deleteDraftImages from '@/utils/request-handlers/deleteDraftImages';
 import { updateEvent } from '@/utils/request-handlers/updateEvent';
 
@@ -29,9 +40,14 @@ export interface IEventAddProps {
   prevBadges?: IBadge[];
 }
 
-
-
-const EventAddUpdate = ({ update, previousEvent, previousMultiplayer, previousWight, previousSponsorList, prevBadges=[] }: IEventAddProps) => {
+const EventAddUpdate = ({
+  update,
+  previousEvent,
+  previousMultiplayer,
+  previousWight,
+  previousSponsorList,
+  prevBadges = [],
+}: IEventAddProps) => {
   // Hooks
   const router = useRouter();
   const user = useUser();
@@ -47,8 +63,6 @@ const EventAddUpdate = ({ update, previousEvent, previousMultiplayer, previousWi
   const [badges, setBadges] = useState<TAddBadge[]>(prevBadges);
   const badgesRef = useRef<TAddBadge[]>(badges);
 
-
-
   const [addEvent] = useMutation<{ createEvent: ICreateEventResponse }>(ADD_EVENT);
   const [mutateEvent] = useMutation<{ updateEvent: IResponse }>(UPDATE_EVENT);
 
@@ -56,12 +70,10 @@ const EventAddUpdate = ({ update, previousEvent, previousMultiplayer, previousWi
     eventState,
     multiplayer,
     weight,
-
     updateEventState,
     updateMultiplayer,
     updateStats,
     updateWeight,
-
     sponsors,
     eventLogo,
     handleInputChange,
@@ -77,17 +89,17 @@ const EventAddUpdate = ({ update, previousEvent, previousMultiplayer, previousWi
     setUpdateEventState,
     initialEvent,
     initialProStats,
-  } = useEventForm(update, previousEvent, previousMultiplayer, previousWight, previousSponsorList);
+  } = useEventForm(
+    update,
+    previousEvent,
+    previousMultiplayer,
+    previousWight,
+    previousSponsorList,
+  );
   const apolloClient = useApolloClient();
 
-
-
-  const handleSave = async () => {
-    // await fetch(`/api/teams/${teamName}/badges`, {
-    //   method: "PATCH",
-    //   body: JSON.stringify({ badges }),
-    // });
-  };
+  // Mirror of sponsors state for unmount cleanup (only logos need cleanup).
+  const sponsorsRef = useRef<TAddSponsor[]>(sponsors);
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -122,17 +134,16 @@ const EventAddUpdate = ({ update, previousEvent, previousMultiplayer, previousWi
         });
       }
 
-      // Reset form and navigate
       setEventState(initialEvent);
-      if(eventId){
+      if (eventId) {
         router.push(`/${eventId}/${ldoIdUrl}`);
-      }else{
+      } else {
         router.push(`/${ldoIdUrl}`);
       }
     } catch (error) {
       setMessage({
         message: error instanceof Error ? error.message : String(error),
-        type: "error"
+        type: 'error',
       });
     } finally {
       setIsLoading(false);
@@ -158,16 +169,31 @@ const EventAddUpdate = ({ update, previousEvent, previousMultiplayer, previousWi
     }
   }, [user, pName, searchParams, router]);
 
+  // Keep refs in sync without re-triggering the unmount cleanup effect.
   useEffect(() => {
     badgesRef.current = badges;
   }, [badges]);
-  
+
+  useEffect(() => {
+    sponsorsRef.current = sponsors;
+  }, [sponsors]);
+
+  // On unmount: delete all badge icons still flagged as "draft" on the backend.
   useEffect(() => {
     return () => {
       const icons = badgesRef.current.map((badge) => badge.icon);
-  
       if (icons.length > 0) {
         void deleteDraftImages(icons);
+      }
+    };
+  }, []);
+
+  // On unmount: delete all sponsor logos still flagged as "draft" on the backend.
+  useEffect(() => {
+    return () => {
+      const logos = sponsorsRef.current.map((sponsor) => sponsor.logo);
+      if (logos.length > 0) {
+        void deleteDraftImages(logos);
       }
     };
   }, []);
@@ -196,19 +222,25 @@ const EventAddUpdate = ({ update, previousEvent, previousMultiplayer, previousWi
         />
       </div>
 
-      {/* Badge  */}
-      <BadgeInput
-        name="badges"
-        label="Badges"
-        value={badges}
-        onChange={setBadges}
-      />
-
-      <div>
-        <SponsorManager defaultSponsor={eventState.defaultSponsor} sponsors={sponsors} onDefaultSponsorToggle={handleDefaultSponsorToggle} onSetSponsors={setSponsors} />
+      {/* Badges */}
+      <div className="mt-6">
+        <BadgeInput
+          name="badges"
+          label="Badges"
+          value={badges}
+          onChange={setBadges}
+        />
       </div>
 
-
+      {/* Sponsors */}
+      <div className="mt-6">
+        <SponsorInput
+          name="sponsors"
+          label="Sponsors"
+          value={sponsors}
+          onChange={setSponsors}
+        />
+      </div>
 
       <div className="mt-6">
         <button type="submit" className="w-full btn-info">

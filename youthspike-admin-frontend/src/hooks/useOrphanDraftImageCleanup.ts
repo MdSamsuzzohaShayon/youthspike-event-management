@@ -1,50 +1,61 @@
-// ---------------------------------------------------------------------------
-// Custom hook — encapsulates the "delete unsaved upload on unmount" rule.
-// ---------------------------------------------------------------------------
-
-import { TAddBadge } from "@/types";
-import { getBadgePublicId, safelyDeleteDraftImage } from "@/utils/badge/badge-helpers";
+// hooks/useOrphanDraftImageCleanup.ts
 import { useEffect, useRef } from "react";
+import deleteDraftImage from "@/utils/request-handlers/deleteDraftImage";
 
 /**
- * On unmount, deletes the current draft image from Cloudinary — but only if
- * it was never actually saved into `badges`. Uses refs so the effect itself
- * only runs once (mount/unmount), rather than re-firing (and deleting) on
- * every keystroke or successful save.
+ * Cleans up "orphan" draft images that were uploaded to Cloudinary but
+ * never attached to a persisted item.
  *
- * Bug fixed: the previous version depended on `[draftIcon]`, so its cleanup
- * fired on *every* change — including the moment a badge was successfully
- * saved and the draft was reset — which could delete an image still in use
- * by a saved badge.
+ * Two scenarios:
+ *  1. The draft icon changes (user picks a new image): the previous draft
+ *     is deleted if no persisted item uses it.
+ *  2. The component unmounts: the current draft is deleted if no persisted
+ *     item uses it.
+ *
+ * Refs are used so the unmount cleanup always sees the latest values
+ * without re-running the effect on every render.
  */
-function useOrphanDraftImageCleanup(draftIcon: string, badges: TAddBadge[]): void {
-    const draftIconRef = useRef(draftIcon);
-    const badgesRef = useRef(badges);
+export function useOrphanDraftImageCleanup<T>(
+  draftIcon: string,
+  items: T[],
+  getIcon: (item: T) => string,
+): void {
+  const prevDraftIconRef = useRef<string>(draftIcon);
+  const itemsRef = useRef(items);
+  const getIconRef = useRef(getIcon);
 
-    useEffect(() => {
-        draftIconRef.current = draftIcon;
-    }, [draftIcon]);
+  itemsRef.current = items;
+  getIconRef.current = getIcon;
 
-    useEffect(() => {
-        badgesRef.current = badges;
-    }, [badges]);
+  // Scenario 1: draft icon changed.
+  useEffect(() => {
+    const prevIcon = prevDraftIconRef.current;
+    if (prevIcon && prevIcon !== draftIcon) {
+      const usedIcons = new Set(
+        itemsRef.current.map((item) => getIconRef.current(item)),
+      );
+      if (!usedIcons.has(prevIcon)) {
+        void deleteDraftImage(prevIcon);
+      }
+    }
+    prevDraftIconRef.current = draftIcon;
+  }, [draftIcon]);
 
-    useEffect(() => {
-        return () => {
-            const orphanPublicId = draftIconRef.current;
-            if (!orphanPublicId) return;
-
-            const isStillReferencedByABadge = badgesRef.current.some(
-                (badge) => getBadgePublicId(badge.icon) === orphanPublicId
-            );
-            if (!isStillReferencedByABadge) {
-                void safelyDeleteDraftImage(orphanPublicId);
-            }
-        };
-        // Intentionally empty — this must only run on true mount/unmount.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+  // Scenario 2: unmount.
+  useEffect(() => {
+    return () => {
+      const currentDraft = prevDraftIconRef.current;
+      if (!currentDraft) return;
+      const usedIcons = new Set(
+        itemsRef.current.map((item) => getIconRef.current(item)),
+      );
+      if (!usedIcons.has(currentDraft)) {
+        void deleteDraftImage(currentDraft);
+      }
+    };
+    // Intentionally empty — only run on mount/unmount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 }
-
 
 export default useOrphanDraftImageCleanup;

@@ -1,20 +1,14 @@
-import React, { useCallback, useMemo } from 'react';
-import { CldImage } from 'next-cloudinary';
+import { useCallback, useMemo } from 'react';
 import { useSocket } from '@/lib/SocketProvider';
 import { useUser } from '@/lib/UserProvider';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
 import { setVerifyLineup } from '@/redux/slices/matchesSlice';
-import { ETeam, ITeam } from '@/types/team';
+import { ETeam } from '@/types/team';
 import EmitEvents from '@/utils/socket/EmitEvents';
 import {
   EPlayerStatus,
-  IMatchRelatives,
-  INetRelatives,
   IPlayer,
-  IRoundRelatives,
 } from '@/types';
-import { ETeamPlayer } from '@/types/net';
-import { EActionProcess } from '@/types/room';
 import LocalStorageService from '@/utils/LocalStorageService';
 import {
   getAssignedPlayerIds,
@@ -126,6 +120,16 @@ const VerifyLineup = () => {
     currentRoundNets, myTeamE, roundList, user, teamA, teamB, match,
   ]);
 
+  const activePlayers = teamBPlayers.filter((p, i, arr) => p.status === EPlayerStatus.ACTIVE && arr.findIndex(x => x._id === p._id) === i);
+  console.log({
+    currentRoundNets,
+    activePlayers,
+    assignedPlayerIds,
+    currentTeamPlayers: currentTeamPlayers === teamBPlayers,
+    movedPlayerIds
+  });
+  
+
   return (
     <div className="w-full max-w-7xl mx-auto bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden flex flex-col z-20 h-full max-h-[90vh]">
       
@@ -174,14 +178,14 @@ const VerifyLineup = () => {
       <div className="border-t border-gray-200 bg-white py-2 px-4 flex justify-end items-center gap-2">
         <button
           type="button"
-          className="px-5 py-1.5 rounded-lg bg-white text-gray-700 text-sm font-semibold border border-gray-300 hover:bg-gray-50 transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-gray-200"
+          className="btn-danger"
           onClick={handleCloseLineup}
         >
           Cancel
         </button>
         <button
           type="button"
-          className="px-6 py-1.5 rounded-lg bg-gradient-to-r from-yellow-400 to-yellow-500 text-black text-sm font-bold shadow-md hover:shadow-lg transition-all duration-200 active:scale-95 focus:outline-none focus:ring-2 focus:ring-yellow-300"
+          className="btn-success"
           onClick={handleSubmitLineup}
         >
           Submit Lineup

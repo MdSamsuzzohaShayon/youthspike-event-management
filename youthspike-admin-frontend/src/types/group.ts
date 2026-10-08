@@ -53,3 +53,24 @@ export interface ICreateGroup extends IResponse {
 export interface IGetGroupsRespone extends IResponse {
   data?: IEventExpRel;
 }
+
+// Group points
+
+export interface IGroupPoints{
+  _id: string;
+  team: string | ITeam;
+  event: string | Event;
+  points: number;
+  notes?: string;
+}
+
+export type TGroupPointsAdd = Omit<IGroupPoints, '_id'>;
+
+export interface IGroupPointsResponse extends IResponse{
+  data?: IGroupPoints;
+}
+
+
+export type IGetGroupPointsQuery = {
+  getGroupPoints: IGroupPointsResponse;
+};

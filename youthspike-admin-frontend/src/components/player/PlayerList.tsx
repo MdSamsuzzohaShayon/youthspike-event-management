@@ -231,18 +231,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
   }
 
 
-  /*
-  const handleUpdatePlayer = (event: React.SyntheticEvent, updatePlayerState: Partial<TUpdatePlayer>, playerId: string) => {
-    event.preventDefault();
-    const player = players.find((p) => p._id === playerId);
-    if (!player) {
-      console.error(`There are no player with this ID: ${playerId}`);
-      return;
-    }
-    updatePlayer({ mutatePlayer, playerUpdate: updatePlayerState, prevPlayer: player as IPlayer, setIsLoading, setMessage, uploadedProfile: null })
-    window.location.reload();
-  }
-    */
+
 
   const handleUpdatePlayer = async (
     event: React.SyntheticEvent,

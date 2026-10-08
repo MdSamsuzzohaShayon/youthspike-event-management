@@ -10,6 +10,7 @@ import { IUserContext, UserRole } from '@/types/user';
 import { getUserFromCookie } from '@/utils/clientCookie';
 import { FRONTEND_URL } from '@/utils/keys';
 import EventNavigationLink from '../event/EventNavigationLink';
+import { customScrollbar } from '@/utils/style';
 
 interface IProps {
   event: IEvent | null;
@@ -24,8 +25,6 @@ interface UserRoleFlags {
   isCoCaptain: boolean;
 }
 
-
-
 // Sub-component: EventLogo
 const EventLogo = ({ event }: { event: IEvent }) => (
   <div className="relative group">
@@ -34,7 +33,7 @@ const EventLogo = ({ event }: { event: IEvent }) => (
       <CldImage
         src={event.logo}
         alt={event.name}
-        className="relative w-10"
+        className="relative w-10 rounded-full"
         height={40}
         width={40}
       />
@@ -86,7 +85,8 @@ const NavigationLink = ({
       <span className="text-xs font-medium text-gray-300 group-hover:text-white transition-colors duration-200 whitespace-nowrap">
         {label}
       </span>
-      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+      {/* Added yellow logo color to the hover indicator for brand consistency */}
+      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-yellow-logo opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
     </div>
   </Link>
 );
@@ -126,7 +126,7 @@ const EventHeader = ({ event }: { event: IEvent }) => (
 
 // Sub-component: QuickInfoBar
 const QuickInfoBar = ({ event }: { event: IEvent }) => (
-  <div className="px-4 py-2 border-y border-gray-800">
+  <div className="px-4 py-2 border-y border-gray-800 bg-gray-900/30">
     <div className="flex items-center gap-4 text-xs">
       <InfoWithIcon
         iconSrc="/icons/location.svg"
@@ -149,7 +149,6 @@ const QuickInfoBar = ({ event }: { event: IEvent }) => (
     </div>
   </div>
 );
-
 
 
 function EventNavigation({ event }: IProps) {
@@ -188,26 +187,41 @@ function EventNavigation({ event }: IProps) {
       isAdminOrDirector,
       isCaptain,
       isCoCaptain
-
     };
   }, [user]);
 
   if (!event) {
     console.warn("There are no event!");
-    
-    
     return null;
   }
 
+
   return (
-    <div className="min-h-fit border-b border-yellow-500/20 shadow-2xl">
+    <div className="min-h-fit border-b border-yellow-500/20 shadow-2xl bg-gray-900/50 backdrop-blur-md rounded-b-xl">
       <EventHeader event={event} />
       <QuickInfoBar event={event} />
 
-      <EventNavigationLink eventId={event._id} ldoIdUrl={ldoIdUrl} teamId={user?.info?.teamId || null} userRoleFlags={userRoleFlags} />
+      {/* Scrollable Navigation Links Container */}
+      <div className="relative w-full">
+        {/* Left edge fade to indicate horizontal scroll */}
+        <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-gray-900/80 to-transparent z-10 pointer-events-none" />
+        
+        {/* Right edge fade to indicate horizontal scroll */}
+        <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-gray-900/80 to-transparent z-10 pointer-events-none" />
 
-      <div className="sm:hidden px-4 py-1 flex justify-center">
-        <div className="w-8 h-[2px]"></div>
+        <div className={`overflow-x-auto w-full pb-2 ${customScrollbar}`}>
+          <EventNavigationLink 
+            eventId={event._id} 
+            ldoIdUrl={ldoIdUrl} 
+            teamId={user?.info?.teamId || null} 
+            userRoleFlags={userRoleFlags} 
+          />
+        </div>
+      </div>
+
+      {/* Mobile bottom handle */}
+      <div className="sm:hidden flex justify-center py-2">
+        <div className="w-10 h-1 rounded-full bg-gray-700 transition-colors duration-300"></div>
       </div>
     </div>
   );

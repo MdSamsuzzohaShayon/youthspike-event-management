@@ -268,8 +268,9 @@ buildMissingRankingItems(
   ): Promise<void> {
     const playerId = String(player._id);
     // 1. Add player to the new team document.
+    // And remove player from moved if this player moved from this team previously
     updatePromises.push(
-      this.teamService.updateOne({ _id: newTeamId }, { $addToSet: { players: playerId } }),
+      this.teamService.updateOne({ _id: newTeamId }, { $addToSet: { players: playerId }, $pull: {moved: playerId} }),
     );
 
     if (Array.isArray(input.teams)) {

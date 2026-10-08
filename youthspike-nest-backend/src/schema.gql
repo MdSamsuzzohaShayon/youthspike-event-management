@@ -254,6 +254,7 @@ type Match {
   group: Group
   playerstats: [PlayerStats!]
   teammatchabsences: [TeamMatchAbsence!]
+  groupPoints: GroupPoints
 }
 
 type TeamMatchAbsence {
@@ -277,6 +278,17 @@ type Group {
   teams: [Team!]!
   matches: [Match!]!
   event: Event!
+  pointsTeam: GroupPoints
+}
+
+type GroupPoints {
+  _id: String
+  createdAt: String
+  updatedAt: String
+  team: Team!
+  event: Event
+  points: Int!
+  notes: String
 }
 
 type LDO {
@@ -344,6 +356,7 @@ type Event {
   templates: [Template!]
   emailsenders: [Emailsender!]
   badges: [Badge!]
+  groupPoints: GroupPoints
   divisions: String!
   nets: Float!
   rounds: Float!
@@ -578,6 +591,7 @@ type CustomTeam {
   rankings: [PlayerRankingItem!]!
   player: PlayerRankingItem!
   teammatchabsencescount: Int
+  grouppoints: Int
 }
 
 type CreateOrUpdateTeamResponse {
@@ -667,6 +681,7 @@ type GroupWithTeam {
   teams: [String!]
   matches: [Match!]!
   event: Event!
+  pointsTeam: GroupPoints
 }
 
 type EventWithTeams {
@@ -978,6 +993,7 @@ type CustomMatch {
   group: String
   playerstats: [PlayerStats!]
   teammatchabsences: [TeamMatchAbsence!]
+  groupPoints: GroupPoints
 }
 
 type CustomGroup {
@@ -991,6 +1007,7 @@ type CustomGroup {
   teams: [String!]
   matches: [String!]
   event: Event!
+  pointsTeam: GroupPoints
 }
 
 type EventMatches {
@@ -1271,6 +1288,7 @@ type ArchiveEventCounts {
   templates: [Template!]
   emailsenders: [Emailsender!]
   badges: [Badge!]
+  groupPoints: GroupPoints
   divisions: String!
   nets: Float!
   rounds: Float!
@@ -1327,6 +1345,7 @@ type CustomEvent {
   templates: [Template!]
   emailsenders: [Emailsender!]
   badges: [Badge!]
+  groupPoints: GroupPoints
   divisions: String!
   nets: Float!
   rounds: Float!
@@ -1484,6 +1503,30 @@ type GetGroupResponse {
   success: Boolean!
   message: String
   data: Group
+}
+
+type CustomGroupPoints {
+  _id: String
+  createdAt: String
+  updatedAt: String
+  team: String!
+  event: String
+  points: Int!
+  notes: String
+}
+
+type GetGroupPointsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: CustomGroupPoints
+}
+
+type GetGroupsPointsResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: [CustomGroupPoints!]
 }
 
 type CreateOrUpdateTemplateResponse {
@@ -1675,6 +1718,8 @@ type Query {
   getEventsWithTeams(ldoId: String): GetEventsWithTeamsResponse!
   getGroups(eventId: String): GetGroupsResponse!
   getGroup(groupId: String!): GetGroupResponse!
+  getGroupsPoints(eventId: String, teamId: String): GetGroupsPointsResponse!
+  getGroupPoints(teamId: String!): GetGroupPointsResponse!
   getPlayerStats(playerId: [String!]!): PlayerStatsResponse!
   getPlayersStats: PlayersStatsResponse!
   getPlayerWithStats(playerId: String!, group: Boolean): PlayerWithStatsResponse!
@@ -1790,6 +1835,9 @@ type Mutation {
   createGroup(input: CreateGroupInput!): GetGroupResponse!
   updateGroup(updateInput: UpdateGroupInput!, eventId: String): GetGroupResponse!
   deleteGroup(groupId: String): GetGroupResponse!
+  createGroupPoints(input: CreateGroupPointsInput!): GetGroupPointsResponse!
+  updateGroupPoints(updateInput: UpdateGroupPointsInput!): GetGroupPointsResponse!
+  deleteGroupPoints(groupPointsId: String!): GetGroupPointsResponse!
   createBadge(eventId: String!): AppResponse!
 }
 
@@ -2048,4 +2096,19 @@ input UpdateGroupInput {
   matches: [String!]
   _id: String!
   removeteams: [String!]
+}
+
+input CreateGroupPointsInput {
+  team: String!
+  event: String
+  points: Int!
+  notes: String
+}
+
+input UpdateGroupPointsInput {
+  team: String
+  event: String
+  points: Int
+  notes: String
+  _id: String!
 }

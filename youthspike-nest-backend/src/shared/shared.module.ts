@@ -35,7 +35,7 @@ import {
   PlayerRankingSchemaFactory,
 } from 'src/player-ranking/player-ranking.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
-import { Group, GroupSchemaFactory } from 'src/group/group.schema';
+import { Group, GroupPoints, GroupPointsFactory, GroupSchemaFactory } from 'src/group/group.schema';
 import { GroupService } from 'src/group/group.service';
 import { RedisService } from 'src/redis/redis.service';
 import { PlayerStats, PlayerStatsSchemaFactory, ProStats, ProStatsSchemaFactory } from 'src/player-stats/player-stats.schema';
@@ -179,6 +179,11 @@ import { Badge, BadgeSchemaFactory } from 'src/badge/badge.schema';
       {
         name: Group.name,
         useFactory: GroupSchemaFactory,
+      },
+      // GroupPointsSchema
+      {
+        name: GroupPoints.name,
+        useFactory: GroupPointsFactory,
       },
 
       {

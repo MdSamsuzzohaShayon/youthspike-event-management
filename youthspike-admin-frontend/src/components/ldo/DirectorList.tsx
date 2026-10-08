@@ -5,6 +5,7 @@ import DirectorRow from './DirectorRow';
 import { ILDO, ILDOItem } from '@/types';
 import DirectorDialog from './DirectorDialog';
 import { useMutation } from '@apollo/client/react';
+import { customScrollbar } from '@/utils/style';
 
 interface IDirectorListProps {
   ldoList: ILDO[];
@@ -46,21 +47,29 @@ function DirectorList({ ldoList, setIsLoading, refetchFunc }: IDirectorListProps
     }
   };
 
+
+
   return (
-    <div className="directorList w-full flex flex-col animate-fade-in">
+    <div 
+      className="directorList w-full flex flex-col"
+    >
       {ldoList.length > 0 ? (
-        <div className="overflow-x-auto w-full">
-          <div className="min-w-[800px] w-full">
-            <div className="relative w-full">
-              <table className="w-full text-left text-sm text-gray-300 bg-gray-900">
+        <div className="relative w-full">
+          {/* Right edge fade to indicate horizontal scroll */}
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-gray-900 to-transparent z-10 pointer-events-none rounded-r-xl" />
+          
+          {/* Scrollable Container with Custom Scrollbar */}
+          <div className={`overflow-x-auto w-full pb-4 ${customScrollbar}`}>
+            <div className="min-w-[800px] w-full">
+              <table className="w-full text-left text-sm text-gray-300 border-separate border-spacing-0">
                 <thead>
                   <tr className="bg-yellow-logo text-black font-semibold">
-                    <th className="py-3 px-3 sticky left-0 top-0 shadow-md z-20 bg-yellow-logo min-w-[120px] max-w-[120px]">Name</th>
-                    <th className="py-3 px-3">Logo</th>
-                    <th className="py-3 px-3">Director</th>
-                    <th className="py-3 px-3">Phone</th>
-                    <th className="py-3 px-3">Email</th>
-                    <th className="py-3 px-3 text-center">Actions</th>
+                    <th className="py-4 px-4 sticky left-0 top-0 shadow-md z-20 bg-yellow-logo min-w-[120px] max-w-[120px] rounded-l-lg">Name</th>
+                    <th className="py-4 px-4 top-0 z-10 bg-yellow-logo">Logo</th>
+                    <th className="py-4 px-4 top-0 z-10 bg-yellow-logo">Director</th>
+                    <th className="py-4 px-4 top-0 z-10 bg-yellow-logo">Phone</th>
+                    <th className="py-4 px-4 top-0 z-10 bg-yellow-logo">Email</th>
+                    <th className="py-4 px-4 text-center top-0 z-10 bg-yellow-logo rounded-r-lg">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -73,8 +82,12 @@ function DirectorList({ ldoList, setIsLoading, refetchFunc }: IDirectorListProps
           </div>
         </div>
       ) : (
-        <div className="text-center py-8 text-gray-400 animate-fade-in">
-          No directors available. Once you create one, it will be displayed here!
+        <div className="text-center py-12 text-gray-400 animate-fade-in flex flex-col items-center justify-center">
+          {/* Modern Empty State SVG Icon */}
+          <svg className="w-12 h-12 mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3.875A2.875 2.875 0 011 18.125V18m14-4.646a4 4 0 110 5.292M21 18a2.875 2.875 0 01-2.875 2.875H15m0 0V18m0 0v-4.646m0 4.646H3.875A2.875 2.875 0 011 18.125V18M15 4.354a4 4 0 110 5.292M21 18.125A2.875 2.875 0 0018.125 15.25H15m6 2.875V18m0 0V5.875A2.875 2.875 0 0018.125 3H15" />
+          </svg>
+          <p>No directors available. Once you create one, it will be displayed here!</p>
         </div>
       )}
 

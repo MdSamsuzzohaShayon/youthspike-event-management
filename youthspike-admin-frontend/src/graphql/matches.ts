@@ -403,6 +403,54 @@ const SEARCH_MATCHES = gql`
 
 
 
+
+const SEARCH_TEAM_MATCH_ABSENCES = gql`
+query SearchTeamMatchAbsenses($filter: FilterTeamMatchAbsenseInput!){
+  searchTeamMatchAbsenses(filter: $filter){
+    code
+    success
+    message
+    data{
+      _id
+      __typename
+      team
+      reason
+      notes
+    }
+  }
+}
+`;
+
+const UPDATE_TEAM_MATCH_ABSENCE = gql`
+  mutation UpdateTeamMatchAbsence($updateInput: UpdateTeamMatchAbsenceInput!) {
+    updateTeamMatchAbsence(updateInput: $updateInput) {
+      code
+      success
+      message
+      data {
+        _id
+        __typename
+        team
+        match
+        reason
+        notes
+      }
+    }
+  }
+`;
+
+const DELETE_TEAM_MATCH_ABSENCE = gql`
+  mutation DeleteTeamMatchAbsence($id: String!) {
+    deleteTeamMatchAbsence(id: $id) {
+      code
+      success
+      message
+    }
+  }
+`;
+
+
+
 /**
  * MUTATIONS
  * ===========================================================================================
@@ -503,5 +551,8 @@ export {
   SEARCH_MATCHES,
   GET_A_MATCH_LIGHT,
   TEAMMATCHABSENSE_CREATE,
-  CREATE_MULTIPLE_TEAM_MATCH_ABSENSE
+  CREATE_MULTIPLE_TEAM_MATCH_ABSENSE,
+  SEARCH_TEAM_MATCH_ABSENCES,
+  DELETE_TEAM_MATCH_ABSENCE,
+  UPDATE_TEAM_MATCH_ABSENCE
 };

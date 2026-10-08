@@ -30,17 +30,30 @@ export enum ETieBreakingStrategy {
   MATCH_TIE = 'MATCH_TIE'
 }
 
+// types/event.ts (or wherever IEventSponsor currently lives)
+
 export interface IEventSponsor {
   _id: string;
   company: string;
-  logo: string | Blob;
+  /** Cloudinary public_id — uploaded via ImageUploader, same strategy as badge icons. */
+  logo: string;
   event: string;
 }
 
-export interface IUpdatedivisions{
+/** Client-side shape used by SponsorInput (and EventAddUpdate state). */
+export type TAddSponsor = Omit<IEventSponsor, "_id" | "event">;
+
+
+export interface IUpdatedivisions {
   prev?: string;
   new?: string;
 }
+
+// export interface IAddSponsor {
+//   company: string;
+//   logo: string | Blob;
+// }
+
 
 
 export interface IDefaultEventMatch extends ICommonMatchEvent {
@@ -76,11 +89,11 @@ export interface IEventExpRel extends IEvent {
 }
 
 export interface IEventRelatives extends IEvent {
-  matches:string[];
+  matches: string[];
   players: string[];
   teams: string[];
   ldo: string;
-  groups:string[];
+  groups: string[];
 }
 
 export interface IEventAdd extends IDefaultEventMatch {
@@ -103,7 +116,7 @@ export type TUpdateEvent = Partial<IEventAdd> & {
   updatedivisions?: IUpdatedivisions[];
 }
 
-export interface IAllStats{
+export interface IAllStats {
   playerId: string;
   stats: IPlayerStats[]
 }
@@ -122,7 +135,7 @@ export interface IGetPlayerEventSettingsQuery extends IResponse {
   };
 }
 
-export interface IArchiveEventCount extends IEvent{
+export interface IArchiveEventCount extends IEvent {
   relatedCounts: {
     templates: number;
     matches: number;
@@ -130,11 +143,11 @@ export interface IArchiveEventCount extends IEvent{
     sponsors: number;
   }
 }
-export interface IGetArchiveEvents extends IResponse{
+export interface IGetArchiveEvents extends IResponse {
   data: IArchiveEventCount[];
 }
 
-export interface IGetArchiveEvent extends IResponse{
+export interface IGetArchiveEvent extends IResponse {
   data: IArchiveEventCount;
 }
 
@@ -162,7 +175,7 @@ export interface IEventWithMatchesResponse {
 
 
 
-export interface ICreateEventResponse extends IResponse{
+export interface ICreateEventResponse extends IResponse {
   data: IEventExpRel;
 }
 

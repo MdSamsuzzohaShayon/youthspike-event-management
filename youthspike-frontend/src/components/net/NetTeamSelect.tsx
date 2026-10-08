@@ -15,11 +15,14 @@ import {
   setShowTeamPlayers,
 } from "@/redux/slices/matchesSlice";
 import { EActionProcess } from "@/types/room";
-import findPrevPartner from "@/utils/match/findPrevPartner";
-import findOutOfRange from "@/utils/match/findOutOfRange";
 import PlayerScoreCard from "../player/PlayerScoreCard";
 import { getNetPlayerId, updateNetPlayer } from "@/utils/netHelpers";
-import calcPairScore from "@/utils/calcPairScore";
+import {
+  createRankMap,
+  findPrevPartnerId,
+  getOutOfRangePlayerIds,
+  organizeRankings,
+} from "@/utils/assignStrategies/assignmentHelpers";
 
 interface Props {
   teamE: ETeam;
@@ -31,31 +34,12 @@ function NetTeamSelect({ teamE, net, onTop }: Props) {
   const { token, info } = useUser();
   const dispatch = useAppDispatch();
 
-  const {
-    currentRoundNets,
-    nets: allNets,
-  } = useAppSelector((s) => s.nets);
+  const { currentRoundNets, nets: allNets } = useAppSelector((s) => s.nets);
+  const { current: currentRound, roundList } = useAppSelector((s) => s.rounds);
+  const { disabledPlayerIds, match, myPlayers, opPlayers, myTeamE } = useAppSelector((s) => s.matches);
+  const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector((s) => s.playerRanking);
 
-  const { current: currentRound, roundList } = useAppSelector(
-    (s) => s.rounds
-  );
-
-  const {
-    disabledPlayerIds,
-    match,
-    myPlayers,
-    opPlayers,
-    myTeamE,
-  } = useAppSelector((s) => s.matches);
-
-  const { teamAPlayerRanking, teamBPlayerRanking } = useAppSelector(
-    (s) => s.playerRanking
-  );
-
-  // =============================
   // Derived Data
-  // =============================
-
   const myActivePlayers = useMemo(
     () => myPlayers.filter((p) => p.status !== EPlayerStatus.INACTIVE),
     [myPlayers]
@@ -66,47 +50,22 @@ function NetTeamSelect({ teamE, net, onTop }: Props) {
     [opPlayers]
   );
 
-  // =============================
-  // Local State
-  // =============================
-
-  const [players, setPlayers] = useState<{
-    A: IPlayer | null;
-    B: IPlayer | null;
-  }>({ A: null, B: null });
-
-  const [ranks, setRanks] = useState<{
-    A: number | null;
-    B: number | null;
-  }>({ A: null, B: null });
-
+  const [players, setPlayers] = useState<{ A: IPlayer | null; B: IPlayer | null }>({ A: null, B: null });
+  const [ranks, setRanks] = useState<{ A: number | null; B: number | null }>({ A: null, B: null });
   const [pairScore, setPairScore] = useState<number | null>(null);
-
-  // =============================
-  // Core Helpers
-  // =============================
 
   const findPlayer = useCallback(
     (spot: ETeamPlayer, isMyTeam: boolean): IPlayer | null => {
       if (!net) return null;
-
-      const playerId = getNetPlayerId(
-        net,
-        isMyTeam ? myTeamE : myTeamE === ETeam.teamA ? ETeam.teamB : ETeam.teamA,
-        spot
-      );
-
+      const teamToCheck = isMyTeam ? myTeamE : myTeamE === ETeam.teamA ? ETeam.teamB : ETeam.teamA;
+      const playerId = getNetPlayerId(net, teamToCheck, spot);
       const list = isMyTeam ? myActivePlayers : opponentActivePlayers;
       return list.find((p) => p._id === playerId) || null;
     },
     [net, myTeamE, myActivePlayers, opponentActivePlayers]
   );
 
-  // =============================
-  // Actions
-  // =============================
-
-  const handleEvacuatePlayer = (spot: ETeamPlayer) => {
+  const handleEvacuatePlayer = useCallback((spot: ETeamPlayer) => {
     if (!token || !info || !net) return;
 
     const playerId = getNetPlayerId(net, myTeamE, spot);
@@ -117,130 +76,102 @@ function NetTeamSelect({ teamE, net, onTop }: Props) {
 
     dispatch(setCurrentRoundNets(updateList(currentRoundNets)));
     dispatch(setNets(updateList(allNets)));
-
-    dispatch(
-      setDisabledPlayerIds(
-        disabledPlayerIds.filter((id) => id !== playerId)
-      )
-    );
-
+    dispatch(setDisabledPlayerIds(disabledPlayerIds.filter((id) => id !== playerId)));
     dispatch(setShowTeamPlayers(false));
     dispatch(setOutOfRange([]));
-  };
+  }, [token, info, net, myTeamE, currentRoundNets, allNets, disabledPlayerIds, dispatch]);
 
-  const handleDropdownPlayer = (
-    e: React.SyntheticEvent,
-    spot: ETeamPlayer
-  ) => {
+  const handleDropdownPlayer = useCallback((e: React.SyntheticEvent, spot: ETeamPlayer) => {
     e.preventDefault();
-
     if (!token || !info || !currentRound || !net) return;
 
-    // simplified validation
     const isValidProcess =
       currentRound.teamAProcess === EActionProcess.CHECKIN ||
       currentRound.teamBProcess === EActionProcess.CHECKIN;
-
     if (!isValidProcess) return;
 
     dispatch(setShowTeamPlayers(true));
     dispatch(setPlayerSpot(spot));
     dispatch(setSelectedNet(net));
 
-    // previous partner
-    const prevPartner = findPrevPartner({
-      roundList,
-      currRound: currentRound,
-      allNets,
+    // 1. Prepare ranking maps
+    const { myRankings, opRankings } = organizeRankings({
       myTeamE,
-      net,
+      teamAPlayerRanking,
+      teamBPlayerRanking,
     });
+    const myRankingsMap = createRankMap(myRankings);
+    const opRankingsMap = createRankMap(opRankings);
 
-    dispatch(setPrevPartner(prevPartner || null));
-
-    // disable already used players
+    // 2. Disable already used players in this round
     const usedIds = currentRoundNets.flatMap((n) =>
       myTeamE === ETeam.teamA
         ? [n.teamAPlayerA, n.teamAPlayerB]
         : [n.teamBPlayerA, n.teamBPlayerB]
     ).filter(Boolean) as string[];
 
-    dispatch(
-      setDisabledPlayerIds([...new Set([...disabledPlayerIds, ...usedIds])])
+    const currentDisabledIds = [...new Set([...disabledPlayerIds, ...usedIds])];
+    dispatch(setDisabledPlayerIds(currentDisabledIds));
+
+    // 3. Find previous partner of the player ALREADY in the other spot
+    const isTeamA = myTeamE === ETeam.teamA;
+    const otherSpotId = spot === ETeamPlayer.PLAYER_A
+      ? (isTeamA ? net.teamAPlayerB : net.teamBPlayerB)
+      : (isTeamA ? net.teamAPlayerA : net.teamBPlayerA);
+
+    const previousPartnerId = otherSpotId
+      ? findPrevPartnerId(roundList, currentRound, allNets, myTeamE, otherSpotId)
+      : null;
+
+    dispatch(setPrevPartner(previousPartnerId || null));
+
+    // 4. Find out of range players based on variance
+    const outOfRangeIds = getOutOfRangePlayerIds(
+      myActivePlayers,
+      net,
+      myTeamE,
+      spot,
+      myRankingsMap,
+      opRankingsMap,
+      match?.netVariance
     );
 
-    const invalidIds = findOutOfRange({
-      currMatch: match,
-      net,
-      myPlayers: myActivePlayers,
-      myTeamE,
-      opPlayers: opponentActivePlayers,
-      playerSpot: spot,
-      teamAPlayerRanking,
-      teamBPlayerRanking,
-    });
+    dispatch(setOutOfRange(outOfRangeIds));
+  }, [token, info, currentRound, net, myTeamE, teamAPlayerRanking, teamBPlayerRanking, currentRoundNets, allNets, disabledPlayerIds, myActivePlayers, match, dispatch]);
 
-    if (invalidIds.length) {
-      dispatch(setOutOfRange(invalidIds));
-    }
-  };
-
-  // =============================
   // Effects
-  // =============================
-
   useEffect(() => {
-    const A = findPlayer(ETeamPlayer.PLAYER_A, !onTop);
-    const B = findPlayer(ETeamPlayer.PLAYER_B, !onTop);
+    const playerA = findPlayer(ETeamPlayer.PLAYER_A, !onTop);
+    const playerB = findPlayer(ETeamPlayer.PLAYER_B, !onTop);
 
-    const allRankings = [
-      ...(teamAPlayerRanking?.rankings || []),
-      ...(teamBPlayerRanking?.rankings || []),
-    ];
+    const { myRankings, opRankings } = organizeRankings({ myTeamE, teamAPlayerRanking, teamBPlayerRanking });
+    const myRankingsMap = createRankMap([...myRankings, ...opRankings]);
 
-    const rankA =
-      allRankings.find((r) => r.player._id === A?._id)?.rank || null;
+    const rankA = playerA ? myRankingsMap.get(playerA._id) ?? null : null;
+    const rankB = playerB ? myRankingsMap.get(playerB._id) ?? null : null;
 
-    const rankB =
-      allRankings.find((r) => r.player._id === B?._id)?.rank || null;
-
-    setPlayers({ A, B });
+    setPlayers({ A: playerA, B: playerB });
     setRanks({ A: rankA, B: rankB });
-    setPairScore(calcPairScore(rankA, rankB));
-  }, [findPlayer, onTop, teamAPlayerRanking, teamBPlayerRanking]);
-
-  // =============================
-  // UI Conditions
-  // =============================
+    
+    const score = (rankA !== null && rankB !== null) ? rankA + rankB : null;
+    setPairScore(score);
+  }, [findPlayer, onTop, myTeamE, teamAPlayerRanking, teamBPlayerRanking]);
 
   const showPlayers = useMemo(() => {
     if (!match?.extendedOvertime) return true;
-
-    return !onTop ||
-      (currentRound?.teamAProcess === EActionProcess.LINEUP &&
-        currentRound?.teamBProcess === EActionProcess.LINEUP);
+    return !onTop || (currentRound?.teamAProcess === EActionProcess.LINEUP && currentRound?.teamBProcess === EActionProcess.LINEUP);
   }, [match, onTop, currentRound]);
 
-  const bothSubmitted =
-    currentRound?.teamAProcess === EActionProcess.LINEUP &&
-    currentRound?.teamBProcess === EActionProcess.LINEUP;
-
-  // =============================
-  // Render
-  // =============================
+  const bothSubmitted = currentRound?.teamAProcess === EActionProcess.LINEUP && currentRound?.teamBProcess === EActionProcess.LINEUP;
 
   return (
     <div
       style={{ minHeight: "50%" }}
-      className={`w-full px-2 flex ${onTop
-          ? "flex-col bg-[radial-gradient(circle,_#4b4a4a_0%,_#000000_100%)] text-white"
-          : "flex-col-reverse bg-white text-black-logo"
-        } border ${border.light}`}
+      className={`w-full px-2 flex ${onTop ? "flex-col bg-[radial-gradient(circle,_#4b4a4a_0%,_#000000_100%)] text-white" : "flex-col-reverse bg-white text-black-logo"} border ${border.light}`}
     >
       <div className="flex gap-x-1 w-full justify-between">
         {[ETeamPlayer.PLAYER_A, ETeamPlayer.PLAYER_B].map((spot) => {
           const key = spot === ETeamPlayer.PLAYER_A ? "A" : "B";
-
           return (
             <PlayerScoreCard
               key={spot}
@@ -254,12 +185,8 @@ function NetTeamSelect({ teamE, net, onTop }: Props) {
           );
         })}
       </div>
-
       <div className="mt-2 font-bold text-center">
-        Pair Score:{" "}
-        {!match?.extendedOvertime || bothSubmitted
-          ? pairScore ?? "N/A"
-          : "N/A"}
+        Pair Score: {!match?.extendedOvertime || bothSubmitted ? pairScore ?? "N/A" : "N/A"}
       </div>
     </div>
   );

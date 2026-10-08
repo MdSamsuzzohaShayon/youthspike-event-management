@@ -1,14 +1,13 @@
 /* eslint-disable react/require-default-props */
 import React, { useMemo } from "react";
-import Image from "next/image";
-import { CldImage } from "next-cloudinary";
 import { useUser } from "@/lib/UserProvider";
 import { useAppSelector } from "@/redux/hooks";
-import { IPlayer, IPlayerRankingExpRel, IRoundRelatives } from "@/types";
+import { IPlayer } from "@/types";
 import { ETeamPlayer } from "@/types/net";
 import { EActionProcess } from "@/types/room";
-import { ETeam } from "@/types/team";
-import { screen } from "@/utils/constant";
+import PlayerImage from "./PlayerImage";
+import PlayerRankBadge from "./PlayerRankBadge";
+import RemovePlayerButton from "./RemovePlayerButton";
 
 // ============================================================================
 // Types
@@ -25,169 +24,7 @@ interface IPlayerScoreCardProps {
 
 }
 
-interface PlayerImageProps {
-  player: IPlayer | null;
-  onTop: boolean;
-  shouldShowAddPlayer: boolean;
-  onImageClick: (e: React.SyntheticEvent) => void;
-  myTeamE: ETeam;
-  currRound: IRoundRelatives | null;
-}
 
-interface PlayerRankBadgeProps {
-  playerRank: number;
-  subbedRounds?: number[];
-  onTop: boolean;
-}
-
-interface RemovePlayerButtonProps {
-  player: IPlayer | null;
-  myTeamE: ETeam;
-  currentRound: any;
-  closePSCAvailable: boolean;
-  onRemove: (e: React.SyntheticEvent, playerId: string | null) => void;
-}
-
-// ============================================================================
-// Sub-Components
-// ============================================================================
-
-/**
- * Displays player image or placeholder/add button
- */
-const PlayerImage: React.FC<PlayerImageProps> = ({
-  player,
-  onTop,
-  shouldShowAddPlayer,
-  onImageClick,
-  myTeamE,
-  currRound
-}) => {
-  // Player has profile image
-  if (player?.profile) {
-    return (
-      <CldImage
-        crop="fit"
-        alt={player.firstName}
-        width="200"
-        height="200"
-        className="w-full h-full object-top object-cover"
-        src={player.profile}
-        onClick={onImageClick}
-      />
-    );
-  }
-
-
-  // console.log({myTeamE, firstPlacing: currRound?.firstPlacing, tap: currRound?.teamAProcess, tbp: currRound?.teamBProcess});
-  
-  if (myTeamE !== currRound?.firstPlacing && currRound?.teamAProcess === EActionProcess.CHECKIN &&
-    currRound?.teamBProcess === EActionProcess.CHECKIN) {
-    return (
-      <Image
-        width={100}
-        height={100}
-        src="/empty-img.jpg"
-        alt="No player"
-        className="w-full h-full object-center object-cover"
-        role="presentation"
-      />
-    );
-  }
-
-  // Show add player button
-  if (!onTop && !player && shouldShowAddPlayer) {
-    return (
-      <div className="w-full h-full flex justify-center items-center">
-        <Image
-          width={100}
-          height={100}
-          src="/icons/plus.svg"
-          alt="Add player"
-          className={`${onTop ? "svg-white" : "svg-black"
-            } w-5/6 md:h-full object-top object-cover`}
-          role="presentation"
-          onClick={onImageClick}
-        />
-      </div>
-    );
-  }
-
-  // Empty placeholder
-  return (
-    <Image
-      width={100}
-      height={100}
-      src="/empty-img.jpg"
-      alt="No player"
-      className="w-full h-full object-center object-cover"
-      role="presentation"
-    />
-  );
-};
-
-/**
- * Displays player rank and substitution information
- */
-const PlayerRankBadge: React.FC<PlayerRankBadgeProps> = ({
-  playerRank,
-  subbedRounds,
-  onTop,
-}) => {
-  return (
-    <div
-      className={`bg-yellow-logo text-center text-black ${onTop ? "rounded-b-lg" : "rounded-t-lg"
-        }`}
-    >
-      <p className="rank"># {playerRank}</p>
-      {subbedRounds && subbedRounds.length > 0 && (
-        <div className="relative">
-          <p>
-            {subbedRounds.map((roundNumber, index) => {
-              const isLastItem = index + 1 === subbedRounds.length;
-              return `S${roundNumber}${isLastItem ? "" : ", "}`;
-            })}
-          </p>
-        </div>
-      )}
-    </div>
-  );
-};
-
-/**
- * Remove/evacuate player button
- */
-const RemovePlayerButton: React.FC<RemovePlayerButtonProps> = ({
-  player,
-  myTeamE,
-  currentRound,
-  closePSCAvailable,
-  onRemove,
-}) => {
-  const shouldShowForTeamA =
-    myTeamE === ETeam.teamA && closePSCAvailable && !currentRound?.teamAScore;
-
-  const shouldShowForTeamB =
-    myTeamE === ETeam.teamB && closePSCAvailable && !currentRound?.teamBScore;
-
-  if (!shouldShowForTeamA && !shouldShowForTeamB) {
-    return null;
-  }
-
-  return (
-    <div className="absolute top-1 right-1 w-4 bg-black-logo rounded-full">
-      <Image
-        width={12}
-        height={12}
-        src="/icons/close.svg"
-        className="w-full h-full svg-white"
-        alt="Remove player"
-        role="presentation"
-        onClick={(e) => onRemove(e, player?._id || null)}
-      />
-    </div>
-  );
-};
 
 // ============================================================================
 // Main Component
@@ -328,7 +165,7 @@ function PlayerScoreCard({
   // ============================================================================
 
   return (
-    <div className="w-full md:w-fit h-full relative overflow-hidden flex flex-col justify-end">
+    <div className="w-full h-full relative overflow-hidden flex flex-col justify-end">
       {/* Rank badge on bottom (for non-top players) */}
       {player && !onTop && (
         <PlayerRankBadge

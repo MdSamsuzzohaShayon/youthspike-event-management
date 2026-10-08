@@ -71,7 +71,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
 
   // Local State
   const [selectedTeamForBulkAbsence, setSelectedTeamForBulkAbsence] = useState<ITeam | null>(null);
-  const [selectedTeamForAbsence, setSelectedTeamForAbsence] = useState<ITeam | null>(null);
+  // const [selectedTeamForAbsence, setSelectedTeamForAbsence] = useState<ITeam | null>(null);
   const [isFilterMenuVisible, setIsFilterMenuVisible] = useState<boolean>(false);
   const [isBulkActionMenuVisible, setIsBulkActionMenuVisible] = useState<boolean>(false);
   const [checkedTeamsMap, setCheckedTeamsMap] = useState<Map<string, boolean>>(new Map());
@@ -389,15 +389,6 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
     }
   };
 
-  const handleGroupChange = async (e: React.SyntheticEvent): Promise<void> => {
-    // Implementation pending
-  };
-
-  const handleAddAbsenceOpen = (e: React.SyntheticEvent, team: ITeam): void => {
-    e.preventDefault();
-    setSelectedTeamForAbsence(team);
-    addAbsenceDialogRef.current?.showModal();
-  };
 
   const handleAddAbsenceSubmit = async (input: {
     team: string;
@@ -428,7 +419,7 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
         await refetchFunc();
       }
 
-      setSelectedTeamForAbsence(null);
+      // setSelectedTeamForAbsence(null);
     } catch (error) {
       handleError({ error, setMessage });
     } finally {
@@ -614,7 +605,6 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
             onMoveTeamOpen={handleOpenMoveTeamDialog}
             onCheckedTeam={handleTeamCheckboxToggle}
             onDeleteTeamOpen={handleDeleteTeamOpen}
-            onAddAbsenceOpen={handleAddAbsenceOpen}
             onBulkAbsenceMatchOpen={handleBulkAbsenceMatchOpen}
           />
         ))}
@@ -640,17 +630,9 @@ function SearchTeamList({ teamList, groupList, event, captainMap, emailcontents,
         onBulkGroupChange={handleBulkChangeGroup}
       />
 
-      <AddAbsenceMatchDialog
-        dialogRef={addAbsenceDialogRef}
-        selectedTeam={selectedTeamForAbsence}
-        eventId={event._id}
-        onClose={() => setSelectedTeamForAbsence(null)}
-        onSubmit={handleAddAbsenceSubmit}
-      />
-
       <BulkAbsenceMatchDialog
         dialogRef={bulkAbsenceMatchDialogRef}
-        selectedTeamId={selectedTeamForBulkAbsence?._id ?? null}
+        selectedTeam={selectedTeamForBulkAbsence}
         onClose={() => bulkAbsenceMatchDialogRef.current?.close()}
         onSubmit={handleBulkAbsenceMatchSubmit}
       />

@@ -8,8 +8,8 @@ const playerRankNum = (rankingsMap: Map<string, number>, playerId: string): numb
 
 interface ICalcRankings {
   myTeamE: ETeam;
-  tapr: IPlayerRankingExpRel | null; // Team A Player Ranking
-  tbpr: IPlayerRankingExpRel | null; // Team B Player Ranking
+  teamAPlayerRanking: IPlayerRankingExpRel | null; // Team A Player Ranking
+  teamBPlayerRanking: IPlayerRankingExpRel | null; // Team B Player Ranking
 }
 
 interface IReturnRankings {
@@ -25,15 +25,15 @@ interface IOpPlayerRankingNums {
   opRankingsMap: Map<string, number>; // Ensure opRankingsMap is explicitly declared as Map<string, number>
 }
 
-const organizeRankings = ({ myTeamE, tapr, tbpr }: ICalcRankings): IReturnRankings => {
+const organizeRankings = ({ myTeamE, teamAPlayerRanking, teamBPlayerRanking }: ICalcRankings): IReturnRankings => {
   const myRankings: IPlayerRankingItemExpRel[] = [];
   const opRankings: IPlayerRankingItemExpRel[] = [];
   if (myTeamE === ETeam.teamA) {
-    if (tapr) myRankings.push(...tapr.rankings);
-    if (tbpr) opRankings.push(...tbpr.rankings);
+    if (teamAPlayerRanking) myRankings.push(...teamAPlayerRanking.rankings);
+    if (teamBPlayerRanking) opRankings.push(...teamBPlayerRanking.rankings);
   } else if (myTeamE === ETeam.teamB) {
-    if (tapr) opRankings.push(...tapr.rankings);
-    if (tbpr) myRankings.push(...tbpr.rankings);
+    if (teamAPlayerRanking) opRankings.push(...teamAPlayerRanking.rankings);
+    if (teamBPlayerRanking) myRankings.push(...teamBPlayerRanking.rankings);
   }
   return { myRankings, opRankings };
 };

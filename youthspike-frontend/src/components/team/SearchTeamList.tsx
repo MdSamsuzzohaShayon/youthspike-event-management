@@ -64,7 +64,7 @@ function TeamStandings({
       const teamMatches = matchesByTeam.get(team._id) ?? [];
       scores.set(
         team._id,
-        computeTeamScore(team._id, teamMatches, netsByMatch, roundsByMatch, selectedGroup, team?.teammatchabsencescount)
+        computeTeamScore(team._id, teamMatches, netsByMatch, roundsByMatch, selectedGroup, team?.teammatchabsencescount, team?.grouppoints)
       );
     });
 
