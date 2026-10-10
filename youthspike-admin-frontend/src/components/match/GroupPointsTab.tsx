@@ -118,7 +118,7 @@ export function GroupPointsTab({ selectedTeam }: GroupPointsTabProps) {
 
             } as TGroupPointsAdd;
 
-            if (mode === 'create') {
+            if (!data?.getGroupPoints?.data?._id) {
                 const { data: mutationData } = await createGroupPoints({
                     variables: {
                         input,
@@ -136,7 +136,7 @@ export function GroupPointsTab({ selectedTeam }: GroupPointsTabProps) {
                 await updateGroupPoints({
                     variables: {
                         updateInput: {
-                            _id: form.groupPointsId,
+                            _id: data?.getGroupPoints?.data?._id,
                             team: selectedTeam._id,
                             event: eventId,
                             points: pointsValue,
@@ -173,7 +173,7 @@ export function GroupPointsTab({ selectedTeam }: GroupPointsTabProps) {
 
     const submitLabel = isSubmitting
         ? 'Saving...'
-        : mode === 'create'
+        : !data?.getGroupPoints?.data?._id
             ? 'Create Group Points'
             : 'Update Group Points';
 
@@ -184,8 +184,8 @@ export function GroupPointsTab({ selectedTeam }: GroupPointsTabProps) {
                     <div className="flex items-center justify-between gap-2 p-3 bg-gray-800 rounded-md text-sm text-gray-300">
                         <div className="flex flex-col min-w-0">
                             <span className="text-gray-400 text-xs">Editing Group Points ID:</span>
-                            <span className="font-mono text-yellow-500 text-xs truncate" title={form.groupPointsId}>
-                                {form.groupPointsId}
+                            <span className="font-mono text-yellow-500 text-xs truncate" title={data?.getGroupPoints?.data?._id}>
+                                {data?.getGroupPoints?.data?._id}
                             </span>
                         </div>
                         <button

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Args, Context, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Args, Context, ID, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { Round } from 'src/round/round.schema';
 import { Roles } from 'src/shared/auth/roles.decorator';
 import { UserRole } from 'src/user/user.schema';
@@ -74,13 +74,22 @@ export class MatchResolver {
     return this.matchMutations.createTeamMatchAbsense(input);
   }
 
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRole.admin, UserRole.director)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
   @Mutation((_returns) => GetMultipleTeamMatchAbsenseResponse)
   async createMultipleTeamMatchAbsense(
     @Args('input') input: CreateMultipleTeamMatchAbsenseInput,
   ): Promise<GetMultipleTeamMatchAbsenseResponse> {
     return this.matchMutations.createMultipleTeamMatchAbsense(input);
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.admin, UserRole.director)
+  @Mutation(() => GetTeamMatchAbsenseResponse)
+  async deleteTeamMatchAbsense(
+    @Args('id', { type: () => ID }) id: string,
+  ): Promise<GetTeamMatchAbsenseResponse> {
+    return this.matchMutations.deleteTeamMatchAbsense(id);
   }
 
   /**

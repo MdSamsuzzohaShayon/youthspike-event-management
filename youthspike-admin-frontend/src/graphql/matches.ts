@@ -440,8 +440,8 @@ const UPDATE_TEAM_MATCH_ABSENCE = gql`
 `;
 
 const DELETE_TEAM_MATCH_ABSENCE = gql`
-  mutation DeleteTeamMatchAbsence($id: String!) {
-    deleteTeamMatchAbsence(id: $id) {
+  mutation DeleteTeamMatchAbsense($id: ID!) {
+    deleteTeamMatchAbsense(id: $id) {
       code
       success
       message

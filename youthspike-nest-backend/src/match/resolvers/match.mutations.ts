@@ -655,6 +655,49 @@ export class MatchMutations {
     }
   }
 
+  async deleteTeamMatchAbsense(
+    id: string,
+  ): Promise<GetTeamMatchAbsenseResponse> {
+    try {
+      const absence = await this.matchService.teamMatchAbsenseFindOne({
+        _id: id,
+      });
+
+      if (!absence) {
+        throw new Error('Team match absence not found.');
+      }
+
+      await this.matchService.teamMatchAbsenseDeleteOne({
+        _id: id,
+      });
+
+      const pullUpdates: Promise<unknown>[] = [
+        this.teamService.updateOne(
+          { _id: getId(absence.team) },
+          { $pull: { teammatchabsences: absence._id } },
+        ),
+      ];
+      if (absence.match) {
+        pullUpdates.push(
+          this.matchService.updateOne(
+            { _id: getId(absence.match) },
+            { $pull: { teammatchabsences: absence._id } },
+          ),
+        );
+      }
+      await Promise.all(pullUpdates);
+
+      return {
+        data: null,
+        code: HttpStatus.OK,
+        message: 'Team Match Absence deleted successfully!',
+        success: true,
+      };
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+  }
+
   async accessCodeValidation(input: AccessCodeInput) {
     try {
       // Get user detail

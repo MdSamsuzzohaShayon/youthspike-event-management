@@ -13,7 +13,6 @@ import { checkGroupIsWithinTheEvent } from '@/utils/helper';
 import routerService from '@/lib/router-service';
 import SessionStorageService from '@/utils/SessionStorageService';
 import { CURRENT_EVENT } from '@/utils/constant';
-import { UPDATE_TEAM } from '@/graphql/teams';
 import BadgeSelect from '../elements/forms/BadgeSelect';
 import TeamCardHeaderSection from './TeamCardHeaderSection';
 import TeamInfoSection from './TeamInfoSection';
@@ -191,6 +190,7 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, badge, b
           onToggleActionMenu={toggleActionMenu}
           onCloseActionMenu={() => setActionOpen(false)}
           onTeamRedirect={onTeamRedirect}
+          onBulkAbsenceMatchOpen={handleBulkAbsenceMatchOpen}
         />
         <TeamInfoSection
           team={team}

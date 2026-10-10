@@ -6,49 +6,19 @@ import CreateAbsenceTab from './CreateAbsenceTab';
 import AbsenceListTab from './AbsenceListTab';
 import GroupPointsTab from './GroupPointsTab';
 
-// ===================== Types =====================
-
-
-interface IGroupPoints {
-  _id: string;
-  __typename: 'GroupPoints';
-  team: string;
-  event?: string;
-  points: number;
-  notes?: string;
-}
-
-interface IApiResponse<TData> {
-  code: number;
-  success: boolean;
-  message: string;
-  data: TData;
-}
-
-
 
 type TabType = 'create-absence' | 'absence-list' | 'group-points';
 
-interface TabConfig {
+interface ITabConfig {
   id: TabType;
   label: string;
 }
 
 
 
-interface GroupPointsForm {
-  groupPointsId: string;
-  fetchIdInput: string;
-  event: string;
-  points: number;
-  notes: string;
-}
-
-// ===================== GraphQL Operations =====================
-
 
 // ===================== Constants =====================
-const TAB_CONFIGS: TabConfig[] = [
+const TAB_CONFIGS: ITabConfig[] = [
   { id: 'create-absence', label: 'Create Absence' },
   { id: 'absence-list', label: 'Absence List' },
   { id: 'group-points', label: 'Group Points' },
@@ -57,32 +27,6 @@ const TAB_CONFIGS: TabConfig[] = [
 const DEFAULT_TAB: TabType = 'create-absence';
 
 
-
-
-
-interface FormFieldProps {
-  label: string;
-  required?: boolean;
-  optional?: boolean;
-  children: React.ReactNode;
-}
-
-function FormField({ label, required, optional, children }: FormFieldProps) {
-  return (
-    <div className="flex flex-col gap-1">
-      <label className="text-sm text-gray-400">
-        {label}{' '}
-        {required && <span className="text-red-500">*</span>}
-        {optional && <span className="text-gray-500">(optional)</span>}
-      </label>
-      {children}
-    </div>
-  );
-}
-
-function LoadingState({ message }: { message: string }) {
-  return <div className="p-8 text-center text-gray-400 text-sm">{message}</div>;
-}
 
 function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (

@@ -144,15 +144,9 @@ function AbsenceListTab({ teamId }: AbsenceListTabProps) {
     return <Loader />;
   }
 
-  console.log({error});
   
   if (error) {
-    // return (
-    //   <Error
-    //     message="Failed to load absences."
-    //     onRetry={() => refetch()}
-    //   />
-    // );
+    console.error(error);
     return  <h2>Something went wrong!</h2>
   }
 
