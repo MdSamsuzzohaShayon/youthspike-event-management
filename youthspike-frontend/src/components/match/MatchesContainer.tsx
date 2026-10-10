@@ -44,6 +44,8 @@ export default function MatchesContainer({
 }: MatchesContainerProps) {
   const router = useRouter();
   const { data: initialData } = useReadQuery(queryRef);
+  console.log(initialData);
+  
   const apolloClient = useApolloClient();
 
   // Filter states

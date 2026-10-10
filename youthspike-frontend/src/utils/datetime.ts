@@ -11,27 +11,39 @@ import { EEventPeriod } from '@/types/event';
 //     return formattedDate;
 // }
 
-const monthNamesShort: string[] = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-// const monthNames: string[] = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const monthNamesShort: string[] = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
 
-function readDate(isoDateString: string) {
-  try {
-    const newDate = isoDateString.split('T')[0].split('-');
+function readDate(isoDateString?: string | null): string {
+  if (!isoDateString) return '';
 
-    // Format the date string
-    const formattedDate = `${monthNamesShort[parseInt(newDate[1], 10) - 1]} ${newDate[2]}, ${newDate[0]}`;
+  // Keep only the date portion, ignoring the time and timezone.
+  const datePart = isoDateString.split('T')[0];
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(datePart);
 
-    return formattedDate;
-  } catch (error) {
-    const date = new Date(isoDateString);
+  if (!match) return 'Invalid date';
 
-    // Extract the month, date, and year
-    const month = monthNamesShort[date.getMonth()];
-    const day = date.getDate();
-    const year = date.getFullYear();
-    const formattedDate = `${month} ${day}, ${year}`;
-    return formattedDate;
+  const [, year, month, day] = match;
+  const monthNumber = Number(month);
+  const dayNumber = Number(day);
+  const yearNumber = Number(year);
+
+  const daysInMonth = new Date(
+    Date.UTC(yearNumber, monthNumber, 0),
+  ).getUTCDate();
+
+  if (
+    monthNumber < 1 ||
+    monthNumber > 12 ||
+    dayNumber < 1 ||
+    dayNumber > daysInMonth
+  ) {
+    return 'Invalid date';
   }
+
+  return `${monthNamesShort[monthNumber - 1]} ${dayNumber}, ${year}`;
 }
 
 // function readDate(){

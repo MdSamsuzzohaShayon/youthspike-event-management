@@ -13,12 +13,9 @@ import {
   Trophy, 
   Users, 
   Activity, 
-  ChevronRight, 
   Star,
   MapPin,
-  Clock,
   Target,
-  Zap
 } from 'lucide-react';
 import { useMemo } from 'react';
 
