@@ -22,6 +22,7 @@ interface IHeaderSectionProps {
     onToggleActionMenu: () => void;
     onCloseActionMenu: () => void;
     onTeamRedirect: (e: React.SyntheticEvent) => void;
+    onBulkAbsenceMatchOpen: (e: React.SyntheticEvent, team: ITeam) => void; 
 }
 
 function TeamCardHeaderSection({
@@ -41,6 +42,8 @@ function TeamCardHeaderSection({
     onToggleActionMenu,
     onCloseActionMenu,
     onTeamRedirect,
+    onBulkAbsenceMatchOpen,
+    
 }: IHeaderSectionProps) {
     return (
         <div className="flex items-center justify-between mb-2 min-h-[2.5rem]">
@@ -88,6 +91,7 @@ function TeamCardHeaderSection({
                         onSendCredential={onSendCredential}
                         onMoveTeamOpen={onMoveTeamOpen}
                         onDeleteTeamOpen={onDeleteTeamOpen}
+                        onBulkAbsenceMatchOpen={onBulkAbsenceMatchOpen} 
                     />
                 </div>
             </div>

@@ -1817,6 +1817,7 @@ type Mutation {
   deleteMatches(matchIds: [String!]!): GetMatchResponse!
   createTeamMatchAbsense(input: CreateTeamMatchAbsenseInput!): GetTeamMatchAbsenseResponse!
   createMultipleTeamMatchAbsense(input: CreateMultipleTeamMatchAbsenseInput!): GetMultipleTeamMatchAbsenseResponse!
+  deleteTeamMatchAbsense(id: ID!): GetTeamMatchAbsenseResponse!
   updateRound(updateInput: UpdateRoundInput!): CreateOrUpdateRoundResponse!
   updateNet(input: UpdateNetInput!, netId: String!): GetNetResponse!
   updateNets(input: [UpdateMultipleNetInput!]!): GetNetsResponse!
