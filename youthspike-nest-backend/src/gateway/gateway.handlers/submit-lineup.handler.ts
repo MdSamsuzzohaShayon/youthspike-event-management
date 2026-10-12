@@ -13,7 +13,7 @@ export class SubmitLineupHandler {
     private readonly gatewayService: GatewayService,
     private readonly gatewayRedisService: GatewayRedisService,
     private readonly roomHelper: RoomHelper,
-  ) {}
+  ) { }
 
   async handle(
     @ConnectedSocket() client: Socket,
@@ -27,24 +27,25 @@ export class SubmitLineupHandler {
       const prevRoom = roomsLocal.get(submitLineup.room);
       if (!prevRoom) throw new Error('Room not found, Incorrect room ID!');
 
-      
+
       const roomData = { ...prevRoom };
       let roundList = [...roomData.rounds];
-      
+
       const { roundService, eventService, playerRankingService, netService, teamService, matchService } =
-      this.gatewayService.getServices();
+        this.gatewayService.getServices();
       const matchExist = await matchService.findById(submitLineup.match);
       if (!matchExist) throw new Error('Match not found, Incorrect match ID!');
-      if(matchExist.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND){
-        const newRoundList = await roundService.find({match: submitLineup.match});
-        roundList = newRoundList.map((r)=>({_id: r._id.toString(), num: r.num, teamAProcess: r.teamAProcess, teamBProcess: r.teamBProcess}));
+      if (matchExist.tieBreaking === ETieBreakingStrategy.OVERTIME_ROUND) {
+        const newRoundList = await roundService.find({ match: submitLineup.match });
+        roundList = newRoundList.map((r) => ({ _id: r._id.toString(), num: r.num, teamAProcess: r.teamAProcess, teamBProcess: r.teamBProcess }));
       }
-      
-      
+
+
       const roundI = roundList.findIndex((r) => r._id === submitLineup.round);
-      if (roundI === -1){
+      if (roundI === -1) {
         // Check overtime round or not
-        throw new Error('Round not found with that round ID!');}
+        throw new Error('Round not found with that round ID!');
+      }
 
 
       const [roundExist, eventExist] = await Promise.all([
@@ -124,7 +125,7 @@ export class SubmitLineupHandler {
       if (subbedPlayers.length > 0) {
         updatePromises.push(
           roundService.updateOne(
-            { _id: currRoundObj._id, status: EPlayerStatus.ACTIVE },
+            { _id: currRoundObj._id },
             { $addToSet: { subs: { $each: subbedPlayers } } },
           ),
         );
