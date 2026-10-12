@@ -1,5 +1,5 @@
 import { ADMIN_FRONTEND_URL } from "@/utils/keys";
-import { EPlayerStatus, ETeam, INetRelatives, IPlayer, ITeam, IUserContext, UserRole } from "@/types";
+import { EPlayerStatus, ETeam, INetRelatives, IPlayer, IPlayerRankingItem, IPlayerRankingItemExpRel, ITeam, IUserContext, UserRole } from "@/types";
 
 /** Roles allowed to operate the round runner controls. */
 export const ROUND_RUNNER_ROLES: UserRole[] = [
@@ -133,19 +133,61 @@ export function getAssignedPlayerIds(nets: INetRelatives[]): Set<string> {
 }
 
 /**
- * Player ids moved off either roster. Only membership is ever checked
- * (`.has`), so a Set of ids is enough — no need to keep a Map of the
- * full player objects around just to answer a yes/no question.
+ * Extracts a Set of stringified player IDs from a list of ranking entries.
+ * Returns an empty Set when input is missing/empty (no nulls leaking downstream).
  */
-export function getMovedPlayerIds(teamA: ITeam | null | undefined, teamB: ITeam | null | undefined): Set<string> {
-  const movedIds = new Set<string>();
-  teamA?.moved?.forEach((player) => movedIds.add(player._id));
-  teamB?.moved?.forEach((player) => movedIds.add(player._id));
-  return movedIds;
-}
+export const extractRankedPlayerIds = (
+  rankings: IPlayerRankingItemExpRel[] | undefined | null
+): Set<string> => {
+  if (!rankings || rankings.length === 0) return new Set<string>();
+  return new Set(rankings.map((entry) => String(entry.player._id)));
+};
 
-export function getAvailableSubs(teamPlayers: IPlayer[], movedPlayerIds: Set<string>, assignedPlayerIds: Set<string>): IPlayer[] {
+/**
+ * Returns the ranked-player-id Set that corresponds to the given team.
+ * Falls back to an empty Set when `teamE` is unknown — callers naturally
+ * produce an empty roster instead of throwing.
+ */
+export const getRankedPlayerIdsForTeam = (
+  teamE: ETeam | undefined | null,
+  teamARankings: IPlayerRankingItemExpRel[] | undefined,
+  teamBRankings: IPlayerRankingItemExpRel[] | undefined
+): Set<string> => {
+  if (teamE === ETeam.teamA) return extractRankedPlayerIds(teamARankings);
+  if (teamE === ETeam.teamB) return extractRankedPlayerIds(teamBRankings);
+  return new Set<string>();
+};
+
+/**
+ * Builds the current team's roster by:
+ *  1. Keeping only players present in `rankedPlayerIds` (ranked players).
+ *  2. Removing duplicate IDs.
+ *
+ * Uses a `seen` Set for O(1) membership + dedupe checks.
+ * Pure: no side effects, easy to unit-test.
+ */
+export const buildRankedTeamRoster = (
+  players: IPlayer[] | undefined | null,
+  rankedPlayerIds: Set<string>
+): IPlayer[] => {
+  if (!players || players.length === 0) return [];
+
+  const seenIds = new Set<string>();
+  const roster: IPlayer[] = [];
+
+  for (const player of players) {
+    const playerId = String(player._id);
+    if (seenIds.has(playerId)) continue;          // dedupe
+    if (!rankedPlayerIds.has(playerId)) continue; // must be ranked
+    seenIds.add(playerId);
+    roster.push(player);
+  }
+
+  return roster;
+};
+
+export function getAvailableSubs(teamPlayers: IPlayer[],assignedPlayerIds: Set<string>): IPlayer[] {
   return teamPlayers.filter(
-    (player) => isActivePlayer(player) && !movedPlayerIds.has(player._id) && !assignedPlayerIds.has(player._id),
+    (player) => isActivePlayer(player) && !assignedPlayerIds.has(player._id),
   );
 }

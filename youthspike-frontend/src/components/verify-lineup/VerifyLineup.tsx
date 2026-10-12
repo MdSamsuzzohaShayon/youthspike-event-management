@@ -6,14 +6,14 @@ import { setVerifyLineup } from '@/redux/slices/matchesSlice';
 import { ETeam } from '@/types/team';
 import EmitEvents from '@/utils/socket/EmitEvents';
 import {
-  EPlayerStatus,
   IPlayer,
 } from '@/types';
 import LocalStorageService from '@/utils/LocalStorageService';
 import {
+  buildRankedTeamRoster,
   getAssignedPlayerIds,
   getAvailableSubs,
-  getMovedPlayerIds,
+  getRankedPlayerIdsForTeam,
   isActivePlayer,
 } from '@/utils/match/captainViewHelpers';
 import SubbedPlayersPanel from '../match/CaptainMatchView/SubbedPlayersPanel';
@@ -41,11 +41,28 @@ const VerifyLineup = () => {
   const { teamA, teamB } = useAppSelector((state) => state.teams);
   const { currentRoundNets } = useAppSelector((state) => state.nets);
 
-  // Memoized Maps for O(1) lookups
-  const currentTeamPlayers = useMemo<IPlayer[]>(
-    () => (myTeamE === ETeam.teamA ? teamAPlayers : teamBPlayers),
-    [myTeamE, teamAPlayers, teamBPlayers]
+
+  // Set of stringified player IDs that appear in the current team's ranking.
+  // O(1) membership checks downstream; rebuilt only when inputs change.
+  const rankedPlayerIds = useMemo<Set<string>>(
+    () => getRankedPlayerIdsForTeam(
+      myTeamE,
+      teamAPlayerRanking?.rankings,
+      teamBPlayerRanking?.rankings
+    ),
+    [myTeamE, teamAPlayerRanking, teamBPlayerRanking]
   );
+
+  // Current team's roster: ranked players only, deduplicated.
+  // Single source of truth for which players are selectable in this view.
+  const currentTeamPlayers = useMemo<IPlayer[]>(
+    () => {
+      const teamPlayers = myTeamE === ETeam.teamA ? teamAPlayers : teamBPlayers;
+      return buildRankedTeamRoster(teamPlayers, rankedPlayerIds);
+    },
+    [myTeamE, teamAPlayers, teamBPlayers, rankedPlayerIds]
+  );
+
 
   const playerMap = useMemo<Map<string, IPlayer>>(
     () => createPlayerMap(currentTeamPlayers),
@@ -62,14 +79,10 @@ const VerifyLineup = () => {
     [currentRoundNets]
   );
 
-  const movedPlayerIds = useMemo<Set<string>>(
-    () => getMovedPlayerIds(teamA, teamB),
-    [teamA, teamB]
-  );
 
   const subbedPlayers = useMemo<IPlayer[]>(
-    () => getAvailableSubs(currentTeamPlayers, movedPlayerIds, assignedPlayerIds),
-    [currentTeamPlayers, movedPlayerIds, assignedPlayerIds]
+    () => getAvailableSubs(currentTeamPlayers, assignedPlayerIds),
+    [currentTeamPlayers, assignedPlayerIds]
   );
 
   // Event Handlers
@@ -116,32 +129,23 @@ const VerifyLineup = () => {
       console.error('VerifyLineup: failed to submit lineup.', error);
     }
   }, [
-    socket, dispatch, myPlayers, currentEvent, currentRoom, currentRound, 
+    socket, dispatch, myPlayers, currentEvent, currentRoom, currentRound,
     currentRoundNets, myTeamE, roundList, user, teamA, teamB, match,
   ]);
 
-  const activePlayers = teamBPlayers.filter((p, i, arr) => p.status === EPlayerStatus.ACTIVE && arr.findIndex(x => x._id === p._id) === i);
-  console.log({
-    currentRoundNets,
-    activePlayers,
-    assignedPlayerIds,
-    currentTeamPlayers: currentTeamPlayers === teamBPlayers,
-    movedPlayerIds
-  });
-  
 
   return (
     <div className="w-full max-w-7xl mx-auto bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden flex flex-col z-20 h-full max-h-[90vh]">
-      
+
       {/* Ultra-compact Header */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-100 bg-white">
         <div className="flex items-center gap-2">
           <div className="w-1 h-5 bg-yellow-400 rounded-full"></div>
           <h3 className="text-base font-bold tracking-tight text-gray-900">Assigned Nets</h3>
         </div>
-        <button 
-          onClick={handleCloseLineup} 
-          className="p-1.5 rounded-full hover:bg-gray-100 transition-colors" 
+        <button
+          onClick={handleCloseLineup}
+          className="p-1.5 rounded-full hover:bg-gray-100 transition-colors"
           aria-label="Close lineup modal"
         >
           <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -152,7 +156,7 @@ const VerifyLineup = () => {
 
       {/* Scroll-Free Content Area */}
       <div className="flex-1 p-3 bg-gray-50/50 min-h-0 flex flex-col gap-3">
-        
+
         {/* Highly Responsive Grid (Fits up to 5 columns on XL screens to save vertical space) */}
         <div className="flex-1 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 min-h-0">
           {currentRoundNets.map((net) => (
