@@ -2,7 +2,11 @@ import { Module } from '@nestjs/common';
 import { UserResolver } from './user.resolver';
 import { SharedModule } from 'src/shared/shared.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import {UserQueries} from './resolvers/user.queries';
 import { JwtModule } from '@nestjs/jwt';
+import { UserMutations } from './resolvers/user.mutations';
+import { UserFields } from './resolvers/user.fields';
+import UserHelpers from './resolvers/user.helpers';
 
 @Module({
   imports: [
@@ -23,6 +27,6 @@ import { JwtModule } from '@nestjs/jwt';
     }),
     ConfigModule.forRoot()],
 
-  providers: [UserResolver],
+  providers: [UserResolver, UserQueries, UserMutations, UserFields, UserHelpers],
 })
 export class UserModule {}
