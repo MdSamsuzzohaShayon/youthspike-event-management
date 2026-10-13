@@ -17,7 +17,6 @@ import { LDO } from './ldo.schema';
 import { AppResponse } from 'src/shared/response';
 import { User } from 'src/user/user.schema';
 import { UserService } from 'src/user/user.service';
-import { CreateDirector, UpdateDirector } from 'src/user/user.input';
 import { UserRole } from 'src/user/user.schema';
 import { CloudinaryService } from 'src/shared/services/cloudinary.service'
 import { rmInvalidProps, tokenToUser } from 'src/utils/helper';
@@ -34,6 +33,7 @@ import { RoundService } from 'src/round/round.service';
 import { NetService } from 'src/net/net.service';
 import { FileUpload } from 'graphql-upload/processRequest.mjs';
 import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
+import { CreateDirector, UpdateDirector } from 'src/user/resolvers/user.input';
 const GraphQLUpload = GraphQLUploadModule.default;
 
 @ObjectType()

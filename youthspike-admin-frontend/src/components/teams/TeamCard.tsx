@@ -169,6 +169,8 @@ function TeamCard({ team, eventId, groupList, isChecked, emailcontents, badge, b
 
   const playerCount = activePlayers.length + inactivePlayers.length;
 
+
+
   return (
     <div className="team-card w-full bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-700">
       {/* Mobile Layout */}

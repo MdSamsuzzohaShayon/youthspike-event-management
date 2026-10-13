@@ -10,12 +10,6 @@ type AppAbout {
   mode: String
 }
 
-type AppResponse {
-  code: Int!
-  success: Boolean!
-  message: String
-}
-
 type PlayerStats {
   _id: String
   createdAt: String
@@ -501,6 +495,12 @@ enum UserRole {
   co_captain
   public
   player
+}
+
+type AppResponse {
+  code: Int!
+  success: Boolean!
+  message: String
 }
 
 type LoginUser {
