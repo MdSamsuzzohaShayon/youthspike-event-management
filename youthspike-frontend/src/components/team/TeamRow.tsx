@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { IBadge, ITeam, ITeamScore } from '@/types';
 import { MATCH_WIN_POINTS } from '@/utils/constant';
 import LogoWithBadge from '../badge/LogoWithBadge';
+import Image from 'next/image';
 
 interface ITeamRowProps {
   team: ITeam;
@@ -17,59 +18,59 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
   // Handle case where teamScores might be undefined or null
   const hasScores = teamScores && typeof teamScores === 'object';
 
-  const teamPoints = useMemo(
-    () => {
-      if (!teamScores) return 0;
-      // totalMatches: number, wins: number, loss: number
-      const totalMatches = teamScores.totalMatches;
-      const wins = teamScores.overallWins;
-      const loss = teamScores.overallLoses;
+  // const teamPoints = useMemo(
+  //   () => {
+  //     if (!teamScores) return 0;
+  //     // totalMatches: number, wins: number, loss: number
+  //     const totalMatches = teamScores.totalMatches;
+  //     const wins = teamScores.overallWins;
+  //     const loss = teamScores.overallLoses;
 
-      const draws = Math.max(0, totalMatches - wins - loss);
+  //     const draws = Math.max(0, totalMatches - wins - loss);
 
-      const points = wins * MATCH_WIN_POINTS + draws;
+  //     const points = wins * MATCH_WIN_POINTS + draws;
 
-      return points;
-    },
-    [teamScores]
-  );
+  //     return points;
+  //   },
+  //   [teamScores]
+  // );
 
 
   const teamGroupPoints = useMemo(() => {
     if (!teamScores || !selectedGroup) return 0;
-  
+
     const groupDraws = Math.max(
       0,
       teamScores.groupMatches -
-        teamScores.groupWins -
-        teamScores.groupLoses
+      teamScores.groupWins -
+      teamScores.groupLoses
     );
-  
+
     const groupPoints =
       teamScores.groupWins * MATCH_WIN_POINTS + groupDraws;
-  
+
     const totalMatches =
       teamScores.groupMatches + teamScores.teammatchabsencescount;
-  
+
     const points = groupPoints / totalMatches;
-  
+
     return Number.isNaN(points) ? 0 : points.toFixed(2);
   }, [selectedGroup, teamScores]);
 
   const totalGroupPoints = useMemo(() => {
     if (!teamScores || !selectedGroup) return 0;
-  
+
     const groupDraws = Math.max(
       0,
       teamScores.groupMatches -
-        teamScores.groupWins -
-        teamScores.groupLoses
+      teamScores.groupWins -
+      teamScores.groupLoses
     );
-  
+
     const groupPoints =
       teamScores.groupWins * MATCH_WIN_POINTS + groupDraws;
-  
-  
+
+
     return groupPoints;
   }, [selectedGroup, teamScores]);
 
@@ -84,8 +85,18 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
     >
       <td className="py-2 px-3 sticky left-0 bg-inherit z-10">
         <div className="md:flex md:items-start">
-          <span className="w-5 text-center font-medium text-sm shrink-0 mt-1">
-            {index + 1}
+          <span className="w-5 text-center font-medium text-sm shrink-0 mt-1 flex flex-row md:flex-col gap-x-2 justify-center items-center">
+            <span>{index + 1}</span>
+            {/* <span>
+              <Image
+                src="/icons/edit.svg"
+                alt="Edit team"
+                width={24}
+                height={24}
+                className="svg-white w-6 h-6"
+              />
+            </span> */}
+
           </span>
 
           <div className="md:ml-2 md:flex md:flex-col md:w-full">
@@ -154,7 +165,7 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
         <td className="py-3 px-4 text-center whitespace-nowrap">
           <div className="flex flex-col">
             <span className="font-bold text-xl">
-              {hasScores ? totalGroupPoints: '0'}
+              {hasScores ? totalGroupPoints : '0'}
             </span>
           </div>
         </td>
