@@ -81,7 +81,7 @@ function ActionMenu({
                 role="presentation"
             >
                 <Image src="/icons/plus.svg" alt="Add Absences" width={16} height={16} className="svg-white" />
-                <span className="text-sm">Absences / Group points</span>
+                <span className="text-sm">Add team absences</span>
             </li>
 
 

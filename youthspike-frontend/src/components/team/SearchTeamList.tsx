@@ -23,7 +23,7 @@ const DEFAULT_SORT_CONFIG: { key: ETeamStatType; direction: 'asc' | 'desc' } = {
   direction: 'desc',
 };
 
-interface ITeamStandingsProps {
+interface ISearchTeamListProps {
   nets?: INetRelatives[];
   rounds?: IRoundRelatives[];
   teamList?: ITeam[];
@@ -32,19 +32,20 @@ interface ITeamStandingsProps {
   selectedGroup?: string | null;
 }
 
-function TeamStandings({
+function SearchTeamList({
   teamList = [],
   matchList = [],
   nets = [],
   rounds = [],
   badges = [],
   selectedGroup = null,
-}: ITeamStandingsProps) {
+}: ISearchTeamListProps) {
   // Sort state - null means "use default compareTeams ordering"
   const [sortConfig, setSortConfig] = useState<{
     key: ETeamStatType;
     direction: 'asc' | 'desc';
   } | null>(null);
+
 
   const matchesByTeam = useMemo(() => buildMatchesByTeam(matchList), [matchList]);
   const netsByMatch = useMemo(() => groupByMatchId(nets), [nets]);
@@ -62,10 +63,13 @@ function TeamStandings({
 
     teamList.forEach((team) => {
       const teamMatches = matchesByTeam.get(team._id) ?? [];
+      const score = computeTeamScore(team._id, teamMatches, netsByMatch, roundsByMatch, selectedGroup, team?.teammatchabsencescount, team?.grouppoints);
       scores.set(
         team._id,
-        computeTeamScore(team._id, teamMatches, netsByMatch, roundsByMatch, selectedGroup, team?.teammatchabsencescount, team?.grouppoints)
+        score
       );
+
+
     });
 
     return scores;
@@ -184,6 +188,21 @@ function TeamStandings({
     });
   }, [teamList, teamScores, selectedGroup, sortConfig]);
 
+
+  // const teamDetail = useMemo(() => {
+  //   const obj: Record<string, any> = {};
+  //   const teamFound = sortedTeams.find((team) => String(team.name).trim().toLowerCase() === String("Houston crusaders Minor A").trim().toLowerCase());
+  //   obj.team = teamFound;
+  //   if (teamFound) {
+  //     obj.teamScore = teamScores.get(teamFound._id) ?? EMPTY_TEAM_SCORE
+  //   }
+  //   return obj;
+  // }, [sortedTeams, teamScores]);
+
+  // console.log(teamDetail);
+
+
+
   // Provide a stable non-null sort config to SortableHeader so its prop type is satisfied.
   // When `sortConfig` is null (default state), this falls back to DEFAULT_SORT_CONFIG
   // whose `key` is `ETeamStatType.Team` — a key not used by any SortableHeader — so no
@@ -200,7 +219,7 @@ function TeamStandings({
             >
               <thead>
                 <tr className="bg-yellow-logo text-black font-semibold">
-                  <th className="py-3 px-3 sticky left-0 top-0 shadow-md z-20 bg-yellow-logo min-w-[120px] max-w-[120px]">
+                  <th className="py-3 px-3 sticky left-0 top-0 shadow-md z-20 bg-yellow-logo">
                     Team
                   </th>
 
@@ -284,4 +303,4 @@ function TeamStandings({
   );
 }
 
-export default TeamStandings;
+export default SearchTeamList;

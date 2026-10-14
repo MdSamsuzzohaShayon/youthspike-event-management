@@ -1,15 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { EBadgeFor, IBadge, IEmailcontent, IEvent, IGetTeamResponse, IGroup, IGroupRelatives, IOption, IPlayer, IPlayerExpRel, IResponse, ITeam, TUpdateTeam } from '@/types';
+import { EBadgeFor, IBadge, IEmailcontent, IEvent, IGetTeamResponse, IGroup, IOption, IPlayer, IPlayerExpRel, IResponse, ITeam, TUpdateTeam } from '@/types';
 import TeamCard from './TeamCard';
 import Image from 'next/image';
 import { imgSize } from '@/utils/style';
 import { handleError } from '@/utils/handleError';
 import { DELETE_MULTIPLE_TEAMS, DELETE_TEAM, TEAM_BADGE_FRAGMENT, UPDATE_TEAM, UPDATE_TEAMS } from '@/graphql/teams';
 import { SEND_CREDENTIALS } from '@/graphql/event';
-import SelectInput from '../elements/forms/SelectInput';
 import { UPDATE_GROUP } from '@/graphql/group';
-import { AnimatePresence, motion } from 'motion/react';
-import { menuVariants } from '@/utils/animation';
 import { useMessage } from '@/lib/MessageProvider';
 import { useApolloClient, useMutation } from '@apollo/client/react';
 import { handleResponseCheck } from '@/utils/request-handlers/playerHelpers';
@@ -23,7 +20,6 @@ import MoveTeamDialog from './MoveTeamDialog';
 import ChangeGroupDialog from './ChangeGroupDialog';
 import updateTeam from '@/utils/request-handlers/updateTeam';
 import { CREATE_MULTIPLE_TEAM_MATCH_ABSENSE, TEAMMATCHABSENSE_CREATE } from '@/graphql/matches';
-import AddAbsenceMatchDialog from '../match/AddAbsenceMatchDialog';
 import BulkAbsenceMatchDialog from '../match/BulkAbsenceMatchDialog';
 
 interface ISearchTeamListProps {

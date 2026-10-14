@@ -1,66 +1,116 @@
-// I have 2 mongodb collections teams and players
-// In players, I have teams (arra y of team id) fields 
-// in teams, I have array of players and moved both of t hem array of id
-// Now, I want to check all teams that there are no duplicated in players and moved array of a team
-// Then, in a team if a player id is in thea players array field, delete that if from moved array if that player id is is also present in moved
+// ============================================================
+// Script: Clean up duplicate group points for given teams
+// Includes: input validation, logging, referential cleanup
+// ============================================================
 
+const teamIds = [
+   ObjectId("68c478c91a3dc4cfb83a02ca"),
+   ObjectId('68b919d28551f0822955df26'),
+   ObjectId('68c31561f2df3df5b924eb57'),
+   ObjectId('68ba1e3c4778ee48c4aa5335')
+];
 
+try {
+   // ---------- Input Validation ----------
+   if (!Array.isArray(teamIds) || teamIds.length === 0) {
+      throw new Error("teamIds must be a non-empty array of ObjectId");
+   }
 
-// MongoDB Shell Script (mongosh)
-// Purpose: Remove player IDs from the 'moved' array if they are also present in the 'players' array.
+   print(`[INFO]  Input received: ${teamIds.length} team id(s)`);
 
-// 1. Define the database and collection names
-const dbName = "spikeball-latest"; // Replace with your actual database name
-const collectionName = "teams";     // Replace with your actual collection name
+   // Deduplicate team IDs (one is duplicated in the input)
+   const uniqueTeamIds = [...new Set(teamIds.map(id => id.toString()))]
+      .map(id => ObjectId(id));
+   print(`[INFO]  Unique team ids after dedup: ${uniqueTeamIds.length}`);
 
-// 2. Get the database and collection references
-const db = db.getSiblingDB(dbName);
-const teamsCollection = db.getCollection(collectionName);
+   // ---------- Step 1: Find Teams ----------
+   const teams = db.teams.find({ _id: { $in: uniqueTeamIds } }).toArray();
 
-print("Starting cleanup process: Removing duplicate player IDs from 'moved' arrays...\n");
+   if (!teams || teams.length === 0) {
+      throw new Error(
+         `No teams found for the given ids: ${JSON.stringify(uniqueTeamIds.map(String))}`
+      );
+   }
+   print(`[INFO]  Teams found: ${teams.length}`);
 
-// 3. Execute the update using an aggregation pipeline
-const updateResult = teamsCollection.updateMany(
-   // Filter: Only target documents where both 'players' and 'moved' arrays exist and are not empty
-   {
-      players: { $exists: true, $ne: [] },
-      moved: { $exists: true, $ne: [] }
-   },
-   // Update: Use an aggregation pipeline to modify the document
-   [
-      {
-         $set: {
-            // Rebuild the 'moved' array by keeping only items NOT present in 'players'
-            moved: {
-               $filter: {
-                  input: "$moved",
-                  as: "playerId",
-                  cond: { $not: [ { $in: ["$$playerId", "$players"] } ] }
-               }
-            }
-         }
-      }
-   ]
-);
+   // Warn about any teams that were not located
+   if (teams.length < uniqueTeamIds.length) {
+      const found = new Set(teams.map(t => t._id.toString()));
+      const missing = uniqueTeamIds.filter(id => !found.has(id.toString()));
+      print(`[WARN]  ${missing.length} team id(s) not found in db.teams:`);
+      missing.forEach(id => print(`        - ${id}`));
+   }
 
-// 4. Print the results properly
-print("Cleanup Process Completed.");
-print("--------------------------------------------------");
-print(`Documents matched:  ${updateResult.matchedCount}`);
-print(`Documents modified: ${updateResult.modifiedCount}`);
-print("--------------------------------------------------\n");
+   // ---------- Step 2: Find Group Points ----------
+   const groupPoints = db.grouppoints
+      .find({ team: { $in: uniqueTeamIds } })
+      .sort({ _id: 1 })          // deterministic ordering
+      .toArray();
 
-// 5. (Optional) Display a sample of the updated documents to verify
-print("Sample of updated team documents:");
-const updatedDocs = teamsCollection.find(
-   { moved: { $exists: true } }, 
-   { _id: 1, teamName: 1, players: 1, moved: 1 } // Projection (add/remove fields as needed)
-).limit(5).toArray();
+   print(`[INFO]  Group points found: ${groupPoints.length}`);
 
-if (updatedDocs.length === 0) {
-   print("No documents with a 'moved' array were found to display.");
-} else {
-   updatedDocs.forEach(doc => {
-      printjson(doc);
+   if (groupPoints.length === 0) {
+      print("[INFO]  No group points to process. Exiting.");
+      quit(0);
+   }
+
+   // ---------- Step 3: Identify Duplicates per Team ----------
+   // Group group points by team. Keep the first one (oldest by _id),
+   // mark the rest for deletion.
+   const byTeam = {};
+   groupPoints.forEach(gp => {
+      const key = gp.team.toString();
+      (byTeam[key] = byTeam[key] || []).push(gp);
    });
+
+   const idsToDelete = [];
+   Object.keys(byTeam).forEach(teamKey => {
+      const list = byTeam[teamKey];
+      if (list.length > 1) {
+         print(`[WARN]  Team ${teamKey} has ${list.length} group points (expected 1). ` +
+               `Keeping ${list[0]._id}, deleting ${list.length - 1} duplicate(s).`);
+         list.slice(1).forEach(gp => idsToDelete.push(gp._id));
+      }
+   });
+
+   if (idsToDelete.length === 0) {
+      print("[INFO]  No duplicate group points detected. Nothing to delete.");
+      quit(0);
+   }
+
+   print(`[INFO]  Group points marked for deletion: ${idsToDelete.length}`);
+
+   // ---------- Step 4: Delete Related Relationships First ----------
+   // IMPORTANT: Remove references in the relationships collection BEFORE
+   // deleting the group points to avoid dangling references.
+   const relField = "groupPoint"; // adjust if your schema uses a different field name
+
+   const relDelete = db.relationships.deleteMany({
+      [relField]: { $in: idsToDelete }
+   });
+
+   print(`[INFO]  Relationships deleted: ${relDelete.deletedCount}`);
+
+   // ---------- Step 5: Delete the Duplicate Group Points ----------
+   const gpDelete = db.grouppoints.deleteMany({
+      _id: { $in: idsToDelete }
+   });
+
+   print(`[INFO]  Group points deleted: ${gpDelete.deletedCount}`);
+
+   if (gpDelete.deletedCount !== idsToDelete.length) {
+      print(`[WARN]  Mismatch: expected ${idsToDelete.length} deletions, got ${gpDelete.deletedCount}`);
+   }
+
+   // ---------- Final Summary ----------
+   print("[DONE]  Cleanup completed successfully.");
+   print(`        Teams processed           : ${teams.length}`);
+   print(`        Group points found        : ${groupPoints.length}`);
+   print(`        Group points deleted      : ${gpDelete.deletedCount}`);
+   print(`        Relationships deleted     : ${relDelete.deletedCount}`);
+
+} catch (err) {
+   print(`[ERROR] ${err.message}`);
+   if (err.stack) print(`[ERROR] Stack trace:\n${err.stack}`);
+   quit(1);
 }

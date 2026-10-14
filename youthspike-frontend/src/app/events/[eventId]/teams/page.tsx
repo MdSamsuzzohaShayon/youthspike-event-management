@@ -6,7 +6,7 @@ import { Suspense } from "react";
 import { PreloadQuery } from "@/lib/client";
 import Loader from "@/components/elements/Loader";
 import { QueryRef } from "@apollo/client/react";
-import { ISearchLimitFilter, ISearchTeamResponse, ISearchVariables, ITeamFilter } from "@/types";
+import { ISearchTeamResponse, ISearchVariables, ITeamFilter } from "@/types";
 import { SEARCH_TEAMS } from "@/graphql/team";
 import TeamsContainer from "@/components/team/TeamsContainer";
 import { CURRENT_EVENT_ID } from "@/utils/constant";
@@ -41,6 +41,8 @@ export default async function TeamsPage({
   };
 
   variables.eventIds = [eventId];
+
+
 
   return (
     <PreloadQuery
