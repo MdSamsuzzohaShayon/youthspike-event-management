@@ -175,6 +175,44 @@ export class MatchMutations {
 
       /**
        * ---------------------------------------------------------
+       * 2.5 Set group automatically
+       * ---------------------------------------------------------
+       */
+      if (!input.group) {
+        const [teamA, teamB] = await Promise.all([
+          this.teamService.findOne({ _id: input.teamA }),
+          this.teamService.findOne({ _id: input.teamB }),
+        ]);
+
+        // Safely handle cases where groups might be missing
+        const teamAGroups = teamA?.groups || [];
+        const teamBGroups = teamB?.groups || [];
+        const eventGroups = event?.groups || []; // From step 1
+
+        // Only proceed if all three have groups
+        if (teamAGroups.length && teamBGroups.length && eventGroups.length) {
+          // Create a Set of Team A's group IDs for O(1) lookups
+          const teamAGroupIds = new Set(teamAGroups.map((g) => String(g)));
+          // Create a Set of Event's group IDs for O(1) lookups
+          const eventGroupIds = new Set(eventGroups.map((g) => String(g)));
+
+          // Find the first common group from Team B that exists in both 
+          // Team A's Set AND the Event's Set. 
+          // .find() breaks early, optimizing time complexity.
+          const commonGroup = teamBGroups.find((g) => {
+            const groupId = String(g);
+            return teamAGroupIds.has(groupId) && eventGroupIds.has(groupId);
+          });
+
+          // Assign the common group to the match data
+          if (commonGroup) {
+            matchData.group = String(commonGroup);
+          }
+        }
+      }
+
+      /**
+       * ---------------------------------------------------------
        * 3. Create Room
        * ---------------------------------------------------------
        */
@@ -452,7 +490,7 @@ export class MatchMutations {
         // Prepare all update promises (O(n))
         const roundUpdatePromises: Promise<any>[] = [];
         for (const inRound of incompleteRounds) {
-          if(input.teamBFScore && input.teamAFScore){
+          if (input.teamBFScore && input.teamAFScore) {
             continue;
           }
           const nets = netsByRound.get(String(inRound._id)) || [];
