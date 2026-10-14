@@ -1,34 +1,249 @@
-Match Link: http://localhost:3001/matches/6ac7fd2fd263a959c25eb5b5?ldoId=68afc4b20bf9dbb4ac0f6984&cei=6a3c355236b002d89afc4a49
+Team: Houston crusaders Minor A
 
-Round 1
-================================================
-Team: College Station Aggies Minor
+Without searching
+=============================================================
+{
+    "team": {
+        "__typename": "CustomTeam",
+        "_id": "68ba18594778ee48c4a9db6a",
+        "groups": [
+            "696fb119ea9844743d08d6ee",
+            "6a3d7f895678a3761441db86"
+        ],
+        "logo": "youthspike/ly9z6cfmeyrzy2bjnsme",
+        "name": "Houston Crusaders Minor A",
+        "badge": null,
+        "num": 565,
+        "matches": [
+            "68d6d619324477874917fef2",
+            "68bb07269e3586a29ade886b",
+            "68bb07a09e3586a29ade892d",
+            "68f2c101277224677c41851d",
+            "68f2c126277224677c418b89",
+            "697b714e2e10f6026443ebff",
+            "697b717389730f2457404394",
+            "697b71ce56352e3a78c8b57b",
+            "697d04c55c0b5666fd1296b3",
+            "697dfb5422ab4c05516932c4",
+            "697e342a6cf33f2fffaf0dd6",
+            "6ac7fc94d263a959c25eb554",
+            "6ac7fce646f02272955b9be7",
+            "6ac7fd44d263a959c25eb5d9",
+            "6ac80292d263a959c25eb678"
+        ],
+        "division": "minor",
+        "teammatchabsencescount": 0,
+        "grouppoints": 0
+    },
+    "teamMatches": [],
+    "score": {
+        "rank": 0,
+        "totalMatches": 0,
+        "groupMatches": 0,
+        "overallWins": 0,
+        "overallLoses": 0,
+        "groupWins": 0,
+        "groupLoses": 0,
+        "matchAvgDiff": 0,
+        "gameAvgDiff": 0,
+        "teammatchabsencescount": 0
+    }
+}
 
-Assigned Nets
-Net 1 — Score: 13
-- #6 Alex Lau
-- #7 Evan Ng
-Net 2 — Score: 6
-- #5 Ray Liang
-- #1 Jordan Abreu
-Net 3 — Score: 11
-- #3 Dylan Jimenez
-- #8 Josiah Jung
-Subbed Players
-- Preston Shaw
-- Joshua Wan
 
-Team: Dallas Lonestar Minor
-Assigned Nets
-Net 1 — Score: 10
-- #2 Frankie Walter
-- #8 Maxwell Manning
-Net 2 — Score: 9
-- #3 Mason Cole
-- #6 Zeke Castaneda
-Net 3 — Score: 11
-- #4 Anthony Trinh
-- #7 Caleigh Mowry
-Subbed Players
-- Cambrie Adams
-- Isaiah Zhu
+
+
+
+
+
+
+With searching
+=============================================================
+{
+    "team": {
+        "__typename": "CustomTeam",
+        "_id": "68ba18594778ee48c4a9db6a",
+        "groups": [
+            "696fb119ea9844743d08d6ee",
+            "6a3d7f895678a3761441db86"
+        ],
+        "logo": "youthspike/ly9z6cfmeyrzy2bjnsme",
+        "name": "Houston Crusaders Minor A",
+        "badge": null,
+        "num": 565,
+        "matches": [
+            "68d6d619324477874917fef2",
+            "68bb07269e3586a29ade886b",
+            "68bb07a09e3586a29ade892d",
+            "68f2c101277224677c41851d",
+            "68f2c126277224677c418b89",
+            "697b714e2e10f6026443ebff",
+            "697b717389730f2457404394",
+            "697b71ce56352e3a78c8b57b",
+            "697d04c55c0b5666fd1296b3",
+            "697dfb5422ab4c05516932c4",
+            "697e342a6cf33f2fffaf0dd6",
+            "6ac7fc94d263a959c25eb554",
+            "6ac7fce646f02272955b9be7",
+            "6ac7fd44d263a959c25eb5d9",
+            "6ac80292d263a959c25eb678"
+        ],
+        "division": "minor",
+        "teammatchabsencescount": 0,
+        "grouppoints": 0
+    },
+    "teamMatches": [
+        {
+            "__typename": "CustomMatch",
+            "_id": "6ac7fc94d263a959c25eb554",
+            "completed": true,
+            "group": "6a3d7f895678a3761441db86",
+            "date": "2026-10-10T00:00:00.000Z",
+            "description": "Match 1",
+            "division": "minor",
+            "nets": [
+                "6ac7fc94d263a959c25eb567",
+                "6ac7fc94d263a959c25eb568",
+                "6ac7fc94d263a959c25eb569",
+                "6ac7fc94d263a959c25eb56b",
+                "6ac7fc94d263a959c25eb56c",
+                "6ac7fc94d263a959c25eb56d",
+                "6ac7fc94d263a959c25eb56f",
+                "6ac7fc94d263a959c25eb570",
+                "6ac7fc94d263a959c25eb571",
+                "6ac7fc94d263a959c25eb573",
+                "6ac7fc94d263a959c25eb574",
+                "6ac7fc94d263a959c25eb575"
+            ],
+            "rounds": [
+                "6ac7fc94d263a959c25eb566",
+                "6ac7fc94d263a959c25eb56a",
+                "6ac7fc94d263a959c25eb56e",
+                "6ac7fc94d263a959c25eb572"
+            ],
+            "teamA": "68ba18174778ee48c4a9ce6c",
+            "teamB": "68ba18594778ee48c4a9db6a",
+            "teamAP": 0,
+            "teamBP": 0,
+            "teamAFScore": null,
+            "teamBFScore": null
+        },
+        {
+            "__typename": "CustomMatch",
+            "_id": "6ac7fce646f02272955b9be7",
+            "completed": true,
+            "group": "6a3d7f895678a3761441db86",
+            "date": "2026-10-10T00:00:00.000Z",
+            "description": "Houston Match 2, Aggies Match 1",
+            "division": "minor",
+            "nets": [
+                "6ac7fce646f02272955b9bfa",
+                "6ac7fce646f02272955b9bfb",
+                "6ac7fce646f02272955b9bfc",
+                "6ac7fce646f02272955b9bfe",
+                "6ac7fce646f02272955b9bff",
+                "6ac7fce646f02272955b9c00",
+                "6ac7fce646f02272955b9c02",
+                "6ac7fce646f02272955b9c03",
+                "6ac7fce646f02272955b9c04",
+                "6ac7fce646f02272955b9c06",
+                "6ac7fce646f02272955b9c07",
+                "6ac7fce646f02272955b9c08"
+            ],
+            "rounds": [
+                "6ac7fce646f02272955b9bf9",
+                "6ac7fce646f02272955b9bfd",
+                "6ac7fce646f02272955b9c01",
+                "6ac7fce646f02272955b9c05"
+            ],
+            "teamA": "68ba18594778ee48c4a9db6a",
+            "teamB": "68ba18914778ee48c4a9e0c1",
+            "teamAP": 0,
+            "teamBP": 0,
+            "teamAFScore": null,
+            "teamBFScore": null
+        },
+        {
+            "__typename": "CustomMatch",
+            "_id": "6ac7fd44d263a959c25eb5d9",
+            "completed": true,
+            "group": "6a3d7f895678a3761441db86",
+            "date": "2026-10-10T00:00:00.000Z",
+            "description": "Match 4",
+            "division": "minor",
+            "nets": [
+                "6ac7fd44d263a959c25eb5e7",
+                "6ac7fd44d263a959c25eb5e8",
+                "6ac7fd44d263a959c25eb5e9",
+                "6ac7fd44d263a959c25eb5eb",
+                "6ac7fd44d263a959c25eb5ec",
+                "6ac7fd44d263a959c25eb5ed",
+                "6ac7fd44d263a959c25eb5ef",
+                "6ac7fd44d263a959c25eb5f0",
+                "6ac7fd44d263a959c25eb5f1",
+                "6ac7fd44d263a959c25eb5f3",
+                "6ac7fd44d263a959c25eb5f4",
+                "6ac7fd44d263a959c25eb5f5"
+            ],
+            "rounds": [
+                "6ac7fd44d263a959c25eb5e6",
+                "6ac7fd44d263a959c25eb5ea",
+                "6ac7fd44d263a959c25eb5ee",
+                "6ac7fd44d263a959c25eb5f2"
+            ],
+            "teamA": "68f2b599d922f71540386c6e",
+            "teamB": "68ba18594778ee48c4a9db6a",
+            "teamAP": 0,
+            "teamBP": 0,
+            "teamAFScore": null,
+            "teamBFScore": null
+        },
+        {
+            "__typename": "CustomMatch",
+            "_id": "6ac80292d263a959c25eb678",
+            "completed": true,
+            "group": "6a3d7f895678a3761441db86",
+            "date": "2026-10-10T00:00:00.000Z",
+            "description": "Match 3",
+            "division": "minor",
+            "nets": [
+                "6ac80292d263a959c25eb68a",
+                "6ac80292d263a959c25eb68b",
+                "6ac80292d263a959c25eb68c",
+                "6ac80292d263a959c25eb68e",
+                "6ac80292d263a959c25eb68f",
+                "6ac80292d263a959c25eb690",
+                "6ac80292d263a959c25eb692",
+                "6ac80292d263a959c25eb693",
+                "6ac80292d263a959c25eb694",
+                "6ac80292d263a959c25eb696",
+                "6ac80292d263a959c25eb697",
+                "6ac80292d263a959c25eb698"
+            ],
+            "rounds": [
+                "6ac80292d263a959c25eb689",
+                "6ac80292d263a959c25eb68d",
+                "6ac80292d263a959c25eb691",
+                "6ac80292d263a959c25eb695"
+            ],
+            "teamA": "68ba18594778ee48c4a9db6a",
+            "teamB": "68ba06154778ee48c4a9257d",
+            "teamAP": 0,
+            "teamBP": 0,
+            "teamAFScore": null,
+            "teamBFScore": null
+        }
+    ],
+    "score": {
+        "rank": 0,
+        "totalMatches": 4,
+        "groupMatches": 4,
+        "overallWins": 2,
+        "overallLoses": 0,
+        "groupWins": 2,
+        "groupLoses": 0,
+        "matchAvgDiff": 6,
+        "gameAvgDiff": 4.5,
+        "teammatchabsencescount": 0
+    }
+}

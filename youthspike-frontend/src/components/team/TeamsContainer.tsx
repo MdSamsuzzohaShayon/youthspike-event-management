@@ -44,6 +44,20 @@ const DEFAULT_FILTER_STATE: ITeamFilter = {
 
 const PAGE_SIZE = 30;
 
+// Helper to merge arrays without duplicates, preventing space complexity growth
+const mergeUnique = <T extends Record<string, any>>(
+  prev: T[],
+  next: T[],
+  idKey: string = "_id"
+): T[] => {
+  const ids = new Set(prev.map((item) => item[idKey]).filter(Boolean));
+  const filteredNext = next.filter((item) => {
+    const id = item[idKey];
+    return id ? !ids.has(id) : true; // Include if no ID, or if ID not in set
+  });
+  return [...prev, ...filteredNext];
+};
+
 export default function TeamsContainer({
   queryRef,
   eventId,
@@ -102,20 +116,21 @@ export default function TeamsContainer({
       setGroups(searchData.groups || []);
       setBadges(searchData.badges || []);
 
-      const eventExist = searchData.events.find((e) => e._id === eventId);
+      const eventExist = searchData.events?.find((e) => e._id === eventId);
       setEvent(eventExist || null);
       setHasMore((searchData.teams || []).length === PAGE_SIZE);
     },
-    []
+    [eventId]
   );
 
   // Execute GraphQL query
   const executeSearchQuery = useCallback(
     async (filter: ITeamFilter, offset: number = 0) => {
       try {
+        const variables = buildQueryVariables(filter, offset);
         const result = await apolloClient.query({
           query: SEARCH_TEAMS,
-          variables: buildQueryVariables(filter, offset),
+          variables,
           fetchPolicy: "network-only",
         });
         return result.data as { searchTeams: ISearchTeamResponse };
@@ -128,62 +143,80 @@ export default function TeamsContainer({
   );
 
   // Apply filters
-  const handleFilterApply = async (filter: IFilterState) => {
+  const handleFilterApply = useCallback(
+    async (filter: IFilterState) => {
+      setIsApplyingFilters(true);
+      try {
+        const responseData = await executeSearchQuery(filter);
+        updateAllData(responseData);
+        setAppliedFilter(filter);
+
+        // Update URL
+        const params = new URLSearchParams();
+        Object.entries(filter).forEach(([key, value]) => {
+          if (value) {
+            params.set(key, value);
+          }
+        });
+
+        const newUrl = `${window.location.pathname}?${params.toString()}`;
+        router.replace(newUrl, { scroll: false });
+      } catch (error) {
+        console.error("Failed to apply filters:", error);
+      } finally {
+        setIsApplyingFilters(false);
+      }
+    },
+    [executeSearchQuery, router, updateAllData]
+  );
+
+  // Clear filters (Optimized to prevent hard reload)
+  const handleClearFilters = useCallback(async () => {
     setIsApplyingFilters(true);
-
     try {
-      const responseData = await executeSearchQuery(filter);
+      const responseData = await executeSearchQuery(DEFAULT_FILTER_STATE);
       updateAllData(responseData);
-      setAppliedFilter(filter);
-
-      // Update URL
-      const params = new URLSearchParams();
-      Object.entries(filter).forEach(([key, value]) => {
-        if (value) {
-          params.set(key, value);
-        }
-      });
-
-      const newUrl = `${window.location.pathname}?${params.toString()}`;
-      // Set params in the url
-      router.replace(newUrl, { scroll: false });
+      setAppliedFilter(DEFAULT_FILTER_STATE);
+      router.replace(window.location.pathname, { scroll: false });
     } catch (error) {
-      console.error("Failed to apply filters:", error);
+      console.error("Failed to clear filters:", error);
     } finally {
       setIsApplyingFilters(false);
     }
-  }
+  }, [executeSearchQuery, router, updateAllData]);
 
-  // Clear filters
-  const handleClearFilters = async () => {
-    window.location.assign(window.location.pathname);
-  };
-
-  // Load more teams
+  // Load more teams (FIXED: Now properly merges relational data)
   const handleLoadMore = useCallback(async () => {
     setIsLoadingMore(true);
-
     try {
       const offset = teams.length;
       const responseData = await executeSearchQuery(appliedFilter, offset);
-      // @ts-ignore
-      const newTeams = responseData?.searchTeams?.data?.teams || [];
+      const searchData = responseData?.searchTeams?.data;
 
-      if (newTeams.length > 0) {
-        setTeams((prev) => [...prev, ...newTeams]);
-        setHasMore(newTeams.length === PAGE_SIZE);
-      } else {
+      if (!searchData) {
         setHasMore(false);
+        return;
       }
+
+      // Merge all related data to ensure UI has proper records for newly loaded teams
+      setTeams((prev) => [...prev, ...(searchData.teams || [])]);
+      setNets((prev) => mergeUnique(prev, searchData.nets || []));
+      setMatches((prev) => mergeUnique(prev, searchData.matches || []));
+      setRounds((prev) => mergeUnique(prev, searchData.rounds || []));
+      setBadges((prev) => mergeUnique(prev, searchData.badges || []));
+      setGroups((prev) => mergeUnique(prev, searchData.groups || []));
+
+      setHasMore((searchData.teams || []).length === PAGE_SIZE);
     } catch (error) {
       console.error("Failed to load more teams:", error);
     } finally {
       setIsLoadingMore(false);
     }
-  }, [teams.length, appliedFilter, executeSearchQuery]);
+  }, [appliedFilter, executeSearchQuery, teams.length]);
 
-  const teamBadges = useMemo(()=>{
-    return badges.filter((badge)=> badge.badgeFor === EBadgeFor.TEAM)
+  // Memoized badges
+  const teamBadges = useMemo(() => {
+    return badges.filter((badge) => badge.badgeFor === EBadgeFor.TEAM);
   }, [badges]);
 
   // Initialize with preloaded data
@@ -194,26 +227,27 @@ export default function TeamsContainer({
     }
   }, [initialData, updateAllData]);
 
+  // UI state computations (Memoized to prevent redundant recalculations)
+  const hasActiveFilters = useMemo(() => {
+    return Object.values(appliedFilter).some((value) => value !== "");
+  }, [appliedFilter]);
 
+  const isLoading = useMemo(() => {
+    return isApplyingFilters || isLoadingMore;
+  }, [isApplyingFilters, isLoadingMore]);
 
-  // UI state computations
-  const hasActiveFilters = Object.values(appliedFilter).some(
-    (value) => value !== ""
-  );
-
-  const isLoading = isApplyingFilters || isLoadingMore;
-  const showInitialLoading = isApplyingFilters && teams.length === 0;
+  const showInitialLoading = useMemo(() => {
+    return isApplyingFilters && teams.length === 0;
+  }, [isApplyingFilters, teams.length]);
 
   return (
     <div className="animate-fade-in">
-
-       {/* Event Wrapper Start  */}
-       {event && <EventHeader event={event}  eventId={event._id} />}
+      {/* Event Wrapper Start  */}
+      {event && <EventHeader event={event} eventId={event._id} />}
 
       {/* Page Content */}
       <div className="flex flex-col lg:flex-row gap-4 md:gap-6 md:mt-6">
         <div className="content w-full rounded-md bg-gray-800 p-3 md:p-4 animate-fade-in-up">
-
           <FilterContent
             groups={groups}
             divisions={event?.divisions ?? ""}
@@ -224,7 +258,12 @@ export default function TeamsContainer({
 
           {/* Active filters indicator */}
           {hasActiveFilters && (
-            <ActiveFiltersBar appliedFilter={appliedFilter} groups={groups} isApplyingFilters={isApplyingFilters} onClearFilters={handleClearFilters} />
+            <ActiveFiltersBar
+              appliedFilter={appliedFilter}
+              groups={groups}
+              isApplyingFilters={isApplyingFilters}
+              onClearFilters={handleClearFilters}
+            />
           )}
 
           {/* Loading state */}
@@ -240,10 +279,17 @@ export default function TeamsContainer({
             <div className="team-list w-full flex flex-col gap-y-4">
               <div className="w-full md:grid md:gap-4">
                 {teams.length > 0 ? (
-                  <SearchTeamList matchList={matches} selectedGroup={appliedFilter?.group} teamList={teams as unknown as ITeam[]} nets={nets} rounds={rounds} badges={badges} />
+                  <SearchTeamList
+                    matchList={matches}
+                    selectedGroup={appliedFilter?.group}
+                    teamList={teams as unknown as ITeam[]}
+                    nets={nets}
+                    rounds={rounds}
+                    badges={badges}
+                  />
                 ) : (
                   <div className="text-center py-8 text-gray-400">
-                    No teams found teaming your criteria.
+                    No teams found matching your criteria.
                   </div>
                 )}
               </div>
@@ -283,9 +329,6 @@ export default function TeamsContainer({
           )}
         </div>
       </div>
-
-
-
     </div>
   );
 }

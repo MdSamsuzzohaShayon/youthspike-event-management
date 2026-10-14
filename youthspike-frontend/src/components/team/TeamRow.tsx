@@ -79,9 +79,10 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
   return (
     <tr
       key={team._id}
+      // min-w-[120px] max-w-[120px] 
       className="odd:bg-gray-800 even:bg-gray-700 hover:bg-gray-600 transition-all"
     >
-      <td className="py-2 px-3 sticky left-0 bg-inherit min-w-[120px] max-w-[120px] z-10">
+      <td className="py-2 px-3 sticky left-0 bg-inherit z-10">
         <div className="md:flex md:items-start">
           <span className="w-5 text-center font-medium text-sm shrink-0 mt-1">
             {index + 1}
