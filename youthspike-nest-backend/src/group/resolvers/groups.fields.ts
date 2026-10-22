@@ -33,13 +33,13 @@ export class GroupFields {
   }
 
   // For group points
-  async pointsTeam(@Parent() groupPoints: GroupPoints) {
-    if (!groupPoints.team) return null;
-    return this.teamService.findById(getId(groupPoints.team));
+  async pointsTeam(@Parent() grouppoints: GroupPoints) {
+    if (!grouppoints.team) return null;
+    return this.teamService.findById(getId(grouppoints.team));
   }
 
-  async pointsEvent(@Parent() groupPoints: GroupPoints) {
-    if (!groupPoints.event) return null;
-    return this.eventService.findOne({ _id: getId(groupPoints.event) });
+  async pointsEvent(@Parent() grouppoints: GroupPoints) {
+    if (!grouppoints.event) return null;
+    return this.eventService.findOne({ _id: getId(grouppoints.event) });
   }
 }

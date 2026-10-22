@@ -7,6 +7,7 @@ import {
   HttpLink,
   ApolloLink,
 } from '@apollo/client';
+import { SetContextLink } from '@apollo/client/link/context';
 import { BACKEND_URL } from '@/utils/keys';
 import { ApolloProvider } from '@apollo/client/react';
 import { getCookie } from '@/utils/clientCookie';
@@ -14,17 +15,31 @@ import { getCookie } from '@/utils/clientCookie';
 /**
  * Auth middleware link
  */
-const authLink = new ApolloLink((operation, forward) => {
+const authLink = new SetContextLink((prevContext) => {
   const token = getCookie('token');
 
-  operation.setContext(({ headers = {} }) => ({
-    headers: {
-      ...headers,
-      authorization: token ? `Bearer ${token}` : '',
-    },
-  }));
+  // `prevContext.headers` is a plain object, but it can also be a `Headers`
+  // instance - spreading a `Headers` instance would drop every header.
+  const headers: Record<string, string> = {};
+  const prevHeaders = prevContext.headers;
+  if (prevHeaders instanceof Headers) {
+    prevHeaders.forEach((value, key) => {
+      headers[key] = value;
+    });
+  } else if (prevHeaders) {
+    Object.assign(headers, prevHeaders);
+  }
 
-  return forward(operation);
+  if (token) {
+    headers.authorization = `Bearer ${token}`;
+  } else {
+    // Never send an empty `Authorization` header. The backend reads the token
+    // with `ExtractJwt.fromAuthHeaderAsBearerToken()`, an empty value does not
+    // match "Bearer <token>" and passport fails with "No auth token".
+    delete headers.authorization;
+  }
+
+  return { headers };
 });
 
 /**

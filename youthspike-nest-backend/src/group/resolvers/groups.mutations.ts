@@ -227,7 +227,7 @@ export class GroupMutations {
     }
 
     async deleteGroup(
-        context: any,
+        _context: any,
         groupId: string,
     ): Promise<GetGroupResponse> {
         try {
@@ -270,8 +270,9 @@ export class GroupMutations {
         input: CreateGroupPointsInput,
     ): Promise<GetGroupPointsResponse> {
         try {
+            const teamId = input.team;
             // Validate team
-            const team = await this.teamService.findById(input.team);
+            const team = await this.teamService.findById(teamId);
             if (!team) return AppResponse.notFound('Team');
 
             // Validate event if provided
@@ -280,21 +281,11 @@ export class GroupMutations {
                 if (!event) return AppResponse.notFound('Event');
             }
 
-            // Prevent duplicate (team + event) entry
-            const existing = await this.groupService.pointsFindOne({
-                team: input.team,
-                ...(input.event ? { event: input.event } : {}),
-            });
-            if (existing) {
-                return AppResponse.handleError({
-                    code: HttpStatus.CONFLICT,
-                    success: false,
-                    message:
-                        'Group points already exist for this team in this event. Use update instead.',
-                });
-            }
+            // Get all previous group points of the team
 
-            const created = await this.groupService.pointsCreate(input as any);
+            const created = await this.groupService.pointsCreate(input);
+            // Make relationship with team, and match
+            await this.teamService.updateOne({_id: teamId}, {$addToSet: {grouppoints: created._id}});
 
             return {
                 data: created as CustomGroupPoints,
@@ -368,15 +359,15 @@ export class GroupMutations {
     }
 
     async deleteGroupPoints(
-        groupPointsId: string,
+        grouppointsId: string,
     ): Promise<GetGroupPointsResponse> {
         try {
-            const existing = await this.groupService.pointsFindOne(groupPointsId);
+            const existing = await this.groupService.pointsFindOne(grouppointsId);
             if (!existing) return AppResponse.notFound('GroupPoints');
 
             // GroupPoints has no arrays pointing to other collections,
             // so only the document itself needs to be removed.
-            await this.groupService.pointsDeleteOne({ _id: groupPointsId });
+            await this.groupService.pointsDeleteOne({ _id: grouppointsId });
 
             return {
                 success: true,

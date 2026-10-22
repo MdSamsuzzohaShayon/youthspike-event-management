@@ -36,7 +36,7 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
   // );
 
 
-  const teamGroupPoints = useMemo(() => {
+  const teamgrouppoints = useMemo(() => {
     if (!teamScores || !selectedGroup) return 0;
 
     const groupDraws = Math.max(
@@ -46,18 +46,18 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
       teamScores.groupLoses
     );
 
-    const groupPoints =
+    const grouppoints =
       teamScores.groupWins * MATCH_WIN_POINTS + groupDraws;
 
     const totalMatches =
       teamScores.groupMatches + teamScores.teammatchabsencescount;
 
-    const points = groupPoints / totalMatches;
+    const points = grouppoints / totalMatches;
 
     return Number.isNaN(points) ? 0 : points.toFixed(2);
   }, [selectedGroup, teamScores]);
 
-  const totalGroupPoints = useMemo(() => {
+  const totalgrouppoints = useMemo(() => {
     if (!teamScores || !selectedGroup) return 0;
 
     const groupDraws = Math.max(
@@ -67,11 +67,11 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
       teamScores.groupLoses
     );
 
-    const groupPoints =
+    const grouppoints =
       teamScores.groupWins * MATCH_WIN_POINTS + groupDraws;
 
 
-    return groupPoints;
+    return grouppoints;
   }, [selectedGroup, teamScores]);
 
 
@@ -132,7 +132,7 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
         <td className="py-3 px-4 text-center whitespace-nowrap">
           <div className="flex flex-col">
             <span className="font-bold text-xl">
-              {hasScores ? teamGroupPoints : 0}
+              {hasScores ? teamgrouppoints : 0}
             </span>
           </div>
         </td>
@@ -165,7 +165,7 @@ function TeamRow({ team, teamScores, index, badge, selectedGroup }: ITeamRowProp
         <td className="py-3 px-4 text-center whitespace-nowrap">
           <div className="flex flex-col">
             <span className="font-bold text-xl">
-              {hasScores ? totalGroupPoints : '0'}
+              {hasScores ? totalgrouppoints : '0'}
             </span>
           </div>
         </td>

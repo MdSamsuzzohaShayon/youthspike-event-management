@@ -121,7 +121,7 @@ export class TeamService {
     return list;
   }
 
-  async teamsWithAbsense(teams: Team[], groupPoints: Map<string, number>): Promise<CustomTeam[]> {
+  async teamsWithAbsense(teams: Team[], grouppoints: Map<string, number>): Promise<CustomTeam[]> {
     // 1. Create an array of promises to fetch counts concurrently using for...of
     // We wrap the promise so it always returns the teamId alongside the count
     const countPromises = [];
@@ -156,7 +156,7 @@ export class TeamService {
         teammatchabsencescount: absenceCountsMap.has(teamIdStr)
           ? absenceCountsMap.get(teamIdStr)
           : 0,
-        grouppoints: groupPoints.has(teamIdStr) ? groupPoints.get(teamIdStr) : 0
+        grouppoints: grouppoints.has(teamIdStr) ? grouppoints.get(teamIdStr) : 0
       });
     }
 

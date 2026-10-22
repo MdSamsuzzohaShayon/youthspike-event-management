@@ -73,9 +73,9 @@ export class GroupResolver {
   @Roles(UserRole.admin, UserRole.director)
   @Mutation(() => GetGroupPointsResponse)
   async deleteGroupPoints(
-    @Args('groupPointsId') groupPointsId: string,
+    @Args('grouppointsId') grouppointsId: string,
   ): Promise<GetGroupPointsResponse> {
-    return this.groupMutations.deleteGroupPoints(groupPointsId);
+    return this.groupMutations.deleteGroupPoints(grouppointsId);
   }
 
   @Query((_returns) => GetGroupsResponse)
@@ -117,13 +117,13 @@ export class GroupResolver {
   }
 
   // @ResolveField()
-  // async pointsEvent(@Parent() groupPoints: GroupPoints) {
-  //   return this.groupFields.pointsEvent(groupPoints);
+  // async pointsEvent(@Parent() grouppoints: GroupPoints) {
+  //   return this.groupFields.pointsEvent(grouppoints);
   // }
   
   @ResolveField(() => GroupPoints, { nullable: true })
-  async pointsTeam(@Parent() groupPoints: GroupPoints) {
-    return this.groupFields.pointsTeam(groupPoints);
+  async pointsTeam(@Parent() grouppoints: GroupPoints) {
+    return this.groupFields.pointsTeam(grouppoints);
   }
 
 

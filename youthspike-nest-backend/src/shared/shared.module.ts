@@ -70,6 +70,10 @@ import {
   ArchiveEmailcontentSchemaFactory,
   ArchiveBadge,
   ArchiveBadgeSchemaFactory,
+  ArchiveGroupPoints,
+  ArchiveGroupPointsSchemaFactory,
+  ArchiveTeamMatchAbsence,
+  ArchiveTeamMatchAbsenceSchemaFactory,
 } from 'src/archive/archive.schema';
 import {
   ArchiveTemplateService, ArchiveUserService,
@@ -91,6 +95,7 @@ import {
   ArchiveEmailsenderService,
   ArchiveEmailcontentService,
   ArchiveBadgeService,
+  ArchiveTeamMatchAbsenceService,
 } from 'src/archive/archive.service';
 import { Emailcontent, EmailcontentSchemaFactory, Emailsender, EmailsenderSchemaFactory } from 'src/emailsender/emailsernder.schema';
 import { BadgeService } from 'src/badge/badge.service';
@@ -251,6 +256,14 @@ import { Badge, BadgeSchemaFactory } from 'src/badge/badge.schema';
         useFactory: ArchiveServerReceiverSinglePlaySchemaFactory,
       },
       {
+        name: ArchiveGroupPoints.name,
+        useFactory: ArchiveGroupPointsSchemaFactory,
+      },
+      {
+        name: ArchiveTeamMatchAbsence.name,
+        useFactory: ArchiveTeamMatchAbsenceSchemaFactory,
+      },
+      {
         name: ArchivePlayer.name,
         useFactory: ArchivePlayerSchemaFactory,
       },
@@ -360,6 +373,7 @@ import { Badge, BadgeSchemaFactory } from 'src/badge/badge.schema';
     ArchiveEmailsenderService,
     ArchiveEmailcontentService,
     ArchiveBadgeService,
+    ArchiveTeamMatchAbsenceService,
 
   ],
   exports: [
@@ -405,6 +419,7 @@ import { Badge, BadgeSchemaFactory } from 'src/badge/badge.schema';
     ArchiveEmailsenderService,
     ArchiveEmailcontentService,
     ArchiveBadgeService,
+    ArchiveTeamMatchAbsenceService,
   ],
 })
 export class SharedModule {

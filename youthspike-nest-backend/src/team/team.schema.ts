@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 import { Badge } from 'src/badge/badge.schema';
 import { Emailcontent } from 'src/emailsender/emailsernder.schema';
 import { Event } from 'src/event/event.schema';
-import { Group } from 'src/group/group.schema';
+import { Group, GroupPoints } from 'src/group/group.schema';
 import { Match, TeamMatchAbsence } from 'src/match/match.schema';
 import { PlayerRanking } from 'src/player-ranking/player-ranking.schema';
 import { Player } from 'src/player/player.schema';

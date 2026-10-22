@@ -7,6 +7,7 @@ import {
   ArchiveEmailsender,
   ArchiveEvent,
   ArchiveGroup,
+  ArchiveGroupPoints,
   ArchiveLDO,
   ArchiveMatch,
   ArchiveNet,
@@ -20,14 +21,15 @@ import {
   ArchiveServerReceiverSinglePlay,
   ArchiveSponsor,
   ArchiveTeam,
+  ArchiveTeamMatchAbsence,
   ArchiveTemplate,
   ArchiveUser,
 } from './archive.schema';
 import { ApplyBasicCreateCasting, DeepPartial, Document, Model, QueryFilter, Require_id, Types, UpdateQuery } from 'mongoose';
 import { Event } from 'src/event/event.schema';
-import { Group } from 'src/group/group.schema';
+import { Group, GroupPoints } from 'src/group/group.schema';
 import { LDO } from 'src/ldo/ldo.schema';
-import { Match } from 'src/match/match.schema';
+import { Match, TeamMatchAbsence } from 'src/match/match.schema';
 import { Net } from 'src/net/net.schema';
 import { Player } from 'src/player/player.schema';
 import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
@@ -431,6 +433,27 @@ export class ArchiveServerReceiverSinglePlayService extends BaseService<ArchiveS
     @InjectModel(ArchiveServerReceiverSinglePlay.name) archivedServerReceiverSinglePlayModel: Model<ArchiveServerReceiverSinglePlay>,
   ) {
     super(serverReceiverSinglePlayModel, archivedServerReceiverSinglePlayModel);
+  }
+}
+
+
+@Injectable()
+export class ArchiveGroupPointsService extends BaseService<ArchiveGroupPoints, GroupPoints> {
+  constructor(
+    @InjectModel(GroupPoints.name) grouppointsModel: Model<GroupPoints>,
+    @InjectModel(ArchiveGroupPoints.name) archivedGrouppointsModel: Model<ArchiveGroupPoints>,
+  ) {
+    super(grouppointsModel, archivedGrouppointsModel);
+  }
+}
+
+@Injectable()
+export class ArchiveTeamMatchAbsenceService extends BaseService<ArchiveTeamMatchAbsence, TeamMatchAbsence> {
+  constructor(
+    @InjectModel(TeamMatchAbsence.name) TeamMatchAbsenceModel: Model<TeamMatchAbsence>,
+    @InjectModel(ArchiveTeamMatchAbsence.name) archivedTeamMatchAbsenceModel: Model<ArchiveTeamMatchAbsence>,
+  ) {
+    super(TeamMatchAbsenceModel, archivedTeamMatchAbsenceModel);
   }
 }
 

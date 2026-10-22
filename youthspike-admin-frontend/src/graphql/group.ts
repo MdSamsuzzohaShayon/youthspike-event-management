@@ -123,6 +123,27 @@ const GET_GROUP_POINTS = gql`
   }
 `;
 
+const GET_GROUPS_POINTS = gql`
+query GetGroupsPoints($eventId: String, $teamId: String) {
+  getGroupsPoints(eventId: $eventId, teamId: $teamId) {
+    code
+    success
+    message
+    data {
+      _id
+      createdAt
+      updatedAt
+      points
+      notes
+      __typename
+    }
+  }
+}
+`;
+
+
+
+
 const GET_EVENT_WITH_GROUP_RAW = `
   query GetEvent($eventId: String!) {
     getEvent(eventId: $eventId) {
@@ -228,5 +249,6 @@ export {
   UPDATED_ABSENCE_FRAGMENT,
   UPDATED_GROUP_POINTS_FRAGMENT,
   GET_GROUP_POINTS,
+  GET_GROUPS_POINTS,
 
 };

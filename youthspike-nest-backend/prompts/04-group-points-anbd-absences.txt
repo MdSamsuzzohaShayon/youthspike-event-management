@@ -263,8 +263,8 @@ Here is updateInput:
 Here is the query to get a group point:
 
 ```
-query GetGroupPoints($groupPointsId: String!){
-  getGroupPoints(groupPointsId:$groupPointsId){
+query GetGroupPoints($grouppointsId: String!){
+  getGroupPoints(grouppointsId:$grouppointsId){
     code
     success
     message
@@ -283,7 +283,7 @@ Params:
 
 ```
 {
-  "groupPointsId": ""
+  "grouppointsId": ""
 }
 
 ```

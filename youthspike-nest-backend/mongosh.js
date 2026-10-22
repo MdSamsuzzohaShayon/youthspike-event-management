@@ -1,116 +1,278 @@
+// Get all matches of this event 6a3c355236b002d89afc4a49
+// find all teams of each match (there are teamA and teamB fields in all matches)
+// Then check that both team of a match are in same group (there are groups array of string in each team)
+// If multiple group match, then which group is inside this event, otherwise if one group match that pick that
+// If they match then set match group to that event
+// Then print those match with _id and group, previous and current, so I can make sure what has changed
+
+
 // ============================================================
-// Script: Clean up duplicate group points for given teams
-// Includes: input validation, logging, referential cleanup
+// Assign match groups based on team groups and event groups
+// Compatible with mongosh
 // ============================================================
 
-const teamIds = [
-   ObjectId("68c478c91a3dc4cfb83a02ca"),
-   ObjectId('68b919d28551f0822955df26'),
-   ObjectId('68c31561f2df3df5b924eb57'),
-   ObjectId('68ba1e3c4778ee48c4aa5335')
-];
+// Configuration
+let EVENT_ID = ObjectId("6a3c355236b002d89afc4a49");
+let DRY_RUN = true; // Change to false after reviewing the logs
+
+let matchesCollection = db.getCollection("matches");
+let teamsCollection = db.getCollection("teams");
+let eventsCollection = db.getCollection("events");
+
+// Statistics
+let totalMatches = 0;
+let updatedMatches = 0;
+let unchangedMatches = 0;
+let skippedMatches = 0;
+let failedMatches = 0;
+let proposedUpdates = 0;
+
+function logInfo(message, data) {
+    print("[INFO] " + message);
+    if (data) {
+        printjson(data);
+    }
+}
+
+function logWarning(message, data) {
+    print("[WARN] " + message);
+    if (data) {
+        printjson(data);
+    }
+}
+
+function logError(message, data) {
+    print("[ERROR] " + message);
+    if (data) {
+        printjson(data);
+    }
+}
 
 try {
-   // ---------- Input Validation ----------
-   if (!Array.isArray(teamIds) || teamIds.length === 0) {
-      throw new Error("teamIds must be a non-empty array of ObjectId");
-   }
+    print("\n========== START ==========");
+    print("Event ID: " + EVENT_ID);
+    print("Dry run: " + DRY_RUN);
 
-   print(`[INFO]  Input received: ${teamIds.length} team id(s)`);
+    // 1. Find the event
+    let event = eventsCollection.findOne(
+        { _id: EVENT_ID },
+        { groups: 1 }
+    );
 
-   // Deduplicate team IDs (one is duplicated in the input)
-   const uniqueTeamIds = [...new Set(teamIds.map(id => id.toString()))]
-      .map(id => ObjectId(id));
-   print(`[INFO]  Unique team ids after dedup: ${uniqueTeamIds.length}`);
+    if (!event) {
+        throw new Error("Event not found: " + EVENT_ID);
+    }
 
-   // ---------- Step 1: Find Teams ----------
-   const teams = db.teams.find({ _id: { $in: uniqueTeamIds } }).toArray();
+    if (!Array.isArray(event.groups)) {
+        throw new Error("Event groups must be an array.");
+    }
 
-   if (!teams || teams.length === 0) {
-      throw new Error(
-         `No teams found for the given ids: ${JSON.stringify(uniqueTeamIds.map(String))}`
-      );
-   }
-   print(`[INFO]  Teams found: ${teams.length}`);
+    // Keep only valid, non-empty group strings.
+    let eventGroups = [];
 
-   // Warn about any teams that were not located
-   if (teams.length < uniqueTeamIds.length) {
-      const found = new Set(teams.map(t => t._id.toString()));
-      const missing = uniqueTeamIds.filter(id => !found.has(id.toString()));
-      print(`[WARN]  ${missing.length} team id(s) not found in db.teams:`);
-      missing.forEach(id => print(`        - ${id}`));
-   }
+    event.groups.forEach(function (group) {
+        if (
+            typeof group === "string" &&
+            group.length > 0 &&
+            eventGroups.indexOf(group) === -1
+        ) {
+            eventGroups.push(group);
+        }
+    });
 
-   // ---------- Step 2: Find Group Points ----------
-   const groupPoints = db.grouppoints
-      .find({ team: { $in: uniqueTeamIds } })
-      .sort({ _id: 1 })          // deterministic ordering
-      .toArray();
+    logInfo("Event loaded", {
+        eventId: event._id,
+        groups: eventGroups
+    });
 
-   print(`[INFO]  Group points found: ${groupPoints.length}`);
+    // 2. Find matches belonging to the event.
+    // Change "event" if your schema uses another field name.
+    let matches = matchesCollection.find({
+        event: EVENT_ID
+    }).toArray();
 
-   if (groupPoints.length === 0) {
-      print("[INFO]  No group points to process. Exiting.");
-      quit(0);
-   }
+    totalMatches = matches.length;
 
-   // ---------- Step 3: Identify Duplicates per Team ----------
-   // Group group points by team. Keep the first one (oldest by _id),
-   // mark the rest for deletion.
-   const byTeam = {};
-   groupPoints.forEach(gp => {
-      const key = gp.team.toString();
-      (byTeam[key] = byTeam[key] || []).push(gp);
-   });
+    logInfo("Matches found", {
+        totalMatches: totalMatches
+    });
 
-   const idsToDelete = [];
-   Object.keys(byTeam).forEach(teamKey => {
-      const list = byTeam[teamKey];
-      if (list.length > 1) {
-         print(`[WARN]  Team ${teamKey} has ${list.length} group points (expected 1). ` +
-               `Keeping ${list[0]._id}, deleting ${list.length - 1} duplicate(s).`);
-         list.slice(1).forEach(gp => idsToDelete.push(gp._id));
-      }
-   });
+    // 3. Process each match
+    matches.forEach(function (match) {
+        try {
+            if (!match.teamA || !match.teamB) {
+                skippedMatches++;
 
-   if (idsToDelete.length === 0) {
-      print("[INFO]  No duplicate group points detected. Nothing to delete.");
-      quit(0);
-   }
+                logWarning("Match is missing a team reference", {
+                    matchId: match._id,
+                    teamA: match.teamA || null,
+                    teamB: match.teamB || null
+                });
 
-   print(`[INFO]  Group points marked for deletion: ${idsToDelete.length}`);
+                return;
+            }
 
-   // ---------- Step 4: Delete Related Relationships First ----------
-   // IMPORTANT: Remove references in the relationships collection BEFORE
-   // deleting the group points to avoid dangling references.
-   const relField = "groupPoint"; // adjust if your schema uses a different field name
+            // 4. Find both teams
+            let teamA = teamsCollection.findOne({
+                _id: match.teamA
+            });
 
-   const relDelete = db.relationships.deleteMany({
-      [relField]: { $in: idsToDelete }
-   });
+            let teamB = teamsCollection.findOne({
+                _id: match.teamB
+            });
 
-   print(`[INFO]  Relationships deleted: ${relDelete.deletedCount}`);
+            if (!teamA || !teamB) {
+                skippedMatches++;
 
-   // ---------- Step 5: Delete the Duplicate Group Points ----------
-   const gpDelete = db.grouppoints.deleteMany({
-      _id: { $in: idsToDelete }
-   });
+                logWarning("Team not found", {
+                    matchId: match._id,
+                    teamAFound: !!teamA,
+                    teamBFound: !!teamB
+                });
 
-   print(`[INFO]  Group points deleted: ${gpDelete.deletedCount}`);
+                return;
+            }
 
-   if (gpDelete.deletedCount !== idsToDelete.length) {
-      print(`[WARN]  Mismatch: expected ${idsToDelete.length} deletions, got ${gpDelete.deletedCount}`);
-   }
+            if (
+                !Array.isArray(teamA.groups) ||
+                !Array.isArray(teamB.groups)
+            ) {
+                skippedMatches++;
 
-   // ---------- Final Summary ----------
-   print("[DONE]  Cleanup completed successfully.");
-   print(`        Teams processed           : ${teams.length}`);
-   print(`        Group points found        : ${groupPoints.length}`);
-   print(`        Group points deleted      : ${gpDelete.deletedCount}`);
-   print(`        Relationships deleted     : ${relDelete.deletedCount}`);
+                logWarning("Invalid team groups", {
+                    matchId: match._id,
+                    teamAId: teamA._id,
+                    teamBId: teamB._id
+                });
 
-} catch (err) {
-   print(`[ERROR] ${err.message}`);
-   if (err.stack) print(`[ERROR] Stack trace:\n${err.stack}`);
-   quit(1);
+                return;
+            }
+
+            // 5. Find groups shared by both teams AND the event.
+            let matchingGroups = [];
+
+            teamA.groups.forEach(function (group) {
+                if (
+                    typeof group === "string" &&
+                    teamB.groups.indexOf(group) !== -1 &&
+                    eventGroups.indexOf(group) !== -1 &&
+                    matchingGroups.indexOf(group) === -1
+                ) {
+                    matchingGroups.push(group);
+                }
+            });
+
+            if (matchingGroups.length === 0) {
+                skippedMatches++;
+
+                logWarning("No matching event group", {
+                    matchId: match._id,
+                    teamAId: teamA._id,
+                    teamBId: teamB._id,
+                    teamAGroups: teamA.groups,
+                    teamBGroups: teamB.groups
+                });
+
+                return;
+            }
+
+            // 6. Resolve the group.
+            // If multiple groups match, use the first matching group
+            // in the event's groups array.
+            let selectedGroup = null;
+
+            eventGroups.forEach(function (eventGroup) {
+                if (
+                    selectedGroup === null &&
+                    matchingGroups.indexOf(eventGroup) !== -1
+                ) {
+                    selectedGroup = eventGroup;
+                }
+            });
+
+            let previousGroup =
+                typeof match.group === "undefined" ? null : match.group;
+
+            if (previousGroup === selectedGroup) {
+                unchangedMatches++;
+
+                logInfo("Group already correct", {
+                    matchId: match._id,
+                    group: selectedGroup
+                });
+
+                return;
+            }
+
+            // 7. Log the change
+            proposedUpdates++;
+
+            logInfo(DRY_RUN ? "DRY RUN - Proposed change" : "Updating match", {
+                matchId: match._id,
+                previousGroup: previousGroup,
+                currentGroup: selectedGroup,
+                allMatchingGroups: matchingGroups
+            });
+
+            // 8. Update the match only when dry run is disabled
+            if (!DRY_RUN) {
+                let updateResult = matchesCollection.updateOne(
+                    {
+                        _id: match._id,
+                        group: match.group
+                    },
+                    {
+                        $set: {
+                            group: selectedGroup
+                        }
+                    }
+                );
+
+                if (updateResult.modifiedCount === 1) {
+                    updatedMatches++;
+
+                    logInfo("Match updated successfully", {
+                        matchId: match._id,
+                        previousGroup: previousGroup,
+                        currentGroup: selectedGroup
+                    });
+                } else {
+                    failedMatches++;
+
+                    logError("Match was not updated", {
+                        matchId: match._id,
+                        matchedCount: updateResult.matchedCount,
+                        modifiedCount: updateResult.modifiedCount
+                    });
+                }
+            }
+        } catch (matchError) {
+            failedMatches++;
+
+            logError("Error processing match", {
+                matchId: match._id,
+                message: matchError.message
+            });
+        }
+    });
+
+    // 9. Final summary
+    print("\n========== SUMMARY ==========");
+    printjson({
+        eventId: EVENT_ID,
+        dryRun: DRY_RUN,
+        totalMatches: totalMatches,
+        proposedUpdates: proposedUpdates,
+        updatedMatches: updatedMatches,
+        unchangedMatches: unchangedMatches,
+        skippedMatches: skippedMatches,
+        failedMatches: failedMatches
+    });
+
+    print("=========== END =============");
+
+} catch (error) {
+    logError("Script aborted", {
+        message: error.message
+    });
 }

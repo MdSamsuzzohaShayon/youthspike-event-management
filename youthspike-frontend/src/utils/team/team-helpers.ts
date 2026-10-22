@@ -163,31 +163,31 @@ export function compareTeams(
             scoreB.groupMatches - scoreB.groupWins - scoreB.groupLoses
         );
 
-        const groupPointsA =
+        const grouppointsA =
             scoreA.groupWins * MATCH_WIN_POINTS + groupDrawsA;
 
-        const groupPointsB =
+        const grouppointsB =
             scoreB.groupWins * MATCH_WIN_POINTS + groupDrawsB;
 
         // 1. Group points per match
-        const groupPointsPerMatchA =
+        const grouppointsPerMatchA =
         scoreAGroupMatchesAbsense > 0
-                ? groupPointsA / scoreAGroupMatchesAbsense
+                ? grouppointsA / scoreAGroupMatchesAbsense
                 : 0;
 
-        const groupPointsPerMatchB =
+        const grouppointsPerMatchB =
             scoreBGroupMatchesAbsense > 0
-                ? groupPointsB / scoreBGroupMatchesAbsense
+                ? grouppointsB / scoreBGroupMatchesAbsense
                 : 0;
 
                 
-        if (groupPointsPerMatchA !== groupPointsPerMatchB) {
-            return groupPointsPerMatchB - groupPointsPerMatchA;
+        if (grouppointsPerMatchA !== grouppointsPerMatchB) {
+            return grouppointsPerMatchB - grouppointsPerMatchA;
         }
 
         // 2. Group points
-        if (groupPointsA !== groupPointsB) {
-            return groupPointsB - groupPointsA;
+        if (grouppointsA !== grouppointsB) {
+            return grouppointsB - grouppointsA;
         }
 
         // 3. Group draws

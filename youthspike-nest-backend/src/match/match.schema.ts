@@ -108,19 +108,19 @@ export class Match extends AppDocument {
   @Prop({ required: false, default: false })
   extendedOvertime: boolean;
 
-  @Field((_type) => Int, {nullable: true})
+  @Field((_type) => Int, { nullable: true })
   @Prop({ type: Number, required: false })
   teamAP?: number; // Plus minus point for team A
 
-  @Field((_type) => Int, {nullable: true})
+  @Field((_type) => Int, { nullable: true })
   @Prop({ type: Number, required: false })
   teamBP?: number; // Plus minus point for team V
 
-  @Field((_type) => Int, {nullable: true})
+  @Field((_type) => Int, { nullable: true })
   @Prop({ type: Number, required: false })
   teamAFScore?: number; // forefeit score for team A
 
-  @Field((_type) => Int, {nullable: true})
+  @Field((_type) => Int, { nullable: true })
   @Prop({ type: Number, required: false })
   teamBFScore?: number; // forefeit score for team B
 
@@ -153,7 +153,7 @@ export class Match extends AppDocument {
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Team' })
   teamB?: string | Team;
 
-  
+
 
   @Field((_type) => Room, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'Room' })
@@ -178,12 +178,8 @@ export class Match extends AppDocument {
 
   @Field((_type) => [TeamMatchAbsence], { nullable: true })
   @Prop({ required: false, type: [{ type: mongoose.Schema.Types.ObjectId, ref: 'TeamMatchAbsence' }] })
-  teammatchabsences?: TeamMatchAbsence[] | string[]; 
+  teammatchabsences?: TeamMatchAbsence[] | string[];
 
-
-  @Field((_type) => GroupPoints, { nullable: true })
-  @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'GroupPoints'  })
-  groupPoints?: GroupPoints; 
 }
 
 @ObjectType()
@@ -197,7 +193,7 @@ export class TeamMatchAbsence extends AppDocument {
   })
   team: string | Team;
 
-  @Field((_type) => Match, {nullable: true})
+  @Field((_type) => Match, { nullable: true })
   @Prop({
     required: false,
     type: mongoose.Schema.Types.ObjectId,
@@ -221,16 +217,16 @@ export class TeamMatchAbsence extends AppDocument {
 export const MatchSchema = SchemaFactory.createForClass(Match);
 export const TeamMatchAbsenceSchema = SchemaFactory.createForClass(TeamMatchAbsence);
 
-MatchSchema.index({event: 1});
+MatchSchema.index({ event: 1 });
 // Compound index
 MatchSchema.index({ event: 1, division: 1, group: 1 });
 MatchSchema.index({ event: 1, name: 1 });
 // Create text index
-MatchSchema.index({ description: 1});
-MatchSchema.index({ location: 1});
+MatchSchema.index({ description: 1 });
+MatchSchema.index({ location: 1 });
 
-TeamMatchAbsenceSchema.index({ team: 1});
-TeamMatchAbsenceSchema.index({ match: 1});
+TeamMatchAbsenceSchema.index({ team: 1 });
+TeamMatchAbsenceSchema.index({ match: 1 });
 
 export const MatchSchemaFactory = async () => {
   return MatchSchema;

@@ -23,12 +23,28 @@ const httpLink = new HttpLink({
 const authLink = new SetContextLink((prevContext) => {
   const token = getCookie('token');
 
-  return {
-    headers: {
-      ...prevContext.headers,
-      authorization: token ? `Bearer ${token}` : '',
-    },
-  };
+  // `prevContext.headers` is a plain object, but it can also be a `Headers`
+  // instance - spreading a `Headers` instance would drop every header.
+  const headers: Record<string, string> = {};
+  const prevHeaders = prevContext.headers;
+  if (prevHeaders instanceof Headers) {
+    prevHeaders.forEach((value, key) => {
+      headers[key] = value;
+    });
+  } else if (prevHeaders) {
+    Object.assign(headers, prevHeaders);
+  }
+
+  if (token) {
+    headers.authorization = `Bearer ${token}`;
+  } else {
+    // Never send an empty `Authorization` header. The backend reads the token
+    // with `ExtractJwt.fromAuthHeaderAsBearerToken()`, an empty value does not
+    // match "Bearer <token>" and passport fails with "No auth token".
+    delete headers.authorization;
+  }
+
+  return { headers };
 });
 
 /* ----------------------------------
@@ -42,7 +58,7 @@ const errorLink = new ErrorLink(({ error, operation }) => {
         { message, locations, path }
       );
     });
-  } 
+  }
   else if (CombinedProtocolErrors.is(error)) {
     error.errors.forEach(({ message, extensions }) => {
       console.error(
@@ -50,7 +66,7 @@ const errorLink = new ErrorLink(({ error, operation }) => {
         { message, extensions }
       );
     });
-  } 
+  }
   else {
     console.error(
       `[Network error] (${operation.operationName})`,
