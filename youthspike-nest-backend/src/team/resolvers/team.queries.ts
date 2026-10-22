@@ -69,14 +69,14 @@ export class TeamQueries {
 
       const teams = await this.teamService.find(query, offset, limit);
       // Group points
-      const groupPoints = await this.groupService.pointsFind({team: {$in: teams.map(t => String(t._id))}}, offset, limit);
-      const groupPointsMap = new Map<string, number>();
-      for (const groupPoint of groupPoints) {
-        groupPointsMap.set(String(groupPoint.team), groupPoint.points);
+      const grouppoints = await this.groupService.pointsFind({team: {$in: teams.map(t => String(t._id))}}, offset, limit);
+      const grouppointsMap = new Map<string, number>();
+      for (const grouppoint of grouppoints) {
+        grouppointsMap.set(String(grouppoint.team), grouppoint.points);
         
       }
 
-      const teamList = await this.teamService.teamsWithAbsense(teams, groupPointsMap);
+      const teamList = await this.teamService.teamsWithAbsense(teams, grouppointsMap);
 
       return {
         code: HttpStatus.OK,
@@ -551,7 +551,7 @@ export class TeamQueries {
 
       // Group points
       const teamIds = teams.map(t => String(t._id));
-      const groupPoints = teamIds.length
+      const grouppoints = teamIds.length
     ? await this.groupService.pointsFind(
           {
               team: { $in: teamIds },
@@ -560,9 +560,9 @@ export class TeamQueries {
           limit,
       )
     : [];
-      const groupPointsMap = new Map<string, number>();
-      for (const groupPoint of groupPoints) {
-        groupPointsMap.set(String(groupPoint.team), groupPoint.points);
+      const grouppointsMap = new Map<string, number>();
+      for (const grouppoint of grouppoints) {
+        grouppointsMap.set(String(grouppoint.team), grouppoint.points);
         
       }
 
@@ -577,7 +577,7 @@ export class TeamQueries {
         team.events.forEach((t) => eventIdTeamsSet.add(String(t)));
       }
 
-      const teamList = await this.teamService.teamsWithAbsense(teams, groupPointsMap);
+      const teamList = await this.teamService.teamsWithAbsense(teams, grouppointsMap);
 
       const matchIds = Array.from(matchIdSet);
       const captainIds = Array.from(captainIdSet);

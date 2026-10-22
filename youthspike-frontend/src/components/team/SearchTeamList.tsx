@@ -119,10 +119,10 @@ function SearchTeamList({
             0,
             scoreB.groupMatches - scoreB.groupWins - scoreB.groupLoses
           );
-          const groupPointsA = scoreA.groupWins * MATCH_WIN_POINTS + groupDrawsA;
-          const groupPointsB = scoreB.groupWins * MATCH_WIN_POINTS + groupDrawsB;
-          aValue = scoreA.groupMatches > 0 ? groupPointsA / scoreA.groupMatches : 0;
-          bValue = scoreB.groupMatches > 0 ? groupPointsB / scoreB.groupMatches : 0;
+          const grouppointsA = scoreA.groupWins * MATCH_WIN_POINTS + groupDrawsA;
+          const grouppointsB = scoreB.groupWins * MATCH_WIN_POINTS + groupDrawsB;
+          aValue = scoreA.groupMatches > 0 ? grouppointsA / scoreA.groupMatches : 0;
+          bValue = scoreB.groupMatches > 0 ? grouppointsB / scoreB.groupMatches : 0;
           break;
         }
 

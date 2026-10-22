@@ -128,7 +128,7 @@ export enum ETeam {
 
 export enum ETeamStatType {
   Team = 'team',
-  GroupPointsPerMatch = 'groupPointsPerMatch',
+  GroupPointsPerMatch = 'grouppointsPerMatch',
   GroupRecord = 'groupRecord',
   OverallRecord = 'overallRecord',
   GroupMatches = 'groupMatches',

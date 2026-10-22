@@ -6,7 +6,7 @@ import { Group, GroupPoints } from './group.schema';
 
 @Injectable()
 export class GroupService {
-  constructor(@InjectModel(Group.name) private groupModal: Model<Group>, @InjectModel(GroupPoints.name) private groupPointsModal: Model<GroupPoints>,) {}
+  constructor(@InjectModel(Group.name) private groupModal: Model<Group>, @InjectModel(GroupPoints.name) private grouppointsModal: Model<GroupPoints>,) {}
 
   async findById(id: string) {
     if (!Types.ObjectId.isValid(id)) {
@@ -73,16 +73,16 @@ export class GroupService {
     if (!Types.ObjectId.isValid(id)) {
       return null;
     }
-    return this.groupPointsModal.findById(id);
+    return this.grouppointsModal.findById(id);
   }
 
   async pointsFindOne(query: any) {
-    return this.groupPointsModal.findOne(query).lean();
+    return this.grouppointsModal.findOne(query).lean();
   }
 
 
   async pointsFind(filter: QueryFilter<GroupPoints>, offset?: number, limit?: number) {
-    let query = this.groupPointsModal.find(filter).sort({ date: -1 }); // always sort for stable pagination
+    let query = this.grouppointsModal.find(filter).sort({ date: -1 }); // always sort for stable pagination
 
     if (typeof offset === 'number') {
       query = query.skip(offset);
@@ -96,29 +96,29 @@ export class GroupService {
   }
 
   async pointsCreate(payload: Partial<GroupPoints>): Promise<GroupPoints> {
-    const created = await this.groupPointsModal.create(payload);
+    const created = await this.grouppointsModal.create(payload);
     return created.toObject();
   }
 
   async pointsUpdateOne(filter: QueryFilter<Group>, updateData: UpdateQuery<Group>) {
-    const updateGroup = await this.groupPointsModal.updateOne(filter, updateData);
+    const updateGroup = await this.grouppointsModal.updateOne(filter, updateData);
     return updateGroup;
   }
 
   async pointsUpdateMany(filter: QueryFilter<Group>, updateData: UpdateQuery<Group>) {
-    const updateGroup = await this.groupPointsModal.updateMany(filter, updateData);
+    const updateGroup = await this.grouppointsModal.updateMany(filter, updateData);
     return updateGroup;
   }
 
   async pointsInsertMany(groups: Group[]) {
-    return this.groupPointsModal.insertMany(groups);
+    return this.grouppointsModal.insertMany(groups);
   }
 
   async pointsDeleteMany(filter: QueryFilter<Group>) {
-    return this.groupPointsModal.deleteMany(filter);
+    return this.grouppointsModal.deleteMany(filter);
   }
 
   async pointsDeleteOne(filter: QueryFilter<Group>) {
-    return this.groupPointsModal.deleteOne(filter);
+    return this.grouppointsModal.deleteOne(filter);
   }
 }

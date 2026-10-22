@@ -30,5 +30,5 @@ mongorestore   --drop   --numInsertionWorkersPerCollection 2   --db spikeball-la
 
 
 # Start 
-sudo systemctl start mongod && sudo systemctl start redis-server && cursor ../youthspike-admin-frontend/ && cursor ../youthspike-frontend/ && ./redis_cluster.sh && npm run dev
+sudo systemctl start mongod && sudo systemctl start redis-server && code ../youthspike-admin-frontend/ && code ../youthspike-frontend/ && ./redis_cluster.sh && npm run dev
 

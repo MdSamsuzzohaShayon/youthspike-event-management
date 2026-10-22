@@ -147,7 +147,7 @@ export class Event extends AppDocument {
 
   @Field((_type) => GroupPoints, { nullable: true })
   @Prop({ required: false, type: mongoose.Schema.Types.ObjectId, ref: 'GroupPoints'  })
-  groupPoints?: GroupPoints; 
+  grouppoints?: GroupPoints; 
 
 
   /**

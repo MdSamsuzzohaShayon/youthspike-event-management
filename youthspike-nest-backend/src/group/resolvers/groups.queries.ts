@@ -1,23 +1,18 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { GroupService } from '../group.service';
-import { TeamService } from 'src/team/team.service';
-import { EventService } from 'src/event/event.service';
 import { QueryFilter } from 'mongoose';
 import { Group, GroupPoints } from '../group.schema';
 import { AppResponse } from 'src/shared/response';
+import { CustomGroupPoints, GetGroupPointsResponse, GetGroupsPointsResponse } from './groups.response';
 
 @Injectable()
 export class GroupQueries {
   constructor(
-    private configService: ConfigService,
-    private eventService: EventService,
-    private teamService: TeamService,
     private groupService: GroupService,
   ) { }
 
 
-  async getGroups(context: any, eventId?: string) {
+  async getGroups(_context: any, eventId?: string) {
     try {
       const queryParams: QueryFilter<Group> = {};
       if (eventId) queryParams.event = eventId;
@@ -47,31 +42,34 @@ export class GroupQueries {
   }
 
 
-  async getGroupsPoints(eventId?: string, teamId?: string) {
+  async getGroupsPoints(eventId?: string, teamId?: string): Promise<GetGroupsPointsResponse> {
     try {
       const filter: QueryFilter<GroupPoints> = {};
       if (eventId) filter.event = eventId;
       if (teamId) filter.team = teamId;
 
-      const list = await this.groupService.pointsFind(filter);
+      // Get last 10 items
+      const grouppoints = await this.groupService.pointsFind(filter, 0, 10);
 
       return {
         code: HttpStatus.OK,
         success: true,
-        data: list,
+        message: "Getting all group points!",
+        data: grouppoints as CustomGroupPoints[],
       };
     } catch (err) {
       return AppResponse.handleError(err);
     }
   }
 
-  async getGroupPoints(teamId: string) {
+  async getGroupPoints(teamId: string): Promise<GetGroupPointsResponse> {
     try {
       const found = await this.groupService.pointsFindOne({team: teamId});
       return {
         code: found ? HttpStatus.OK : HttpStatus.NOT_FOUND,
         success: !!found,
-        data: found ?? null,
+        
+        data: found as CustomGroupPoints,
       };
     } catch (err) {
       return AppResponse.handleError(err);

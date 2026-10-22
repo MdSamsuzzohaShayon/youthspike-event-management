@@ -2,9 +2,9 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { AppDocument } from 'src/shared/schema/document.schema';
-import { Group } from 'src/group/group.schema';
+import { Group, GroupPoints } from 'src/group/group.schema';
 import { LDO } from 'src/ldo/ldo.schema';
-import { Match } from 'src/match/match.schema';
+import { Match, TeamMatchAbsence } from 'src/match/match.schema';
 import { Net } from 'src/net/net.schema';
 import { Player } from 'src/player/player.schema';
 import { PlayerRanking, PlayerRankingItem } from 'src/player-ranking/player-ranking.schema';
@@ -264,6 +264,40 @@ export class ArchiveServerReceiverSinglePlay extends ServerReceiverSinglePlay {
 }
 export const ArchiveServerReceiverSinglePlaySchema = SchemaFactory.createForClass(ArchiveServerReceiverSinglePlay);
 export const ArchiveServerReceiverSinglePlaySchemaFactory = async () => ArchiveServerReceiverSinglePlaySchema;
+
+
+/* -------------------- GroupPoints Archive -------------------- */
+@ObjectType()
+@Schema({ timestamps: true })
+export class ArchiveGroupPoints extends GroupPoints {
+  @Field(() => Date)
+  @Prop({ default: () => new Date() })
+  archivedAt: Date;
+
+
+  @Field(() => String)
+  @Prop({ required: true })
+  originalId: string; // Store original document _id
+}
+export const ArchiveGroupPointsSchema = SchemaFactory.createForClass(ArchiveGroupPoints);
+export const ArchiveGroupPointsSchemaFactory = async () => ArchiveGroupPointsSchema;
+
+
+/* -------------------- GroupPoints Archive -------------------- */
+@ObjectType()
+@Schema({ timestamps: true })
+export class ArchiveTeamMatchAbsence extends TeamMatchAbsence {
+  @Field(() => Date)
+  @Prop({ default: () => new Date() })
+  archivedAt: Date;
+
+
+  @Field(() => String)
+  @Prop({ required: true })
+  originalId: string; // Store original document _id
+}
+export const ArchiveTeamMatchAbsenceSchema = SchemaFactory.createForClass(ArchiveTeamMatchAbsence);
+export const ArchiveTeamMatchAbsenceSchemaFactory = async () => ArchiveTeamMatchAbsenceSchema;
 
 /* -------------------- Sponsor Archive -------------------- */
 @ObjectType()

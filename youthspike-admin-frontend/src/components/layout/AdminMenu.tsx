@@ -75,7 +75,8 @@ const AdminMenu = () => {
   };
 
 
-  if (!info || !token) return null;
+  if (!info) return null;
+  // if (!info || !token) return null;
 
   return (
     <div className="container mx-auto px-4">
@@ -219,7 +220,7 @@ const AdminMenu = () => {
           </ul>
 
           {/* Logout Button */}
-          <div className="mt-auto pt-4">
+          <div className="mt-0 md:mt-auto pt-0 md:pt-4">
             <button onClick={handleLogout} className="btn-danger mt-10 py-3 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-md text-center w-full transition-all">
               Logout
             </button>

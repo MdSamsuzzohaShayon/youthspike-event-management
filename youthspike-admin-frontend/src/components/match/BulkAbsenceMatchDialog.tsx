@@ -106,7 +106,8 @@ function BulkAbsenceMatchDialog({
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-700">
           <h3 className="text-lg font-semibold">
-            Manage Team Absences &amp; Points
+            {/* Manage Team Absences &amp; Points */}
+            {selectedTeam?.name}
           </h3>
           <button
             type="button"

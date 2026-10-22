@@ -56,21 +56,27 @@ export interface IGetGroupsRespone extends IResponse {
 
 // Group points
 
-export interface IGroupPoints{
-  _id: string;
+export interface IGroupPoints extends IDocument{
   team: string | ITeam;
   event: string | Event;
   points: number;
   notes?: string;
 }
 
-export type TGroupPointsAdd = Omit<IGroupPoints, '_id'>;
+export type TGroupPointsAdd = Omit<IGroupPoints, '_id' | 'createdAt' | 'updatedAt'>;
 
 export interface IGroupPointsResponse extends IResponse{
   data?: IGroupPoints;
 }
 
+export interface IGroupsPointsResponse extends IResponse{
+  data?: IGroupPoints[];
+}
+
 
 export type IGetGroupPointsQuery = {
   getGroupPoints: IGroupPointsResponse;
+};
+export type IGetGroupsPointsQuery = {
+  getGroupsPoints: IGroupsPointsResponse;
 };

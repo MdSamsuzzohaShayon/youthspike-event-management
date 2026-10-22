@@ -17,22 +17,20 @@ import { PlayerStatsService } from 'src/player-stats/player-stats.service';
 import { AppResponse } from 'src/shared/response';
 import { UserRole } from 'src/user/user.schema';
 import { tokenToUser } from 'src/utils/helper';
-import { CreateOrUpdateEventResponse, GetArchiveEventsResponse, GetEventResponse } from './event.response';
+import { CreateOrUpdateEventResponse, GetEventResponse } from './event.response';
 import { CreateEventBody, UpdateDivision, UpdateEventBody, UpdateEventInput } from './event.input';
 import { IEventMutations } from '../resolvers/event.types';
 import { Player } from 'src/player/player.schema';
 import { PlayerRankingService } from 'src/player-ranking/player-ranking.service';
-import { ArchiveBadgeService, ArchiveEmailcontentService, ArchiveEmailsenderService, ArchiveEventService, ArchiveGroupService, ArchiveMatchService, ArchiveNetService, ArchivePlayerRankingItemService, ArchivePlayerRankingService, ArchivePlayerStatsService, ArchiveRoomService, ArchiveRoundService, ArchiveServerReceiverOnNetService, ArchiveServerReceiverSinglePlayService, ArchiveSponsorService, ArchiveTeamService, ArchiveTemplateService } from 'src/archive/archive.service';
+import { ArchiveBadgeService, ArchiveEmailcontentService, ArchiveEmailsenderService, ArchiveEventService, ArchiveGroupService, ArchiveMatchService, ArchiveNetService, ArchivePlayerRankingItemService, ArchivePlayerRankingService, ArchivePlayerStatsService, ArchiveRoomService, ArchiveRoundService, ArchiveServerReceiverOnNetService, ArchiveServerReceiverSinglePlayService, ArchiveSponsorService, ArchiveTeamMatchAbsenceService, ArchiveTeamService, ArchiveTemplateService } from 'src/archive/archive.service';
 import { TemplateService } from 'src/template/template.service';
 import { RoomService } from 'src/room/room.service';
 import { ServerReceiverOnNetService } from 'src/server-receiver-on-net/server-receiver-on-net.service';
-import { ArchiveEvent, ArchiveGroup, ArchiveMatch, ArchiveNet, ArchivePlayerStats, ArchiveRoom, ArchiveRound, ArchiveServerReceiverOnNet, ArchiveServerReceiverSinglePlay, ArchiveSponsor, ArchiveTeam, ArchiveTemplate } from 'src/archive/archive.schema';
+import { ArchiveEvent, ArchiveMatch } from 'src/archive/archive.schema';
 import { BadgeService } from 'src/badge/badge.service';
 import { Badge } from 'src/badge/badge.schema';
 import EventHelpers from './event.helpers';
-import { Emailsender } from 'src/emailsender/emailsernder.schema';
 import { EmailsenderService } from 'src/emailsender/emailsender.service';
-import { CustomEmailcontent } from 'src/emailsender/emailsender.response';
 
 
 @Injectable()
@@ -76,6 +74,8 @@ export class EventMutations implements IEventMutations {
     private archiveBadgeService: ArchiveBadgeService,
     private archiveEmailsenderService: ArchiveEmailsenderService,
     private archiveEmailcontentService: ArchiveEmailcontentService,
+    private archiveTeamMatchAbsenceService: ArchiveTeamMatchAbsenceService,
+
     private eventHelpers: EventHelpers,
   ) { }
 
@@ -581,17 +581,16 @@ export class EventMutations implements IEventMutations {
     }
   }
 
-  async deleteEvent(context: any, eventId: string): Promise<GetEventResponse> {
+  async deleteEvent(_context: any, eventId: string): Promise<GetEventResponse> {
     try {
       const promisesToDelete: Promise<any>[] = [];
       const promisesToArchive: Promise<any>[] = [];
       const promisesToUpdate: Promise<any>[] = [];
-      const teamSet = new Set<string>();
       const eventExist = await this.eventService.findById(eventId);
       if (!eventExist) return AppResponse.notFound("Event");
 
       // Use archive instead of permanently delete
-      // team, match, group, sponsors, player stats, templates -> related fileds from both side
+      // team, match, group, sponsors, player stats, templates, nets,, emailsenders, badges, grouppoints -> related fileds from both side
       const [
         teams,
         matches,
@@ -601,7 +600,8 @@ export class EventMutations implements IEventMutations {
         multiplayers_weights,
         nets,
         emailsenders,
-        badges
+        badges,
+        grouppoints
       ] = await Promise.all([
         this.teamService.find({ events: eventId }),
         this.matchService.find({ event: eventId }),
@@ -612,9 +612,12 @@ export class EventMutations implements IEventMutations {
         this.netService.find({ event: eventId }),
         this.emailsendersService.find({ event: eventId }),
         this.badgeService.find({ event: eventId }),
+        this.groupService.pointsFind({ event: eventId }),
+
       ]);
 
 
+      const teamIdSet = new Set<string>();
       if (teams.length > 0) {
         // Do not delete any team, a team can be included in another event
         /*
@@ -622,12 +625,14 @@ export class EventMutations implements IEventMutations {
         promisesToDelete.push(this.teamService.deleteMany({ events: eventId }));
         */
         for (const team of teams) {
-          teamSet.add(team._id)
+          teamIdSet.add(String(team._id))
         }
       }
 
 
+      const matchIdSet = new Set<string>();
       if (matches.length > 0) {
+        matches.forEach((match) => matchIdSet.add(String(match._id)));
         promisesToArchive.push(this.archiveMatchService.insertMany(matches))
         promisesToDelete.push(this.matchService.deleteMany({ event: eventId }));
       }
@@ -661,8 +666,19 @@ export class EventMutations implements IEventMutations {
       let emailsenderSet = new Set<string>();
       if (emailsenders.length > 0) {
         emailsenderSet = new Set(emailsenders.map((es) => String(es._id)));
-        // promisesToArchive.push(this.archiveEmailsendersService.insertMany(emailsenders))
-        // promisesToDelete.push(this.matchService.deleteMany({ event: eventId }));
+        promisesToArchive.push(this.archiveEmailsenderService.insertMany(emailsenders))
+        promisesToDelete.push(this.emailsendersService.deleteMany({ event: eventId }));
+      }
+
+      if (grouppoints.length > 0) {
+        promisesToArchive.push(this.archiveGroupService.insertMany(templates))
+        promisesToDelete.push(this.groupService.pointsDeleteMany({ event: eventId }));
+      }
+
+      // net, player ranking, room, round, server receiver on net -> non related
+      if (nets.length > 0) {
+        promisesToArchive.push(this.archiveNetService.insertMany(nets));
+        promisesToDelete.push(this.netService.deleteMany({ event: eventId }));
       }
 
 
@@ -674,43 +690,17 @@ export class EventMutations implements IEventMutations {
         $addToSet: { archivedEvents: eventId }
       }));
 
-      // net, player ranking, room, round, server receiver on net -> non related
-      if (nets.length > 0) {
-        promisesToArchive.push(this.archiveNetService.insertMany(nets));
-        promisesToDelete.push(this.netService.deleteMany({ event: eventId }));
-      }
 
 
-      const playerRankings = await this.playerRankingService.find({ event: eventId });
-      if (playerRankings.length > 0) {
 
-        // Do not delete player ranking of a team, just delete player ranking of matches
-        /*
-        promisesToArchive.push(this.archivePlayerRankingService.createMany(playerRankings));
-        promisesToDelete.push(this.playerRankingService.deleteMany({ event: eventId }));
-
-        const rankingIds = playerRankings.map((pr) => String(pr._id));
-
-        const playerRankingItems = await this.playerRankingService.findItems({ playerRanking: { $in: rankingIds }, });
-        if (playerRankingItems.length > 0) {
-          promisesToArchive.push(this.archivePlayerRankingItemService.createMany(playerRankingItems));
-
-          promisesToDelete.push(
-            this.playerRankingService.deleteManyItem({
-              _id: { $in: playerRankingItems.map((pri) => String(pri._id)) },
-            })
-          );
-        }
-        */
-      }
-
-
-      const [rooms, rounds, emailcontents, serverReceiverOnNets, serverReceiverOnNetPlays] = await Promise.all([
+      const [rooms, rounds, emailcontents, serverReceiverOnNets, serverReceiverOnNetPlays, teammatchabsences, playerRankingsInMatch] = await Promise.all([
         this.roomService.find({ match: { $in: [...new Set(matches.map((m) => String(m._id)))] } }),
         this.roundService.find({ match: { $in: [...new Set(matches.map((m) => String(m._id)))] } }),
         this.emailsendersService.contentFind({ emailsender: { $in: [...emailsenderSet] } }),
         this.serverReceiverOnNetService.find({ event: eventId }),
         this.serverReceiverOnNetService.findSinglePlay({ event: eventId }),
+        this.matchService.teamMatchAbsenseFind({ team: { $in: [...teamIdSet] } }),
+        this.playerRankingService.find({ match: { $in: [...matchIdSet] } })
       ]);
 
       if (emailcontents.length > 0) {
@@ -737,13 +727,35 @@ export class EventMutations implements IEventMutations {
 
       if (serverReceiverOnNetPlays.length > 0) {
         promisesToArchive.push(this.archiveServerReceiverSinglePlayService.insertMany(serverReceiverOnNetPlays));
-        promisesToDelete.push(this.archiveServerReceiverSinglePlayService.deleteMany({ event: eventId }))
+        promisesToDelete.push(this.serverReceiverOnNetService.deleteManySinglePlay({ event: eventId }))
+      }
+
+      if (teammatchabsences.length > 0) {
+        promisesToArchive.push(this.archiveTeamMatchAbsenceService.insertMany(teammatchabsences));
+        promisesToArchive.push(this.matchService.teamMatchAbsenseDeleteMany({ team: { $in: [...teamIdSet] } }));
       }
 
 
-      // Remove email content from team (teamSet)
+      if (playerRankingsInMatch.length > 0) {
 
-      // Remove badge from team and player
+        // Do not delete player ranking of a team, just delete player ranking of matches
+        promisesToArchive.push(this.archivePlayerRankingService.insertMany(playerRankingsInMatch));
+        promisesToDelete.push(this.playerRankingService.deleteMany({ match: { $in: [...matchIdSet] } }));
+
+        const rankingIds = playerRankingsInMatch.map((pr) => String(pr._id));
+
+        const playerRankingItems = await this.playerRankingService.findItems({ playerRanking: { $in: rankingIds }, });
+        if (playerRankingItems.length > 0) {
+          promisesToArchive.push(this.archivePlayerRankingItemService.insertMany(playerRankingItems));
+
+          promisesToDelete.push(
+            this.playerRankingService.deleteManyItem({
+              _id: { $in: playerRankingItems.map((pri) => String(pri._id)) },
+            })
+          );
+        }
+      }
+
 
 
 
@@ -763,7 +775,7 @@ export class EventMutations implements IEventMutations {
       return {
         code: HttpStatus.NO_CONTENT,
         success: true,
-        message: 'Delete the LDO successfully!',
+        message: 'Delete the Event successfully!',
         data: null,
       };
     } catch (err) {
@@ -772,7 +784,7 @@ export class EventMutations implements IEventMutations {
   }
 
   async restoreEvent(
-    context: any,
+    _context: any,
     eventId: string
   ): Promise<GetEventResponse> {
     try {
