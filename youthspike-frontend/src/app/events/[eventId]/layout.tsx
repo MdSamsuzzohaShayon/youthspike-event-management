@@ -1,6 +1,4 @@
-import TabsNav from "@/components/event/TabsNav";
-import Link from "next/link";
-import { ReactNode, use } from "react";
+import { ReactNode } from "react";
 
 export default function EventLayout({
   children,

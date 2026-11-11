@@ -16,20 +16,25 @@ import { Event } from '../event.schema';
 import {
   GetArchiveEventsResponse,
   GetEventResponse,
-  GetEventsResponse, GetEventWithGroupsAndUnassignedPlayersResponse, GetPlayerEventSettingResponse
+  CustomEvent,
+  GetEventsResponse, GetEventsSearchResponse, GetEventWithGroupsAndUnassignedPlayersResponse, GetPlayerEventSettingResponse
 } from './event.response';
 import { IEventQueries } from '../resolvers/event.types';
-import { Net } from 'src/net/net.schema';
-import { CustomPlayerStats } from 'src/player-stats/resolvers/player-stats.response';
-import { CustomTeam } from 'src/team/resolvers/team.response';
+import { CustomNet, CustomRound, CustomTeam } from 'src/team/resolvers/team.response';
 import { Group } from 'src/group/group.schema';
 import { Player } from 'src/player/player.schema';
-import { CustomGroup } from 'src/match/resolvers/match.response';
+import { CustomGroup, CustomMatch } from 'src/match/resolvers/match.response';
 import { CustomPlayer } from 'src/player/resolvers/player.response';
 import { ArchiveEventService, ArchiveGroupService, ArchiveMatchService, ArchiveSponsorService, ArchiveTeamService, ArchiveTemplateService } from 'src/archive/archive.service';
 import { ArchiveEvent } from 'src/archive/archive.schema';
 import { BadgeService } from 'src/badge/badge.service';
 import { CustomBadge } from 'src/badge/badge.response';
+import { EventSearchInput } from './event.input';
+import { Match } from 'src/match/match.schema';
+import { EGroupType } from 'src/player/resolvers/player.input';
+import { MatchService } from 'src/match/match.service';
+import { RoundService } from 'src/round/round.service';
+import { NetService } from 'src/net/net.service';
 
 @Injectable()
 export class EventQueries implements IEventQueries {
@@ -43,7 +48,10 @@ export class EventQueries implements IEventQueries {
     private userService: UserService,
     private groupService: GroupService,
     private sponsorService: SponsorService,
+    private roundService: RoundService,
+    private netService: NetService,
     private badgeService: BadgeService,
+    private matchService: MatchService,
 
     private archiveEventService: ArchiveEventService,
     private archiveTeamService: ArchiveTeamService,
@@ -246,7 +254,7 @@ export class EventQueries implements IEventQueries {
       const [groups, players, badges] = await Promise.all([
         this.groupService.find(groupQuery),
         this.playerService.find(playerQuery),
-        this.badgeService.find({event: {$in: resolvedEventIds}})
+        this.badgeService.find({ event: { $in: resolvedEventIds } })
       ]);
 
       return {
@@ -381,5 +389,75 @@ export class EventQueries implements IEventQueries {
     } catch (err) {
       return AppResponse.handleError(err);
     }
+  }
+
+  async searchEvents(filter: EventSearchInput): Promise<GetEventsSearchResponse> {
+    try {
+
+      // Get ldo
+      // Get default event as list
+      const events = await this.eventService.find({ defaulted: true });
+      // If there are no default event, then get all events from ldo
+      if (events.length === 0) {
+        return AppResponse.notFound("Event");
+      }
+      const eventIds = events.map((event) => event._id);
+      // Filter matches by
+      // Start data, end date, conference type, and match ids
+      const matchFilter: QueryFilter<Match> = { event: { $in: eventIds } };
+      if (filter?.match?.length > 0) {
+        matchFilter._id = { $in: [...filter.match] };
+      }
+      if (filter?.ce) {
+        if (filter.ce === EGroupType.CONFERENCE) {
+          matchFilter.group = { $exists: true, $ne: null };
+        } else if (filter.ce === EGroupType.NON_CONFERENCE) {
+          matchFilter.group = { $exists: false };
+        }
+      }
+
+      if (filter?.startDate || filter?.endDate) {
+        matchFilter.date = {
+          ...(filter.startDate && {
+            $gte: new Date(filter.startDate).toISOString(),
+          }),
+          ...(filter.endDate && {
+            $lte: new Date(filter.endDate).toISOString(),
+          }),
+        };
+      }
+
+      if(filter?.division){
+        matchFilter.division = filter.division;
+      }
+
+      if(filter?.specificGroup){
+        matchFilter.group = filter.specificGroup;
+      }
+
+      const OFFSET = 0, LIMIT = 100000;
+      const matches = await this.matchService.find(matchFilter, OFFSET, LIMIT);
+      const matchIds =[...new Set(matches.filter((match) => !!match._id).map((match) => String(match._id)))];
+      const [rounds, nets] = await Promise.all([
+        this.roundService.find({match: { $in: matchIds }}, 0, 100000),
+        this.netService.find({match: { $in: matchIds }}, 0, 100000),
+      ]);
+
+      return {
+        code: 202,
+        success: true,
+        message: "List of all filtered events",
+        data: {
+            events: events as CustomEvent[],
+            matches: matches as CustomMatch[],
+            rounds: rounds as CustomRound[],
+            nets: nets as CustomNet[] ,
+        }
+      }
+    } catch (err) {
+      return AppResponse.handleError(err);
+    }
+
+
   }
 }

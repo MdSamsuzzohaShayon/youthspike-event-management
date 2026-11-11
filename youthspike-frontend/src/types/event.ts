@@ -2,14 +2,14 @@
 /* eslint-disable import/no-cycle */
 import React from "react";
 import { IMessage, IResponse } from "./elements";
-import { IDefaultMatch, IMatch, IMatchExpRel, IMatchRelatives } from "./match";
+import { IDefaultMatch, IFilterState, IMatch, IMatchExpRel, IMatchRelatives } from "./match";
 import { ILDO } from "./ldo";
 import { IGroup, IGroupRelatives } from "./group";
 import { ITeam } from "./team";
 import { IPlayer } from "./player";
 import { INetRelatives } from "./net";
 import { IRoundRelatives } from "./round";
-import { IPlayerStats } from "./playerStats";
+import { EGroupType, EStatsFilter, IFilter, IPlayerStats } from "./playerStats";
 import { QueryRef } from "@apollo/client/react";
 
 export interface IDefaultEventMatch extends IDefaultMatch {
@@ -23,7 +23,7 @@ export interface IEventSponsor {
   logo: string;
 }
 
-interface IEventCommon{
+interface IEventCommon {
   _id: string;
   name: string;
   divisions: string;
@@ -46,7 +46,7 @@ interface IEventCommon{
   defaulted?: boolean;
 }
 
-export interface IEvent extends IEventCommon{
+export interface IEvent extends IEventCommon {
   sponsors: IEventSponsor[];
   ldo?: ILDO;
   groups: IGroup[];
@@ -54,7 +54,16 @@ export interface IEvent extends IEventCommon{
   matches: IMatchRelatives[]
 }
 
-export interface IEventRelatives extends IEventCommon{
+export interface IEventSearchData extends IResponse {
+  data: {
+    events: IEvent[];
+    matches: IMatch[];
+    nets: INetRelatives[];
+    rounds: IRoundRelatives[];
+  }
+}
+
+export interface IEventRelatives extends IEventCommon {
   sponsors: string[];
   ldo?: string;
   groups: string[];
@@ -83,7 +92,7 @@ export interface IEventAddProps {
   prevEvent?: IEvent;
 }
 
-export interface IAllStats{
+export interface IAllStats {
   playerId: string;
   stats: IPlayerStats[]
 }
@@ -102,7 +111,7 @@ export interface IEventDetailData {
 }
 
 
-export interface IGetEventsResponse extends IResponse{
+export interface IGetEventsResponse extends IResponse {
   data: IEvent[];
 }
 
@@ -113,8 +122,8 @@ export interface EventFilterState {
   selectedGroup: string | null;
 }
 
-export interface IEventFilter{
-  item:  EEventItem,
+export interface IEventFilter {
+  item: EEventItem,
   search?: string;
   division?: string;
   group?: string;
@@ -135,4 +144,32 @@ export enum EEventItem {
   PLAYER = "PLAYER",
   MATCH = "MATCH",
   TEAM = "TEAM",
+}
+
+export interface IEventSearchFilter extends Omit<IFilter, 'vsPlayer' | 'club' | 'teammate' | 'conference' | 'game'>{
+ division?: string;
+ ce?: EGroupType;
+ specificGroup?: string;
+}
+
+export interface IEventSearchVariables {
+  filter?: IEventSearchFilter;
+}
+
+
+// The values we read from useFilterState's `filter`
+export interface IStatsFilterSelection {
+  startDate?: string;
+  endDate?: string;
+  ce?: EGroupType;
+  matches?: string[];
+}
+
+
+export interface IBuildEventSearchFilterParams {
+  eventId?: string;
+  /** Server-applied filters: division, specificGroup, search. */
+  appliedFilter: Omit<IFilterState, "status">;
+  /** Stats filter panel state (from useFilterState), keyed by EStatsFilter shortcuts. */
+  statsFilter: Partial<Record<EStatsFilter, string | string[]>>;
 }

@@ -1,14 +1,11 @@
 import {
-  EPlayerStatType,
   EStatsFilter,
   IEvent,
-  IFilter,
   IMatch,
   INetRelatives,
   IOption,
   IPlayer,
   IRoundRelatives,
-  IStatsFilterProps,
   ITeam,
 } from "@/types";
 import {
@@ -23,7 +20,7 @@ import {
 import { useMemo } from "react";
 
 interface IStatsFilterDataProps {
-  player: IPlayer;
+  player: IPlayer | null | undefined; // Not necessary in multiple player
   players: IPlayer[];
   filter: Partial<Record<EStatsFilter, string | string[]>>;
   matches: IMatch[];
@@ -138,9 +135,10 @@ function useStatsFilterData({
       const teamA = teamMap.get(String(match.teamA));
       const teamB = teamMap.get(String(match.teamB));
 
-      if (teamA && !(player.teams as string[])?.includes(String(teamA._id)))
+      // check
+      if (teamA && player && !(player.teams as string[])?.includes(String(teamA._id)))
         clubSet.set(String(teamA._id), teamA);
-      if (teamB && !(player.teams as string[])?.includes(String(teamB._id)))
+      if (teamB && player && !(player.teams as string[])?.includes(String(teamB._id)))
         clubSet.set(String(teamB._id), teamB);
     }
 
@@ -149,11 +147,11 @@ function useStatsFilterData({
       value: c._id,
       text: c.name,
     }));
-  }, [filter, availableMatches, matchMap, teamMap, player.teams]);
+  }, [filter, availableMatches, matchMap, teamMap, player]);
 
   // 4) Teammates — players who share the player's primary team (no mutation)
   const teammateOptions = useMemo(() => {
-    const primaryTeamId = player.teams?.[0];
+    const primaryTeamId = player?.teams?.[0];
     if (!primaryTeamId) return [];
 
     const teammates = players.filter(
@@ -166,7 +164,7 @@ function useStatsFilterData({
       value: p._id,
       text: `${p.firstName} ${p.lastName}`,
     }));
-  }, [player._id, player.teams, players]);
+  }, [player, players]);
 
   // 5) Vs players (opponents) — optimized: dedupe with Set, avoid nested heavy loops
   const vsPlayerOptions = useMemo(() => {
@@ -193,7 +191,8 @@ function useStatsFilterData({
     for (const netId of Array.from(relevantNetIds)) {
       const net = netMap.get(String(netId));
       if (!net) continue;
-      if (!isPlayerParticipatingInNet(net, player._id)) continue;
+      // Check
+      if (player && !isPlayerParticipatingInNet(net, player._id)) continue;
 
       // collect all participants from the net and exclude the current player
       const participantIds = [
@@ -204,7 +203,7 @@ function useStatsFilterData({
       ].filter(Boolean) as string[];
 
       for (const pid of participantIds) {
-        if (pid === player._id) continue;
+        if (player && pid === player._id) continue;
         const p = playerMap.get(String(pid));
         if (p) opponentSet.set(String(p._id), p);
       }
@@ -215,7 +214,7 @@ function useStatsFilterData({
       value: p._id,
       text: `${p.firstName} ${p.lastName}`,
     }));
-  }, [filter, nets, netMap, netMapByMatch, player._id, playerMap]);
+  }, [filter, nets, netMap, netMapByMatch, player, playerMap]);
 
   // 6) Game options — nets grouped by rounds under selected matches where the player participated
   const gameOptions = useMemo(() => {
@@ -228,7 +227,8 @@ function useStatsFilterData({
       for (const round of roundsForMatch) {
         const netsForRound = netMapByRound.get(round._id) || [];
         for (const net of netsForRound) {
-          if (!isPlayerParticipatingInNet(net, player._id)) continue;
+          // Check
+          if (player && !isPlayerParticipatingInNet(net, player._id)) continue;
           const playerA1 = playerMap.get(String(net.teamAPlayerA));
           const playerA2 = playerMap.get(String(net.teamAPlayerB));
           const playerB1 = playerMap.get(String(net.teamBPlayerA));
@@ -248,7 +248,7 @@ function useStatsFilterData({
     }
 
     return options;
-  }, [filter, roundMapByMatch, netMapByRound, player._id, playerMap]);
+  }, [filter, roundMapByMatch, netMapByRound, player, playerMap]);
 
   const eventOptions: IOption[] = useMemo(() => {
     // const startTs = filter[EStatsFilter.START_DATE]

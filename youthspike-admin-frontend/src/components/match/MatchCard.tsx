@@ -72,9 +72,9 @@ function MatchCard({ match, isChecked, eventId, handleSelectMatch, setMessage }:
     e.preventDefault();
     try {
       const deletedMatch = await deleteMatch({ variables: { matchId } });
-      console.log({ deletedMatch });
-    } catch (err: any) {
-      console.log(err);
+      console.info({ deletedMatch });
+    } catch (err: unknown) {
+      console.error(err);
       handleError({ error: err, setMessage });
     } finally {
       window.location.reload();

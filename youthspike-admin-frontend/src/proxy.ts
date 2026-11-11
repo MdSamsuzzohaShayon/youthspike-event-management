@@ -90,7 +90,7 @@ export function proxy(request: NextRequest) {
   const token = request.cookies.get('token');
   const user = request.cookies.get('user');
 
-  console.log({ pathname, token: token?.value, user: user?.value ? JSON.parse(user.value) : null });
+  // console.log({ pathname, token: token?.value, user: user?.value ? JSON.parse(user.value) : null });
 
   if (!token?.value || !user?.value) {
     return handleUnauthenticated(request, pathname);

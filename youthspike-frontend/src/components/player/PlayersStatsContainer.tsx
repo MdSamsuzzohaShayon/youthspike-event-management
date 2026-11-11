@@ -2,29 +2,39 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { QueryRef, useReadQuery, useApolloClient } from "@apollo/client/react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { QueryRef, useReadQuery, useApolloClient, useQuery, useLazyQuery } from "@apollo/client/react";
+import { useRouter } from "next/navigation";
 import FilterContent from "../event/FilterContent";
 import {
   ISearchFilter,
   IGroup,
   IPlayer,
-  ITeam,
-  IAllStats,
-  IPlayerStats,
-  IEvent,
-  EGroupType,
-  ISearchPlayerStatsResponse,
-  IFilterState,
-  EMatchStatus,
-  IBadge,
+  ITeam, IPlayerStats,
+  IEvent, ISearchPlayerStatsResponse,
+  IFilterState, IBadge,
   EBadgeFor,
+  IFilter,
+  INetRelatives,
+  IRoundRelatives,
+  ISearchPlayerStatsData,
+  IEventSearchData,
+  IEventSearchVariables,
+  EStatsFilter,
+  IPlayerStatsSearchFilter
 } from "@/types";
 import { SEARCH_PLAYER_STATS } from "@/graphql/player";
 import PlayerSearchList from "./PlayerSearchList";
 import ActiveFiltersBar from "../event/ActiveFiltersBar";
 import BadgeTable from "../badge/BadgeTable";
 import EventHeader from "../event/EventHeader";
+import StatsFilter from "../player-stats/StatsFilter";
+import { useFilterState } from "@/hooks/player-stats/useFilterState";
+import useStatsFilterData from "@/hooks/player-stats/useStatsFilterData";
+import { filterPlayerStats } from "@/utils/player-stats/playerStatsFilter";
+import Image from "next/image";
+import ActiveFilters from "../player-stats/ActiveFilters";
+import { SEARCH_EVENTS } from "@/graphql/event";
+import { buildEventSearchFilter } from "@/utils/event/eventSearchFilter";
 
 interface IPlayersStatsContainerProps {
   queryRef: QueryRef<{ searchPlayerStats: ISearchPlayerStatsResponse }>;
@@ -49,9 +59,21 @@ function PlayersStatsContainer({
   queryRef,
   initialSearchParams,
 }: IPlayersStatsContainerProps) {
+
+
   const router = useRouter();
   const { data: initialData } = useReadQuery(queryRef);
   const apolloClient = useApolloClient();
+  // Filter-options data: fetched once on first open, then cached.
+  // `eventsData` holds the cached result for wiring into the StatsFilter options later.
+  const [loadEvents, { data: eventsData }] = useLazyQuery<
+    { searchEvents: IEventSearchData },
+    IEventSearchVariables
+  >(SEARCH_EVENTS, {
+    fetchPolicy: "cache-and-network",
+    nextFetchPolicy: "cache-first",
+    notifyOnNetworkStatusChange: true,
+  });
 
 
   // Server data state
@@ -66,6 +88,9 @@ function PlayersStatsContainer({
   const [groups, setGroups] = useState<IGroup[]>([]);
   const [badges, setBadges] = useState<IBadge[]>([]);
   const [event, setEvent] = useState<IEvent | null>(null);
+  const [isStatsFilterCached, setIsStatsFilterCached] = useState<boolean>(false);
+  const [safeRounds, setSafeRounds] = useState<IRoundRelatives[]>([]);
+  const [safeNets, setSafeNets] = useState<INetRelatives[]>([]);
 
   // Filter and pagination states
   const [appliedFilter, setAppliedFilter] = useState<Omit<IFilterState, 'status'>>({
@@ -78,6 +103,120 @@ function PlayersStatsContainer({
   const [isApplyingFilters, setIsApplyingFilters] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMorePlayers, setHasMorePlayers] = useState(true);
+
+  // Stats filter state (reuse StatsFilter component)
+  const { filter: statsFilter, handleInputChange, clearAllFilters } = useFilterState();
+  const [isStatsFilterOpen, setIsStatsFilterOpen] = useState<boolean>(false);
+
+  // Stats filter options and filtered stats for multi-player view
+  const safePlayers = useMemo(() => allPlayers || [], [allPlayers]);
+  const safeMatches = useMemo(() => serverData?.matches || [], [serverData?.matches]);
+  const safeTeams = useMemo(() => {
+    const teams: ITeam[] = [];
+    if (serverData?.teams) {
+      teams.push(...serverData.teams);
+    }
+    return teams;
+  }, [serverData?.teams]);
+  const safeEvents = useMemo(() => (event ? [event] : []), [event]);
+
+  const representativePlayer = useMemo(() => {
+    if (safePlayers.length > 0) return safePlayers[0];
+    return null;
+  }, [safePlayers]);
+  const {
+    matchOptions,
+    gameOptions,
+    eventOptions
+  } = useStatsFilterData({
+    player: representativePlayer as IPlayer,
+    players: safePlayers,
+    filter: statsFilter,
+    matches: safeMatches,
+    rounds: safeRounds,
+    nets: safeNets,
+    teams: safeTeams,
+    events: safeEvents,
+  });
+
+
+  const isMobileViewport = () =>
+    typeof window !== "undefined" && window.innerWidth < 768;
+
+
+  /** Locks page scroll only where the mobile overlay actually covers the page. */
+  const setBodyScrollLocked = useCallback((locked: boolean) => {
+    document.body.style.overflow = locked && isMobileViewport() ? "hidden" : "";
+  }, []);
+
+  /**
+   * Fetches the data that feeds the statistics filter options.
+   * Runs at most once per successful load — `isStatsFilterCached` is set
+   * optimistically, so toggling the panel 3–4 times never re-fetches.
+   * Returns the response data, or null when the request failed.
+   */
+  const fetchStatsFilterEvents = useCallback(
+    async (): Promise<IEventSearchData | null> => {
+      // Optimistic flag: rapid re-toggles while in-flight never trigger a second request.
+      setIsStatsFilterCached(true);
+
+      const matchIds = new Set<string>();
+      for (const match of safeMatches) {
+        if (match?._id) {
+          matchIds.add(match._id);
+        }
+      }
+
+      const eventSearchFilter = buildEventSearchFilter({
+        eventId: event?._id,
+        appliedFilter,
+        statsFilter: statsFilter,
+      });
+
+      eventSearchFilter.match = statsFilter[EStatsFilter.MATCH] ? statsFilter[EStatsFilter.MATCH] as string[] : [...matchIds];
+
+      try {
+        const { data, error } = await loadEvents({
+          variables: { filter: eventSearchFilter },
+        });
+
+        // Some Apollo versions resolve (instead of reject) on failure.
+        if (error) {
+          throw error;
+        }
+
+        // The backend wraps responses in a code/success/message envelope.
+        const searchEvents = data?.searchEvents;
+        if (!searchEvents?.success) {
+          throw new Error(searchEvents?.message || "searchEvents request failed");
+        }
+
+        return searchEvents;
+      } catch (error) {
+        console.error("Failed to load statistics filter events:", error);
+        // Reset so the user can retry by closing and reopening the panel.
+        setIsStatsFilterCached(false);
+        return null;
+      }
+    },
+    [appliedFilter, statsFilter, event?._id, loadEvents]
+  );
+
+
+
+
+  const handleStatsFilterClose = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    setIsStatsFilterOpen(false);
+    setBodyScrollLocked(false);
+  };
+
+  const handleStatsOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      handleStatsFilterClose(e);
+    }
+  };
+
 
   // Build query variables
   const buildQueryVariables = useCallback(
@@ -130,7 +269,7 @@ function PlayersStatsContainer({
 
   // Execute GraphQL query
   const executeSearchQuery = useCallback(
-    async (filter: Omit<IFilterState, 'status'>, offset: number = 0) => {
+    async (filter: Omit<IPlayerStatsSearchFilter, 'status'>, offset: number = 0) => {
       try {
         const result = await apolloClient.query({
           query: SEARCH_PLAYER_STATS,
@@ -147,7 +286,7 @@ function PlayersStatsContainer({
     [apolloClient, buildQueryVariables]
   );
 
-  const handleFilterApply = async (filter: Omit<IFilterState, 'status'>) => {
+  const handleFilterApply = async (filter: Omit<IPlayerStatsSearchFilter, 'status'>) => {
     setIsApplyingFilters(true);
 
     try {
@@ -158,8 +297,14 @@ function PlayersStatsContainer({
       // Update URL
       const params = new URLSearchParams();
       Object.entries(filter).forEach(([key, value]) => {
-        if (value) {
+        if (value && typeof value === "string") {
           params.set(key, value);
+        } else if (value && Array.isArray(value)) {
+          value.forEach((item) => {
+            if (typeof item === "string") {
+              params.set(key, item);
+            }
+          });
         }
       });
 
@@ -172,6 +317,7 @@ function PlayersStatsContainer({
       setIsApplyingFilters(false);
     }
   }
+
 
   // Load more players
   const handleLoadMore = useCallback(async () => {
@@ -233,12 +379,76 @@ function PlayersStatsContainer({
 
   };
 
+  const handleStatsFilter = <K extends keyof IFilter>(key: K, value: IFilter[K]) => {
+
+    const updatedFilter: Partial<Record<EStatsFilter, string | string[]>> = { ...statsFilter, [key]: value };
+    // Now make request with updated filter
+    // Make request to the server  
+    // Change updated filter  
+    const filter: Omit<IPlayerStatsSearchFilter, 'status'> = {
+      division: appliedFilter.division,
+      group: appliedFilter.group,
+      search: appliedFilter.search,
+      startDate: updatedFilter[EStatsFilter.START_DATE] as string | undefined,
+      endDate: updatedFilter[EStatsFilter.END_DATE] as string | undefined,
+      match: updatedFilter[EStatsFilter.MATCH] as string[] | undefined,
+    };
+    handleFilterApply(filter);
+    handleInputChange(key as keyof IFilter, value as string);
+  }
+
+
+  const handleStatsFilterToggle = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    // Check if there is no cache
+    // Check if the menu is opening
+    // Make 2 requests here
+    // Do not show event if there is a default event
+    // One to get players, another to get appropriate filters, for that we can use search matches
+    // With previous filter divisionsOfEvents, group, and search in appliedFilter
+
+    // Step by step filter
+    // 1. Event
+    // 2. Match start date and end date
+    // 3. Group match or not
+    // 4. Select multiple matches
+
+    const willOpen = !isStatsFilterOpen;
+
+    // First open only — afterwards the cached result is reused (no refetch).
+    if (willOpen && !isStatsFilterCached) {
+      // Fire-and-forget: the panel opens instantly; options arrive when ready.
+      void fetchStatsFilterEvents().then((eventsResult) => {
+        console.log("[PlayersStatsContainer] Stats filter events:", eventsResult);
+        setSafeRounds(eventsResult?.data?.rounds || []);
+        setSafeNets(eventsResult?.data?.nets || []);
+      });
+    }
+
+    setIsStatsFilterOpen(willOpen);
+    setBodyScrollLocked(willOpen);
+
+  };
+
   // Initialize with preloaded data
   useEffect(() => {
     if (initialData?.searchPlayerStats) {
       transformServerData(initialData.searchPlayerStats.data);
     }
   }, [initialData, transformServerData]);
+
+  // Release the scroll lock if the user resizes to desktop while the panel
+  // is open, or when the component unmounts.
+  useEffect(() => {
+    if (!isStatsFilterOpen) return;
+
+    const handleResize = () => setBodyScrollLocked(true);
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      setBodyScrollLocked(false);
+    };
+  }, [isStatsFilterOpen, setBodyScrollLocked]);
 
   // UI state computations
   const hasActiveFilters = useMemo(
@@ -249,8 +459,8 @@ function PlayersStatsContainer({
     [appliedFilter]
   );
 
-  const playerBadges = useMemo(()=>{
-    return badges.filter((badge)=> badge.badgeFor === EBadgeFor.PLAYER)
+  const playerBadges = useMemo(() => {
+    return badges.filter((badge) => badge.badgeFor === EBadgeFor.PLAYER)
   }, [badges]);
 
   const displayedPlayers = useMemo(
@@ -265,11 +475,57 @@ function PlayersStatsContainer({
   );
 
 
+  const { netMap, allNetIds } = useMemo(() => {
+    const map = new Map<string, INetRelatives>();
+    const netIds = new Set<string>();
+    for (let i = 0; i < safeNets.length; i++) {
+      const n = safeNets[i];
+      if (n && n._id) {
+        map.set(n._id, n);
+        netIds.add(n._id);
+      }
+    }
+    return { netMap: map, allNetIds: netIds };
+  }, [safeNets]);
+
+  const filteredPlayerStatsMap = useMemo(() => {
+    const newMap = new Map<string, IPlayerStats[]>();
+    for (const [playerId, stats] of playerStatsMap.entries()) {
+      if (!stats || !Array.isArray(stats)) {
+        newMap.set(playerId, []);
+        continue;
+      }
+      const playerTeam = teamMap.get(
+        safePlayers.find((p) => p._id === playerId)?.teams?.[0] as string
+      ) || (safeTeams[0] as ITeam | undefined);
+      try {
+        const filtered = filterPlayerStats(
+          safeEvents,
+          stats,
+          statsFilter,
+          playerId,
+          safeMatches,
+          netMap,
+          allNetIds,
+          playerTeam as ITeam
+        );
+        newMap.set(playerId, filtered);
+      } catch (e) {
+        newMap.set(playerId, stats);
+      }
+    }
+    return newMap;
+  }, [playerStatsMap, statsFilter, safePlayers, safeMatches, netMap, allNetIds, teamMap, safeTeams, safeEvents]);
+
+
+
+
+
 
   return (
     <div className="animate-fade-in">
       {/* Event Wrapper Start  */}
-      {event && <EventHeader event={event}  eventId={event._id} />}
+      {event && <EventHeader event={event} eventId={event._id} />}
 
       {/* Page Content */}
       <div className="flex flex-col lg:flex-row gap-4 md:gap-6 md:mt-6">
@@ -289,6 +545,128 @@ function PlayersStatsContainer({
             <ActiveFiltersBar appliedFilter={appliedFilter} groups={groups} isApplyingFilters={isApplyingFilters} onClearFilters={handleClearFilters} />
           )}
 
+          {/* Stats Filter Toggle and Section */}
+
+          <div className="w-full mt-4 mb-4">
+            {!isStatsFilterOpen && (
+              <button
+                onClick={handleStatsFilterToggle}
+                className="btn-info"
+              >
+                <span className="flex items-center gap-2">
+                  <Image
+                    src="/icons/filter.svg"
+                    width={20}
+                    height={20}
+                    className="w-5 h-5 svg-black"
+                    alt="filter-icon"
+                  />
+                  <span className="font-semibold">
+                    Show Statistics Filters
+                  </span>
+                </span>
+              </button>
+            )}
+
+            {/* Stats Filter Content */}
+            {isStatsFilterOpen && (
+              <div className="w-full">
+                {/* Mobile Overlay */}
+                <div
+                  className="fixed inset-0 z-50 md:hidden"
+                  onClick={handleStatsOverlayClick}
+                >
+                  <div className="absolute inset-0 bg-gray-900/50 transition-opacity duration-300" />
+                  <div className="absolute left-0 top-0 h-full w-4/5 max-w-sm bg-gray-900 shadow-xl transform transition-transform duration-300 ease-in-out">
+                    <div className="h-full overflow-y-auto p-4">
+                      <div className="flex items-center justify-between mb-6 p-4 border-b border-gray-700">
+                        <h2 className="text-yellow-logo text-lg uppercase font-bold mb-4 flex items-center gap-2">
+                          <Image
+                            src="/icons/filter.svg"
+                            width={20}
+                            height={20}
+                            className="w-8"
+                            alt="filter-icon svg-yellow"
+                          />
+                          Filter Stats
+                        </h2>
+                        <button
+                          onClick={handleStatsFilterClose}
+                          className="p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                        >
+                          <Image
+                            src="/icons/close.svg"
+                            width={20}
+                            height={20}
+                            className="w-6 h-6 svg-white"
+                            alt="close-icon"
+                          />
+                        </button>
+                      </div>
+                      <StatsFilter
+                        filter={statsFilter}
+                        handleInputChange={handleStatsFilter}
+                        gameOptions={gameOptions}
+                        matchOptions={matchOptions}
+                        eventOptions={eventOptions}
+                      />
+                      <div className="mt-4">
+                        <ActiveFilters
+                          filter={statsFilter}
+                          onClearAll={clearAllFilters}
+                          gameOptions={gameOptions}
+                          matchOptions={matchOptions}
+                          eventOptions={eventOptions}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Desktop Layout */}
+                <div className="hidden md:flex flex-row md:flex-col gap-4 mt-4">
+                  <div className="w-full">
+                    <StatsFilter
+                      filter={statsFilter}
+                      handleInputChange={handleStatsFilter}
+                      gameOptions={gameOptions}
+                      matchOptions={matchOptions}
+                      eventOptions={eventOptions}
+                    />
+                  </div>
+                  <div className="w-full md:w-9/12 flex gap-x-2 items-center">
+                    <ActiveFilters
+                      filter={statsFilter}
+                      onClearAll={clearAllFilters}
+                      gameOptions={gameOptions}
+                      matchOptions={matchOptions}
+                      eventOptions={eventOptions}
+                    />
+                    {isStatsFilterOpen && (
+                      <button
+                        onClick={handleStatsFilterToggle}
+                        className="btn-danger"
+                      >
+                        <span className="flex items-center gap-2">
+                          <Image
+                            src="/icons/filter.svg"
+                            width={20}
+                            height={20}
+                            className="w-5 h-5 svg-white"
+                            alt="filter-icon"
+                          />
+                          <span className="font-semibold">
+                            Hide Statistics Filters
+                          </span>
+                        </span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Loading state for initial load */}
           {isApplyingFilters && allPlayers.length === 0 && (
             <div className="flex justify-center items-center py-8">
@@ -304,7 +682,7 @@ function PlayersStatsContainer({
                 badges={badges}
                 playerList={displayedPlayers}
                 matchList={serverData?.matches || []}
-                playerStatsMap={playerStatsMap}
+                playerStatsMap={filteredPlayerStatsMap}
                 teamMap={teamMap}
               />
             </div>

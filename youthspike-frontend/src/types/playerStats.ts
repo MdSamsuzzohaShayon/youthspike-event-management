@@ -100,10 +100,10 @@ export enum EStatsFilter {
 
 
 export interface IFilter {
-  startDate: string;
-  endDate: string;
+  startDate?: string;
+  endDate?: string;
   event: string;
-  match: string[];
+  match?: string[];
   game: string[];
   conference?: string;
   teammate?: string[];
@@ -130,21 +130,5 @@ export enum EPlayerStatType {
 }
 
 
-export interface IStatsFilterProps {
-  filter: Partial<Record<EStatsFilter, string | string[]>>;
-  /**
-   * Improved type for handler:
-   * key must be a key of IFilter and value must be the correct type for that key.
-   */
-  handleInputChange: <K extends keyof IFilter>(key: K, value: IFilter[K]) => void;
-
-
-  matchOptions: IOption[];
-  vsClubOptions: IOption[];
-  teammateOptions: IOption[];
-  vsPlayerOptions: IOption[];
-  gameOptions: IOption[];
-  eventOptions: IOption[];
-}
 
 

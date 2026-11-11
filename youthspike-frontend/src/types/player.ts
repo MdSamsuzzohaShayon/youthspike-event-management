@@ -1,6 +1,6 @@
 import { ITeam } from "./team";
 import { IDocument } from "./document";
-import { IAllStats, IBadge, IEvent, IGroup, IMatch, IResponse } from ".";
+import { IAllStats, IBadge, IEvent, IGroup, IMatch, INetRelatives, IPlayerStats, IResponse, IRoundRelatives } from ".";
 
 /**
  * Player Status
@@ -54,16 +54,29 @@ export interface IPlayerPartition {
 }
 
 
-interface ISearchPlayerData {
+// export interface ISearchPlayerData {
+//   event: IEvent;
+//   groups: IGroup[];
+//   players: IPlayer[];
+//   teams: ITeam[];
+//   badges: IBadge[];
+//   rounds: IRoundRelatives[];
+//   matches: IMatch[];
+//   nets: INetRelatives[];
+//   statsOfPlayer: IAllStats[];
+// }
+
+export interface ISearchPlayerStatsData {
   event: IEvent;
   groups: IGroup[];
   players: IPlayer[];
-  teams: ITeam[];
   badges: IBadge[];
   statsOfPlayer: IAllStats[];
+  teams: ITeam[];
   matches: IMatch[];
 }
 
+
 export interface ISearchPlayerStatsResponse extends IResponse{
-  data: ISearchPlayerData;
+  data: ISearchPlayerStatsData;
 }

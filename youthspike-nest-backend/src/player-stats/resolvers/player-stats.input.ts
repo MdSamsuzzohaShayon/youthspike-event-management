@@ -8,7 +8,7 @@ export class PlayerStatsInput {
 }
 
 
-export enum EGroupType{
+export enum EGroupType {
   OVERALL = "OVERALL",
   CONFERENCE = "CONFERENCE",
   NON_CONFERENCE = "NON_CONFERENCE",
@@ -17,17 +17,31 @@ export enum EGroupType{
 
 @InputType()
 export class PlayerStatsSearchFilter {
-  @Field({ nullable: true })
-  ce?: EGroupType; // team, description, location
-  
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
+  ce?: EGroupType; // Conference
+
+  @Field(() => String, { nullable: true })
   search?: string; // team, description, location
 
-  @Field({ nullable: true })
-  division?: string; // 
+  @Field(() => String, { nullable: true })
+  division?: string;
 
-  @Field({ nullable: true })
+  @Field(() => String, { nullable: true })
   group?: string;
+
+  @Field(() => String, { nullable: true })
+  event?: string;
+
+  @Field(() => String, { nullable: true })
+  startDate?: string;
+
+  @Field(() => String, { nullable: true })
+  endDate?: string;
+
+  @Field((_type) => [String], { nullable: true })
+  matches?: string[];
+
+
 
   @Field(() => Int, { nullable: true, defaultValue: 30 })
   limit?: number;

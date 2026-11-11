@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+
 import Image from "next/image";
 import { IOption, EStatsFilter } from "@/types";
 
@@ -11,11 +11,11 @@ interface ActiveFiltersProps {
   filter: Partial<Record<EStatsFilter, string | string[]>>;
   onClearAll?: () => void;
   matchOptions: IOption[];
-  vsClubOptions: IOption[];
-  teammateOptions: IOption[];
-  vsPlayerOptions: IOption[];
   gameOptions: IOption[];
   eventOptions: IOption[];
+  vsClubOptions?: IOption[];
+  teammateOptions?: IOption[];
+  vsPlayerOptions?: IOption[];
 }
 
 const FILTER_LABELS: Record<EStatsFilter, string> = {
@@ -33,8 +33,8 @@ const FILTER_LABELS: Record<EStatsFilter, string> = {
 // ------------------------------------------------------
 // Helper: Convert list of option IDs to display text
 // ------------------------------------------------------
-function resolveOptionValues(value: string[], options: IOption[]): string {
-  if (!Array.isArray(value)) return "";
+function resolveOptionValues(value: string[], options?: IOption[]): string {
+  if (!options || !Array.isArray(value)) return "";
 
   const lookup = new Set(value);
   const results: string[] = [];
@@ -108,7 +108,7 @@ export default function ActiveFilters({
   // JSX Output
   // --------------------------------------------------
   return (
-    <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+    <div className="flex flex-wrap items-center justify-between gap-2">
       {/* Active Filters */}
       <div className="flex flex-wrap gap-2">
         {activeFilterEntries.map(([key, rawValue]) => {
@@ -119,7 +119,7 @@ export default function ActiveFilters({
           return (
             <span
               key={key}
-              className="bg-yellow-400 text-black px-3 py-1 rounded-full text-xs font-semibold"
+              className="btn-info"
             >
               {label}: {displayValue}
             </span>

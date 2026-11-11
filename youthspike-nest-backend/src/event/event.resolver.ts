@@ -14,6 +14,7 @@ const GraphQLUpload = GraphQLUploadModule.default;
 
 import {
   CreateEventInput,
+  EventSearchInput,
   EventSponsorInput,
   EventSponsorStringInput,
   ProStatsInput,
@@ -25,6 +26,7 @@ import {
   GetArchiveEventsResponse,
   GetEventResponse,
   GetEventsResponse,
+  GetEventsSearchResponse,
   GetEventWithGroupsAndUnassignedPlayersResponse,
   GetPlayerEventSettingResponse,
 } from './resolvers/event.response';
@@ -94,7 +96,7 @@ export class EventResolver {
     return this.eventMutations.cloneEvent(eventId, updateInput);
   }
 
-  // Temporary
+  // temp // after caching, we can delete it
   @Mutation((_returns) => CreateOrUpdateEventResponse)
   async updateEventCache(@Args({ name: 'eventId', type: () => String }) eventId: string) {
     return this.eventMutations.updateEventCache(eventId);
@@ -119,6 +121,12 @@ export class EventResolver {
   @Query((__returns) => GetEventsResponse)
   async getEvents(@Context() context: any, @Args('directorId', { nullable: true }) directorId?: string) {
     return this.eventQueries.getEvents(context, directorId);
+  }
+
+
+    @Query((__returns) => GetEventsSearchResponse)
+  async searchEvents(@Args('filter', { nullable: true }) filter: EventSearchInput) {
+    return this.eventQueries.searchEvents(filter);
   }
 
   @Query((__returns) => GetArchiveEventsResponse)

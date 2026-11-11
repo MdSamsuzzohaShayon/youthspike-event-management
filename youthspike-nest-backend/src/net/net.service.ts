@@ -31,8 +31,8 @@ export class NetService {
 
   async find(
     filter: QueryFilter<Net>,
-    limit?: number,
     offset?: number, // added for consistency & scalability
+    limit?: number,
   ) {
     let query = this.netModel.find(filter); // ensures stable pagination
 

@@ -4,6 +4,7 @@ import { EEventItem } from '../event.schema';
 import { FileUpload } from 'graphql-upload/processRequest.mjs';
 import * as GraphQLUploadModule from 'graphql-upload/GraphQLUpload.mjs';
 import { Badge, EBadgeFor } from 'src/badge/badge.schema';
+import { EGroupType } from 'src/player/resolvers/player.input';
 const GraphQLUpload = GraphQLUploadModule.default;
 
 @InputType()
@@ -30,6 +31,36 @@ export class EventBadgeInput {
   description: string;
 }
 
+
+@InputType()
+export class EventSearchInput {
+  @Field(() => String, { nullable: true })
+  event: string;
+
+  @Field(() => String, { nullable: true })
+  startDate?: string;
+
+  @Field(() => String, { nullable: true })
+  endDate?: string;
+
+  @Field(() => String, { nullable: true })
+  group?: string;
+
+  @Field(() => String, { nullable: true })
+  specificGroup?: string;
+
+  @Field(() => String, { nullable: true })
+  division?: string;
+
+  @Field(() => [String], { nullable: true })
+  match?: string[];
+
+  @Field(() => String, { nullable: true })
+  ce?: EGroupType;
+
+}
+
+
 @InputType()
 export class UpdateBadgeInput extends PartialType(EventBadgeInput) {
   @Field(() => String, { nullable: true })
@@ -41,7 +72,7 @@ export class EventSponsorStringInput {
   @Field()
   company: string;
 
-  @Field(() => String,{nullable: true})
+  @Field(() => String, { nullable: true })
   logo: string;
 }
 
@@ -49,7 +80,7 @@ export class EventSponsorStringInput {
 
 
 @InputType()
-export class ProStatsInput{
+export class ProStatsInput {
   @Field(() => Float, { nullable: true })
   servingPercentage: number; // serving %
 
@@ -71,7 +102,7 @@ export class ProStatsInput{
 
 
 @InputType()
-export class UpdateProStatsInput extends PartialType(ProStatsInput) {}
+export class UpdateProStatsInput extends PartialType(ProStatsInput) { }
 
 @InputType()
 export class CreateEventInput {
@@ -85,7 +116,7 @@ export class CreateEventInput {
   endDate: string;
 
 
-  @Field(()=> [EventBadgeInput])
+  @Field(() => [EventBadgeInput])
   badges?: EventBadgeInput[];
 
   @Field()
@@ -146,10 +177,10 @@ export class CreateEventInput {
   @Field({ nullable: true })
   accessCode: string;
 
-  @Field(() => String,{nullable: true})
+  @Field(() => String, { nullable: true })
   ldo?: string;
 
-  @Field(() => String,{nullable: true})
+  @Field(() => String, { nullable: true })
   id?: string;
 
   @Field({ nullable: true, defaultValue: true })
@@ -159,28 +190,28 @@ export class CreateEventInput {
 
 @InputType()
 export class EventFilterInput {
-  @Field(()=> EEventItem, {nullable: true})
+  @Field(() => EEventItem, { nullable: true })
   item: EEventItem;
-  
-  @Field(()=> String, {nullable: true})
+
+  @Field(() => String, { nullable: true })
   search?: string;
 
-  @Field(() => String, {nullable: true})
+  @Field(() => String, { nullable: true })
   division?: string;
 
-  @Field(() => String, {nullable: true})
+  @Field(() => String, { nullable: true })
   group?: string;
 
-  @Field(() => Int, {nullable: true})
+  @Field(() => Int, { nullable: true })
   limit?: number;
 }
 
 @InputType()
-export class UpdateDivision{
-  @Field(() => String, {nullable: true})
+export class UpdateDivision {
+  @Field(() => String, { nullable: true })
   prev?: string;
 
-  @Field(() => String, {nullable: true})
+  @Field(() => String, { nullable: true })
   new?: string;
 }
 
@@ -191,10 +222,10 @@ export class UpdateEventInput extends PartialType(
   @Field(() => [String], { nullable: true })
   newteams?: string[];
 
-  @Field(()=> [UpdateDivision], {nullable: true})
+  @Field(() => [UpdateDivision], { nullable: true })
   updatedivisions?: UpdateDivision[];
 
-  @Field(()=> [UpdateBadgeInput], {nullable: true})
+  @Field(() => [UpdateBadgeInput], { nullable: true })
   badges?: UpdateBadgeInput[];
 }
 
@@ -210,7 +241,7 @@ export class CreateEventBody {
 
   context: any;
 
-  
+
   @Field(() => ProStatsInput, { nullable: true })
   multiplayerInput?: ProStatsInput;
 
@@ -223,7 +254,7 @@ export class CreateEventBody {
 }
 
 @ObjectType()
-export class UpdateEventBody{
+export class UpdateEventBody {
   @Field(() => [EventSponsorInput], { nullable: true })
   sponsorsInput?: EventSponsorInput[];
 
@@ -243,7 +274,7 @@ export class UpdateEventBody{
 
   @Field(() => UpdateProStatsInput, { nullable: true })
   weightInput?: UpdateProStatsInput;
-  
+
   @Field(() => GraphQLUpload, { nullable: true })
   logo?: Promise<FileUpload>;
 }

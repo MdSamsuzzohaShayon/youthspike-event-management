@@ -15,8 +15,6 @@ const ShowDivisions: React.FC<ShowDivisionsProps> = ({ divisions, updatedivision
   const [divisionList, setDivisionList] = useState<string[]>([]);
   const [prevSelectedDivision, setPrevSelectedDivision] = useState<string | null>(null);
 
-  // Sync local state when prop changes
-  // console.log({divisions});
 
   useEffect(() => {
     setDivisionList(
