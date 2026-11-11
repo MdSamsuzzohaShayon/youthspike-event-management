@@ -56,7 +56,7 @@ async function getEventWithMatches(eventId: string) {
     const { data, errors } = await res.json();
     return handleServerResponse(data, 'getEventWithMatches', errors);
   } catch (error) {
-    console.log(error);
+    console.error(error);
     throw error;
   }
 

@@ -12,6 +12,7 @@ import MultiPlayerAddDialog from './MultiPlayerAddDialog';
 import { divisionsToOptionList } from '@/utils/helper';
 import ActiveFiltersBar from '../event/ActiveFiltersBar';
 import BadgeTable from '../badge/BadgeTable';
+import Loader from '../elements/Loader';
 
 interface ITeamsContainerProps {
   queryRef: QueryRef<{ searchTeams: ISearchTeamResponse }>;
@@ -283,53 +284,55 @@ export default function TeamsContainer({ queryRef, eventId, initialSearchParams 
       {/* Loading state */}
       {showInitialLoading && (
         <div className="flex justify-center items-center py-8">
-          <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin" />
-          <span className="ml-2 text-gray-300">Loading teams...</span>
+          <Loader />
         </div>
       )}
 
       {/* Content */}
-      {!showInitialLoading && (
-        <div className="team-list w-full flex flex-col gap-y-4">
-          <div className="grid gap-4">
-            {teams.length > 0 ? (
-              <SearchTeamList
-                teamList={teams as unknown as ITeam[]}
-                groupList={groups}
-                event={selectedEvent || null}
-                captainMap={playerMap}
-                emailcontents={emailcontents}
-                badges={teamBadges}
-              />
-            ) : (
-              <div className="text-center py-8 text-gray-400">No teams found teaming your criteria.</div>
-            )}
-          </div>
-
-          {/* Load more button */}
-          {hasMoreTeams && teams.length > 0 && (
-            <div className="w-full mt-6 flex justify-center">
-              <button
-                onClick={handleLoadMore}
-                disabled={isLoading}
-                className="btn-info"
-              >
-                {isLoadingMore ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2" />
-                    Loading...
-                  </>
-                ) : (
-                  'Load More Teams'
-                )}
-              </button>
+      {!isApplyingFilters ? (
+        !showInitialLoading && (
+          <div className="team-list w-full flex flex-col gap-y-4">
+            <div className="grid gap-4">
+              {teams.length > 0 ? (
+                <SearchTeamList
+                  teamList={teams as unknown as ITeam[]}
+                  groupList={groups}
+                  event={selectedEvent || null}
+                  captainMap={playerMap}
+                  emailcontents={emailcontents}
+                  badges={teamBadges}
+                />
+              ) : (
+                <div className="text-center py-8 text-gray-400">No teams found teaming your criteria.</div>
+              )}
             </div>
-          )}
 
-          {/* No more teams indicator */}
-          {!hasMoreTeams && teams.length > 0 && <div className="text-center py-4 text-gray-400 text-sm">No more teams to load</div>}
-        </div>
-      )}
+            {/* Load more button */}
+            {hasMoreTeams && teams.length > 0 && (
+              <div className="w-full mt-6 flex justify-center">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={isLoading}
+                  className="btn-info"
+                >
+                  {isLoadingMore ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin mr-2" />
+                      Loading...
+                    </>
+                  ) : (
+                    'Load More Teams'
+                  )}
+                </button>
+              </div>
+            )}
+
+            {/* No more teams indicator */}
+            {!hasMoreTeams && teams.length > 0 && <div className="text-center py-4 text-gray-400 text-sm">No more teams to load</div>}
+          </div>
+        )
+      )
+    : <Loader />}
 
       <div className="w-full mt-6">
         <h2>Badges</h2>

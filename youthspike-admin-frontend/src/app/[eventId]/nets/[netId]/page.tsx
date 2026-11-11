@@ -40,7 +40,7 @@ function SingleNet({ params }: INetSingleProps) {
   const currNet = data?.getNet?.data;
 
   if (error) {
-    console.log(error);
+    console.error(error);
   }
 
   return (

@@ -148,8 +148,8 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
       animationFrameRef.current = null;
     }
 
-    window.removeEventListener('mousemove', updatePointerPosition);
-    window.removeEventListener('touchmove', updatePointerPosition);
+    window?.removeEventListener('mousemove', updatePointerPosition);
+    window?.removeEventListener('touchmove', updatePointerPosition);
   }, [updatePointerPosition]);
   if (typeof window === 'undefined') return; // SSR guard
 
@@ -162,7 +162,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
         // Update rank players with match id and team id
         // if (refetchFunc) await refetchFunc();
       } catch (error: any) {
-        console.log(error);
+        console.error(error);
         handleError({ error, setMessage });
       }
     }
@@ -172,7 +172,7 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
     const { oldIndex, newIndex } = evt;
 
     if (oldIndex !== undefined && newIndex !== undefined) {
-      console.log(`Moved from ${oldIndex} to ${newIndex}`);
+      console.info(`Moved from ${oldIndex} to ${newIndex}`);
 
       // Moving player one index to another index
       let sortedPlayers = [...players];
@@ -209,7 +209,6 @@ function PlayerList({ playerList, setIsLoading, rankControls, teamList, showRank
   const handleDelete = async (event: React.SyntheticEvent, playerId: string) => {
     event.preventDefault();
     const response = await deleteAPlayer({ variables: { playerId } });
-    console.log(response);
     window.location.reload();
   }
 

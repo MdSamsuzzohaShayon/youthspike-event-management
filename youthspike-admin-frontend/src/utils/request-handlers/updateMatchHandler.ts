@@ -36,8 +36,8 @@ export async function updateMatchHandler({ setMessage, setIsLoading, eventId, mu
       //   router.push(`/${eventId}/matches/${ldoIdUrl || ''}`);
       // }
     }
-  } catch (error: any) {
-    console.log(error);
+  } catch (error: unknown) {
+    console.error(error);
     handleError({ error, setMessage });
   } finally {
     setIsLoading(false);

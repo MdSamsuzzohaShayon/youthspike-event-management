@@ -15,7 +15,7 @@ const DateInput = ({name, defaultValue, handleInputChange, label, className="", 
         onChange: handleDatetimeInputChange,
         id: name,
         name: name,
-        className: "w-full p-3 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-yellow-400",
+        className: "w-full p-2 rounded-md bg-gray-800 border border-gray-700 focus:outline-none focus:ring-1 focus:ring-yellow-400 text-sm",
         type: 'date',
         required: required,
     };
@@ -28,7 +28,7 @@ const DateInput = ({name, defaultValue, handleInputChange, label, className="", 
         >
             <label
                 htmlFor={name}
-                className="uppercase text-lg text-gray-300 font-semibold mb-1"
+                className="text-sm font-medium text-gray-300 mb-1 capitalize"
             >
                 {label || name}
             </label>

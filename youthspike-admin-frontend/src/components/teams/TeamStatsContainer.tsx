@@ -70,8 +70,6 @@ function TeamStatsContainer({ queryRef, teamId }: TeamStatsContainerProps) {
   }, [safeNets]);
 
 
-console.log(events);
-
 
   const playerStatsMap: Map<string, IPlayerStats[]> = useMemo(
     () =>{

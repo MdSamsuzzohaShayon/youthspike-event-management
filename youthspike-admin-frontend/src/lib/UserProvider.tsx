@@ -26,7 +26,6 @@ function UserProvider({ children }: React.PropsWithChildren) {
         if(!currentEvent){
             SessionStorageService.setItem(CURRENT_EVENT, "6a3c355236b002d89afc4a49"); // temp
         }
-        // console.log({token: findToken, findUser});
         // Can not set info or token if that is already exist
         if (findToken && findToken !== '' && findToken !== null && (!token || token === '')) setToken(findToken);
         if (findUser && findUser !== '' && findUser!== null && (!info)) setInfo(JSON.parse(findUser));

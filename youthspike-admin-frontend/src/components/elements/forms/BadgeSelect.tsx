@@ -76,7 +76,7 @@ export default function BadgeSelect({
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="group flex w-full p-2 items-center justify-between rounded-md border border-gray-700 bg-gray-800 shadow-lg transition-all duration-300 hover:border-yellow-400 hover:shadow-yellow-500/20"
+        className="group flex w-full p-2 items-center justify-between rounded-md border border-gray-700 bg-gray-800 shadow-lg transition-all duration-300 hover:border-yellow-400 hover:shadow-yellow-500/20 "
       >
         <div className="flex items-center gap-3">
           {selectedBadge ? (

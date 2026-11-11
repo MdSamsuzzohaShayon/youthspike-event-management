@@ -367,6 +367,18 @@ export class PlayerStatsQueries {
         matchQuery.group = filter.group;
         // If there is a group then show matches for a player according to group
       }
+      
+      if(filter?.matches && filter.matches.length > 0){
+        matchQuery._id = { $in: filter.matches };
+      }
+
+      if(filter?.startDate){
+        matchQuery.date = { $gte: filter.startDate };
+      }
+
+      if( filter?.endDate){
+        matchQuery.date = { $lte: filter.endDate };
+      }
 
       if (filter?.search) {
         //Check for multiple words

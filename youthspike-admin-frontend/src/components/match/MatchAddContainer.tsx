@@ -25,9 +25,6 @@ function MatchAddContainer({ queryRef, eventId }: IMatchAddContainerProps) {
     throw new Error('Event data not found');
   }
 
-  // console.log(eventData);
-  
-
 
   // Local State
   const [isLoading, setIsLoading] = useState<boolean>(false);

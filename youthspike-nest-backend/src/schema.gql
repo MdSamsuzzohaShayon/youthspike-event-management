@@ -1234,6 +1234,48 @@ type PlayersStatsSearchResponse {
   data: PlayersSearch
 }
 
+type CustomEvent {
+  _id: String
+  createdAt: String
+  updatedAt: String
+  name: String!
+  logo: String
+  startDate: String!
+  endDate: String!
+  active: Boolean!
+  sendCredentials: Boolean
+  playerLimit: Int!
+  fwango: String
+  defaulted: Boolean
+  ldo: LDO!
+  players: [String!]
+  teams: [String!]!
+  matches: [String!]
+  groups: [String!]
+  sponsors: [Sponsor!]!
+  multiplayer: ProStats
+  weight: ProStats
+  templates: [Template!]
+  emailsenders: [Emailsender!]
+  badges: [Badge!]
+  grouppoints: GroupPoints
+  divisions: String!
+  nets: Float!
+  rounds: Float!
+  netVariance: Float!
+  homeTeam: String!
+  autoAssign: Boolean!
+  autoAssignLogic: String!
+  rosterLock: String!
+  tieBreaking: String
+  timeout: Float!
+  coachPassword: String!
+  description: String
+  location: String
+  accessCode: String
+  defaultSponsor: Boolean
+}
+
 type CreateOrUpdateEventResponse {
   code: Int!
   success: Boolean!
@@ -1246,6 +1288,20 @@ type GetEventsResponse {
   success: Boolean!
   message: String
   data: [Event!]
+}
+
+type EventWithFilters {
+  events: [CustomEvent!]!
+  matches: [CustomMatch!]!
+  rounds: [CustomRound!]!
+  nets: [CustomNet!]!
+}
+
+type GetEventsSearchResponse {
+  code: Int!
+  success: Boolean!
+  message: String
+  data: EventWithFilters
 }
 
 type GetEventResponse {
@@ -1317,48 +1373,6 @@ type GetArchiveEventsResponse {
   success: Boolean!
   message: String
   data: [ArchiveEventCounts!]
-}
-
-type CustomEvent {
-  _id: String
-  createdAt: String
-  updatedAt: String
-  name: String!
-  logo: String
-  startDate: String!
-  endDate: String!
-  active: Boolean!
-  sendCredentials: Boolean
-  playerLimit: Int!
-  fwango: String
-  defaulted: Boolean
-  ldo: LDO!
-  players: [String!]
-  teams: [String!]!
-  matches: [String!]
-  groups: [String!]
-  sponsors: [Sponsor!]!
-  multiplayer: ProStats
-  weight: ProStats
-  templates: [Template!]
-  emailsenders: [Emailsender!]
-  badges: [Badge!]
-  grouppoints: GroupPoints
-  divisions: String!
-  nets: Float!
-  rounds: Float!
-  netVariance: Float!
-  homeTeam: String!
-  autoAssign: Boolean!
-  autoAssignLogic: String!
-  rosterLock: String!
-  tieBreaking: String
-  timeout: Float!
-  coachPassword: String!
-  description: String
-  location: String
-  accessCode: String
-  defaultSponsor: Boolean
 }
 
 type PlayerStatsEntry {
@@ -1686,6 +1700,7 @@ type Query {
   searchTemplates(eventId: String!, filter: TemplateSearchFilter): GetTemplateSearchResponse!
   getUser(userId: String!): UserResponse!
   getEvents(directorId: String): GetEventsResponse!
+  searchEvents(filter: EventSearchInput): GetEventsSearchResponse!
   getArchivedEvents(directorId: String): GetArchiveEventsResponse!
   getEventWithGroupsAndUnassignedPlayers(ldoId: String): GetEventWithGroupsAndUnassignedPlayersResponse!
   getPlayerEventSetting(eventId: String): GetPlayerEventSettingResponse!
@@ -1729,6 +1744,17 @@ input TemplateSearchFilter {
   search: String
   offset: Int = 0
   limit: Int = 30
+}
+
+input EventSearchInput {
+  event: String
+  startDate: String
+  endDate: String
+  group: String
+  specificGroup: String
+  division: String
+  match: [String!]
+  ce: String
 }
 
 input TeamSearchFilter {
@@ -1787,6 +1813,10 @@ input PlayerStatsSearchFilter {
   search: String
   division: String
   group: String
+  event: String
+  startDate: String
+  endDate: String
+  matches: [String!]
   limit: Int = 30
   offset: Int = 0
 }

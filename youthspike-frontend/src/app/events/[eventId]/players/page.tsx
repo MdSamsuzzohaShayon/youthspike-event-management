@@ -2,9 +2,7 @@
 // app/players/page.tsx
 // =========================
 
-import { Suspense } from "react";
 import { PreloadQuery } from "@/lib/client";
-import Loader from "@/components/elements/Loader";
 import { QueryRef } from "@apollo/client/react";
 
 import { EGroupType, ISearchFilter, ISearchPlayerStatsResponse } from "@/types";
@@ -38,12 +36,10 @@ export default async function PlayersPage({
       variables={{ eventId: eventId, filter: initialFilter }}
     >
       {(queryRef) => (
-        <Suspense fallback={<Loader />}>
           <PlayersStatsContainer
             queryRef={queryRef as QueryRef<{ searchPlayerStats: ISearchPlayerStatsResponse }>} // Replace with proper type
             initialSearchParams={{ search, division, group }}
           />
-        </Suspense>
       )}
     </PreloadQuery>
   );

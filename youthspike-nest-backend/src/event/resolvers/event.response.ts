@@ -2,61 +2,16 @@ import { Field, Int, ObjectType } from '@nestjs/graphql';
 import { CustomPlayer } from 'src/player/resolvers/player.response';
 import { AppResponse } from 'src/shared/response';
 import { Sponsor } from 'src/sponsor/sponsor.schema';
-import { Event } from '../event.schema';
+import { EEventItem, Event } from '../event.schema';
 import { LDO } from 'src/ldo/ldo.schema';
 import { ProStats } from 'src/player-stats/player-stats.schema';
 import { CustomPlayerStats } from 'src/player-stats/resolvers/player-stats.response';
-import { CustomGroup, EventMatches } from 'src/match/resolvers/match.response';
-import { CustomTeam } from 'src/team/resolvers/team.response';
+import { CustomGroup, CustomMatch, EventMatches } from 'src/match/resolvers/match.response';
+
+import { CustomNet, CustomRound, CustomTeam } from 'src/team/resolvers/team.response';
 import { ArchiveEvent } from 'src/archive/archive.schema';
 import { CustomBadge } from 'src/badge/badge.response';
 import { Badge } from 'src/badge/badge.schema';
-
-@ObjectType()
-export class CreateOrUpdateEventResponse extends AppResponse<Event> {
-  @Field((_type) => Event, { nullable: true })
-  data?: Event;
-}
-
-@ObjectType()
-export class GetEventsResponse extends AppResponse<Event[]> {
-  @Field((_type) => [Event], { nullable: true })
-  data?: Event[];
-}
-
-@ObjectType()
-export class GetEventResponse extends AppResponse<Event> {
-  @Field((_type) => Event, { nullable: true })
-  data?: Event | null;
-}
-
-@ObjectType()
-class RelatedCounts{
-  @Field((_type) => Int, { nullable: false })
-  templates: number;
-
-  @Field((_type) => Int, { nullable: false })
-  matches: number;
-
-  @Field((_type) => Int, { nullable: false })
-  groups: number;
-
-  @Field((_type) => Int, { nullable: false })
-  sponsors: number;
-}
-
-@ObjectType()
-class ArchiveEventCounts extends ArchiveEvent{
-  @Field((_type) => RelatedCounts, { nullable: false })
-  relatedCounts: RelatedCounts;
-}
-
-@ObjectType()
-export class GetArchiveEventsResponse extends AppResponse<ArchiveEventCounts[]>{
-  @Field((_type) => [ArchiveEventCounts], { nullable: true })
-  data?: ArchiveEventCounts[];
-}
-
 
 @ObjectType()
 export class CustomEvent extends Event {
@@ -72,6 +27,77 @@ export class CustomEvent extends Event {
   @Field((_type) => [String], { nullable: true })
   groups: string[];
 }
+
+@ObjectType()
+export class CreateOrUpdateEventResponse extends AppResponse<Event> {
+  @Field((_type) => Event, { nullable: true })
+  data?: Event;
+}
+
+@ObjectType()
+export class GetEventsResponse extends AppResponse<Event[]> {
+  @Field((_type) => [Event], { nullable: true })
+  data?: Event[];
+}
+
+@ObjectType()
+export class EventWithFilters {
+
+  @Field((_type) => [CustomEvent], { nullable: false })
+  events?: CustomEvent[];
+
+  @Field((_type) => [CustomMatch], { nullable: false })
+  matches?: CustomMatch[];
+
+  @Field((_type) => [CustomRound], { nullable: false })
+  rounds?: CustomRound[];
+
+  @Field((_type) => [CustomNet], { nullable: false })
+  nets?: CustomNet[];
+
+}
+
+@ObjectType()
+export class GetEventsSearchResponse extends AppResponse<EventWithFilters[]> {
+  @Field((_type) => EventWithFilters, { nullable: true })
+  data?: EventWithFilters;
+}
+
+@ObjectType()
+export class GetEventResponse extends AppResponse<Event> {
+  @Field((_type) => Event, { nullable: true })
+  data?: Event | null;
+}
+
+@ObjectType()
+class RelatedCounts {
+  @Field((_type) => Int, { nullable: false })
+  templates: number;
+
+  @Field((_type) => Int, { nullable: false })
+  matches: number;
+
+  @Field((_type) => Int, { nullable: false })
+  groups: number;
+
+  @Field((_type) => Int, { nullable: false })
+  sponsors: number;
+}
+
+@ObjectType()
+class ArchiveEventCounts extends ArchiveEvent {
+  @Field((_type) => RelatedCounts, { nullable: false })
+  relatedCounts: RelatedCounts;
+}
+
+@ObjectType()
+export class GetArchiveEventsResponse extends AppResponse<ArchiveEventCounts[]> {
+  @Field((_type) => [ArchiveEventCounts], { nullable: true })
+  data?: ArchiveEventCounts[];
+}
+
+
+
 
 
 
@@ -98,7 +124,7 @@ export class EventDetails extends EventMatches {
 
 
 @ObjectType()
-export class PlayerEventSetting{
+export class PlayerEventSetting {
   // event, teams, ldo, sponsors, multiplayer, weight, stats, player
   @Field((_type) => Event, { nullable: true })
   event?: Event;
@@ -137,7 +163,7 @@ export class GetEventDetailsResponse extends AppResponse<EventDetails> {
 
 
 @ObjectType()
-export class GroupsAndUnassignedPlayers{
+export class GroupsAndUnassignedPlayers {
   @Field((_type) => [CustomEvent], { nullable: true })
   events: CustomEvent[];
 
@@ -156,7 +182,7 @@ export class GetEventWithGroupsAndUnassignedPlayersResponse extends AppResponse<
   @Field((_type) => GroupsAndUnassignedPlayers, { nullable: true })
   data?: GroupsAndUnassignedPlayers | null;
 
-  
+
 }
 
 

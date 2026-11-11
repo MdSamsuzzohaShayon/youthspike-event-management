@@ -49,6 +49,7 @@ function SelectInput({
     );
   }
 
+  // No compact
   return (
     <div className={`flex flex-col gap-1 ${className || ''}`}>
       <label htmlFor={name} className="text-sm font-medium text-gray-300 mb-1 capitalize">

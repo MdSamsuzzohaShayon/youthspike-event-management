@@ -47,7 +47,7 @@ async function addMatchHandler({ setMessage, setIsLoading, eventId, createMatch,
       if (showAddMatch) showAddMatch(false);
     }
   } catch (error: any) {
-    console.log(error);
+    console.error(error);
     handleError({ error, setMessage });
   } finally {
     setIsLoading(false);

@@ -44,7 +44,6 @@ export default function MatchesContainer({
 }: MatchesContainerProps) {
   const router = useRouter();
   const { data: initialData } = useReadQuery(queryRef);
-  console.log(initialData);
   
   const apolloClient = useApolloClient();
 
@@ -268,8 +267,7 @@ export default function MatchesContainer({
   const isLoading = isApplyingFilters || isLoadingMore;
   const showInitialLoading = isApplyingFilters && matches.length === 0;
 
-  console.log({event});
-  
+
 
   return (
     <div className="animate-fade-in">

@@ -35,7 +35,7 @@ export class RoundService {
     });
   }
 
-  async find(filter: QueryFilter<Round>, limit?: number, offset?: number) {
+  async find(filter: QueryFilter<Round>,  offset?: number, limit?: number) {
     let query = this.roundModel.find(filter).sort({ num: 1 }); // always sort for stable pagination
 
     if (typeof offset === 'number') {

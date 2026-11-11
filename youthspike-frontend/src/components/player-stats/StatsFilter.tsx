@@ -4,7 +4,7 @@ import React from "react";
 import DateInput from "../elements/DateInput";
 import SelectInput from "../elements/SelectInput";
 import MultiSelectInput from "../elements/MultiSelectInput";
-import { EGroupType, EStatsFilter, IFilter, IOption, IStatsFilterProps } from "@/types";
+import { EGroupType, EStatsFilter, IFilter, IOption } from "@/types";
 
 /** Conference options (unchanged) */
 const CONFERENCE_OPTIONS: IOption[] = [
@@ -12,6 +12,25 @@ const CONFERENCE_OPTIONS: IOption[] = [
   { id: 2, value: EGroupType.CONFERENCE },
   { id: 3, value: EGroupType.NON_CONFERENCE },
 ];
+
+
+export interface IStatsFilterProps {
+  filter: Partial<Record<EStatsFilter, string | string[]>>;
+  /**
+   * Improved type for handler:
+   * key must be a key of IFilter and value must be the correct type for that key.
+   */
+  handleInputChange: <K extends keyof IFilter>(key: K, value: IFilter[K]) => void;
+
+
+  matchOptions: IOption[];
+  gameOptions: IOption[];
+  eventOptions: IOption[];
+  vsClubOptions?: IOption[];
+  teammateOptions?: IOption[];
+  vsPlayerOptions?: IOption[];
+}
+
 
 export default function StatsFilter({
   filter,
@@ -23,7 +42,7 @@ export default function StatsFilter({
   gameOptions,
   eventOptions
 }: IStatsFilterProps) {
-  
+
 
   // Wrapper function to match MultiSelectInput's expected signature
   const handleMultiSelectChange = (name: string, value: string[]) => {
@@ -32,7 +51,7 @@ export default function StatsFilter({
 
   return (
     <div className="flex flex-col justify-start gap-y-4">
-       <SelectInput
+      <SelectInput
         name="event"
         label="Event"
         value={(filter[EStatsFilter.EVENT] as string) || ""}
@@ -103,13 +122,15 @@ export default function StatsFilter({
       />
 
       {/* Teammate */}
-      <MultiSelectInput
-        name="teammate"
-        label="Teammate"
-        value={(filter[EStatsFilter.TEAMMATE] as string[]) || []}
-        onChange={handleMultiSelectChange}
-        optionList={teammateOptions}
-      />
+      {teammateOptions && (
+        <MultiSelectInput
+          name="teammate"
+          label="Teammate"
+          value={(filter[EStatsFilter.TEAMMATE] as string[]) || []}
+          onChange={handleMultiSelectChange}
+          optionList={teammateOptions}
+        />
+      )}
 
       {/* Game Selector (shown only when matches selected) */}
       {filter[EStatsFilter.MATCH] && filter[EStatsFilter.MATCH].length > 0 && (
@@ -123,22 +144,26 @@ export default function StatsFilter({
       )}
 
       {/* VS Club */}
-      <MultiSelectInput
-        name="club"
-        label="VS Club"
-        value={(filter[EStatsFilter.CLUB] as string[]) || []}
-        onChange={handleMultiSelectChange}
-        optionList={vsClubOptions}
-      />
+      {vsClubOptions && (
+        <MultiSelectInput
+          name="club"
+          label="VS Club"
+          value={(filter[EStatsFilter.CLUB] as string[]) || []}
+          onChange={handleMultiSelectChange}
+          optionList={vsClubOptions}
+        />
+      )}
 
       {/* VS Player */}
-      <MultiSelectInput
-        name="vsPlayer"
-        label="VS Player"
-        value={(filter[EStatsFilter.VS_PLAYER] as string[]) || []}
-        onChange={handleMultiSelectChange}
-        optionList={vsPlayerOptions}
-      />
+      {vsPlayerOptions && (
+        <MultiSelectInput
+          name="vsPlayer"
+          label="VS Player"
+          value={(filter[EStatsFilter.VS_PLAYER] as string[]) || []}
+          onChange={handleMultiSelectChange}
+          optionList={vsPlayerOptions}
+        />
+      )}
     </div>
   );
 }

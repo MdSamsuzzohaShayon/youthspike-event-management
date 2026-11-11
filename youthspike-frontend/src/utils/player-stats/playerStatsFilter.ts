@@ -3,7 +3,6 @@ import {
   EGroupType,
   EStatsFilter,
   IEvent,
-  IEventWMatch,
   IFilter,
   IGroup,
   IGroupRelatives,
@@ -94,7 +93,7 @@ export function isNetValidForPlayer(
  * Filter player stats by valid matches and nets.
  */
 export function filterPlayerStats(
-  events: IEventWMatch[],
+  events: IEvent[],
   playerStats: IPlayerStats[],
   filter: Partial<Record<EStatsFilter, string | string[]>>,
   playerId: string,

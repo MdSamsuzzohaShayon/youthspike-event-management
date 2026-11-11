@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import { EStatsFilter, IFilter } from "@/types";
 import { filterToEnum } from "@/utils/helper";
+import { CURRENT_EVENT_ID } from "@/utils/constant";
 
 export function useFilterState(
   initialFilter: Partial<Record<EStatsFilter, string | string[]>> = {}
@@ -20,6 +21,11 @@ export function useFilterState(
       params[EStatsFilter.EVENT] = searchParams.get(
         EStatsFilter.EVENT
       )!;
+
+    if(!searchParams.get(EStatsFilter.EVENT) && searchParams.get(CURRENT_EVENT_ID))
+      params[EStatsFilter.EVENT] = searchParams.get(CURRENT_EVENT_ID)!;
+      
+      
 
     if (searchParams.get(EStatsFilter.START_DATE))
       params[EStatsFilter.START_DATE] = searchParams.get(

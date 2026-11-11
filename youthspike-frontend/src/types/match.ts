@@ -142,18 +142,23 @@ export interface ISearchFilter {
   division: string;
   group: string;
   status: string;
-  
+
   ce: EGroupType;
   matchFilter: string;
   limit?: number;
   offset?: number;
 }
 
-export interface IFilterState extends Omit<ISearchFilter, 'ce' | 'matchFilter' | 'limit' | 'offset'>{
-  search: string;
-  division: string;
-  group: string;
-  status: string;
+export interface IFilterState extends Omit<ISearchFilter, 'ce' | 'matchFilter' | 'limit' | 'offset'> { }
+
+export interface IPlayerStatsSearchFilter extends IFilterState {
+
+  startDate?: string;
+
+  endDate?: string;
+
+  match?: string[];
+
 }
 
 
@@ -162,7 +167,7 @@ export interface ISearchLimitFilter extends ISearchFilter {
   offset: number;
 }
 
-export interface ISearchVariables{
+export interface ISearchVariables {
   filter: Partial<ISearchLimitFilter>;
   eventIds?: string[];
 }
@@ -176,7 +181,7 @@ export interface IUpdateMatchResponse {
 }
 
 
-export interface IMatchSettingDetail{
+export interface IMatchSettingDetail {
   date: string;
   description: string | undefined;
   location: string | undefined;
